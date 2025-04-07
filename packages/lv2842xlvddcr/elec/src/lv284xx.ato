@@ -1,0 +1,174 @@
+import Resistor, Capacitor, Diode, Inductor, ElectricPower, ElectricLogic, ElectricSignal, ResistorVoltageDivider
+from "regulators.ato" import AdjustableRegulator
+
+component _LV2842X:
+    """
+    High Efficiency Wide Input Voltage Range Buck Regulator
+    """
+    footprint = "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR"
+
+    # pins
+    signal CB ~ pin 1
+    signal GND ~ pin 2
+    signal FB ~ pin 3
+    signal SHDN_hash ~ pin 4
+    signal VIN ~ pin 5
+    signal SW ~ pin 6
+
+    power_in = new ElectricPower
+    power_in.vcc ~ VIN
+    power_in.gnd ~ GND
+
+    power_sw_out = new ElectricPower
+    power_sw_out.vcc ~ SW
+    power_sw_out.gnd ~ GND
+
+    signal gnd ~ GND
+
+    bootstrap = new ElectricSignal
+    bootstrap.line ~ CB
+    bootstrap.reference.gnd ~ GND
+
+    feedback = new ElectricSignal
+    feedback.line ~ FB
+    feedback.reference.gnd ~ GND
+
+    shutdown = new ElectricLogic
+    shutdown.line ~ SHDN_hash
+    shutdown.reference.gnd ~ GND
+
+    
+module LV2842XReferenceDesign from AdjustableRegulator:
+    """
+    LV2842 Reference Design
+    Vin: 4.5V to 15V
+    Vout: 0.8V to 42V
+    Iout max: 0.6A
+    Iout max peak: 1.2A
+    Switching Frequency: 1.1MHz
+    """
+    ic = new LV2842X
+    diode = new Diode_1N5819WS
+    input_cap = new Capacitor
+    output_cap = new Capacitor
+    inductor = new SWPA4030S100MT
+    bootstrap_capacitor = new Capacitor
+
+    # values from calcs.ipynb
+    # boot capacitor
+    bootstrap_capacitor.capacitance = 100nF to 1uF
+    bootstrap_capacitor.package = "C0402"
+    bootstrap_capacitor.p1 ~ ic.bootstrap.line
+    bootstrap_capacitor.p2 ~ ic.power_sw_out.vcc
+
+    # Set ouput voltage with the resistor divider
+    feedback_div.power ~ power_out
+    feedback_div.output ~ ic.feedback
+    assert v_ref is 0.765V +/- 0.01% # Datasheet does not specify a range
+    assert v_in within 4.5V to 42V
+    assert v_out within 0.8V to 41V
+    assert i_q within 10uA to 100uA # Manually picked sane value
+    feedback_div.r_top.package = "R0402"
+    feedback_div.r_bottom.package = "R0402"
+    feedback_div.r_top.resistance = 1kohm to 1Mohm
+    feedback_div.r_bottom.resistance = 1kohm to 1Mohm
+
+    power_in ~ ic.power_in
+
+    # Enable
+    # by default the shutdown pin is internally pulled up,
+    # connection it anyway to power in makes routing more compact
+    ic.shutdown.line ~ power_in.vcc
+
+    # Input Capacitor
+    input_cap.power ~ power_in
+    input_cap.capacitance = 1uF to 10uF
+    input_cap.package = "C0805"
+
+    # Output Capacitors
+    output_cap.power ~ power_out
+    output_cap.capacitance = 10uF +/- 20%
+    output_cap.package = "C0805"
+
+    # Diode
+    diode.anode ~ power_out.gnd
+    diode.cathode ~ ic.power_sw_out.vcc
+
+    # Inductor
+    ic.power_sw_out.vcc ~ inductor.p1; inductor.p2 ~ power_out.vcc
+
+    # ripple_current = 0.2A to 0.3A # typically ~ 30% of Iout
+    # v_ripple = 0V to 0.2V # typically ~ 10% of Vout
+
+
+component Diode_1N5819WS from Diode:
+    # component 1N5819WS
+    footprint = "SOD-323_L1.8-W1.3-LS2.5-RD"
+    lcsc_id = "C191023"
+    # pins
+    cathode ~ pin 1
+    anode ~ pin 2
+
+component SWPA4030S100MT from Inductor:
+    # component SWPA4030S100MT
+    footprint = "IND-SMD_L4.0-W4.0"
+    lcsc_id = "C38117"
+    # pins
+    p1 ~ pin 1
+    p2 ~ pin 2
+    assert inductance is 10uH +/- 20%
+
+component LV2842X from _LV2842X:
+    lcsc_id = "C225807"
+    switching_frequency = 830kHz to 1580kHz
+    max_output_current = 1200mA
+component LV2842Y from _LV2842X:
+    #lcsc_id = "-"
+    switching_frequency = 1680kHz to 2520kHz
+    max_output_current = 1200mA
+component LV2841X from _LV2842X:
+    #lcsc_id = "-"
+    switching_frequency = 830kHz to 1580kHz
+    max_output_current = 600mA
+component LV2841Y from _LV2842X:
+    #lcsc_id = "-"
+    switching_frequency = 1680kHz to 2520kHz
+    max_output_current = 600mA
+
+module LV2842Kit from LV2842XReferenceDesign:
+    """
+    Deprecated: Use LV2842XReferenceDesign instead
+    """
+    pass
+
+module Test8V:
+    """
+    Test design
+    """
+    regulator = new LV2842XReferenceDesign
+    assert regulator.v_in is 10V +/- 10%
+    assert regulator.v_out within 8V +/- 2%
+
+module Test5V:
+    """
+    Test design
+    """
+    regulator = new LV2842XReferenceDesign
+    assert regulator.v_in is 10V +/- 10%
+    assert regulator.v_out within 5V +/- 2%
+
+module Test3V3:
+    """
+    Test design
+    """
+    regulator = new LV2842XReferenceDesign
+    assert regulator.v_in is 10V +/- 10%
+    assert regulator.v_out within 3.3V +/- 2%
+
+module Test1V8:
+    """
+    Test design
+    """
+    regulator = new LV2842XReferenceDesign
+    assert regulator.v_in is 10V +/- 10%
+    assert regulator.v_out within 1.8V +/- 5%

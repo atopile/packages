@@ -1,0 +1,138 @@
+import I2C from "generics/interfaces.ato"
+import Power from "generics/interfaces.ato"
+import Resistor from "generics/resistors.ato"
+import Capacitor from "generics/capacitors.ato"
+import DiffPair from "generics/interfaces.ato"
+
+component NAU7802SGI_C5180029:
+    # component NAU7802SGI_C5180029
+    footprint = "SOP-16_L9.9-W3.9-P1.27-LS6.0-BL"
+    lcsc_id = "C5180029"
+    mpn = "C5180029"
+    # pins
+    signal REFP ~ pin 1
+    signal VIN1N ~ pin 2
+    signal VIN1P ~ pin 3
+    signal VIN2N ~ pin 4
+    signal VIN2P ~ pin 5
+    signal VBG ~ pin 6
+    signal REFN ~ pin 7
+    signal AVSS ~ pin 8
+    signal DVSS ~ pin 9
+    signal XIN ~ pin 10
+    signal XOUT ~ pin 11
+    signal DRDY ~ pin 12
+    signal SCL ~ pin 13
+    signal SDA ~ pin 14
+    signal DVDD ~ pin 15
+    signal AVDD_LDO ~ pin 16
+
+
+module NAU7802Base:
+    """Base for the amp without any application-specific components"""
+    # to controller
+    power = new Power
+    i2c = new I2C
+    force = new Power  # / excitation power
+
+    ic = new NAU7802SGI_C5180029
+
+    power.vcc ~ ic.DVDD
+    power.gnd ~ ic.DVSS
+    power.gnd ~ ic.AVSS
+
+    i2c.sda ~ ic.SDA
+    i2c.scl ~ ic.SCL
+    i2c.gnd ~ power.gnd
+
+    # bypass caps
+    vbg_cap = new Capacitor
+    vbg_cap.value = 100nF +/- 20%
+    vbg_cap.package = "0402"
+    ic.VBG ~ vbg_cap.p1; vbg_cap.p2 ~ power.gnd
+
+    refp_cap = new Capacitor
+    refp_cap.value = 100nF +/- 20%
+    refp_cap.package = "0402"
+    ic.REFP ~ refp_cap.p1; refp_cap.p2 ~ power.gnd
+
+    ic.REFN ~ power.gnd
+
+    # excitation power
+    ic.AVDD_LDO ~ force.vcc
+    power.gnd ~ force.gnd
+
+
+module NAU7802 from NAU7802Base:
+    """
+    An NAU7802 configured in a typical single-channel application
+    """
+    # connections to the thing we're sensing
+    sense = new DiffPair
+
+    sense_n_r = new Resistor
+    sense_n_r.value = 51ohm +/- 20%
+    sense_n_r.package = "0402"
+
+    sense_p_r = new Resistor
+    sense_p_r.value = 51ohm +/- 20%
+    sense_p_r.package = "0402"
+
+    sense_cap = new Capacitor
+    sense_cap.value = 100nF +/- 20%
+    sense_cap.package = "0402"
+
+    ic.VIN1N ~ sense_n_r.p1; sense_n_r.p2 ~ sense.n
+    ic.VIN1P ~ sense_p_r.p1; sense_p_r.p2 ~ sense.p
+
+    sense_n_r.p1 ~ sense_cap.p1; sense_cap.p2 ~ sense_p_r.p1
+
+    # recommended to add a cap to the second channel to improve stability
+    # when it's not in use
+    VIN2_cap = new Capacitor
+    VIN2_cap.value = 470pF +/- 50%
+    VIN2_cap.package = "0402"
+    ic.VIN2N ~ VIN2_cap.p1; VIN2_cap.p2 ~ ic.VIN2P
+
+
+module _Filter:
+    """Typical input filter for the sense pins"""
+    input = new DiffPair
+    output = new DiffPair
+
+    sense_n_r = new Resistor
+    sense_n_r.value = 51ohm +/- 20%
+    sense_n_r.package = "0402"
+
+    sense_p_r = new Resistor
+    sense_p_r.value = 51ohm +/- 20%
+    sense_p_r.package = "0402"
+
+    sense_cap = new Capacitor
+    sense_cap.value = 100nF +/- 20%
+    sense_cap.package = "0402"
+
+    input.n ~ sense_n_r.p1; sense_n_r.p2 ~ output.n
+    input.p ~ sense_p_r.p1; sense_p_r.p2 ~ output.p
+
+    sense_n_r.p2 ~ sense_cap.p1; sense_cap.p2 ~ sense_p_r.p2
+
+
+module NAU7802_Dual from NAU7802Base:
+    """
+    An NAU7802 configured in a typical dual-channel application
+    """
+    # connections to the thing you're sensing
+    sense_1 = new DiffPair
+    sense_2 = new DiffPair
+
+    filter_1 = new _Filter
+    filter_2 = new _Filter
+
+    sense_1 ~ filter_1.input
+    sense_2 ~ filter_2.input
+
+    filter_1.output.n ~ ic.VIN1N
+    filter_1.output.p ~ ic.VIN1P
+    filter_2.output.n ~ ic.VIN2N
+    filter_2.output.p ~ ic.VIN2P
