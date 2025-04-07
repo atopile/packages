@@ -1,0 +1,34 @@
+import Capacitor, ElectricPower, ElectricLogic
+
+
+module SK6805EC20:
+    _ic = new _SK6805EC20
+    power = new ElectricPower
+
+    din = new ElectricLogic
+    dout = new ElectricLogic
+
+    power.vcc ~ _ic.VDD
+    power.gnd ~ _ic.GND
+
+    din.line ~ _ic.DIN
+    dout.line ~ _ic.DOUT
+
+    power ~ din.reference
+    power ~ dout.reference
+
+    # decouple power
+    cap = new Capacitor
+    power ~ cap.power
+    cap.package = "C0402"
+    cap.value = 100nF +/- 20%
+
+
+component _SK6805EC20:
+    footprint = "LED-SMD_4P-L2.0-W2.0-BR"
+    lcsc_id = "C2890036"
+
+    signal VDD ~ pin 1
+    signal DOUT ~ pin 2
+    signal GND ~ pin 3
+    signal DIN ~ pin 4
