@@ -1,2 +1,1 @@
-# packages
-First-party packages 📦 from atopile
+# First-party packages 📦 from atopile
