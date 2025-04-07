@@ -1,0 +1,22 @@
+name: "setup-atopile"
+
+description: "Setup atopile"
+
+inputs:
+  atopile-version:
+    description: "Version of atopile to use for publishing."
+    required: true
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest"
+        enable-cache: false
+
+    # TODO: derive atopile version from the ato.yaml
+
+    - run: uv tool install "atopile@${{ inputs.atopile-version }}"
+      shell: bash

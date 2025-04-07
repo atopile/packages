@@ -27,7 +27,6 @@ jobs:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
 
     steps:
-      - uses: docker://ghcr.io/atopile/atopile-kicad:pr-1149
-        with:
-          args: install
-          working-directory: ${{ matrix.package }}
+      - uses: ./actions/setup-atopile.yml
+      - run: ato install
+        working-directory: ${{ matrix.package }}
