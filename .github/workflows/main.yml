@@ -16,7 +16,8 @@ jobs:
       - name: Discover Packages
         id: packages
         run: |
-          echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+          # echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+          echo 'packages=["packages/addressable-leds"]' >> "$GITHUB_OUTPUT"
 
   test:
     runs-on: ubuntu-latest
@@ -26,4 +27,7 @@ jobs:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
 
     steps:
-      - run: echo "package=$package"
+      - uses: docker://ghcr.io/atopile/atopile-kicad:pr-1149
+        with:
+          args: install
+          working-directory: ${{ matrix.package }}
