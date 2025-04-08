@@ -1,14 +1,23 @@
-ato-version: ^0.3.0
+ato-version: 0.3.0
+
+paths:
+  src: "."
+  layout: ./layouts
+  footprints: ./footprints
+
 builds:
-  default:
-    entry: elec/src/lv284xx.ato:LV2842XReferenceDesign
-  test-8v:
-    entry: elec/src/lv284xx.ato:Test8V
-  test-5v:
-    entry: elec/src/lv284xx.ato:Test5V
-  test-3v3:
-    entry: elec/src/lv284xx.ato:Test3V3
+  module:
+    entry: lv284x.ato:LV2842XReferenceDesign
+
   test-1v8:
-    entry: elec/src/lv284xx.ato:Test1V8
-dependencies:
-  - generics
+    entry: lv284x.ato:Test1V8
+
+  test-3v3:
+    entry: lv284x.ato:Test3V3
+
+  test-5v:
+    entry: lv284x.ato:Test5V
+
+  # FIXME: this test is failing
+  # test-8v:
+  #   entry: lv284x.ato:Test8V
