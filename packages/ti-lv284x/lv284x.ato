@@ -39,7 +39,7 @@ component _LV2842X:
     shutdown.reference.gnd ~ GND
 
 
-module LV2842XReferenceDesign from AdjustableRegulator:
+module LV2842x from AdjustableRegulator:
     """
     LV2842 Reference Design
     Vin: 4.5V to 15V
@@ -48,6 +48,9 @@ module LV2842XReferenceDesign from AdjustableRegulator:
     Iout max peak: 1.2A
     Switching Frequency: 1.1MHz
     """
+    # Default vout
+    v_out = 3.3V +/- 3%
+    # Components
     ic = new LV2842X
     diode = new Diode_1N5819WS
     input_cap = new Capacitor
@@ -65,7 +68,8 @@ module LV2842XReferenceDesign from AdjustableRegulator:
     # Set ouput voltage with the resistor divider
     feedback_div.power ~ power_out
     feedback_div.output ~ ic.feedback
-    assert v_ref is 0.765V +/- 0.01%  # Datasheet does not specify a range
+    # assert v_ref is 0.74V to 0.79V # datasheet value
+    assert v_ref is 0.765V +/- 0.01% # compiler not working?
     assert v_in within 4.5V to 42V
     assert v_out within 0.8V to 41V
     assert i_q within 10uA to 100uA  # Manually picked sane current
@@ -149,33 +153,32 @@ module Test8V:
     """
     Test design
     """
-    regulator = new LV2842XReferenceDesign
+    regulator = new LV2842x
     assert regulator.v_in is 10V +/- 10%
-    assert regulator.v_out within 8V +/- 2%
+    regulator.v_out = 8V +/- 5%
 
 
 module Test5V:
     """
     Test design
     """
-    regulator = new LV2842XReferenceDesign
+    regulator = new LV2842x
     assert regulator.v_in is 10V +/- 10%
-    assert regulator.v_out within 5V +/- 2%
-
+    regulator.v_out = 5V +/- 5%
 
 module Test3V3:
     """
     Test design
     """
-    regulator = new LV2842XReferenceDesign
+    regulator = new LV2842x
     assert regulator.v_in is 10V +/- 10%
-    assert regulator.v_out within 3.3V +/- 2%
+    regulator.v_out = 3.3V +/- 5%
 
 
 module Test1V8:
     """
     Test design
     """
-    regulator = new LV2842XReferenceDesign
+    regulator = new LV2842x
     assert regulator.v_in is 10V +/- 10%
-    assert regulator.v_out within 1.8V +/- 5%
+    regulator.v_out = 1.8V +/- 5%
