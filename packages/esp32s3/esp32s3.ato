@@ -1,4 +1,4 @@
-import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0, JTAG, ElectricLogic
+import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0_IF, JTAG, ElectricLogic
 
 from "atopile/buttons/buttons.ato" import ButtonPullup, ButtonSKRPACE010
 
@@ -38,7 +38,7 @@ module ESP32S3:
     enable_button.btn -> ButtonSKRPACE010
 
     # connect up USB
-    usb2 = new USB2_0
+    usb2 = new USB2_0_IF
     usb2.usb_if.d.n ~ ic.IO19
     usb2.usb_if.d.p ~ ic.IO20
 
