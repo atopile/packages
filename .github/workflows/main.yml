@@ -27,6 +27,9 @@ jobs:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
 
     steps:
-      - uses: ./actions/setup-atopile.yml
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-atopile.yml
+
       - run: ato install
         working-directory: ${{ matrix.package }}
