@@ -1,0 +1,74 @@
+# FIXME: should be a textbook use case for specialization
+# however due to the rift between ato and faebryk specialization
+# we cannot:
+#   1. treat component selections as defaults
+#   2. use specialization within fabll modules
+
+import LED, Resistor, ElectricPower
+
+
+module LEDIndicator:
+    power = new ElectricPower
+
+    current_limiting_resistor = new Resistor
+    led = new LED
+
+    current_limiting_resistor.package = "R0402"
+
+    current = 0.5mA to 3mA
+
+    assert (power.voltage - led.forward_voltage) / current_limiting_resistor.resistance is current
+    assert current < led.max_current
+
+    # Sanity check the voltage is within a safe range
+    # for this module's design
+    # FIXME: we can't ensure the power interface's forward voltage is set at all
+    assert power.voltage < 60V
+    assert power.voltage > led.forward_voltage
+
+    power.hv ~ led.anode; led.cathode ~ current_limiting_resistor.p1; current_limiting_resistor.p2 ~ power.gnd
+
+
+module LEDIndicatorRed from LEDIndicator:
+    led -> _KT_0603R
+
+
+module LEDIndicatorGreen from LEDIndicator:
+    led -> _KT_0603G
+
+
+module LEDIndicatorBlue from LEDIndicator:
+    led -> _KT_0603B
+
+
+component _KT_0603B from LED:
+    # component Blue light 0603
+    footprint = "LED0603-RD"
+    lcsc_id = "C2288"
+    forward_voltage = 2.9V +/- 10%
+    max_current = 20mA +/- 20%
+    # pins
+    cathode ~ pin 1
+    anode ~ pin 2
+
+
+component _KT_0603G from LED:
+    # component 0603 Green 509-620mcd
+    footprint = "LED0603-RD"
+    lcs = "C12624"
+    forward_voltage = 2.75V +/- 10%
+    max_current = 20mA +/- 20%
+    # pins
+    anode ~ pin 2
+    cathode ~ pin 1
+
+
+component _KT_0603R from LED:
+    # component KT-0603R
+    footprint = "LED0603-RD"
+    lcs = "C2286"
+    forward_voltage = 2V +/- 10%
+    max_current = 20mA +/- 20%
+    # pins
+    cathode ~ pin 1
+    anode ~ pin 2
