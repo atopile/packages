@@ -13,7 +13,7 @@ import Power from "generics/interfaces.ato"
 module SaleaeDebugHeader:
     # Power interface
     power = new Power
-    
+
     # Header for debugging
     debug_header = new saleae-header
     debug_header.pins = 8  # Assuming an 8-pin header for simplicity
@@ -47,21 +47,21 @@ module SaleaeDebugHeader:
 
 ## Features
 
-### Debug Interface: 
+### Debug Interface:
 Configured for direct connection with Saleae logic analyzers.
 
-### Signal Access: 
+### Signal Access:
 
 Provides easy access to signals for monitoring and debugging.
 
-### SPI Interface: 
+### SPI Interface:
 
 Includes connections for SPI bus monitoring.
 
-### I2C Interface: 
+### I2C Interface:
 Includes connections for I2C bus monitoring.
 
-### Power Connections: 
+### Power Connections:
 Accommodates power (VCC) and ground (GND) for the probe.
 
 
@@ -73,4 +73,3 @@ This battery connector module is provided under the MIT License.
 
 ## Contact
 For further inquiries or support, please contact me at narayan@atopile.io.
-
