@@ -29,9 +29,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # TODO: consider using the docker image instead
       - uses: ./.github/actions/setup-atopile
 
       - run: ato install
+        working-directory: ${{ matrix.package }}
+        env:
+          NONINTERACTIVE: 1
+
+      - run: ato build
         working-directory: ${{ matrix.package }}
         env:
           NONINTERACTIVE: 1
