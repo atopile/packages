@@ -6,11 +6,17 @@ from "regulators.ato" import AdjustableRegulator
 module TPS63020DSJR from AdjustableRegulator:
     ic = new _TPS63020DSJR
 
-    v_ref = 500mV
-    v_out = 3.3V +/- 10%
+    # Example output voltage, can be overridden by the user
+    # assert v_out within 3.3V +/- 3%
+    v_out = 3.3V +/- 3%
 
+    # Datasheet values
+    assert v_ref is 495mV to 505mV
     assert v_in within 1.8V to 5.5V
     assert v_out within 1.2V to 5.5V
+
+    # Best practices value
+    assert i_q within 1uA to 1mA
 
     # Connect power interfaces
     # power in
@@ -71,6 +77,18 @@ module TPS63020DSJR from AdjustableRegulator:
     inductor.p2 ~ ic.L2
 
     inductor -> _WPN252012H1R5MT
+
+
+module Test1v8:
+    regulator = new TPS63020DSJR
+    assert regulator.v_in is 5V
+    regulator.v_out = 1.8V +/- 3%
+
+
+module Test3v3:
+    regulator = new TPS63020DSJR
+    assert regulator.v_in is 5V
+    regulator.v_out = 3.3V +/- 3%
 
 
 component _WPN252012H1R5MT from Inductor:
