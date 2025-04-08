@@ -1,25 +1,8 @@
-import RP2040 from "RP2040.ato"
+import I2C, SPI, UART, USB2, QSPI, Power, Resistor, Capacitor
 
-import Resistor from "generics/resistors.ato"
-import Capacitor from "generics/capacitors.ato"
-import ButtonPullup from "generics/buttons.ato"
+from "RP2040.ato" import RP2040
+from "atopile/buttons/buttons.ato" import ButtonPullup
 
-from "generics/interfaces.ato" import I2C, SPI, UART, USB2, QSPI, Power
-
-# # add default for backwards compatibility
-# module RP2040Kit from RP2040Core:
-#     """
-#     Default implementation, powered by 3v3 rail input
-#     """
-#     power_3v3 ~ micro.usb_phy_power
-
-
-# module USB_Powered_RP2040Kit from RP2040Core:
-#     """
-#     USB powered implementation
-#     """
-#     power_usb = new Power
-#     power_usb ~ micro.usb_phy_power
 
 module RP2040Kit:
     # External interfaces
@@ -30,11 +13,11 @@ module RP2040Kit:
     uart = new UART
     usb2 = new USB2
 
-    # depricated name for backwards compatibility
+    # deprecated name for backwards compatibility
     power = new Power
     usb_if = new USB2
 
-    # connect depricated interfaces to new interfaces
+    # connect deprecated interfaces to new interfaces
     power ~ power_3v3
     usb_if ~ usb2
 
@@ -167,8 +150,8 @@ component BypassCap1uF from BypassCap:
 
 
 component _X322512MSB4SI:
-    frequency = "12MHz"
-    mpn = "C9002"
+    frequency = 12MHz
+    lcsc_id = "C9002"
     footprint = "OSC-SMD_4P-L3.2-W2.5-BL"
     signal in ~ pin 1
     signal out ~ pin 3
@@ -206,7 +189,7 @@ module _Oscillator:
 
 component _W25Q128JVSIQ:
     footprint = "SOIC-8_L5.3-W5.3-P1.27-LS8.0-BL"
-    mpn = "C97521"
+    lcsc_id = "C97521"
 
     # pins
     signal ncs ~ pin 1
