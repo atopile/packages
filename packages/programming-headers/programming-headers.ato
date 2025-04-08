@@ -1,0 +1,72 @@
+import JTAG, Power, SWD
+
+
+module JTAG_10PIN:
+    jtag = new JTAG
+    connector = new HB_PH9_12725PB2GOB
+
+    jtag.tck.line ~ connector.4
+    jtag.tms.line ~ connector.2
+    jtag.tdi.line ~ connector.8
+    jtag.tdo.line ~ connector.6
+    jtag.n_trst.line ~ connector.10
+
+    jtag.vtref.hv ~ connector.1
+    jtag.vtref.gnd ~ connector.3
+    jtag.vtref.gnd ~ connector.5
+    jtag.vtref.gnd ~ connector.9
+
+    swd = new SWD
+    swd.dio.line ~ connector.2
+    swd.clk.line ~ connector.4
+    swd.swo.line ~ connector.6
+
+    swd.dio.reference.gnd ~ connector.3
+    swd.dio.reference.gnd ~ connector.5
+    swd.dio.reference.gnd ~ connector.9
+
+
+component JTAG_TC2050:
+    jtag = new JTAG
+    connector = new _TC2050
+
+    jtag.tdo.line ~ connector.6
+    jtag.tdi.line ~ connector.8
+    jtag.tms.line ~ connector.2
+    jtag.tck.line ~ connector.4
+    jtag.n_trst.line ~ connector.10
+
+    jtag.vtref.hv ~ connector.1
+    jtag.vtref.gnd ~ connector.3
+    jtag.vtref.gnd ~ connector.5
+
+
+component _TC2050:
+    footprint = "TAG-CONNECT_TC2050-IDC"
+    # FIXME: this needs a do-not-populate or similar
+
+    pin 1
+    pin 2
+    pin 3
+    pin 4
+    pin 5
+    pin 6
+    pin 8
+    pin 10
+
+
+component HB_PH9_12725PB2GOB:
+    footprint = "HDR-SMD_10P-P1.27-V-M-R2-C5-LS5.3"
+    lcsc_id = "C6332249"
+
+    # pins
+    signal _1 ~ pin 1
+    signal _10 ~ pin 10
+    signal _3 ~ pin 3
+    signal _8 ~ pin 8
+    signal _5 ~ pin 5
+    signal _6 ~ pin 6
+    signal _7 ~ pin 7
+    signal _4 ~ pin 4
+    signal _9 ~ pin 9
+    signal _2 ~ pin 2
