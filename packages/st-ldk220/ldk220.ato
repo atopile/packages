@@ -1,5 +1,6 @@
-from "regulators.ato" import AdjustableLDO
 import Capacitor
+from "regulators.ato" import AdjustableLDO
+
 
 module LDK220M_R from AdjustableLDO:
     """Adjustable LDO with 1.185V reference voltage,
@@ -35,15 +36,17 @@ module LDK220M_R from AdjustableLDO:
 
     power_in.gnd ~ power_out.gnd
 
-module App from LDK220M_R:
+
+module Test from LDK220M_R:
     """Test module for the LDK220M-R"""
     assert v_out within 3.3V +/- 5%
     assert v_in is 5V +/- 5%
 
+
 component _LDK220M_R:
-    # component LDK220M-R
     footprint = "SOT-23-5_L3.0-W1.7-P0.95-LS2.8-BL"
     lcsc_id = "C443854"
+
     # pins
     signal IN ~ pin 1
     signal GND ~ pin 2
