@@ -1,30 +1,6 @@
 import I2C, Resistor, Capacitor, ElectricPower, DifferentialPair
 
 
-component NAU7802SGI_C5180029:
-    # component NAU7802SGI_C5180029
-    footprint = "SOP-16_L9.9-W3.9-P1.27-LS6.0-BL"
-    lcsc_id = "C5180029"
-    lcsc_id = "C5180029"
-    # pins
-    signal REFP ~ pin 1
-    signal VIN1N ~ pin 2
-    signal VIN1P ~ pin 3
-    signal VIN2N ~ pin 4
-    signal VIN2P ~ pin 5
-    signal VBG ~ pin 6
-    signal REFN ~ pin 7
-    signal AVSS ~ pin 8
-    signal DVSS ~ pin 9
-    signal XIN ~ pin 10
-    signal XOUT ~ pin 11
-    signal DRDY ~ pin 12
-    signal SCL ~ pin 13
-    signal SDA ~ pin 14
-    signal DVDD ~ pin 15
-    signal AVDD_LDO ~ pin 16
-
-
 module NAU7802Base:
     """Base for the amp without any application-specific components"""
     # to controller
@@ -32,7 +8,7 @@ module NAU7802Base:
     i2c = new I2C
     force = new ElectricPower  # / excitation power
 
-    ic = new NAU7802SGI_C5180029
+    ic = new NAU7802SGI
 
     power.hv ~ ic.DVDD
     power.gnd ~ ic.DVSS
@@ -40,16 +16,16 @@ module NAU7802Base:
 
     i2c.sda ~ ic.SDA
     i2c.scl ~ ic.SCL
-    i2c.gnd ~ power.gnd
+    i2c.sda.reference.gnd ~ power.gnd
 
     # bypass caps
     vbg_cap = new Capacitor
-    vbg_cap.value = 100nF +/- 20%
+    vbg_cap.capacitance = 100nF +/- 20%
     vbg_cap.package = "C0402"
     ic.VBG ~ vbg_cap.p1; vbg_cap.p2 ~ power.gnd
 
     refp_cap = new Capacitor
-    refp_cap.value = 100nF +/- 20%
+    refp_cap.capacitance = 100nF +/- 20%
     refp_cap.package = "C0402"
     ic.REFP ~ refp_cap.p1; refp_cap.p2 ~ power.gnd
 
@@ -68,16 +44,16 @@ module NAU7802 from NAU7802Base:
     sense = new DifferentialPair
 
     sense_n_r = new Resistor
-    sense_n_r.value = 51ohm +/- 20%
-    sense_n_r.package = "0402"
+    sense_n_r.resistance = 51ohm +/- 20%
+    sense_n_r.package = "R0402"
 
     sense_p_r = new Resistor
-    sense_p_r.value = 51ohm +/- 20%
-    sense_p_r.package = "0402"
+    sense_p_r.resistance = 51ohm +/- 20%
+    sense_p_r.package = "R0402"
 
     sense_cap = new Capacitor
-    sense_cap.value = 100nF +/- 20%
-    sense_cap.package = "0402"
+    sense_cap.capacitance = 100nF +/- 20%
+    sense_cap.package = "C0402"
 
     ic.VIN1N ~ sense_n_r.p1; sense_n_r.p2 ~ sense.n
     ic.VIN1P ~ sense_p_r.p1; sense_p_r.p2 ~ sense.p
@@ -87,32 +63,9 @@ module NAU7802 from NAU7802Base:
     # recommended to add a cap to the second channel to improve stability
     # when it's not in use
     VIN2_cap = new Capacitor
-    VIN2_cap.value = 470pF +/- 50%
-    VIN2_cap.package = "0402"
+    VIN2_cap.capacitance = 470pF +/- 50%
+    VIN2_cap.package = "C0402"
     ic.VIN2N ~ VIN2_cap.p1; VIN2_cap.p2 ~ ic.VIN2P
-
-
-module _Filter:
-    """Typical input filter for the sense pins"""
-    input = new DifferentialPair
-    output = new DifferentialPair
-
-    sense_n_r = new Resistor
-    sense_n_r.value = 51ohm +/- 20%
-    sense_n_r.package = "0402"
-
-    sense_p_r = new Resistor
-    sense_p_r.value = 51ohm +/- 20%
-    sense_p_r.package = "0402"
-
-    sense_cap = new Capacitor
-    sense_cap.value = 100nF +/- 20%
-    sense_cap.package = "0402"
-
-    input.n ~ sense_n_r.p1; sense_n_r.p2 ~ output.n
-    input.p ~ sense_p_r.p1; sense_p_r.p2 ~ output.p
-
-    sense_n_r.p2 ~ sense_cap.p1; sense_cap.p2 ~ sense_p_r.p2
 
 
 module NAU7802_Dual from NAU7802Base:
@@ -133,3 +86,49 @@ module NAU7802_Dual from NAU7802Base:
     filter_1.output.p ~ ic.VIN1P
     filter_2.output.n ~ ic.VIN2N
     filter_2.output.p ~ ic.VIN2P
+
+
+module _Filter:
+    """Typical input filter for the sense pins"""
+    input = new DifferentialPair
+    output = new DifferentialPair
+
+    sense_n_r = new Resistor
+    sense_n_r.resistance = 51ohm +/- 20%
+    sense_n_r.package = "R0402"
+
+    sense_p_r = new Resistor
+    sense_p_r.resistance = 51ohm +/- 20%
+    sense_p_r.package = "R0402"
+
+    sense_cap = new Capacitor
+    sense_cap.capacitance = 100nF +/- 20%
+    sense_cap.package = "C0402"
+
+    input.n ~ sense_n_r.p1; sense_n_r.p2 ~ output.n
+    input.p ~ sense_p_r.p1; sense_p_r.p2 ~ output.p
+
+    sense_n_r.p2 ~ sense_cap.p1; sense_cap.p2 ~ sense_p_r.p2
+
+
+component NAU7802SGI:
+    footprint = "SOP-16_L9.9-W3.9-P1.27-LS6.0-BL"
+    lcsc_id = "C5180029"
+
+    # pins
+    signal REFP ~ pin 1
+    signal VIN1N ~ pin 2
+    signal VIN1P ~ pin 3
+    signal VIN2N ~ pin 4
+    signal VIN2P ~ pin 5
+    signal VBG ~ pin 6
+    signal REFN ~ pin 7
+    signal AVSS ~ pin 8
+    signal DVSS ~ pin 9
+    signal XIN ~ pin 10
+    signal XOUT ~ pin 11
+    signal DRDY ~ pin 12
+    signal SCL ~ pin 13
+    signal SDA ~ pin 14
+    signal DVDD ~ pin 15
+    signal AVDD_LDO ~ pin 16
