@@ -25,3 +25,9 @@ Package name restrictions:
   - omit the manufacturer stub from the filename
 
 - components should be named like "<part-id>"
+
+- build names should be:
+  - "ref-<name>" for reference designs
+  - "test-<name>" for test builds
+  - "example-<name>" for example builds
+  - if only one IC/set of builds exist in a package, the name can be omitted
