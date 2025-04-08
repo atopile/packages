@@ -18,5 +18,7 @@ runs:
 
     # TODO: derive atopile version from the ato.yaml
 
-    - run: uv tool install "atopile@${{ inputs.atopile-version }}"
+    # FIXME: this is a workaround to get the latest atopile version
+    # - run: uv tool install "atopile@${{ inputs.atopile-version }}"
+    - run: uv tool install git+https://github.com/atopile/atopile@mawildoer/package-monorepo
       shell: bash
