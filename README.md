@@ -19,3 +19,9 @@ Package name restrictions:
 - drivers for ICs SHOULD be in the format "<manufacturer-stub>-<part-family>x?". eg ti-bq240x
   - there should be a single "x" on the end if there are multiple variants of the same part family
   - the manufacturer stub should be omitted if the they already do this for ths
+
+- modules and files should be named like "<part-family>x?"
+  - "x" is optional if there is only one variant of the part family
+  - omit the manufacturer stub from the filename
+
+- components should be named like "<part-id>"
