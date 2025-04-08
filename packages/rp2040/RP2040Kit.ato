@@ -13,14 +13,6 @@ module RP2040Kit:
     uart = new UART
     usb2 = new USB2
 
-    # deprecated name for backwards compatibility
-    power = new Power
-    usb_if = new USB2
-
-    # connect deprecated interfaces to new interfaces
-    power ~ power_3v3
-    usb_if ~ usb2
-
     # Components
     micro = new RP2040
     reset_btn = new ButtonPullup
@@ -47,17 +39,17 @@ module RP2040Kit:
     # Boot button
     boot_btn.power ~ power_3v3
     boot_btn.out ~ micro.qspi_ss_n
-    boot_btn.pullup.value = 10kohms +/- 5%
+    boot_btn.pullup.resistance = 10kohms +/- 5%
 
     # Configure the USB series resistors
-    r_usb_d_plus.value = 27ohms +/- 5%
+    r_usb_d_plus.resistance = 27ohms +/- 5%
     r_usb_d_plus.footprint = "R0402"
-    r_usb_d_minus.value = 27ohms +/- 5%
+    r_usb_d_minus.resistance = 27ohms +/- 5%
     r_usb_d_minus.footprint = "R0402"
 
     # Connect series resistors to usb
-    usb_if.dp ~ r_usb_d_plus.p2; r_usb_d_plus.p1 ~ micro.usb_dp
-    usb_if.dm ~ r_usb_d_minus.p1; r_usb_d_minus.p2 ~ micro.usb_dm
+    usb.d.p ~ r_usb_d_plus.p2; r_usb_d_plus.p1 ~ micro.usb_dp
+    usb.d.n ~ r_usb_d_minus.p1; r_usb_d_minus.p2 ~ micro.usb_dm
 
     # Flash
     power_3v3 ~ flash.power
@@ -142,11 +134,11 @@ component BypassCap from Capacitor:
 
 
 component BypassCap100nF from BypassCap:
-    value = 100nF +/- 20%
+    capacitance = 100nF +/- 20%
 
 
 component BypassCap1uF from BypassCap:
-    value = 1uF +/- 20%
+    capacitance = 1uF +/- 20%
 
 
 component _X322512MSB4SI:
@@ -171,16 +163,16 @@ module _Oscillator:
 
     # output resistor
     r_osc = new Resistor
-    r_osc.value = 1kohms +/- 5%
+    r_osc.resistance = 1kohms +/- 5%
     r_osc.footprint = "R0402"
     output ~ r_osc.p1; r_osc.p2 ~ osc.out
 
     # load caps
     c_osc_1 = new Capacitor
-    c_osc_1.value = 20pF +/- 20%
+    c_osc_1.capacitance = 20pF +/- 20%
     c_osc_1.footprint = "C0402"
     c_osc_2 = new Capacitor
-    c_osc_2.value = 20pF +/- 20%
+    c_osc_2.capacitance = 20pF +/- 20%
     c_osc_2.footprint = "C0402"
 
     input ~ c_osc_1.p1; c_osc_1.p2 ~ gnd

@@ -64,7 +64,7 @@ module ButtonPullup:
     output = new ElectricSignal
     pullup = new Resistor
 
-    pullup.value = 10kohms +/- 20%
+    pullup.resistance = 10kohms +/- 20%
     pullup.package = "R0402"
 
     output.reference.hv ~ pullup.p1; pullup.p2 ~ btn.in; btn.out ~ output.reference.gnd
@@ -74,7 +74,7 @@ module ButtonPulldown:
     btn = new NoButton
     output = new ElectricSignal
     pulldown = new Resistor
-    pulldown.value = 10kohms +/- 20%
+    pulldown.resistance = 10kohms +/- 20%
     pulldown.package = "R0402"
 
     output.reference.gnd ~ pulldown.p1; pulldown.p2 ~ btn.in; btn.out ~ output.reference.hv

@@ -1,4 +1,5 @@
-from "generics/interfaces.ato" import I2C, SPI, UART, USB2, QSPI, Power
+import I2C, SPI, UART, USB2_0_IF, QSPI, Power
+
 
 component RP2040:
     signal iovdd ~ pin 1
@@ -72,6 +73,9 @@ component RP2040:
 
     # The TESTEN pin is used for factory testing and should be tied to GND
     gnd ~ testen
+
+    # FIXME: it's poor practice to embed interfaces within components
+    # elevate these out to the driver level
 
     # USB phy power is a nominal 3v3
     # But can be tied to IOVDD is USB is not used
