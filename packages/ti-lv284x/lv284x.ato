@@ -1,6 +1,7 @@
 import Resistor, Capacitor, Diode, Inductor, ElectricPower, ElectricLogic, ElectricSignal, ResistorVoltageDivider
 from "regulators.ato" import AdjustableRegulator
 
+
 component _LV2842X:
     """
     High Efficiency Wide Input Voltage Range Buck Regulator
@@ -37,7 +38,7 @@ component _LV2842X:
     shutdown.line ~ SHDN_hash
     shutdown.reference.gnd ~ GND
 
-    
+
 module LV2842XReferenceDesign from AdjustableRegulator:
     """
     LV2842 Reference Design
@@ -54,7 +55,7 @@ module LV2842XReferenceDesign from AdjustableRegulator:
     inductor = new SWPA4030S100MT
     bootstrap_capacitor = new Capacitor
 
-    # values from calcs.ipynb
+    # from calcs.ipynb
     # boot capacitor
     bootstrap_capacitor.capacitance = 100nF to 1uF
     bootstrap_capacitor.package = "C0402"
@@ -64,10 +65,10 @@ module LV2842XReferenceDesign from AdjustableRegulator:
     # Set ouput voltage with the resistor divider
     feedback_div.power ~ power_out
     feedback_div.output ~ ic.feedback
-    assert v_ref is 0.765V +/- 0.01% # Datasheet does not specify a range
+    assert v_ref is 0.765V +/- 0.01%  # Datasheet does not specify a range
     assert v_in within 4.5V to 42V
     assert v_out within 0.8V to 41V
-    assert i_q within 10uA to 100uA # Manually picked sane value
+    assert i_q within 10uA to 100uA  # Manually picked sane current
     feedback_div.r_top.package = "R0402"
     feedback_div.r_bottom.package = "R0402"
     feedback_div.r_top.resistance = 1kohm to 1Mohm
@@ -109,6 +110,7 @@ component Diode_1N5819WS from Diode:
     cathode ~ pin 1
     anode ~ pin 2
 
+
 component SWPA4030S100MT from Inductor:
     # component SWPA4030S100MT
     footprint = "IND-SMD_L4.0-W4.0"
@@ -118,28 +120,30 @@ component SWPA4030S100MT from Inductor:
     p2 ~ pin 2
     assert inductance is 10uH +/- 20%
 
+
 component LV2842X from _LV2842X:
     lcsc_id = "C225807"
     switching_frequency = 830kHz to 1580kHz
     max_output_current = 1200mA
+
+
 component LV2842Y from _LV2842X:
     #lcsc_id = "-"
     switching_frequency = 1680kHz to 2520kHz
     max_output_current = 1200mA
+
+
 component LV2841X from _LV2842X:
     #lcsc_id = "-"
     switching_frequency = 830kHz to 1580kHz
     max_output_current = 600mA
+
+
 component LV2841Y from _LV2842X:
     #lcsc_id = "-"
     switching_frequency = 1680kHz to 2520kHz
     max_output_current = 600mA
 
-module LV2842Kit from LV2842XReferenceDesign:
-    """
-    Deprecated: Use LV2842XReferenceDesign instead
-    """
-    pass
 
 module Test8V:
     """
@@ -149,6 +153,7 @@ module Test8V:
     assert regulator.v_in is 10V +/- 10%
     assert regulator.v_out within 8V +/- 2%
 
+
 module Test5V:
     """
     Test design
@@ -157,6 +162,7 @@ module Test5V:
     assert regulator.v_in is 10V +/- 10%
     assert regulator.v_out within 5V +/- 2%
 
+
 module Test3V3:
     """
     Test design
@@ -164,6 +170,7 @@ module Test3V3:
     regulator = new LV2842XReferenceDesign
     assert regulator.v_in is 10V +/- 10%
     assert regulator.v_out within 3.3V +/- 2%
+
 
 module Test1V8:
     """
