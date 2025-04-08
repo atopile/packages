@@ -1,34 +1,60 @@
-import KH_TYPE_C_16P from "elec/src/KH-TYPE-C-16P.ato"
-import Power from "generics/interfaces.ato"
-import USB2 from "generics/interfaces.ato"
-import Resistor from "generics/resistors.ato"
+import ElectricPower, Resistor, USB2_0_IF
+from "KH-TYPE-C-16P.ato" import KH_TYPE_C_16P
+
 
 module GenericUSBConn:
-    power = new Power
-    usb2 = new USB2
+    usb2 = new USB2_0_IF
+
 
 module USBCConn from GenericUSBConn:
     signal gnd
     conn = new KH_TYPE_C_16P
 
     # Connect VBUS
-    conn.VBUS ~ power.vcc
-    conn.GND ~ power.gnd
-    conn.EP ~ power.gnd
+    conn.VBUS ~ usb2.buspower.hv
+    conn.GND ~ usb2.buspower.gnd
+    conn.EP ~ usb2.buspower.gnd
 
     # Connect USB
-    conn.DN1 ~ usb2.dm
-    conn.DN2 ~ usb2.dm
-    conn.DP1 ~ usb2.dp
-    conn.DP2 ~ usb2.dp
+    conn.DP1 ~ usb2.d.p
+    conn.DP2 ~ usb2.d.p
+    conn.DN1 ~ usb2.d.n
+    conn.DN2 ~ usb2.d.n
 
     # Add CC resistors
     cc1_res = new Resistor
     cc2_res = new Resistor
-    cc1_res.value = 5.1kohms +/- 20%
-    cc2_res.value = 5.1kohms +/- 20%
-    cc1_res.package = "0402"
-    cc2_res.package = "0402"
+    cc1_res.resistance = 5.1kohms +/- 20%
+    cc2_res.resistance = 5.1kohms +/- 20%
+    cc1_res.package = "R0402"
+    cc2_res.package = "R0402"
 
-    conn.CC1 ~ cc1_res.p1; cc1_res.p2 ~ power.gnd
-    conn.CC2 ~ cc2_res.p1; cc2_res.p2 ~ power.gnd
+    conn.CC1 ~ cc1_res.p1; cc1_res.p2 ~ usb2.buspower.gnd
+    conn.CC2 ~ cc2_res.p1; cc2_res.p2 ~ usb2.buspower.gnd
+
+
+component KH_TYPE_C_16P:
+    footprint = "USB-C-SMD_KH-TYPE-C-16P"
+    lcsc_id = "C709357"
+
+    # pins
+    signal GND ~ pin A12
+    signal VBUS ~ pin A9
+    signal SUB1 ~ pin A8
+    signal DN1 ~ pin A7
+    signal DP1 ~ pin A6
+    signal CC1 ~ pin A5
+    VBUS ~ pin A4
+    GND ~ pin A1
+    GND ~ pin B12
+    VBUS ~ pin B9
+    signal SUB2 ~ pin B8
+    signal DN2 ~ pin B7
+    signal DP2 ~ pin B6
+    signal CC2 ~ pin B5
+    VBUS ~ pin B4
+    GND ~ pin B1
+    signal EP ~ pin 1
+    EP ~ pin 2
+    EP ~ pin 3
+    EP ~ pin 4
