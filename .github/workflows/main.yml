@@ -38,8 +38,9 @@ jobs:
       #   with:
       #     args: build --frozen
       - uses: docker://ghcr.io/atopile/atopile-kicad:latest
-        entrypoint: /bin/bash
-        args: -c ato sync && ato build --frozen
+        with:
+          entrypoint: /bin/bash
+          args: -c ato sync && ato build --frozen
 
   publish:
     if: ${{ github.ref == 'refs/heads/main' }}
