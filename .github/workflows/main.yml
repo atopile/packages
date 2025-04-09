@@ -33,10 +33,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: atopile/run-atopile@main
         with:
-          args: sync
+          args: sync ${{ matrix.package }}
       - uses: atopile/run-atopile@main
         with:
-          args: build --frozen
+          args: build --frozen ${{ matrix.package }}
 
 
   publish:
