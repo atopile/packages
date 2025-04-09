@@ -31,14 +31,10 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
-      # FIXME: re-add once sync works
-      # - uses: atopile/run-atopile@main
-      #   with:
-      #     args: sync ${{ matrix.package }}
       - uses: atopile/run-atopile@main
         with:
-          args: "build --frozen ${{ matrix.package }}"
+          # TODO: re-add ato sync
+          args: "ato build --frozen ${{ matrix.package }}"
 
 
   publish:
