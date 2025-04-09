@@ -28,6 +28,7 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +50,7 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
+      fail-fast: false
 
     permissions:
       id-token: write
