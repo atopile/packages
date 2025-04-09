@@ -16,8 +16,8 @@ jobs:
       - name: Discover Packages
         id: packages
         run: |
-          # echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
-          echo 'packages=["packages/addressable-leds"]' >> "$GITHUB_OUTPUT"
+          echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+          # echo 'packages=["packages/addressable-leds"]' >> "$GITHUB_OUTPUT"
 
   test:
     permissions:
@@ -31,9 +31,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: atopile/run-atopile@main
-        with:
-          args: sync ${{ matrix.package }}
+      # FIXME: re-add once sync works
+      # - uses: atopile/run-atopile@main
+      #   with:
+      #     args: sync ${{ matrix.package }}
       - uses: atopile/run-atopile@main
         with:
           args: build --frozen ${{ matrix.package }}
