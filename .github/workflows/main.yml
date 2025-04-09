@@ -30,14 +30,9 @@ jobs:
       - uses: actions/checkout@v4
 
       # TODO: use the docker image instead
-      - uses: ./.github/actions/setup-atopile
-
-      - run: ato install
-        working-directory: ${{ matrix.package }}
-        env:
-          NONINTERACTIVE: 1
-
-      - run: ato build --frozen
-        working-directory: ${{ matrix.package }}
-        env:
-          NONINTERACTIVE: 1
+      - uses: docker://ghcr.io/atopile/atopile:latest
+        with:
+          entrypoint: bash
+          args: |
+            ato sync
+            ato build --frozen
