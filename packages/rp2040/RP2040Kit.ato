@@ -1,17 +1,18 @@
-import I2C, SPI, UART, USB2, QSPI, Power, Resistor, Capacitor
+import I2C, SPI, UART_Base, USB2_0_IF, ElectricPower, Resistor, Capacitor
+from "atopile/buttons/buttons.ato" import ButtonPullup
 
 from "RP2040.ato" import RP2040
-from "atopile/buttons/buttons.ato" import ButtonPullup
 
 
 module RP2040Kit:
     # External interfaces
-    power_3v3 = new Power
+    power_3v3 = new ElectricPower
     i2c = new I2C
     spi = new SPI
+    spi1 = new SPI
     qspi = new QSPI
-    uart = new UART
-    usb2 = new USB2
+    uart = new UART_Base
+    usb2 = new USB2_0_IF
 
     # Components
     micro = new RP2040
@@ -22,48 +23,42 @@ module RP2040Kit:
     r_usb_d_plus = new Resistor
     r_usb_d_minus = new Resistor
 
-    # Connect external interfaces
-    power_3v3 ~ micro.usb_phy_power
-    power_3v3 ~ micro.iovdd_power
-    i2c ~ micro.i2c
-    spi ~ micro.spi
-    qspi ~ micro.qspi
-    uart ~ micro.uart
-
     # Internal
+    signal _gnd
+    micro.gnd ~ _gnd
 
     # Reset button
-    reset_btn.power ~ power_3v3
-    reset_btn.out ~ micro.run
+    reset_btn.output.reference ~ power_3v3
+    reset_btn.output.line ~ micro.run
 
     # Boot button
-    boot_btn.power ~ power_3v3
-    boot_btn.out ~ micro.qspi_ss_n
+    boot_btn.output.reference ~ power_3v3
+    boot_btn.output.line ~ micro.qspi_ss_n
     boot_btn.pullup.resistance = 10kohms +/- 5%
 
     # Configure the USB series resistors
     r_usb_d_plus.resistance = 27ohms +/- 5%
-    r_usb_d_plus.footprint = "R0402"
+    r_usb_d_plus.package = "R0402"
     r_usb_d_minus.resistance = 27ohms +/- 5%
-    r_usb_d_minus.footprint = "R0402"
+    r_usb_d_minus.package = "R0402"
 
     # Connect series resistors to usb
-    usb.d.p ~ r_usb_d_plus.p2; r_usb_d_plus.p1 ~ micro.usb_dp
-    usb.d.n ~ r_usb_d_minus.p1; r_usb_d_minus.p2 ~ micro.usb_dm
+    usb2.d.p ~ r_usb_d_plus.p2; r_usb_d_plus.p1 ~ micro.usb_dp
+    usb2.d.n ~ r_usb_d_minus.p1; r_usb_d_minus.p2 ~ micro.usb_dm
 
     # Flash
     power_3v3 ~ flash.power
-    micro.qspi ~ flash.qspi
+    qspi ~ flash.qspi
 
     # Oscillator
     osc.input ~ micro.xin
     osc.output ~ micro.xout
-    osc.gnd ~ micro.gnd
+    osc.gnd ~ _gnd
 
     # 1V power for internal DVDD digital logic
-    power_1V = new Power
-    power_1V.vcc ~ micro.dvdd
-    power_1V.gnd ~ micro.gnd
+    power_1V = new ElectricPower
+    power_1V.hv ~ micro.dvdd
+    power_1V.gnd ~ _gnd
 
     # Power the 1V rail from the internal regulator
     micro.vreg_vin ~ power_3v3.vcc
@@ -129,6 +124,49 @@ module RP2040Kit:
     signal gpio29_a3 ~ micro.gpio29_a3
 
 
+    # FIXME: it's poor practice to embed interfaces within components
+    # elevate these out to the driver level
+    # The TESTEN pin is used for factory testing and should be tied to GND
+    _gnd ~ micro.testen
+
+    # USB phy power is a nominal 3v3
+    # But can be tied to IOVDD is USB is not used
+    power_3v3.hv ~ micro.usb_vdd
+    power_3v3.gnd ~ _gnd
+
+    # IOVDD is a nominal 3v3
+    power_3v3.hv ~ micro.iovdd
+    power_3v3.hv ~ micro.adc_avdd
+    power_3v3.gnd ~ _gnd
+
+    # I2C interface
+    i2c.sda ~ gpio20
+    i2c.scl ~ gpio21
+
+    # UART interface
+    uart.tx ~ gpio4
+    uart.rx ~ gpio5
+
+    # SPI interface
+    signal spi_cs ~ gpio9
+    spi.mosi ~ gpio11
+    spi.miso ~ gpio8
+    spi.sclk ~ gpio10
+
+    signal spi1_cs ~ gpio7
+    spi1.mosi ~ gpio11
+    spi1.miso ~ gpio8
+    spi1.sclk ~ gpio10
+
+    # QSPI interface
+    qspi.cs ~ micro.qspi_ss_n
+    qspi.sclk ~ micro.qspi_sclk
+    qspi.io0 ~ micro.qspi_sd0
+    qspi.io1 ~ micro.qspi_sd1
+    qspi.io2 ~ micro.qspi_sd2
+    qspi.io3 ~ micro.qspi_sd3
+
+
 component BypassCap from Capacitor:
     footprint = "R0402"
 
@@ -164,16 +202,16 @@ module _Oscillator:
     # output resistor
     r_osc = new Resistor
     r_osc.resistance = 1kohms +/- 5%
-    r_osc.footprint = "R0402"
+    r_osc.package = "R0402"
     output ~ r_osc.p1; r_osc.p2 ~ osc.out
 
     # load caps
     c_osc_1 = new Capacitor
     c_osc_1.capacitance = 20pF +/- 20%
-    c_osc_1.footprint = "C0402"
+    c_osc_1.package = "C0402"
     c_osc_2 = new Capacitor
     c_osc_2.capacitance = 20pF +/- 20%
-    c_osc_2.footprint = "C0402"
+    c_osc_2.package = "C0402"
 
     input ~ c_osc_1.p1; c_osc_1.p2 ~ gnd
     osc.out ~ c_osc_2.p1; c_osc_2.p2 ~ gnd
@@ -193,14 +231,23 @@ component _W25Q128JVSIQ:
     signal io3 ~ pin 7
     signal vcc ~ pin 8
 
-    power = new Power
+    power = new ElectricPower
     power.gnd ~ gnd
-    power.vcc ~ vcc
+    power.hv ~ vcc
 
     qspi = new QSPI
     qspi.cs ~ ncs
-    qspi.sck ~ clk
+    qspi.sclk ~ clk
     qspi.io0 ~ di
     qspi.io1 ~ do
     qspi.io2 ~ io2
     qspi.io3 ~ io3
+
+
+interface QSPI:
+    signal cs
+    signal sclk
+    signal io0
+    signal io1
+    signal io2
+    signal io3
