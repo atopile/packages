@@ -33,14 +33,14 @@ module ESP32S3:
 
     # reset button
     enable_button = new ButtonPullup
-    enable_button.power ~ power
-    enable_button.out ~ ic.EN
+    power ~ enable_button.output.reference
+    enable_button.output.line ~ ic.EN
     enable_button.btn -> ButtonSKRPACE010
 
     # connect up USB
     usb2 = new USB2_0_IF
-    usb2.usb_if.d.n ~ ic.IO19
-    usb2.usb_if.d.p ~ ic.IO20
+    usb2.d.n ~ ic.IO19
+    usb2.d.p ~ ic.IO20
 
     # connect up JTAG
     jtag = new JTAG

@@ -1,7 +1,7 @@
-import I2C, SPI, UART, USB2_0_IF, QSPI, Power
-
-
 component RP2040:
+    footprint = "LQFN-56_L7.0-W7.0-P0.4-EP"
+    lcsc_id = "C2040"
+
     signal iovdd ~ pin 1
     iovdd ~ pin 10
     iovdd ~ pin 22
@@ -70,63 +70,3 @@ component RP2040:
     signal gpio29_a3 ~ pin 41
 
     signal gnd ~ pin 57
-
-    # The TESTEN pin is used for factory testing and should be tied to GND
-    gnd ~ testen
-
-    # FIXME: it's poor practice to embed interfaces within components
-    # elevate these out to the driver level
-
-    # USB phy power is a nominal 3v3
-    # But can be tied to IOVDD is USB is not used
-    usb_phy_power = new Power
-    usb_phy_power.vcc ~ usb_vdd
-    usb_phy_power.gnd ~ gnd
-
-    # IOVDD is a nominal 3v3
-    iovdd_power = new Power
-    iovdd_power.vcc ~ iovdd
-    iovdd_power.vcc ~ adc_avdd
-    iovdd_power.gnd ~ gnd
-
-    # I2C interface
-    i2c = new I2C
-    i2c.sda ~ gpio20
-    i2c.scl ~ gpio21
-
-    # UART interface
-    uart = new UART
-    uart.tx ~ gpio4
-    uart.rx ~ gpio5
-
-    # SPI interface
-    spi = new SPI
-    spi.cs ~ gpio9
-    spi.mosi ~ gpio11
-    spi.miso ~ gpio8
-    spi.sck ~ gpio10
-
-    spi1 = new SPI
-    spi1.cs ~ gpio7
-    spi1.mosi ~ gpio11
-    spi1.miso ~ gpio8
-    spi1.sck ~ gpio10
-
-    # QSPI interface
-    qspi = new QSPI
-    qspi.cs ~ qspi_ss_n
-    qspi.sck ~ qspi_sclk
-    qspi.io0 ~ qspi_sd0
-    qspi.io1 ~ qspi_sd1
-    qspi.io2 ~ qspi_sd2
-    qspi.io3 ~ qspi_sd3
-
-    # USB interface
-    usb2 = new USB2
-    usb2.dp ~ usb_dp
-    usb2.dm ~ usb_dm
-
-    footprint = "LQFN-56_L7.0-W7.0-P0.4-EP"
-    lcsc_id = "C2040"
-
-    designator_prefix = "U"
