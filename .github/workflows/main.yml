@@ -17,7 +17,7 @@ jobs:
         id: packages
         run: |
           echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
-          # echo 'packages=["packages/addressable-leds"]' >> "$GITHUB_OUTPUT"
+
 
   test:
     permissions:
@@ -32,10 +32,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # FIXME: handle deps properly
+      # ideally it'd determine if the package is in the same repo and, if so,
+      # install via file instead
       - uses: atopile/run-atopile@main
         with:
-          # TODO: re-add ato sync
-          args: "ato build --frozen ${{ matrix.package }}"
+          args: "ato sync && ato build --frozen ${{ matrix.package }}"
 
 
   publish:
