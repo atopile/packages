@@ -38,7 +38,7 @@ jobs:
       # install via file instead
       - uses: atopile/run-atopile@main
         with:
-          args: "ato sync && ato build --frozen ${{ matrix.package }}"
+          args: "cd ${{ matrix.package }} && ato sync && ato build --frozen"
 
 
   publish:
