@@ -36,4 +36,40 @@ Package name restrictions:
 
 ### Contributing
 
-- Run pre-commit to fix pre-commit install
+We welcome contributions! Here's how you can help:
+
+1. Fork the repository
+2. Create a new branch for your changes
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes
+4. Install and run pre-commit hooks to ensure code quality
+   ```bash
+   pre-commit install
+   pre-commit run --all-files
+   ```
+5. Commit your changes with clear, descriptive commit messages
+6. Push to your fork
+7. Open a Pull Request with a clear description of your changes
+
+Please ensure your PR:
+
+- Follows the package naming conventions above
+- Includes appropriate tests if adding new functionality
+- Has all pre-commit checks passing
+- Has a clear description of the changes
+
+### Building Packages
+
+To build all packages in the repository, use the `build-all.sh` script:
+
+```bash
+# Build all packages
+./build-all.sh
+
+# Build all packages with specific flags (e.g., --frozen)
+./build-all.sh --frozen
+```
+
+The script will attempt to build each package and provide a summary report of successes and failures.
