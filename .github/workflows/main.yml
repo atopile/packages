@@ -36,9 +36,12 @@ jobs:
       # FIXME: handle deps properly
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
-      - uses: atopile/run-atopile@main
+      - uses: atopile/setup-atopile@main
         with:
-          args: "cd ${{ matrix.package }} && ato sync && ato build --frozen"
+          # ato-config: "packages/${{ matrix.package }}/ato.yaml"
+          version: "main"
+
+      - run: ato build
 
 
   publish:
@@ -60,6 +63,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: atopile/publish-package@main
         with:
+          # ato-config: "packages/${{ matrix.package }}/ato.yaml"
+          atopile-version: "main"
           package-entrypoint: ${{ matrix.package }}
           skip-duplicate-versions: true
           package-version: ""  # Use the embedded version key
