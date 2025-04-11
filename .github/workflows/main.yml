@@ -36,12 +36,13 @@ jobs:
       # FIXME: handle deps properly
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
-      - uses: atopile/setup-atopile@main
+      - uses: atopile/setup-atopile@v1
         with:
           # ato-config: "packages/${{ matrix.package }}/ato.yaml"
           version: "main"
 
-      - run: ato build
+      - run: ato sync ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }}
 
 
   publish:
@@ -61,7 +62,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: atopile/publish-package@main
+      - uses: atopile/publish-package@v1
         with:
           # ato-config: "packages/${{ matrix.package }}/ato.yaml"
           atopile-version: "main"
