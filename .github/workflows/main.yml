@@ -41,8 +41,10 @@ jobs:
           # ato-config: "packages/${{ matrix.package }}/ato.yaml"
           version: "main"
 
-      - run: ato sync ${{ matrix.package }}
-      - run: ato build ${{ matrix.package }}
+      - run: ato sync
+        working-directory: ${{ matrix.package }}
+      - run: ato build
+        working-directory: ${{ matrix.package }}
 
 
   publish:
