@@ -1,69 +1,49 @@
-# TI TPS54560x Buck Converter
+# Pin Headers
 
-A high-efficiency, wide input voltage range buck converter with integrated high-side MOSFET.
+A collection of standard 2.54mm pitch pin headers for through-hole mounting.
 
-## Overview
+## Available Components
 
-The TPS54560 is a 60V, 5A step-down regulator with an integrated high-side MOSFET. It's designed for industrial, automotive, and communications power systems requiring a robust, efficient power solution.
+### Single Row (1xN)
 
-## Key Features
+| Size | Female | Male |
+| ---- | ------ | ---- |
+| 1x2  | ✅     | ✅   |
+| 1x3  | ✅     | ✅   |
+| 1x4  | ✅     | ✅   |
+| 1x5  | ✅     | ✅   |
+| 1x6  | ✅     | ✅   |
+| 1x8  | ✅     | ❌   |
+| 1x10 | ✅     | ✅   |
 
-- **Wide Input Voltage Range**: Survives load dump pulses up to 65V (ISO 7637 compliant)
-- **High Efficiency**: 92-mΩ high-side MOSFET with pulse skipping Eco-mode™ for light load efficiency
-- **Low Power Consumption**:
-  - 146 μA operating quiescent current
-  - 2 μA shutdown current
-- **Flexible Switching Frequency**: 100 kHz to 2.5 MHz fixed frequency with external clock synchronization
-- **Integrated Protection**:
-  - Adjustable UVLO voltage and hysteresis
-  - Cycle-by-cycle current limiting
-  - Frequency foldback and thermal shutdown
-- **Controlled Startup**: Internal output voltage ramp control to eliminate overshoot
-- **Compact Package**: 8-terminal HSOP with PowerPAD™ for enhanced thermal performance
-- **Wide Temperature Range**: -40°C to 150°C operating range
+### Dual Row (2xN)
 
-## Applications
-
-- Industrial Automation and Motor Control
-- Vehicle Accessories (GPS, Entertainment Systems)
-- USB Dedicated Charging Ports and Battery Chargers
-- 12V, 24V, and 48V Industrial, Automotive, and Communications Power Systems
-
-## Package Contents
-
-This package provides:
-
-- Reference design for the TPS54560 buck converter
-- Footprint and symbol definitions
-- Example configurations for common applications
+| Size | Female | Male |
+| ---- | ------ | ---- |
+| 2x2  | ❌     | ✅   |
+| 2x7  | ✅     | ❌   |
+| 2x8  | ✅     | ❌   |
 
 ## Usage
 
-To use this package in your design:
-
-```python
-from "atopile/ti-tps54560x/ti-tps54560x.ato" import TPS54560x
+```ato
+import "pin-headers"
 
 // Example usage in your design
-module Test5V:
-    regulator = new TPS54560x
-    regulator.v_in = 24V +/- 10%
-    regulator.v_out = 5V +/- 5%
+module MyModule:
+    // Create a 1x4 female header
+    header = new Female_2_54mm_1x4P_TH
 
-    enable = new ElectricLogic
-    enable.line ~ regulator.power_in.vcc
-    regulator.enable ~ enable
+    // Connect signals to the pins
+    my_signal ~ header.p1
+    another_signal ~ header.p2
 ```
 
-## Design Resources
+## Package Contents
 
-- [TI TPS54560 Datasheet](https://www.ti.com/lit/ds/symlink/tps54560.pdf)
-- [WEBENCH® Power Designer](https://webench.ti.com/power-designer/) - Create a custom design using the TPS54560
+- Footprint and symbol definitions for all pin header variants
+- Test module with examples of all available components
 
 ## License
 
 This package is released under the MIT License.
-
-## Author
-
-Created by Narayan Powderly <narayan@atopile.io>
