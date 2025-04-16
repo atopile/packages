@@ -1,0 +1,203 @@
+import Resistor, Capacitor, Diode, Inductor, ElectricPower, ElectricLogic, ElectricSignal, ResistorVoltageDivider
+from "regulators.ato" import AdjustableRegulator
+
+module TPS54560x from AdjustableRegulator:
+    """TPS54560x Reference Design
+    Vin: 4.5V to 60V
+    Vout: 0.8V to 58.8V
+    Iout max: 5A
+    Switching Frequency: 2.2MHz
+    """
+    # External interfaces
+    enable = new ElectricLogic
+    # enable.required = True #
+
+    # Components
+    ic = new Texas_Instruments_TPS54560DDAR
+    diode = new Diode
+    input_cap_1 = new Capacitor
+    input_cap_2 = new Capacitor
+    input_cap_3 = new Capacitor
+    output_cap_1 = new Capacitor
+    output_cap_2 = new Capacitor
+    output_cap_3 = new Capacitor
+    output_cap_4 = new Capacitor
+    inductor = new Inductor
+    bootstrap_capacitor = new Capacitor
+    compensation_resistor = new Resistor
+    compensation_capacitor_1 = new Capacitor
+    compensation_capacitor_2 = new Capacitor
+    switching_frequency_resistor = new Resistor
+
+    # Parameters
+    assert v_in within 4.5V to 60V
+    assert v_out within 0.8V to 58.8V
+    assert v_ref is 0.8V +/- 0.01%
+    assert i_q within 10uA to 100uA # Manually picked sane current
+    assert v_in > v_out # Buck only
+
+    # Specify components
+    diode.lcsc_id = "C50706" #STPS340U, 40V 3A Schottky Diode
+
+    # Input caps
+    input_cap_1.max_voltage = 30V to 100V
+    input_cap_2.max_voltage = 30V to 100V
+    input_cap_3.max_voltage = 30V to 100V
+    input_cap_1.package = "C0805"
+    input_cap_2.package = "C0805"
+    input_cap_3.package = "C0805"
+    input_cap_1.capacitance = 10uF +/- 20%
+    input_cap_2.capacitance = 10uF +/- 20%
+    input_cap_3.capacitance = 10uF +/- 20%
+
+    # Output caps
+    output_cap_1.max_voltage = 16V to 100V
+    output_cap_2.max_voltage = 16V to 100V
+    output_cap_3.max_voltage = 16V to 100V
+    output_cap_4.max_voltage = 16V to 100V
+    output_cap_1.package = "C0805"
+    output_cap_2.package = "C0805"
+    output_cap_3.package = "C0805"
+    output_cap_4.package = "C0805"
+    output_cap_1.capacitance = 22uF +/- 20%
+    output_cap_2.capacitance = 22uF +/- 20%
+    output_cap_3.capacitance = 22uF +/- 20%
+    output_cap_4.capacitance = 22uF +/- 20%
+
+    # Inductor
+    inductor.lcsc_id = "C96972" # SWPA8040S5R6NT, 5.6uH +/- 30%, 3.85A
+
+    # Bootstrap cap
+    bootstrap_capacitor.max_voltage = 30V to 100V
+    bootstrap_capacitor.package = "C0402"
+    bootstrap_capacitor.capacitance = 100nF +/- 20%
+
+    # Compensation
+    compensation_resistor.max_voltage = 30V to 100V
+    compensation_capacitor_1.max_voltage = 30V to 100V
+    compensation_capacitor_2.max_voltage = 30V to 100V
+    compensation_resistor.package = "R0402"
+    compensation_capacitor_1.package = "C0402"
+    compensation_capacitor_2.package = "C0402"
+    compensation_resistor.resistance = 23.7kohm +/- 2%
+    compensation_capacitor_1.capacitance = 4.3nF +/- 20%
+    compensation_capacitor_2.capacitance = 6.8pF +/- 30%
+
+    # Switching frequency resistor
+    switching_frequency_resistor.max_voltage = 30V to 100V
+    switching_frequency_resistor.package = "R0402"
+    switching_frequency_resistor.resistance = 162kohm +/- 2% # 600kHz
+
+
+    # Connections
+
+    # Power
+    power_in.vcc ~ ic.VIN
+    power_in.gnd ~ ic.GND
+    power_out.gnd ~ ic.GND
+    power_out.gnd ~ ic.EP
+
+    # Input Filtering
+    power_in ~ input_cap_1.power
+    power_in ~ input_cap_2.power
+    power_in ~ input_cap_3.power
+
+    # Output Stage
+    ic.SW ~ inductor.p1; inductor.p2 ~ power_out.vcc
+    ic.SW ~ diode.cathode; diode.anode ~ power_out.gnd
+    power_out ~ output_cap_1.power
+    power_out ~ output_cap_2.power
+    power_out ~ output_cap_3.power
+    power_out ~ output_cap_4.power
+
+    # Compensation
+    ic.COMP ~ compensation_resistor.p1
+    compensation_resistor.p2 ~ compensation_capacitor_1.p1
+    compensation_capacitor_1.p2 ~ power_in.gnd
+    ic.COMP ~ compensation_capacitor_2.p1
+    compensation_capacitor_2.p2 ~ power_in.gnd
+
+    # Bootstrap cap
+    ic.BOOT ~ bootstrap_capacitor.p1
+    bootstrap_capacitor.p2 ~ ic.SW
+
+    # Switching frequency resistor
+    ic.RT_CLK ~ switching_frequency_resistor.p1
+    switching_frequency_resistor.p2 ~ power_in.gnd
+
+    # Feedback
+    power_out ~ feedback_div.power
+    ic.FB ~ feedback_div.output.line
+    feedback_div.r_top.package = "R0402"
+    feedback_div.r_bottom.package = "R0402"
+
+    # Enable
+    enable.line ~ ic.EN
+    enable.reference.gnd ~ power_in.gnd
+
+module Test1V8:
+    regulator = new TPS54560x
+    regulator.v_in = 24V +/- 10%
+    regulator.v_out = 1.8V +/- 4%
+
+    enable = new ElectricLogic
+    enable.line ~ regulator.power_in.vcc
+    regulator.enable ~ enable
+
+module Test3V3:
+    regulator = new TPS54560x
+    regulator.v_in = 24V +/- 10%
+    regulator.v_out = 3.3V +/- 4%
+
+    enable = new ElectricLogic
+    enable.line ~ regulator.power_in.vcc
+    regulator.enable ~ enable
+
+module Test5V:
+    regulator = new TPS54560x
+    regulator.v_in = 24V +/- 10%
+    regulator.v_out = 5V +/- 5%
+
+    enable = new ElectricLogic
+    enable.line ~ regulator.power_in.vcc
+    regulator.enable ~ enable
+
+module Test12V:
+    regulator = new TPS54560x
+    regulator.v_in = 24V +/- 10%
+    regulator.v_out = 12V +/- 4%
+
+    enable = new ElectricLogic
+    enable.line ~ regulator.power_in.vcc
+    regulator.enable ~ enable
+
+module Test24V:
+    regulator = new TPS54560x
+    regulator.v_in = 30V +/- 10%
+    regulator.v_out = 24V +/- 4%
+
+    enable = new ElectricLogic
+    enable.line ~ regulator.power_in.vcc
+    regulator.enable ~ enable
+
+
+
+component Texas_Instruments_TPS54560DDAR:
+    """Texas_Instruments_TPS54560DDAR component"""
+    lcsc_id = "C31966"
+    manufacturer = "Texas Instruments"
+    mpn = "TPS54560DDAR"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_1810131310_Texas-Instruments-TPS54560DDAR_C31966.pdf"
+    designator_prefix = "U"
+    vref = 0.8V
+
+    # pins
+    signal BOOT ~ pin 1
+    signal COMP ~ pin 6
+    signal EN ~ pin 3
+    signal EP ~ pin 9
+    signal FB ~ pin 5
+    signal GND ~ pin 7
+    signal RT_CLK ~ pin 4
+    signal SW ~ pin 8
+    signal VIN ~ pin 2
