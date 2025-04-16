@@ -13,20 +13,16 @@ A collection of standard 2.54mm pitch pin headers for through-hole mounting.
 | 1x4  | ✅     | ✅   |
 | 1x5  | ✅     | ✅   |
 | 1x6  | ✅     | ✅   |
-| 1x8  | ✅     | ✅   |
+| 1x8  | ✅     | ❌   |
 | 1x10 | ✅     | ✅   |
 
 ### Dual Row (2xN)
 
 | Size | Female | Male |
 | ---- | ------ | ---- |
-| 2x2  | ✅     | ✅   |
-| 2x3  | ✅     | ✅   |
-| 2x4  | ✅     | ✅   |
-| 2x5  | ✅     | ✅   |
-| 2x6  | ✅     | ✅   |
-| 2x7  | ✅     | ✅   |
-| 2x8  | ✅     | ✅   |
+| 2x2  | ❌     | ✅   |
+| 2x7  | ✅     | ❌   |
+| 2x8  | ✅     | ❌   |
 
 ## Usage
 
