@@ -67,6 +67,8 @@ module ButtonPullup:
     pullup.resistance = 10kohms +/- 20%
     pullup.package = "R0402"
 
+    output.line ~ btn.in
+
     output.reference.hv ~ pullup.p1; pullup.p2 ~ btn.in; btn.out ~ output.reference.gnd
 
 
@@ -76,6 +78,8 @@ module ButtonPulldown:
     pulldown = new Resistor
     pulldown.resistance = 10kohms +/- 20%
     pulldown.package = "R0402"
+
+    output.line ~ btn.in
 
     output.reference.gnd ~ pulldown.p1; pulldown.p2 ~ btn.in; btn.out ~ output.reference.hv
 
