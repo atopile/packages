@@ -1,4 +1,4 @@
-import ElectricPower, I2C, ElectricLogic, Resistor, Capacitor
+import ElectricPower, I2C, ElectricLogic, Resistor, Capacitor, Addressor3
 from "resistors.ato" import I2CPullup
 
 
@@ -54,10 +54,18 @@ module TCA9548APWR:
     # |  H   |  H   |  H   |      119       |       77        |
     # +------+------+------+----------------+-----------------+
 
-    # Set bits below:
-    ic.A0 ~ power.gnd
-    ic.A1 ~ power.gnd
-    ic.A2 ~ power.gnd
+    # Addressor - connect the address lines to the addressor
+    # allows the i2c.address parameter to configure the address pins
+    addressor = new Addressor3 # 3-bit addressor
+    assert addressor.address is i2c.address # Link addresses
+    assert addressor.base is 0x70
+    addressor.address_lines[0].line ~ ic.A0
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].line ~ ic.A1
+    addressor.address_lines[1].reference ~ power
+    addressor.address_lines[2].line ~ ic.A2
+    addressor.address_lines[2].reference ~ power
+
 
     i2c0 = new I2C
     i2c0.sda.line ~ ic.SD0
@@ -145,3 +153,43 @@ component _TCA9548APWR:
     signal SCL ~ pin 22
     signal SDA ~ pin 23
     signal VCC ~ pin 24
+
+module Test:
+    mux1 = new TCA9548APWR
+    mux2 = new TCA9548APWR
+    mux3 = new TCA9548APWR
+    mux4 = new TCA9548APWR
+    mux5 = new TCA9548APWR
+    mux6 = new TCA9548APWR
+    mux7 = new TCA9548APWR
+    mux8 = new TCA9548APWR
+
+    i2c = new I2C
+    power = new ElectricPower
+
+    i2c ~ mux1.i2c
+    i2c ~ mux2.i2c
+    i2c ~ mux3.i2c
+    i2c ~ mux4.i2c
+    i2c ~ mux5.i2c
+    i2c ~ mux6.i2c
+    i2c ~ mux7.i2c
+    i2c ~ mux8.i2c
+
+    mux1.power ~ power
+    mux2.power ~ power
+    mux3.power ~ power
+    mux4.power ~ power
+    mux5.power ~ power
+    mux6.power ~ power
+    mux7.power ~ power
+    mux8.power ~ power
+
+    assert mux1.addressor.address is 0x70
+    assert mux2.addressor.address is 0x71
+    assert mux3.addressor.address is 0x72
+    assert mux4.addressor.address is 0x73
+    assert mux5.addressor.address is 0x74
+    assert mux6.addressor.address is 0x75
+    assert mux7.addressor.address is 0x76
+    assert mux8.addressor.address is 0x77
