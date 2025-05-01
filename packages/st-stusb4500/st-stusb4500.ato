@@ -1,0 +1,36 @@
+import ElectricPower, I2C, USB2_0
+
+from "components/st-stusb4500.py" import STUSB4500QTR
+from "components/xk_bconnectivity_u262241n4b_v64.ato" import XKB_Connectivity_U262_241N_4BV64
+
+
+module STUSB4500:
+    """
+    STUSB4500 USB PD controller
+    - 5A 20V
+    - I2C interface for configuration (defaults to 20V 1A)
+    - USB2 pass-through for downstream devices
+    """
+    # External Interfaces
+    power_out = new ElectricPower
+    usb2 = new USB2_0
+    power_mcu = new ElectricPower
+    i2c = new I2C
+
+    usb_connector = new XKB_Connectivity_U262_241N_4BV64
+    pd_controller = new STUSB4500QTR
+
+    # Power
+    usb_connector.power_vbus ~ pd_controller.power_vbus
+    pd_controller.power_vsink ~ power_out
+    power_mcu ~ pd_controller.power_mcu
+
+    # Communication
+    pd_controller.i2c.sda.line ~ i2c.sda.line
+    pd_controller.i2c.scl.line ~ i2c.scl.line
+
+    pd_controller.cc1.line ~ usb_connector.CC1
+    pd_controller.cc2.line ~ usb_connector.CC2
+
+    # USB2
+    usb_connector.usb2 ~ usb2
