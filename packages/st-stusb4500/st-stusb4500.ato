@@ -1,5 +1,4 @@
-#pragma experiment("MODULE_TEMPLATING")
-import ElectricPower, I2C, USB2_0, Addressor
+import ElectricPower, I2C, USB2_0, Addressor2
 
 from "components/st-stusb4500.py" import STUSB4500QTR
 from "components/xk_bconnectivity_u262241n4b_v64.ato" import XKB_Connectivity_U262_241N_4BV64
@@ -51,7 +50,7 @@ module STUSB4500:
     usb_connector.usb2 ~ usb2
 
     # Addressing
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor2
     addressor.base = 0x28
     addressor.address_lines[0].line ~ pd_controller.pd_controller.ADDR0
     addressor.address_lines[0].reference ~ power_mcu
