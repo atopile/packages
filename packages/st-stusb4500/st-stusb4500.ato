@@ -1,4 +1,4 @@
-import ElectricPower, I2C, USB2_0
+import ElectricPower, I2C, USB2_0, Addressor
 
 from "components/st-stusb4500.py" import STUSB4500QTR
 from "components/xk_bconnectivity_u262241n4b_v64.ato" import XKB_Connectivity_U262_241N_4BV64
@@ -10,7 +10,21 @@ module STUSB4500:
     - 5A 20V
     - I2C interface for configuration (defaults to 20V 1A)
     - USB2 pass-through for downstream devices
+
+    I2C Addressing:
+    The 7-bit I2C address is determined by the ADDR0 and ADDR1 pins.
+    The default address is set by connecting ADDR0 and ADDR1 to GND (logic 0).
+
+    | ADDR1 | ADDR0 | 7-bit Address |
+    |-------|-------|---------------|
+    | 0     | 0     | 0x28          | (Default in this configuration)
+    | 0     | 1     | 0x29          |
+    | 1     | 0     | 0x2A          |
+    | 1     | 1     | 0x2B          |
+
+    The full 8-bit address format is: 01010[ADDR1][ADDR0][R/W]
     """
+
     # External Interfaces
     power_out = new ElectricPower
     usb2 = new USB2_0
@@ -34,3 +48,13 @@ module STUSB4500:
 
     # USB2
     usb_connector.usb2 ~ usb2
+
+    # Addressing
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x28
+    addressor.address_lines[0].line ~ pd_controller.pd_controller.ADDR0
+    addressor.address_lines[0].reference ~ power_mcu
+    addressor.address_lines[1].line ~ pd_controller.pd_controller.ADDR1
+    addressor.address_lines[1].reference ~ power_mcu
+
+    assert addressor.address is i2c.address

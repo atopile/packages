@@ -104,10 +104,6 @@ class _STUSB4500QTR(Module):
             self.VREG_2V7.lv, self.VREG_1V2.lv, self.EP, self.RESET, self.VSYS, self.NC
         )
 
-        # Set address
-        self.ADDR0.connect(self.VDD.lv)
-        self.ADDR1.connect(self.VDD.lv)
-
 
 class STUSB4500QTR(Module):
     pd_controller: _STUSB4500QTR
