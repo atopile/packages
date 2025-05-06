@@ -1,4 +1,6 @@
-import I2C, SPI, UART_Base, USB2_0_IF, ElectricPower, Resistor, Capacitor
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C, SPI, UART_Base, USB2_0, ElectricPower, Resistor, Capacitor
 from "atopile/buttons/buttons.ato" import ButtonPullup
 
 from "RP2040.ato" import RP2040
@@ -12,7 +14,7 @@ module RP2040Kit:
     spi1 = new SPI
     qspi = new QSPI
     uart = new UART_Base
-    usb2 = new USB2_0_IF
+    usb2 = new USB2_0
 
     # Components
     micro = new RP2040
@@ -20,8 +22,6 @@ module RP2040Kit:
     boot_btn = new ButtonPullup
     osc = new _Oscillator
     flash = new _W25Q128JVSIQ
-    r_usb_d_plus = new Resistor
-    r_usb_d_minus = new Resistor
 
     # Internal
     signal _gnd
@@ -36,15 +36,19 @@ module RP2040Kit:
     boot_btn.output.line ~ micro.qspi_ss_n
     boot_btn.pullup.resistance = 10kohms +/- 5%
 
-    # Configure the USB series resistors
-    r_usb_d_plus.resistance = 27ohms +/- 5%
-    r_usb_d_plus.package = "R0402"
-    r_usb_d_minus.resistance = 27ohms +/- 5%
-    r_usb_d_minus.package = "R0402"
+    qspi_ss_pullup = new Resistor
+    qspi_ss_pullup.resistance = 10kohms +/- 5%
+    qspi_ss_pullup.package = "R0402"
+    power_3v3.vcc ~> qspi_ss_pullup ~> micro.qspi_ss_n
+
+    usb_series_resistors = new Resistor[2]
+    for resistor in usb_series_resistors:
+        resistor.resistance = 27ohms +/- 5%
+        resistor.package = "R0402"
 
     # Connect series resistors to usb
-    usb2.d.p ~ r_usb_d_plus.p2; r_usb_d_plus.p1 ~ micro.usb_dp
-    usb2.d.n ~ r_usb_d_minus.p1; r_usb_d_minus.p2 ~ micro.usb_dm
+    usb2.usb_if.d.p.line ~> usb_series_resistors[0] ~> micro.usb_dp
+    usb2.usb_if.d.n.line ~> usb_series_resistors[1] ~> micro.usb_dm
 
     # Flash
     power_3v3 ~ flash.power
@@ -64,32 +68,17 @@ module RP2040Kit:
     micro.vreg_vin ~ power_3v3.vcc
     micro.vreg_vout ~ micro.dvdd
 
-    # Bypass capacitors 100nF - 3V3
-    bypass_cap_100nF_1 = new BypassCap100nF
-    bypass_cap_100nF_2 = new BypassCap100nF
-    bypass_cap_100nF_3 = new BypassCap100nF
-    bypass_cap_100nF_4 = new BypassCap100nF
-    bypass_cap_100nF_5 = new BypassCap100nF
-    bypass_cap_1uF = new BypassCap1uF
-    bypass_cap_100nF_6 = new BypassCap100nF
-    bypass_cap_100nF_7 = new BypassCap100nF
-    bypass_cap_100nF_8 = new BypassCap100nF
-    bypass_cap_1uF_1 = new BypassCap1uF
+    power_3v3_caps = new Capacitor[5]
+    for cap in power_3v3_caps:
+        cap.capacitance = 1uF +/- 20%
+        cap.package = "C0402"
+        power_3v3 ~ cap.power
 
-    # 3V3 bypass caps
-    power_3v3 ~ bypass_cap_100nF_1.power
-    power_3v3 ~ bypass_cap_100nF_2.power
-    power_3v3 ~ bypass_cap_100nF_3.power
-    power_3v3 ~ bypass_cap_100nF_4.power
-    power_3v3 ~ bypass_cap_100nF_5.power
-    power_3v3 ~ bypass_cap_1uF.power
-
-    # 1V bypass caps
-    power_1V ~ bypass_cap_100nF_6.power
-    power_1V ~ bypass_cap_100nF_7.power
-    power_1V ~ bypass_cap_100nF_8.power
-    power_1V ~ bypass_cap_1uF_1.power
-
+    power_1V_caps = new Capacitor[3]
+    for cap in power_1V_caps:
+        cap.capacitance = 1uF +/- 20%
+        cap.package = "C0402"
+        power_1V ~ cap.power
 
     # make all gpio pins available at the top level
     signal gpio0 ~ micro.gpio0
@@ -165,19 +154,6 @@ module RP2040Kit:
     qspi.io1 ~ micro.qspi_sd1
     qspi.io2 ~ micro.qspi_sd2
     qspi.io3 ~ micro.qspi_sd3
-
-
-component BypassCap from Capacitor:
-    package  = "C0402"
-
-
-component BypassCap100nF from BypassCap:
-    capacitance = 100nF +/- 20%
-
-
-component BypassCap1uF from BypassCap:
-    capacitance = 1uF +/- 20%
-
 
 component _X322512MSB4SI:
     frequency = 12MHz
