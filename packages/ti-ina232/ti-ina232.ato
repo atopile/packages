@@ -63,6 +63,9 @@ module TI_INA232x_driver:
     model = new TI_INA232x_model
     input_current_max: current
 
+    # Default package
+    model.package -> TI_INA232A_package
+
     power = new ElectricPower
     power ~ model.power
 
@@ -70,7 +73,7 @@ module TI_INA232x_driver:
     shunt.package = "R1206"
     # assert shunt.resistance < model.package.shunt_input_voltage / model.input_current_max * 1.1
     # assert shunt.resistance > model.package.shunt_input_voltage / model.input_current_max * 0.9
-    shunt.resistance = 100mohm +/- 10%
+    # shunt.resistance = 100mohm +/- 10%
     model.shunt_input.p.line ~> shunt ~> model.shunt_input.n.line
 
     decoupling_cap = new Capacitor
@@ -99,4 +102,5 @@ module Devboard:
     driver = new TI_INA232x_driver
     driver.model.package -> TI_INA232A_package
     driver.model.i2c.address = 0x40
-    driver.input_current_max = 3A
+    # driver.input_current_max = 3A
+    driver.shunt.resistance = 100mohm +/- 10%

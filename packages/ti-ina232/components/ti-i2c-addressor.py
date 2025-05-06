@@ -14,6 +14,8 @@ class TI_I2C_Addressor(ModuleInterface):
     address = L.p_field(domain=L.Domains.Numbers.NATURAL())
     offset = L.p_field(domain=L.Domains.Numbers.NATURAL())
     base = L.p_field(domain=L.Domains.Numbers.NATURAL())
+
+    # Interfaces
     address_line: F.ElectricLogic
     i2c: F.I2C
     power: F.ElectricPower
