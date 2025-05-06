@@ -21,28 +21,28 @@ module NoButton:
         micro = new MyMicrocontroller #instantiate microcontroller (in this case there will be no button in your design)
         button_pullup.btn -> ButtonSKRPACE010 #replace with class, now there will be a button in your design.
     """
-    signal in
-    signal out
+    signal input
+    signal output
 
 
 component _ButtonSKRPACE010:
-    signal in ~ pin 1
-    in ~ pin 2
-    signal out ~ pin 3
-    out ~ pin 4
+    signal input ~ pin 1
+    input ~ pin 2
+    signal output ~ pin 3
+    output ~ pin 4
     footprint = "KEY-SMD_4P-L4.2-W3.2-P2.20-LS4.6"
     lcsc_id = "C139797"
 
 
 module ButtonSKRPACE010 from NoButton:
     btn = new _ButtonSKRPACE010
-    in ~ btn.in
-    out ~ btn.out
+    input ~ btn.input
+    output ~ btn.output
 
 
 component _ButtonSKTDLDE010:
-    in ~ pin 1
-    out ~ pin 2
+    input ~ pin 1
+    output ~ pin 2
     signal anchor ~ pin 3
     anchor ~ pin 4
 
@@ -55,8 +55,8 @@ module ButtonSKTDLDE010 from NoButton:
     Small SMD right angle button
     """
     btn = new _ButtonSKTDLDE010
-    in ~ btn.in
-    out ~ btn.out
+    input ~ btn.input
+    output ~ btn.output
 
 
 module ButtonPullup:
@@ -67,9 +67,9 @@ module ButtonPullup:
     pullup.resistance = 10kohms +/- 20%
     pullup.package = "R0402"
 
-    output.line ~ btn.in
+    output.line ~ btn.input
 
-    output.reference.hv ~ pullup.p1; pullup.p2 ~ btn.in; btn.out ~ output.reference.gnd
+    output.reference.hv ~ pullup.p1; pullup.p2 ~ btn.input; btn.output ~ output.reference.gnd
 
 
 module ButtonPulldown:
@@ -79,9 +79,9 @@ module ButtonPulldown:
     pulldown.resistance = 10kohms +/- 20%
     pulldown.package = "R0402"
 
-    output.line ~ btn.in
+    output.line ~ btn.input
 
-    output.reference.gnd ~ pulldown.p1; pulldown.p2 ~ btn.in; btn.out ~ output.reference.hv
+    output.reference.gnd ~ pulldown.p1; pulldown.p2 ~ btn.input; btn.output ~ output.reference.hv
 
 
 module ButtonPullup90Degree from ButtonPullup:
@@ -98,5 +98,5 @@ component _1TS003B_1400_3500A:
     signal _3 ~ pin 3
     signal _4 ~ pin 4
 
-    signal in ~ _1
-    signal out ~ _2
+    signal input ~ _1
+    signal output ~ _2
