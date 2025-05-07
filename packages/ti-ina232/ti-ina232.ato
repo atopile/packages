@@ -1,0 +1,106 @@
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import DifferentialPair
+import Resistor
+
+from "components/ti-i2c-addressor.py" import TI_I2C_Addressor
+
+component TI_INA232A_package from TI_INA232x_package:
+    """TEXAS_INSTRUMENTS_INA232AIDDFR component"""
+    mpn = "INA232AIDDFR"
+    lcsc_id = "C5447660"
+    datasheet_url = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2309210949_Texas-Instruments-INA232AIDDFR_C5447660.pdf"
+    base_address = 0x40
+    shunt_input_voltage = -81.9175mV to 81.9175mV # ADCRANGE = 0
+    # shunt_input_voltage = -20.4794mV to 20.48mV # ADCRANGE = 1
+
+component TI_INA232x_package:
+    """TEXAS_INSTRUMENTS_INA232x component"""
+    manufacturer = "TEXAS INSTRUMENTS"
+    designator_prefix = "U"
+    shunt_input_voltage: V
+
+    # pins
+    signal A0 ~ pin 7
+    signal ALERT ~ pin 8
+    signal GND ~ pin 3
+    signal IN_ ~ pin 2
+    signal INplus ~ pin 1
+    signal SCL ~ pin 5
+    signal SDA ~ pin 6
+    signal VS ~ pin 4
+
+module TI_INA232x_model:
+    """TI INA232x model"""
+    package = new TI_INA232x_package
+
+    power = new ElectricPower
+    assert power.voltage within 1.7V to 5.5V
+    power.vcc ~ package.VS
+    power.gnd ~ package.GND
+
+    i2c = new I2C
+    i2c.scl ~ package.SCL
+    i2c.sda ~ package.SDA
+
+    alert = new ElectricLogic
+    alert.line ~ package.ALERT
+
+    address_line = new ElectricLogic
+    address_line.line ~ package.A0
+
+    shunt_input = new DifferentialPair
+    shunt_input.p ~ package.INplus
+    shunt_input.n ~ package.IN_
+
+    # trait has_single_electric_reference_shared<gnd_only=True>
+
+module TI_INA232x_driver:
+    """TI INA232x driver"""
+    model = new TI_INA232x_model
+    input_current_max: current
+
+    # Default package
+    model.package -> TI_INA232A_package
+
+    power = new ElectricPower
+    power ~ model.power
+
+    shunt = new Resistor
+    shunt.package = "R1206"
+    # assert shunt.resistance < model.package.shunt_input_voltage / model.input_current_max * 1.1
+    # assert shunt.resistance > model.package.shunt_input_voltage / model.input_current_max * 0.9
+    # shunt.resistance = 100mohm +/- 10%
+    model.shunt_input.p.line ~> shunt ~> model.shunt_input.n.line
+
+    decoupling_cap = new Capacitor
+    power.vcc ~> decoupling_cap ~> power.gnd
+    decoupling_cap.capacitance = 100nF +/- 10%
+    decoupling_cap.package = "C0402"
+
+    # needs addressor that connects address to scl, sda, vs or gnd
+    # +------+---------------------+---------------------+
+    # | Pin  | INA232A Device Addr | INA232B Device Addr |
+    # +------+---------------------+---------------------+
+    # | GND  |        0x40         |        0x48         |
+    # | VS   |        0x41         |        0x49         |
+    # | SDA  |        0x42         |        0x4A         |
+    # | SCL  |        0x43         |        0x4B         |
+    # +------+---------------------+---------------------+
+    # addressor = new TI_I2C_Addressor
+    # addressor.i2c ~ model.i2c
+    # addressor.power ~ model.power
+    # addressor.address_line ~ model.address_line
+    # assert addressor.base is model.package.base_address
+    model.address_line.line ~ power.gnd
+
+module Devboard:
+    """Devboard for TI INA232x"""
+    driver = new TI_INA232x_driver
+    driver.model.package -> TI_INA232A_package
+    driver.model.i2c.address = 0x40
+    # driver.input_current_max = 3A
+    driver.shunt.resistance = 90mohm +/- 10%
