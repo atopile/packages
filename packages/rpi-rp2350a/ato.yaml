@@ -1,0 +1,26 @@
+requires-atopile: "^0.6.0"
+
+paths:
+  src: .
+  layout: ./layouts
+  footprints: ./footprints
+
+builds:
+  default:
+    entry: rpi-rp2350a.ato:RP2350A_driver
+
+package:
+  identifier: atopile/rp2040
+  repository: https://github.com/atopile/packages
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: The RP2040 microcontroller from RaspberryPi
+  license: MIT
+  homepage: https://github.com/atopile/packages
+
+dependencies:
+  - type: registry
+    identifier: atopile/buttons
+    release: 0.1.1

@@ -1,0 +1,231 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Electrical
+import ElectricLogic
+import ElectricSignal
+import ElectricPower
+import USB2_0
+import Resistor
+import Capacitor
+
+module RP2350A_package:
+    """Raspberry Pi RP2350A"""
+    lcsc_id = "C42411118"
+    manufacturer = "Raspberry Pi"
+    mpn = "RP2350A"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_2412101620_Raspberry-Pi-RP2350A_C42411118.pdf"
+    designator_prefix = "U"
+
+    # Signals
+    ADC_AVDD = new Electrical
+    DVDD = new Electrical
+    GND = new Electrical
+    GPIO0 = new Electrical
+    GPIO1 = new Electrical
+    GPIO2 = new Electrical
+    GPIO3 = new Electrical
+    GPIO4 = new Electrical
+    GPIO5 = new Electrical
+    GPIO6 = new Electrical
+    GPIO7 = new Electrical
+    GPIO8 = new Electrical
+    GPIO9 = new Electrical
+    GPIO11 = new Electrical
+    GPIO10 = new Electrical
+    GPIO12 = new Electrical
+    GPIO13 = new Electrical
+    GPIO14 = new Electrical
+    GPIO15 = new Electrical
+    GPIO16 = new Electrical
+    GPIO17 = new Electrical
+    GPIO18 = new Electrical
+    GPIO19 = new Electrical
+    GPIO20 = new Electrical
+    GPIO21 = new Electrical
+    GPIO22 = new Electrical
+    GPIO23 = new Electrical
+    GPIO24 = new Electrical
+    GPIO25 = new Electrical
+    GPIO26_ADC0 = new Electrical
+    GPIO27_ADC1 = new Electrical
+    GPIO28_ADC2 = new Electrical
+    GPIO29_ADC3 = new Electrical
+    IOVDD = new Electrical
+    QSPI_IOVDD = new Electrical
+    QSPI_SCLK = new Electrical
+    QSPI_SD0 = new Electrical
+    QSPI_SD1 = new Electrical
+    QSPI_SD2 = new Electrical
+    QSPI_SD3 = new Electrical
+    QSPI_SS = new Electrical
+    RUN = new Electrical
+    SWCLK = new Electrical
+    SWDIO = new Electrical
+    USB_DM = new Electrical
+    USB_DP = new Electrical
+    USB_OTP_VDD = new Electrical
+    VREG_AVDD = new Electrical
+    VREG_FB = new Electrical
+    VREG_LX = new Electrical
+    VREG_PGND = new Electrical
+    VREG_VIN = new Electrical
+    XIN = new Electrical
+    XOUT = new Electrical
+
+    # Pins
+    pin 1 ~ IOVDD
+    pin 2 ~ GPIO0
+    pin 3 ~ GPIO1
+    pin 4 ~ GPIO2
+    pin 5 ~ GPIO3
+    pin 6 ~ DVDD
+    pin 7 ~ GPIO4
+    pin 8 ~ GPIO5
+    pin 9 ~ GPIO6
+    pin 10 ~ GPIO7
+    pin 11 ~ IOVDD
+    pin 12 ~ GPIO8
+    pin 13 ~ GPIO9
+    pin 14 ~ GPIO10
+    pin 15 ~ GPIO11
+    pin 16 ~ GPIO12
+    pin 17 ~ GPIO13
+    pin 18 ~ GPIO14
+    pin 19 ~ GPIO15
+    pin 20 ~ IOVDD
+    pin 21 ~ XIN
+    pin 22 ~ XOUT
+    pin 23 ~ DVDD
+    pin 24 ~ SWCLK
+    pin 25 ~ SWDIO
+    pin 26 ~ RUN
+    pin 27 ~ GPIO16
+    pin 28 ~ GPIO17
+    pin 29 ~ GPIO18
+    pin 30 ~ IOVDD
+    pin 31 ~ GPIO19
+    pin 32 ~ GPIO20
+    pin 33 ~ GPIO21
+    pin 34 ~ GPIO22
+    pin 35 ~ GPIO23
+    pin 36 ~ GPIO24
+    pin 37 ~ GPIO25
+    pin 38 ~ IOVDD
+    pin 39 ~ DVDD
+    pin 40 ~ GPIO26_ADC0
+    pin 41 ~ GPIO27_ADC1
+    pin 42 ~ GPIO28_ADC2
+    pin 43 ~ GPIO29_ADC3
+    pin 44 ~ ADC_AVDD
+    pin 45 ~ IOVDD
+    pin 46 ~ VREG_AVDD
+    pin 47 ~ VREG_PGND
+    pin 48 ~ VREG_LX
+    pin 49 ~ VREG_VIN
+    pin 50 ~ VREG_FB
+    pin 51 ~ USB_DM
+    pin 52 ~ USB_DP
+    pin 53 ~ USB_OTP_VDD
+    pin 54 ~ QSPI_IOVDD
+    pin 55 ~ QSPI_SD3
+    pin 56 ~ QSPI_SCLK
+    pin 57 ~ QSPI_SD0
+    pin 58 ~ QSPI_SD2
+    pin 59 ~ QSPI_SD1
+    pin 60 ~ QSPI_SS
+    pin 61 ~ GND
+
+module RP2350A_driver:
+    """
+    Driver for the RP2350A microcontroller.
+    """
+    # Package
+    package = new RP2350A_package
+
+    # Power
+    power_3v3 = new ElectricPower
+    _power_1v1 = new ElectricPower
+
+    # External Interfaces
+    usb2 = new USB2_0
+    gpios = new ElectricLogic[30]
+    adcs = new ElectricSignal[4]
+
+    # 3V3 Connections
+    power_3v3.vcc ~ package.IOVDD
+    power_3v3.vcc ~ package.USB_OTP_VDD
+    power_3v3.vcc ~ package.QSPI_IOVDD
+    power_3v3.vcc ~ package.VREG_VIN
+
+    # Ground Connections
+    power_3v3.gnd ~ package.GND
+    power_3v3.gnd ~ package.VREG_PGND
+
+    # Decoupling Capacitors
+    iovdd_bulk_caps = new Capacitor[3]
+    for cap in iovdd_bulk_caps:
+        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        cap.capacitance = 4.7uF +/- 10%
+        cap.package = "C0603"
+
+    iovdd_100nf_caps = new Capacitor[7]
+    for cap in iovdd_100nf_caps:
+        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "C0402"
+
+    dvdd_bulk_caps = new Capacitor[2]
+    for cap in dvdd_bulk_caps:
+        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        cap.capacitance = 4.7uF +/- 10%
+        cap.package = "C0603"
+
+    dvdd_100nf_caps = new Capacitor[2]
+    for cap in dvdd_100nf_caps:
+        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "C0402"
+
+
+    # USB2 connections
+    usb_series_resistors = new Resistor[2]
+    usb2.usb_if.d.n.line ~> usb_series_resistors[0] ~> package.USB_DM
+    usb2.usb_if.d.p.line ~> usb_series_resistors[1] ~> package.USB_DP
+
+    # GPIO connections
+    gpios[0].line ~ package.GPIO0
+    gpios[1].line ~ package.GPIO1
+    gpios[2].line ~ package.GPIO2
+    gpios[3].line ~ package.GPIO3
+    gpios[4].line ~ package.GPIO4
+    gpios[5].line ~ package.GPIO5
+    gpios[6].line ~ package.GPIO6
+    gpios[7].line ~ package.GPIO7
+    gpios[8].line ~ package.GPIO8
+    gpios[9].line ~ package.GPIO9
+    gpios[10].line ~ package.GPIO10
+    gpios[11].line ~ package.GPIO11
+    gpios[12].line ~ package.GPIO12
+    gpios[13].line ~ package.GPIO13
+    gpios[14].line ~ package.GPIO14
+    gpios[15].line ~ package.GPIO15
+    gpios[16].line ~ package.GPIO16
+    gpios[17].line ~ package.GPIO17
+    gpios[18].line ~ package.GPIO18
+    gpios[19].line ~ package.GPIO19
+    gpios[20].line ~ package.GPIO20
+    gpios[21].line ~ package.GPIO21
+    gpios[22].line ~ package.GPIO22
+    gpios[23].line ~ package.GPIO23
+    gpios[24].line ~ package.GPIO24
+    gpios[25].line ~ package.GPIO25
+    gpios[26].line ~ package.GPIO26_ADC0
+    gpios[27].line ~ package.GPIO27_ADC1
+    gpios[28].line ~ package.GPIO28_ADC2
+    gpios[29].line ~ package.GPIO29_ADC3
+
+    # ADC connections
+    adcs[0].line ~ package.GPIO26_ADC0
+    adcs[1].line ~ package.GPIO27_ADC1
+    adcs[2].line ~ package.GPIO28_ADC2
+    adcs[3].line ~ package.GPIO29_ADC3
