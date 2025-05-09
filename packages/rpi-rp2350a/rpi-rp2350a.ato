@@ -1,5 +1,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
 import Electrical
 import ElectricLogic
 import ElectricSignal
@@ -7,6 +9,10 @@ import ElectricPower
 import USB2_0
 import Resistor
 import Capacitor
+import MultiSPI
+
+from "components/winbond_elec_w25q128j_vpiq.ato" import Winbond_Elec_W25Q128JVPIQ_driver
+
 
 module RP2350A_package:
     """Raspberry Pi RP2350A"""
@@ -186,6 +192,19 @@ module RP2350A_driver:
         cap.capacitance = 100nF +/- 10%
         cap.package = "C0402"
 
+    # QSPI
+    qspi = new MultiSPI<data_lane_count=4>
+    qspi.clock.line ~ package.QSPI_SCLK
+    qspi.chip_select.line ~ package.QSPI_SS
+    qspi.data[0].line ~ package.QSPI_SD0
+    qspi.data[1].line ~ package.QSPI_SD1
+    qspi.data[2].line ~ package.QSPI_SD2
+    qspi.data[3].line ~ package.QSPI_SD3
+
+    # Flash
+    flash = new Winbond_Elec_W25Q128JVPIQ_driver
+    power_3v3 ~ flash.power
+    qspi ~ flash.qspi
 
     # USB2 connections
     usb_series_resistors = new Resistor[2]

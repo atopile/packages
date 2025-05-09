@@ -1,0 +1,57 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import MultiSPI
+import Capacitor
+
+component Winbond_Elec_W25Q128JVPIQ_package:
+    """Winbond_Elec_W25Q128JVPIQ component"""
+    lcsc_id = "C190862"
+    manufacturer = "Winbond Elec"
+    mpn = "W25Q128JVPIQ"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Winbond-Elec-W25Q128JVPIQ_C190862.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal CLK ~ pin 6
+    signal DI_IO0 ~ pin 5
+    signal DO_IO1 ~ pin 2
+    signal EP ~ pin 9
+    signal GND ~ pin 4
+    signal VCC ~ pin 8
+    signal hCS ~ pin 1
+    signal hHOLD_OR_hREST_IO3 ~ pin 7
+    signal hWP_IO2 ~ pin 3
+
+module Winbond_Elec_W25Q128JVPIQ_driver:
+    """
+    Driver for the Winbond_Elec_W25Q128JVPIQ component.
+    """
+    # Package
+    package = new Winbond_Elec_W25Q128JVPIQ_package
+
+    # Power
+    power = new ElectricPower
+    assert power.voltage within 2.7V to 3.6V
+    power.vcc ~ package.VCC
+    power.gnd ~ package.GND
+    power.gnd ~ package.EP
+
+    # Decoupling Capacitor
+    cap = new Capacitor
+    power.vcc ~> cap ~> power.gnd
+    cap.capacitance = 100nF +/- 10%
+    cap.package = "C0402"
+
+    # QSPI
+    qspi = new MultiSPI<data_lane_count=4>
+    qspi.clock.line ~ package.CLK
+    qspi.chip_select.line ~ package.hCS
+    qspi.data[0].line ~ package.DI_IO0
+    qspi.data[1].line ~ package.DO_IO1
+    qspi.data[2].line ~ package.hWP_IO2
+    qspi.data[3].line ~ package.hHOLD_OR_hREST_IO3
+
+    # Ground
+    power.gnd ~ package.GND
