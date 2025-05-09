@@ -1,102 +1,73 @@
-import Resistor, ElectricSignal
+#pragma experiment("BRIDGE_CONNECT")
+
+import Resistor
+import ElectricSignal
+import Button
 
 
-module NoButton:
+component ButtonSKRPACE010 from Button:
     """
-    Its a little confusing how this works, but the idea is that you might optionally want a button in your design.
-    To achieve this with our current compiler, we need an empty module 'NoButon' (Normally Open) that can be
-    replaced using the '->' operator with another module that has a button. FOr example the 'ButtonSKRPACE010'.
-
-    Usage example:
-    import ButtonPullup from generics/buttons.ato
-    import ButtonSKRPACE010 from generics/buttons.ato
-
-    module MyMicrocontroller:
-        ...
-        btn_pullup = new ButtonPullup
-        ...
-
-    module MyProject:
-        ...
-        micro = new MyMicrocontroller #instantiate microcontroller (in this case there will be no button in your design)
-        button_pullup.btn -> ButtonSKRPACE010 #replace with class, now there will be a button in your design.
+    Small SMD button
     """
-    signal input
-    signal output
-
-
-component _ButtonSKRPACE010:
-    signal input ~ pin 1
-    input ~ pin 2
-    signal output ~ pin 3
-    output ~ pin 4
-    footprint = "KEY-SMD_4P-L4.2-W3.2-P2.20-LS4.6"
     lcsc_id = "C139797"
+    # Pin mapping
+    unnamed[0] ~ pin 1
+    unnamed[0] ~ pin 2
+    unnamed[1] ~ pin 3
+    unnamed[1] ~ pin 4
 
-
-module ButtonSKRPACE010 from NoButton:
-    btn = new _ButtonSKRPACE010
-    input ~ btn.input
-    output ~ btn.output
-
-
-component _ButtonSKTDLDE010:
-    input ~ pin 1
-    output ~ pin 2
-    signal anchor ~ pin 3
-    anchor ~ pin 4
-
-    footprint = "KEY-SMD_SKTDLDE010"
-    lcsc_id = "C115365"
-
-
-module ButtonSKTDLDE010 from NoButton:
+component ButtonSKTDLDE010 from Button:
     """
     Small SMD right angle button
     """
-    btn = new _ButtonSKTDLDE010
-    input ~ btn.input
-    output ~ btn.output
-
+    lcsc_id = "C115365"
+    # Pin mapping
+    unnamed[0] ~ pin 1
+    unnamed[1] ~ pin 2
 
 module ButtonPullup:
-    btn = new NoButton
+    """
+    Connects button output to output reference.hv via a resistor when button is pressed
+    """
+    btn = new Button
     output = new ElectricSignal
     pullup = new Resistor
 
+    # Connections
+    output.line ~ btn.unnamed[0]
+    btn.unnamed[1] ~> pullup ~> output.reference.hv
+
+    # Configure pullup
     pullup.resistance = 10kohms +/- 20%
     pullup.package = "R0402"
 
-    output.line ~ btn.input
-
-    output.reference.hv ~ pullup.p1; pullup.p2 ~ btn.input; btn.output ~ output.reference.gnd
-
 
 module ButtonPulldown:
-    btn = new NoButton
+    """
+    Connects button output to output reference.gnd via a resistor when button is pressed
+    """
+    btn = new Button
     output = new ElectricSignal
     pulldown = new Resistor
+
+    # Connections
+    output.line ~ btn.unnamed[0]
+    btn.unnamed[1] ~> pulldown ~> output.reference.gnd
+
+    # Configure pulldown
     pulldown.resistance = 10kohms +/- 20%
     pulldown.package = "R0402"
 
-    output.line ~ btn.input
 
-    output.reference.gnd ~ pulldown.p1; pulldown.p2 ~ btn.input; btn.output ~ output.reference.hv
+module Test:
+    btn_pullup_vertical = new ButtonPullup
+    btn_pullup_vertical.btn -> ButtonSKRPACE010
 
+    btn_pullup_horizontal = new ButtonPullup
+    btn_pullup_horizontal.btn -> ButtonSKTDLDE010
 
-module ButtonPullup90Degree from ButtonPullup:
-    btn -> _1TS003B_1400_3500A
+    btn_pulldown_vertical = new ButtonPulldown
+    btn_pulldown_vertical.btn -> ButtonSKRPACE010
 
-
-component _1TS003B_1400_3500A:
-    footprint = "KEY-SMD_1TS003B"
-    lcsc_id = "C319392"
-
-    # pins
-    signal _1 ~ pin 1
-    signal _2 ~ pin 2
-    signal _3 ~ pin 3
-    signal _4 ~ pin 4
-
-    signal input ~ _1
-    signal output ~ _2
+    btn_pulldown_horizontal = new ButtonPulldown
+    btn_pulldown_horizontal.btn -> ButtonSKTDLDE010
