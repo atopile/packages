@@ -2,7 +2,7 @@
 
 ## Usage
 
-```python
+```ato
 from "atopile/cm5.ato" import CM5
 
 module App:
