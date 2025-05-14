@@ -41,7 +41,7 @@ This package provides:
 
 To use this package in your design:
 
-```python
+```ato
 from "atopile/ti-tps54560x/ti-tps54560x.ato" import TPS54560x
 
 // Example usage in your design
