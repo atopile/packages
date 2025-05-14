@@ -6,7 +6,7 @@ Header configured for use with Saleae debug probes, includes interfaces for sign
 
 ## Usage Example
 
-```
+```ato
 import saleae-header from "saleae-header/saleae-header.ato"
 import Power from "generics/interfaces.ato"
 
