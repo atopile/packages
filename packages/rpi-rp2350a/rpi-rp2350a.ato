@@ -10,9 +10,14 @@ import USB2_0
 import Resistor
 import Capacitor
 import MultiSPI
+import Crystal_Oscillator
+import SWD
+import FilterElectricalRC
+import Inductor
 
 from "components/winbond_elec_w25q128j_vpiq.ato" import Winbond_Elec_W25Q128JVPIQ_driver
 
+from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
 
 module RP2350A_package:
     """Raspberry Pi RP2350A"""
@@ -166,6 +171,11 @@ module RP2350A_driver:
     # Ground Connections
     power_3v3.gnd ~ package.GND
     power_3v3.gnd ~ package.VREG_PGND
+    power_3v3.gnd ~ _power_1v1.gnd
+
+    # 1V1 Connections
+    _power_1v1.vcc ~ package.DVDD
+    _power_1v1.vcc ~ package.VREG_FB
 
     # Decoupling Capacitors
     iovdd_bulk_caps = new Capacitor[3]
@@ -182,15 +192,39 @@ module RP2350A_driver:
 
     dvdd_bulk_caps = new Capacitor[2]
     for cap in dvdd_bulk_caps:
-        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        _power_1v1.vcc ~> cap ~> _power_1v1.gnd
         cap.capacitance = 4.7uF +/- 10%
         cap.package = "C0603"
 
     dvdd_100nf_caps = new Capacitor[2]
     for cap in dvdd_100nf_caps:
-        power_3v3.vcc ~> cap ~> power_3v3.gnd
+        _power_1v1.vcc ~> cap ~> _power_1v1.gnd
         cap.capacitance = 100nF +/- 10%
         cap.package = "C0402"
+
+    # DVDD Regulator
+    inductor = new Inductor
+    avdd_filter = new FilterElectricalRC
+
+    resistors = new Resistor[10]
+
+    resistor = new Resistor
+    resistor.ref_ref = "R32"
+
+
+    # Configure parts
+    inductor.lcsc_id = "C42411119"
+    avdd_filter.resistor.resistance = 33ohms +/- 10%
+    avdd_filter.resistor.package = "R0402"
+    avdd_filter.capacitor.capacitance = 100nF +/- 10%
+    avdd_filter.capacitor.package = "C0402"
+
+    # Configure connections
+    package.VREG_FB ~> inductor ~> package.VREG_LX
+    power_3v3.vcc ~ avdd_filter.in_.line
+    avdd_filter.out.line ~ package.VREG_AVDD
+    power_3v3 ~ avdd_filter.out.reference
+    power_3v3 ~ avdd_filter.in_.reference
 
     # QSPI
     qspi = new MultiSPI<data_lane_count=4>
@@ -206,10 +240,43 @@ module RP2350A_driver:
     power_3v3 ~ flash.power
     qspi ~ flash.qspi
 
+    # Boot Button
+    boot_button = new ButtonPulldown
+    boot_button.btn -> ButtonSKRPACE010
+    boot_button.output ~ qspi.chip_select
+
+    # Reset Button
+    reset_button = new ButtonPulldown
+    reset_button.btn -> ButtonSKRPACE010
+    reset_button.output.line ~ package.RUN
+    reset_button.output.reference ~ power_3v3
+
+    # Crystal Oscillator
+    crystal_oscillator = new Crystal_Oscillator
+    crystal_oscillator.crystal.lcsc_id = "C20625731"
+    package.XIN ~> crystal_oscillator ~> package.XOUT
+    power_3v3.gnd ~ crystal_oscillator.xtal_if.gnd
+
+    for cap in crystal_oscillator.capacitors:
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "C0402"
+    crystal_oscillator.current_limiting_resistor.resistance = 1kohm +/- 10%
+    crystal_oscillator.current_limiting_resistor.package = "R0402"
+
     # USB2 connections
     usb_series_resistors = new Resistor[2]
     usb2.usb_if.d.n.line ~> usb_series_resistors[0] ~> package.USB_DM
     usb2.usb_if.d.p.line ~> usb_series_resistors[1] ~> package.USB_DP
+
+    for resistor in usb_series_resistors:
+        resistor.resistance = 27ohms +/- 10%
+        resistor.package = "R0402"
+
+    # SWD
+    swd = new SWD
+    package.SWCLK ~ swd.clk.line
+    package.SWDIO ~ swd.dio.line
+    power_3v3 ~ swd.dio.reference
 
     # GPIO connections
     gpios[0].line ~ package.GPIO0
