@@ -1,4 +1,10 @@
-import ElectricPower, I2C, Electrical
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import Electrical
+import ElectricPower
+
 from "components/i2c_isolator.py" import I2CIsolator
 
 component ISO1640_package_base:
@@ -75,7 +81,42 @@ module Texas_Instruments_ISO1640_driver from I2CIsolator:
     i2cs[1].sda.line ~ package.sda2
 
 
+module Micro:
+    i2c = new I2C
+    power = new ElectricPower
+
+module Sensor:
+    i2c = new I2C
+    power = new ElectricPower
+
 module Test:
-    isolators = new Texas_Instruments_ISO1640_driver[2]
-    isolators[0].package -> Texas_Instruments_ISO1640QDWRQ1_package
-    isolators[1].package -> Texas_Instruments_ISO1640BDR_package
+    """
+    Connect a microcontroller to a sensor via an I2C isolator
+    """
+
+    # Components
+    micro = new Micro
+    sensor = new Sensor
+    isolator = new Texas_Instruments_ISO1640_driver
+
+    # Power Rails
+    power = new ElectricPower
+    power_iso = new ElectricPower
+
+    # Select Package
+    isolator.package -> Texas_Instruments_ISO1640QDWRQ1_package   #400V
+    #isolator.package -> Texas_Instruments_ISO1640BDR_package      #1500V
+
+    # Connections - isolator is 'bridgable'
+    micro.i2c ~> isolator ~> sensor.i2c
+    # alternative connection method:
+    # micro.i2c ~> isolator.i2cs[0]
+    #sensor.i2c ~> isolator.i2cs[1]
+
+    # Power
+    power ~ micro.power
+    power ~ isolator.power_rails[0]
+
+    # Isolated Power
+    power_iso ~ sensor.power
+    power_iso ~ isolator.power_rails[1]
