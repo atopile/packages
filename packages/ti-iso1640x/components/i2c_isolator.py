@@ -20,8 +20,3 @@ class I2CIsolator(Module):
 
     def __preinit__(self) -> None:
         self.i2cs[0].connect_shallow(self.i2cs[1])
-
-
-class TwoIsolators(Module):
-    isolator1: I2CIsolator
-    isolator2: I2CIsolator
