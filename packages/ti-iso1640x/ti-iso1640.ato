@@ -1,0 +1,82 @@
+import ElectricPower, I2C, Electrical
+from "components/i2c_isolator.py" import I2CIsolator
+
+component ISO1640_package_base:
+    """
+    i2c digital isolator
+    """
+    # pins
+    gnd1 = new Electrical
+    gnd2 = new Electrical
+    vcc1 = new Electrical
+    vcc2 = new Electrical
+    scl1 = new Electrical
+    sda1 = new Electrical
+    scl2 = new Electrical
+    sda2 = new Electrical
+
+
+component Texas_Instruments_ISO1640QDWRQ1_package from ISO1640_package_base:
+    """
+    i2c digital isolator 400V working isolation
+    """
+    lcsc_id = "C5122339"
+    mpn = "ISO1640BDR"
+
+    # Pinout
+    pin 1 ~ vcc1
+    pin 2 ~ sda1
+    pin 3 ~ scl1
+    pin 4 ~ gnd1
+    pin 5 ~ gnd2
+    pin 6 ~ scl2
+    pin 7 ~ sda2
+    pin 8 ~ vcc2
+
+
+component Texas_Instruments_ISO1640BDR_package from ISO1640_package_base:
+    """
+    i2c digital isolator 1500V working isolation
+    """
+    lcsc_id = "C5216231"
+    mpn = "ISO1640QDWRQ1"
+
+
+    # Pinout
+    pin 1 ~ gnd1
+    pin 3 ~ vcc1
+    pin 5 ~ sda1
+    pin 6 ~ scl1
+    pin 7 ~ gnd1
+    pin 9 ~ gnd2
+    pin 11 ~ scl2
+    pin 12 ~ sda2
+    pin 14 ~ vcc2
+    pin 16 ~ gnd2
+
+
+module Texas_Instruments_ISO1640_driver from I2CIsolator:
+    """
+    Texas Instruments ISO1640 I2C isolator
+    """
+
+    # package = new Texas_Instruments_ISO1640QDWRQ1_package
+    package = new ISO1640_package_base
+
+    # Connect power rails to package
+    power_rails[0].vcc ~ package.vcc1
+    power_rails[0].gnd ~ package.gnd1
+    power_rails[1].vcc ~ package.vcc2
+    power_rails[1].gnd ~ package.gnd2
+
+    # Connect I2C lines to package
+    i2cs[0].scl.line ~ package.scl1
+    i2cs[0].sda.line ~ package.sda1
+    i2cs[1].scl.line ~ package.scl2
+    i2cs[1].sda.line ~ package.sda2
+
+
+module Test:
+    isolators = new Texas_Instruments_ISO1640_driver[2]
+    isolators[0].package -> Texas_Instruments_ISO1640QDWRQ1_package
+    isolators[1].package -> Texas_Instruments_ISO1640BDR_package
