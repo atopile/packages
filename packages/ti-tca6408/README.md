@@ -1,8 +1,4 @@
-# ADS1115 4ch 16-bit ADC
-
-Sample Rate: 860sps
-Communication: I2C
-Input Voltage: 1.8-5.5V
+# TCA6408 8ch GPIO expander
 
 ## Usage
 
@@ -11,36 +7,31 @@ Input Voltage: 1.8-5.5V
 import I2C
 import Power
 
-from "atopile/ti-ads1115/ti-ads1115.ato" import Texas_Instruments_ADS1115_driver
+from "atopile/ti-tca6408/ti-tca6408.ato" import Texas_Instruments_TCA6408_driver
 
 
 module Test:
-    """Test component"""
-    # ADCs
-    adcs = new Texas_Instruments_ADS1115_driver[4]
+    """
+    Test TCA6408 driver
+    """
+    expanders = new Texas_Instruments_TCA6408_driver[2]
 
-    power = new ElectricPower
+    # Power and I2C
     i2c = new I2C
+    power = new ElectricPower
+    power.voltage = 3.3V
 
-    # Configure power
-    power.voltage = 5V
+    # Set addresses
+    expanders[0].i2c.address = 0x20
+    expanders[1].i2c.address = 0x21
 
-    adcs[0].i2c.address = 0x48
-    adcs[1].i2c.address = 0x49
-    adcs[2].i2c.address = 0x4A
-    adcs[3].i2c.address = 0x4B
-
-    # Power and I2c
-    for adc in adcs:
-        adc.power ~ power
-        adc.i2c ~ i2c
+    # Connect power and I2C
+    for expander in expanders:
+        expander.power ~ power
+        expander.i2c ~ i2c
 
 
 ```
-
-## Overview
-
-This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
 
 ## Contributing
 
