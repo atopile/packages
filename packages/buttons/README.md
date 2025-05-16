@@ -4,7 +4,7 @@ Implements a few common buttons configured as current limited pullups/pulldowns
 
 Connected like so:
 
-````
+```
 output.line ~> btn ~> resistor ~> output.hv/.lv (pullup/pulldown)
 ```
 
@@ -43,7 +43,7 @@ module Test:
     enable ~ btn_pullup_vertical.output
 
     # When button is pressed, enable will be pulled HIGH via a 10k resistor
-````
+```
 
 ## Contributing
 
