@@ -1,0 +1,107 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+import Electrical
+import ElectricSignal
+import ElectricLogic
+import Capacitor
+
+
+from "components/ti_addressor.py" import TIAddressor
+
+component Texas_Instruments_ADS1115IDGSR_package:
+    """Texas_Instruments_ADS1115IDGSR component"""
+    lcsc_id = "C37593"
+    manufacturer = "Texas Instruments"
+    mpn = "ADS1115IDGSR"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_1809192322_Texas-Instruments-ADS1115IDGSR_C37593.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal ADDR ~ pin 1
+    signal AIN0 ~ pin 4
+    signal AIN1 ~ pin 5
+    signal AIN2 ~ pin 6
+    signal AIN3 ~ pin 7
+    signal ALERT_RDY ~ pin 2
+    signal GND ~ pin 3
+    signal SCL ~ pin 10
+    signal SDA ~ pin 9
+    signal VDD ~ pin 8
+
+
+module Texas_Instruments_ADS1115_driver:
+    """Texas_Instruments_ADS1115_driver component"""
+
+    # External interfaces
+    power = new ElectricPower
+    i2c = new I2C
+    inputs = new ElectricSignal[4]
+
+    # Configure power
+    assert power.voltage within 1.8V to 5.5V
+
+    # Package
+    package = new Texas_Instruments_ADS1115IDGSR_package
+
+    # Connect inputs to package
+    inputs[0].line ~ package.AIN0
+    inputs[1].line ~ package.AIN1
+    inputs[2].line ~ package.AIN2
+    inputs[3].line ~ package.AIN3
+
+    # Connect Input References
+    for input in inputs:
+        input.reference.gnd ~ power.gnd
+
+    # Connect I2C
+    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ package.SCL
+
+    # Connect Power
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+
+    # Decoupling Capacitor
+    capacitor = new Capacitor
+    capacitor.capacitance = 100nF +/- 10%
+    capacitor.package = "C0402"
+    power.vcc ~> capacitor ~> power.gnd
+
+    # Addressor
+    addressor = new TIAddressor
+    addressor.base = 0x48
+    addressor.i2c ~ i2c
+    addressor.address_line.line ~> package.ADDR
+    addressor.address_line.reference ~ power
+    assert i2c.address is addressor.address
+
+    # Alert Ready
+    alert_ready = new ElectricLogic
+    alert_ready.line ~ package.ALERT_RDY
+    alert_ready.reference ~ power
+
+
+module Test:
+    """Test component"""
+    # ADCs
+    adcs = new Texas_Instruments_ADS1115_driver[4]
+
+    power = new ElectricPower
+    i2c = new I2C
+
+    # Configure power
+    power.voltage = 5V
+
+    adcs[0].i2c.address = 0x48
+    adcs[1].i2c.address = 0x49
+    adcs[2].i2c.address = 0x4A
+    adcs[3].i2c.address = 0x4B
+
+    # Power and I2c
+    for adc in adcs:
+        adc.power ~ power
+        adc.i2c ~ i2c
