@@ -103,13 +103,16 @@ module Texas_Instruments_TPS563201DDCR_driver from AdjustableRegulator:
 
 
 module Test:
-    regulators = new Texas_Instruments_TPS563201DDCR_driver[3]
+    regs = new Texas_Instruments_TPS563201DDCR_driver[3]
 
-    regulators[0].power_in.voltage = 12V
-    regulators[0].v_out = 1.8V +/- 5%
+    # Configure output voltages
+    regs[0].v_out = 6V +/- 5%
+    regs[1].v_out = 5V +/- 5%
+    regs[2].v_out = 4V +/- 5%
 
-    regulators[1].power_in.voltage = 12V
-    regulators[1].v_out = 3.3V +/- 5%
+    # Create power interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
 
-    regulators[2].power_in.voltage = 12V
-    regulators[2].v_out = 1.8V +/- 5%
+    # Connect regulators in a chain
+    power_in ~> regs[0] ~> regs[1] ~> regs[2] ~> power_out
