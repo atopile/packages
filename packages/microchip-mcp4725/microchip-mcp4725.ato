@@ -1,10 +1,12 @@
 #pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
 import ElectricPower
 import I2C
 import ElectricSignal
 import Addressor
+import Capacitor
 
 component Microchip_Tech_MCP4725A0T_E_CH_package:
     """Microchip_Tech_MCP4725A0T_E_CH component"""
@@ -32,6 +34,12 @@ module Microchip_Tech_MCP4725_driver:
     power.vcc ~ package.VDD
     power.gnd ~ package.VSS
     assert power.voltage within 2.7V to 5.5V
+
+    # Decoupling Capacitor
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 10%
+    decoupling_capacitor.package = "C0402"
+    power.vcc ~> decoupling_capacitor ~> power.gnd
 
     # I2C
     i2c = new I2C
