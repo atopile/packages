@@ -36,6 +36,7 @@ module Texas_Instruments_INA232x_driver:
     package = new Texas_Instruments_INA232x_package
 
     power = new ElectricPower
+    power.required = True
     assert power.voltage within 1.7V to 5.5V
     power.vcc ~ package.VS
     power.gnd ~ package.GND
@@ -45,6 +46,7 @@ module Texas_Instruments_INA232x_driver:
 
     # i2c
     i2c = new I2C
+    i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
