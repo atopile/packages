@@ -13,6 +13,7 @@ class TIAddressor(ModuleInterface):
     address = L.p_field(domain=L.Domains.Numbers.NATURAL())
     offset = L.p_field(domain=L.Domains.Numbers.NATURAL())
     base = L.p_field(domain=L.Domains.Numbers.NATURAL())
+    num_addresses = L.p_field(domain=L.Domains.Numbers.NATURAL())
     address_line: F.ElectricLogic
     i2c: F.I2C
 
@@ -25,8 +26,6 @@ class TIAddressor(ModuleInterface):
     def __preinit__(self) -> None:
         for x in (self.address, self.offset, self.base):
             x.constrain_ge(0)
-
-        self.offset.constrain_le(3)
 
         self.address.alias_is(self.base + self.offset)
 
