@@ -1,0 +1,69 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricSignal
+import Addressor
+
+component Microchip_Tech_MCP4725A0T_E_CH_package:
+    """Microchip_Tech_MCP4725A0T_E_CH component"""
+    lcsc_id = "C144198"
+    manufacturer = "Microchip Tech"
+    mpn = "MCP4725A0T-E/CH"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_1811151442_Microchip-Tech-MCP4725A0T-E-CH_C144198.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal A0 ~ pin 6
+    signal SCL ~ pin 5
+    signal SDA ~ pin 4
+    signal VDD ~ pin 3
+    signal VOUT ~ pin 1
+    signal VSS ~ pin 2
+
+
+module Microchip_Tech_MCP4725_driver:
+    """Microchip_Tech_MCP4725_driver"""
+    package = new Microchip_Tech_MCP4725A0T_E_CH_package
+
+    # power
+    power = new ElectricPower
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
+    assert power.voltage within 2.7V to 5.5V
+
+    # I2C
+    i2c = new I2C
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # Output
+    output = new ElectricSignal
+    output.line ~ package.VOUT
+    output.reference ~ power
+
+    # Addressor
+    addressor = new Addressor<address_bits=1>
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+    assert addressor.base is 0x60
+
+
+module Test:
+    # Create 2 DACs
+    dacs = new Microchip_Tech_MCP4725_driver[2]
+
+    # Create power and I2C interfaces
+    power = new ElectricPower
+    i2c = new I2C
+
+    # Connect DACs to power and I2C
+    for dac in dacs:
+        dac.power ~ power
+        dac.i2c ~ i2c
+
+    # Set DAC addresses
+    dacs[0].i2c.address = 0x60
+    dacs[1].i2c.address = 0x61
