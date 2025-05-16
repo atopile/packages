@@ -1,0 +1,106 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Addressor
+import Resistor
+import Capacitor
+component Texas_Instruments_TCA6408_package:
+    """
+    8 Channel I2C GPIO Expander
+    """
+    lcsc_id = "C181499"
+
+    signal RESET ~ pin 1
+    signal P0 ~ pin 2
+    signal P1 ~ pin 3
+    signal P2 ~ pin 4
+    signal P3 ~ pin 5
+    signal GND ~ pin 6
+    signal P4 ~ pin 7
+    signal P5 ~ pin 8
+    signal P6 ~ pin 9
+    signal P7 ~ pin 10
+    signal INT ~ pin 11
+    signal SCL ~ pin 12
+    signal SDA ~ pin 13
+    signal VCCP ~ pin 14
+    signal VCCI ~ pin 15
+    signal ADDR ~ pin 16
+    signal PAD ~ pin 17
+
+
+module Texas_Instruments_TCA6408_driver:
+    """
+    Driver for Texas Instruments TCA6408 GPIO expander
+    """
+
+    package = new Texas_Instruments_TCA6408_package
+
+    # I2C
+    i2c = new I2C
+    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ package.SCL
+
+    # Power
+    power = new ElectricPower
+    power.vcc ~ package.VCCP
+    power.vcc ~ package.VCCI
+    power.gnd ~ package.GND
+    power.gnd ~ package.PAD
+    assert power.voltage within 1.65V to 5.5V
+
+    # Decoupling capacitors
+    decoupling_capacitors = new Capacitor[2]
+    for capacitor in decoupling_capacitors:
+        capacitor.capacitance = 100nF +/- 10%
+        capacitor.package = "C0402"
+        power.vcc ~> capacitor ~> power.gnd
+
+    # Default pin configuration
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohms +/- 20%
+    reset_pullup.package = "R0402"
+    package.RESET ~> reset_pullup ~> power.vcc
+
+    # GPIOs
+    gpios = new ElectricLogic[8]
+    gpios[0].line ~ package.P0
+    gpios[1].line ~ package.P1
+    gpios[2].line ~ package.P2
+    gpios[3].line ~ package.P3
+    gpios[4].line ~ package.P4
+    gpios[5].line ~ package.P5
+    gpios[6].line ~ package.P6
+    gpios[7].line ~ package.P7
+
+    # Address (0x20 or 0x21)
+    addressor = new Addressor<address_bits=1>
+    addressor.address_lines[0].line ~ package.ADDR
+    addressor.address_lines[0].reference ~ power
+    addressor.base = 0x20
+    assert i2c.address is addressor.address
+
+
+module Test:
+    """
+    Test TCA6408 driver
+    """
+    expanders = new Texas_Instruments_TCA6408_driver[2]
+
+    # Power and I2C
+    i2c = new I2C
+    power = new ElectricPower
+    power.voltage = 3.3V
+
+    # Set addresses
+    expanders[0].i2c.address = 0x20
+    expanders[1].i2c.address = 0x21
+
+    # Connect power and I2C
+    for expander in expanders:
+        expander.power ~ power
+        expander.i2c ~ i2c
