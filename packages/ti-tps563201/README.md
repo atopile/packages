@@ -1,8 +1,8 @@
-# ADS1115 4ch 16-bit ADC
+# TI TPS563201 Buck Converter
 
-Sample Rate: 860sps
-Communication: I2C
-Input Voltage: 1.8-5.5V
+- Vin: 4.5V - 17V
+- Vout: 0.76V - 7V
+- Iout: up to 3A
 
 ## Usage
 
@@ -11,36 +11,23 @@ Input Voltage: 1.8-5.5V
 import I2C
 import Power
 
-from "atopile/ti-ads1115/ti-ads1115.ato" import Texas_Instruments_ADS1115_driver
-
+from "atopile/ti-tps563201/ti-tps563201.ato" import Texas_Instruments_ADS1115_driver
 
 module Test:
-    """Test component"""
-    # ADCs
-    adcs = new Texas_Instruments_ADS1115_driver[4]
+    # Create regulator
+    regulators = new Texas_Instruments_TPS563201DDCR_driver
 
-    power = new ElectricPower
-    i2c = new I2C
+    # Configure Output Voltage
+    regulators[0].v_out = 1.8V +/- 5%
 
-    # Configure power
-    power.voltage = 5V
+    # Example Interfaces
+    power_12v = new Power
+    power_1v8 = new Power
 
-    adcs[0].i2c.address = 0x48
-    adcs[1].i2c.address = 0x49
-    adcs[2].i2c.address = 0x4A
-    adcs[3].i2c.address = 0x4B
-
-    # Power and I2c
-    for adc in adcs:
-        adc.power ~ power
-        adc.i2c ~ i2c
-
+    # Connect up
+    power_12v ~> regulator ~> power_1v8
 
 ```
-
-## Overview
-
-This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
 
 ## Contributing
 
