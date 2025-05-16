@@ -1,0 +1,118 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricSignal
+import ElectricLogic
+import Capacitor
+import Resistor
+import Inductor
+
+from "regulators.ato" import AdjustableRegulator
+
+component Texas_Instruments_TPS563201DDCR_package:
+    # component TPS563201DDCR
+    lcsc_id = "C116592"
+
+
+    # pins
+    signal GND ~ pin 1
+    signal SW ~ pin 2
+    signal VIN ~ pin 3
+    signal VFB ~ pin 4
+    signal EN ~ pin 5
+    signal VBST ~ pin 6
+
+
+module Texas_Instruments_TPS563201DDCR_driver from AdjustableRegulator:
+    """
+    Texas Instruments TPS563201DDCR Buck Regulator
+    Vin: 4.5V - 17V
+    Vout: 0.76V - 7V
+    Iout: up to 3A
+    """
+
+    # External Interfaces (power_in and power_out defined in parent)
+    enable = new ElectricLogic
+
+    # Package
+    package = new Texas_Instruments_TPS563201DDCR_package
+
+    # Set parameters
+    assert power_in.voltage within 4.5V to 17V
+    assert power_out.voltage within 0.76V to 7V
+
+    # Set feedback reference voltage
+    assert v_ref is 0.768V +/- 0.1%
+
+    # Configure feedback divider
+    feedback_div.r_top.package = "R0402"
+    feedback_div.r_bottom.package = "R0402"
+    feedback_div.r_top.resistance = 10kohm +/- 1%
+
+    # Package Connections
+    power_in.vcc ~ package.VIN
+    power_in.gnd ~ package.GND
+    power_out.gnd ~ package.GND
+
+    # Feedback
+    package.VFB ~ feedback_div.output.line
+    power_out ~ feedback_div.power
+
+    # Input caps
+    input_caps = new Capacitor[3]
+    for cap in input_caps[:2]:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "C0805"
+
+    input_caps[2].capacitance = 100nF +/- 20%
+    input_caps[2].package = "C0402"
+
+    # Connect Input Caps
+    for cap in input_caps:
+        power_in.vcc ~> cap ~> power_in.gnd
+
+
+    # Output caps
+    output_caps = new Capacitor[3]
+    for cap in output_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "C0805"
+        power_out.vcc ~> cap ~> power_out.gnd
+
+
+    # Bootstrap cap
+    bootstrap_cap = new Capacitor
+    bootstrap_cap.capacitance = 100nF +/- 20%
+    bootstrap_cap.package = "C0402"
+    package.VBST ~> bootstrap_cap ~> package.SW
+
+    # Inductor
+    inductor = new Inductor
+    inductor.lcsc_id = "C408335"
+    package.SW ~> inductor ~> power_out.vcc
+
+    # Enable
+    enable.line ~ package.EN
+
+    # Default Enabled
+    enable_resistor = new Resistor
+    enable_resistor.resistance = 10kohm +/- 5%
+    enable_resistor.package = "R0402"
+    package.EN ~> enable_resistor ~> power_in.vcc
+
+
+module Test:
+    regs = new Texas_Instruments_TPS563201DDCR_driver[3]
+
+    # Configure output voltages
+    regs[0].v_out = 6V +/- 5%
+    regs[1].v_out = 5V +/- 5%
+    regs[2].v_out = 4V +/- 5%
+
+    # Create power interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # Connect regulators in a chain
+    power_in ~> regs[0] ~> regs[1] ~> regs[2] ~> power_out
