@@ -43,7 +43,12 @@ module Texas_Instruments_TPS563201DDCR_driver from AdjustableRegulator:
     assert power_out.voltage within 0.76V to 7V
 
     # Set feedback reference voltage
-    vref = 0.768V
+    assert v_ref is 0.768V +/- 0.1%
+
+    # Configure feedback divider
+    feedback_div.r_top.package = "R0402"
+    feedback_div.r_bottom.package = "R0402"
+    feedback_div.r_top.resistance = 10kohm +/- 1%
 
     # Package Connections
     power_in.vcc ~ package.VIN
@@ -52,6 +57,7 @@ module Texas_Instruments_TPS563201DDCR_driver from AdjustableRegulator:
 
     # Feedback
     package.VFB ~ feedback_div.output.line
+    power_out ~ feedback_div.power
 
     # Input caps
     input_caps = new Capacitor[3]
@@ -100,10 +106,10 @@ module Test:
     regulators = new Texas_Instruments_TPS563201DDCR_driver[3]
 
     regulators[0].power_in.voltage = 12V
-    regulators[0].power_out.voltage = 3.3V +/- 5%
+    regulators[0].v_out = 1.8V +/- 5%
 
     regulators[1].power_in.voltage = 12V
-    regulators[1].power_out.voltage = 5V +/- 5%
+    regulators[1].v_out = 3.3V +/- 5%
 
     regulators[2].power_in.voltage = 12V
-    regulators[2].power_out.voltage = 1.8V +/- 5%
+    regulators[2].v_out = 1.8V +/- 5%
