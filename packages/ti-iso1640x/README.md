@@ -1,4 +1,4 @@
-# Raspberry Pi Compute Module 5 (CM5)
+# TI ISO1640 I2C Isolator
 
 ## Usage
 
@@ -42,10 +42,6 @@ module App:
     micro.i2c ~> isolator ~> sensor.i2c
 
 ```
-
-## Overview
-
-This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
 
 ## Contributing
 
