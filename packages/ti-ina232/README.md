@@ -18,6 +18,7 @@ module Test:
     current_sensors[2].i2c.address = 0x4A
     current_sensors[3].i2c.address = 0x4B
 
+    # Configure current
     current_sensors[0].max_current = 0.1A
     current_sensors[1].max_current = 1A
     current_sensors[2].max_current = 3A
