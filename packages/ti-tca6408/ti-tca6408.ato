@@ -54,11 +54,10 @@ module Texas_Instruments_TCA6408_driver:
     assert power.voltage within 1.65V to 5.5V
 
     # Decoupling capacitors
-    decoupling_capacitors = new Capacitor[2]
-    for capacitor in decoupling_capacitors:
-        capacitor.capacitance = 100nF +/- 10%
-        capacitor.package = "C0402"
-        power.vcc ~> capacitor ~> power.gnd
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 10%
+    decoupling_capacitor.package = "C0402"
+    power.vcc ~> decoupling_capacitor ~> power.gnd
 
     # Default pin configuration
     reset_pullup = new Resistor
