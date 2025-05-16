@@ -3,7 +3,8 @@
 import Resistor
 import ElectricSignal
 import Button
-
+import ElectricLogic
+import ElectricPower
 
 component ButtonSKRPACE010 from Button:
     """
@@ -60,6 +61,10 @@ module ButtonPulldown:
 
 
 module Test:
+    """
+    Test module for buttons
+    """
+    # Make and configure buttons
     btn_pullup_vertical = new ButtonPullup
     btn_pullup_vertical.btn -> ButtonSKRPACE010
 
@@ -71,3 +76,13 @@ module Test:
 
     btn_pulldown_horizontal = new ButtonPulldown
     btn_pulldown_horizontal.btn -> ButtonSKTDLDE010
+
+    # Create example signals
+    enable = new ElectricLogic
+    power = new ElectricPower
+    enable.reference ~ power # Typically done inside a driver
+
+    # Connect button
+    enable ~ btn_pullup_vertical.output
+
+    # When button is pressed, enable will be pulled HIGH via a 10k resistor
