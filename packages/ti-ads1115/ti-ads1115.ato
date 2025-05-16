@@ -1,11 +1,12 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("MODULE_TEMPLATING")
+
 import ElectricPower
 import I2C
 import Electrical
 import ElectricSignal
-import ElectricPower
+import ElectricLogic
 import Capacitor
 
 
@@ -40,6 +41,9 @@ module Texas_Instruments_ADS1115_driver:
     i2c = new I2C
     inputs = new ElectricSignal[4]
 
+    # Configure power
+    assert power.voltage within 1.8V to 5.5V
+
     # Package
     package = new Texas_Instruments_ADS1115IDGSR_package
 
@@ -61,6 +65,12 @@ module Texas_Instruments_ADS1115_driver:
     power.vcc ~ package.VDD
     power.gnd ~ package.GND
 
+    # Decoupling Capacitor
+    capacitor = new Capacitor
+    capacitor.capacitance = 100nF +/- 10%
+    capacitor.package = "C0402"
+    power.vcc ~> capacitor ~> power.gnd
+
     # Addressor
     addressor = new TIAddressor
     addressor.base = 0x48
@@ -68,6 +78,11 @@ module Texas_Instruments_ADS1115_driver:
     addressor.address_line.line ~> package.ADDR
     addressor.address_line.reference ~ power
     assert i2c.address is addressor.address
+
+    # Alert Ready
+    alert_ready = new ElectricLogic
+    alert_ready.line ~ package.ALERT_RDY
+    alert_ready.reference ~ power
 
 
 module Test:
@@ -77,6 +92,8 @@ module Test:
 
     power = new ElectricPower
     i2c = new I2C
+
+    power.voltage = 5V
 
     adcs[0].i2c.address = 0x48
     adcs[1].i2c.address = 0x49
