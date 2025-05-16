@@ -16,6 +16,7 @@ import FilterElectricalRC
 import Inductor
 
 from "components/winbond_elec_w25q128j_vpiq.ato" import Winbond_Elec_W25Q128JVPIQ_driver
+from "components/abracon_ll_cab_m8272t3.ato" import Abracon_LLC_ABM8_272_T3
 
 from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
 
@@ -247,7 +248,7 @@ module RP2350A_driver:
 
     # Crystal Oscillator
     crystal_oscillator = new Crystal_Oscillator
-    crystal_oscillator.crystal.lcsc_id = "C20625731"
+    crystal_oscillator.crystal -> Abracon_LLC_ABM8_272_T3
     package.XIN ~> crystal_oscillator ~> package.XOUT
     power_3v3.gnd ~ crystal_oscillator.xtal_if.gnd
 
