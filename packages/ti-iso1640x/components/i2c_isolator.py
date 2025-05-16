@@ -20,3 +20,7 @@ class I2CIsolator(Module):
 
     def __preinit__(self) -> None:
         self.i2cs[0].connect_shallow(self.i2cs[1])
+
+    @L.rt_field
+    def can_bridge(self):
+        return F.can_bridge_defined(self.i2cs[0], self.i2cs[1])
