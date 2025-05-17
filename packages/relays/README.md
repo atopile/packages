@@ -1,8 +1,6 @@
-# ADS1115 4ch 16-bit ADC
+# Relays
 
-Sample Rate: 860sps
-Communication: I2C
-Input Voltage: 1.8-5.5V
+Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
 
 ## Usage
 
@@ -41,10 +39,6 @@ module Test:
 
 
 ```
-
-## Overview
-
-This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
 
 ## Contributing
 
