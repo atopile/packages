@@ -38,10 +38,6 @@ module Test:
 
 ```
 
-## Overview
-
-This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
-
 ## Contributing
 
 Contributions to this package are welcome via pull requests on the GitHub repository.
