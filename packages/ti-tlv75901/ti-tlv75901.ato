@@ -1,0 +1,81 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import Resistor
+import Capacitor
+import ElectricLogic
+import ElectricPower
+
+from "regulators.ato" import AdjustableRegulator
+
+component TLV75901PDRVR_package:
+    # component TLV75901PDRVR
+    # 1A LDO, 1.5V to 6V input, 0.55V to 5.5V output
+    lcsc_id = "C544759"
+
+    # pins
+    signal OUT ~ pin 1
+    signal FB ~ pin 2
+    signal GND ~ pin 3
+    signal EN ~ pin 4
+    signal DNC ~ pin 5
+    signal IN ~ pin 6
+    signal EP ~ pin 7
+
+module TLV75901_driver from AdjustableRegulator:
+    """
+    LDO regulator with adjustable output voltage
+    controled via a DAC with I2C interface
+    """
+    package = new TLV75901PDRVR_package
+
+    # Configure parameters
+    assert power_in.voltage within 1.5V to 6V
+    assert power_out.voltage within 0.55V to 5.5V
+    assert v_ref is 0.55V +/- 0.1%
+
+    # Connections
+    power_in.vcc ~ package.IN
+    power_in.gnd ~ package.GND
+    power_out.vcc ~ package.OUT
+    power_out.gnd ~ package.GND
+    power_out.gnd ~ package.EP
+
+    # Output cap
+    output_cap_1 = new Capacitor
+    output_cap_1.capacitance = 1uF +/- 10%
+    output_cap_1.package = "C0402"
+    power_out ~ output_cap_1.power
+
+    # Enable
+    enable = new ElectricLogic
+    enable_resistor = new Resistor
+    enable_resistor.resistance = 10kohm +/- 5%
+    enable_resistor.package = "R0402"
+    enable.line ~ enable_resistor.p1
+    enable_resistor.p2 ~ package.EN
+
+    # Feedback
+    power_out ~ feedback_div.power
+    package.FB ~ feedback_div.output.line
+    feedback_div.r_top.resistance = 10kohm +/- 5%
+    feedback_div.r_top.package = "R0402"
+    feedback_div.r_bottom.package = "R0402"
+
+module Test:
+    # Create LDO
+    ldo = new TLV75901_driver
+
+    # Configure voltages
+    ldo.v_in = 5V +/- 1%
+    ldo.v_out = 3.3V +/- 3%
+
+    # Create example power interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # Connect to regulator (bridge connect)
+    power_in ~> ldo ~> power_out
+
+    # Connect to regulator (Interfaces)
+    power_in ~ ldo.power_in
+    power_out ~ ldo.power_out
