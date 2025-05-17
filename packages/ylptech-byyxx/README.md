@@ -6,37 +6,29 @@ Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
 
 ```ato
 
-import I2C
-import Power
+import ElectricPower
 
-from "atopile/relays/relays.ato" import PowerRelay
-
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import BYYXXS_2WR2
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2405_package
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2409_package
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2424_package
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B0505_package
 
 module Test:
-    # make a relay
-    power_relay = new PowerRelay
 
-    # Power interfaces to switch
+    # Create 4 regulators, each with a different package
+    regulators = new BYYXXS_2WR2[4]
+    regulators[0].package -> _B2405_package
+    # regulators[1].package -> _B2409_package # currently missing lcsc data :(
+    regulators[2].package -> _B2424_package
+    regulators[3].package -> _B0505_package
+
+    # Create power interfaces
     power_in = new ElectricPower
     power_out = new ElectricPower
 
-    # Control signal
-    control = new ElectricSignal
-
-    # Power for relay coil
-    power_5v = new ElectricPower
-
-    # Connect control signal to relay
-    control ~> power_relay.control
-    # Driving control signal high will turn on the relay (>2.5V)
-    # Driving control signal low will turn off the relay (<1V)
-
-    # Connect power_5v to relay power
-    power_5v ~> power_relay.power
-
-    # Connect power_in to power_out via switch
-    power_in ~> power_relay.switch ~> power_out
-
+    # Example connection
+    power_in ~> regulators[0] ~> power_out
 
 ```
 
