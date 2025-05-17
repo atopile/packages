@@ -1,0 +1,99 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricSignal
+import Resistor
+import MOSFET
+import PoweredLED
+
+from "components/switch.py" import PowerSwitch
+
+module PowerRelay:
+    """
+    DPDT relay with 5V coil and 5V indicator LED
+    Logic level control with N-FET
+    Designed to switch + and - of a power rail
+    """
+    # External interfaces
+    power = new ElectricPower
+    switch = new PowerSwitch
+    control = new ElectricSignal
+
+    # Relay
+    relay = new HFXiamen_Hongfa_Electroacoustic_HFD4_5
+
+    # Indicator LED
+    indicator_led = new PoweredLED
+    indicator_led.current_limiting_resistor.package = "R0402"
+    indicator_led.current_limiting_resistor.resistance = 2.2kohm +/- 10%
+    indicator_led.led.lcsc_id = "C12624"
+
+    # Mosfet
+    fet = new MOSFET
+    fet.lcsc_id = "C67273"
+    fet_gate_resistor = new Resistor
+    fet_ilim_resistor = new Resistor
+    fet_gate_resistor.package = "R0402"
+    fet_ilim_resistor.package = "R0402"
+    fet_gate_resistor.resistance = 10kohm +/- 5%
+    fet_ilim_resistor.resistance = 1kohm +/- 5%
+
+    # coil connections
+    relay.coil ~ indicator_led.power
+    power.vcc ~> indicator_led ~> fet ~> power.gnd
+
+    # power connections
+    relay.power_in ~> switch ~> relay.power_out
+
+    # Fet connections
+    control.line ~> fet_gate_resistor ~> fet.gate
+    control.line ~> fet_ilim_resistor ~> power.gnd
+
+
+component HFXiamen_Hongfa_Electroacoustic_HFD4_5:
+    """HFXiamen_Hongfa_Electroacoustic_HFD4_5 component"""
+    lcsc_id = "C23510"
+    manufacturer = "HF(Xiamen Hongfa Electroacoustic)"
+    mpn = "HFD4/5"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_HF-Xiamen-Hongfa-Electroacoustic-HFD4-5_C23510.pdf"
+    designator_prefix = "K"
+
+    # pins
+    coil = new ElectricPower
+    assert coil.voltage within 4.5V to 5.5V
+    coil.vcc ~ pin 1
+    coil.gnd ~ pin 8
+
+    power_out = new ElectricPower
+    power_out.vcc ~ pin 6
+    power_out.gnd ~ pin 3
+
+    power_in = new ElectricPower
+    power_in.vcc ~ pin 5
+    power_in.gnd ~ pin 4
+
+
+module Test:
+    # make a relay
+    power_relay = new PowerRelay
+
+    # Power interfaces to switch
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # Control signal
+    control = new ElectricSignal
+
+    # Power for relay coil
+    power_5v = new ElectricPower
+
+    # Connect control signal to relay
+    control ~> power_relay.control
+    # Driving control signal high will turn on the relay (>2.5V)
+    # Driving control signal low will turn off the relay (<1V)
+
+    # Connect power_5v to relay power
+    power_5v ~> power_relay.power
+
+    # Connect power_in to power_out via switch
+    power_in ~> power_relay.switch ~> power_out
