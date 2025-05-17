@@ -9,7 +9,7 @@ Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
 import I2C
 import Power
 
-from "atopile/ti-ads1115/ti-ads1115.ato" import PowerRelay
+from "atopile/relays/relays.ato" import PowerRelay
 
 
 module Test:
