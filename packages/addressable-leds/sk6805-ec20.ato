@@ -1,30 +1,13 @@
-import Capacitor, ElectricPower, ElectricLogic
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
+import Capacitor
+import ElectricPower
+import ElectricLogic
 
-module SK6805EC20:
-    _ic = new _SK6805EC20
-    power = new ElectricPower
+from "bridgable_logic.py" import BridgableLogic
 
-    din = new ElectricLogic
-    dout = new ElectricLogic
-
-    power.vcc ~ _ic.VDD
-    power.gnd ~ _ic.GND
-
-    din.line ~ _ic.DIN
-    dout.line ~ _ic.DOUT
-
-    power ~ din.reference
-    power ~ dout.reference
-
-    # decouple power
-    cap = new Capacitor
-    power ~ cap.power
-    cap.package = "C0402"
-    cap.capacitance = 100nF +/- 20%
-
-
-component _SK6805EC20:
+component SK6805EC20_package:
     footprint = "LED-SMD_4P-L2.0-W2.0-BR"
     lcsc_id = "C2890036"
 
@@ -32,3 +15,37 @@ component _SK6805EC20:
     signal DOUT ~ pin 2
     signal GND ~ pin 3
     signal DIN ~ pin 4
+
+module SK6805EC20_driver from BridgableLogic:
+    package = new SK6805EC20_package
+    power = new ElectricPower
+
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+
+    data_in.line ~ package.DIN
+    data_out.line ~ package.DOUT
+
+    power ~ data_in.reference
+    power ~ data_out.reference
+
+    # decouple power
+    cap = new Capacitor
+    power ~ cap.power
+    cap.package = "C0402"
+    cap.capacitance = 100nF +/- 20%
+
+module Test:
+    leds = new SK6805EC20_driver[10]
+
+    # Create ElectricPower
+    power = new ElectricPower
+
+    # Connect power to each LED
+    for led in leds:
+        power ~ led.power
+
+    # Create ElectricLogic
+    data_in = new ElectricLogic
+
+    data_in ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> leds[5] ~> leds[6] ~> leds[7] ~> leds[8] ~> leds[9]
