@@ -11,7 +11,7 @@
 import I2C
 import Power
 
-from "atopile/ti-tps563201/ti-tps563201.ato" import Texas_Instruments_ADS1115_driver
+from "atopile/ti-tps563201/ti-tps563201.ato" import Texas_Instruments_TPS563201DDCR_driver
 
 module Test:
     # Create regulator
