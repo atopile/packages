@@ -1,0 +1,93 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import Regulator
+import ElectricPower
+import Capacitor
+import CapacitorElectrolytic
+import Resistor
+
+component TDPOWER_TDK20_24S24WH_package:
+    """TDPOWER_TDK20_24S24WH 24V in, 24v out, 20W"""
+    lcsc_id = "C3033163"
+    manufacturer = "TDPOWER"
+    mpn = "TDK20-24S24WH"
+    datasheet_url = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206101730_TDPOWER-TDK20-24S24WH_C3033163.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal CNT ~ pin 3
+    signal NP ~ pin 5
+    signal VIN_minus ~ pin 2
+    signal VIN_plus ~ pin 1
+    signal VO_minus ~ pin 4
+    signal VO_plus ~ pin 6
+
+
+module TDPOWER_TDK20_24S24WH_driver from Regulator:
+    """TDPOWER_TDK20_24S24WH"""
+    package = new TDPOWER_TDK20_24S24WH_package
+
+    # Connect package to power
+    power_in.vcc ~ package.VIN_plus
+    power_in.gnd ~ package.VIN_minus
+
+    power_out.vcc ~ package.VO_plus
+    power_out.gnd ~ package.VO_minus
+
+    # Input ceramics
+    input_caps = new Capacitor[3]
+    for cap in input_caps:
+        power_in ~ cap.power
+        cap.package = "C0805"
+        assert cap.max_voltage within 30V to 100V
+        assert cap.capacitance within 10uF +/- 10%
+
+    # Output ceramics
+    output_cap_1 = new Capacitor
+    power_out ~ output_cap_1.power
+    output_cap_1.package = "C0805"
+    assert output_cap_1.max_voltage within 30V to 100V
+    assert output_cap_1.capacitance within 1uF +/- 10%
+
+    # Output electrolytics
+    output_electrolytics = new Capacitor[2]
+
+    for cap in output_electrolytics:
+        power_out.vcc ~> cap ~> power_out.gnd
+        cap.lcsc_id = "C3339"
+
+    # Y capacitors
+    y_caps = new Capacitor[3]
+
+    # Connect the Y capacitors across the power input and output gnd
+    power_in.gnd ~> y_caps[0] ~> y_caps[1] ~> y_caps[2] ~> power_out.gnd
+
+    for y_cap in y_caps:
+        assert y_cap.max_voltage within 1kV to 2kV
+        assert y_cap.capacitance within 2.2nF +/- 20%
+        y_cap.package = "C1206"
+
+    # Enable resistor
+    enable_resistor = new Resistor
+    enable_resistor.package = "R0402"
+    enable_resistor.resistance = 10kohm +/- 10%
+
+    # Enable
+    # enable = new ElectricLogic
+    # TODO: logic level enable
+
+    # Enabled by default
+    package.CNT ~> enable_resistor ~> power_in.vcc
+
+module Test:
+    # Create converter
+    converter = new TDPOWER_TDK20_24S24WH_driver
+
+    # Create power and I2C interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # connect power to converter
+    power_in ~ converter.power_in
+    power_out ~ converter.power_out
