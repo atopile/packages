@@ -24,7 +24,7 @@ component TDPOWER_TDK20_24S24WH_package:
     signal VO_plus ~ pin 6
 
 
-module TDPOWER_TDK20_24S24WH_driver from Regulator:
+module TDPOWER_TDK20_driver from Regulator:
     """TDPOWER_TDK20_24S24WH"""
     package = new TDPOWER_TDK20_24S24WH_package
 
@@ -82,7 +82,7 @@ module TDPOWER_TDK20_24S24WH_driver from Regulator:
 
 module Test:
     # Create converter
-    converter = new TDPOWER_TDK20_24S24WH_driver
+    converter = new TDPOWER_TDK20_driver
 
     # Create power and I2C interfaces
     power_in = new ElectricPower
