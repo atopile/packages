@@ -1,8 +1,14 @@
-# TCA9548APWR I2C Multiplexer
+# Cellsimulator for BMS development
 
 ## Usage
 
 ```
+import ElectricPower
+import I2C
+
+from "atopile/cellsim/cellsim-8ch.ato" import CellSim8Ch
+
+
 component Connector:
     pins = new Electrical[20]
 
