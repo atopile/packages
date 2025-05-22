@@ -1,0 +1,61 @@
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+
+from "components/texas_instruments_tca6408.ato" import Texas_Instruments_TCA6408
+from "components/texas_instruments_cd74h_c4051p_wr.ato" import Texas_Instruments_CD74HC4051PWR
+
+module MultiplexerI2C8Ch:
+    """
+    Multiplexer with 8:1 for digital signals
+    Uses I2C GPIO expander to select channels
+    """
+    # External interfaces
+    power_3v3 = new ElectricPower
+    i2c = new I2C
+    input = new ElectricLogic
+    outputs = new ElectricLogic[8]
+
+    # Devices
+    gpio_expander = new Texas_Instruments_TCA6408
+    mux = new Texas_Instruments_CD74HC4051PWR
+
+    # Decoupling
+    cap_1 = new Capacitor
+    cap_1.capacitance = 100nF +/- 20%
+    cap_1.package = "C0402"
+    power_3v3 ~ cap_1.power
+
+    cap_2 = new Capacitor
+    cap_2.capacitance = 1uF +/- 20%
+    cap_2.package = "C0402"
+    power_3v3 ~ cap_2.power
+
+    # Connections
+    power_3v3 ~ mux.power_3v3
+    power_3v3 ~ gpio_expander.power
+
+    i2c ~ gpio_expander.i2c
+    gpio_expander.i2c.address = 0x21
+
+    gpio_expander.gpios[1].line ~ mux.S2 # Select 3
+    gpio_expander.gpios[2].line ~ mux.S1 # Select 2
+    gpio_expander.gpios[3].line ~ mux.S0 # Select 1
+    gpio_expander.gpios[4].line ~ mux.A # Shared data line
+    gpio_expander.gpios[5].line ~ mux.Eh # Enable
+
+    # Zip connect would be nice here
+    outputs[0].line ~ mux.A0
+    outputs[1].line ~ mux.A1
+    outputs[2].line ~ mux.A2
+    outputs[3].line ~ mux.A3
+    outputs[4].line ~ mux.A4
+    outputs[5].line ~ mux.A5
+    outputs[6].line ~ mux.A6
+    outputs[7].line ~ mux.A7
+
+    for output in outputs:
+        output.reference.gnd ~ power_3v3.gnd

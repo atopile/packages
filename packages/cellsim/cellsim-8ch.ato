@@ -1,0 +1,309 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+import I2C
+import FilterElectricalRC
+import Electrical
+
+from "resistors.ato" import I2CPullup
+
+from "cell.ato" import Cell, CellJumper
+from "components/multiplexer-i2c-8ch.ato" import MultiplexerI2C8Ch
+from "components/micro_vault.ato" import MicroVault
+from "components/tdpower_tdk2024s24wh.ato" import TDPOWER_TDK20_24S24WH
+from "components/Ylptec_BYYXX.ato" import BYYXXS_2WR2, _B2424
+from "components/evisun_b2409s1wr3.ato" import EVISUN_B2409S_1WR3
+from "components/analog_devices_ad_um121n1b_rzrl7.ato" import Analog_Devices_ADUM121N1BRZ_RL7
+
+from "atopile/ti-lv284x/lv284x.ato" import LV2842x
+from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+from "atopile/ti-tca9548a/tca9548a.ato" import TCA9548APWR_driver
+from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640_driver
+from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640QDWRQ1_package
+from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640BDR_package
+
+
+module CellSim8Ch:
+
+    # External interfaces
+    power_24v = new ElectricPower
+    power_3v3 = new ElectricPower
+    block_down = new CellJumper
+    block_up = new CellJumper
+    i2c = new I2C
+    cell_outputs = new Electrical[9]
+
+    # Internal rails
+    power_24v_isolated = new ElectricPower
+    power_5v_isolated = new ElectricPower
+    power_3v3_isolated = new ElectricPower
+    i2c_isolated = new I2C
+    dmm_out = new ElectricPower
+    led_data_in = new ElectricLogic
+    led_data_out = new ElectricLogic
+
+    # Regulators
+    regulator_24v_isolated = new TDPOWER_TDK20_24S24WH
+    buck_5v = new LV2842x
+    ldo_3v3 = new LDK220M_R
+
+    # Connect up regulators
+    power_24v ~ regulator_24v_isolated.power_in
+    regulator_24v_isolated.power_out ~ power_24v_isolated
+
+    power_24v_isolated ~ buck_5v.power_in
+    buck_5v.power_out ~ power_5v_isolated
+
+    power_5v_isolated ~ ldo_3v3.power_in
+    ldo_3v3.power_out ~ power_3v3_isolated
+
+    # Configure regulators
+    buck_5v.v_out = 5V +/- 5%
+    ldo_3v3.v_out = 3.3V +/- 5%
+
+    # Set regulator feedback components (hack while compiler is slow af)
+    buck_5v.feedback_div.r_bottom.resistance = 8.1kohm to 8.3kohm
+    buck_5v.feedback_div.r_top.resistance = 46.5kohm to 47.5kohm
+
+    ldo_3v3.feedback_div.r_bottom.resistance = 9.9kohm to 10.1kohm
+    ldo_3v3.feedback_div.r_top.resistance = 17.82kohm to 18.18kohm
+
+    # LED Isolator - 1500V isolation
+    led_isolator = new Analog_Devices_ADUM121N1BRZ_RL7
+    power_3v3 ~ led_isolator.power_non_isolated
+    power_5v_isolated ~ led_isolator.power_isolated
+    block_down.led_data ~ led_isolator.input_b # non isolated input
+    led_data_in ~ led_isolator.output_b # isolated output
+    led_isolator.input_a ~ led_data_out # isolated input
+    led_isolator.output_a ~ block_up.led_data # non isolated output
+
+    # I2C Isolator - 1500V isolation
+    i2c_isolator = new Texas_Instruments_ISO1640_driver
+    i2c_isolator.package -> Texas_Instruments_ISO1640BDR_package
+    power_3v3 ~ i2c_isolator.power_rails[0]
+    power_3v3_isolated ~ i2c_isolator.power_rails[1]
+    i2c ~> i2c_isolator ~> i2c_isolated
+
+    i2c_pullup = new I2CPullup
+    power_3v3_isolated ~ i2c_pullup.power
+    i2c_isolated ~ i2c_pullup.i2c
+
+    # High precision voltage sense
+    micro_vault = new MicroVault
+
+    # # MicroVault Addresses
+    # assert micro_vault.adc.i2c.address is 0x41
+    # assert micro_vault.temp_sensor.i2c.address is 0x49
+
+    # MicroVault Addresses - set directly in component connections
+    # ADC (ADS1219IPWR) - base 0x40, A0=1, A1=0 for 0x41
+    micro_vault.adc.addressor.address_lines[0].line ~ micro_vault._power_5v3.vcc  # A0 to V+ for 0x41
+    micro_vault.adc.addressor.address_lines[1].line ~ micro_vault._power_5v3.gnd  # A1 to GND for 0x41
+
+    # Temperature Sensor (TMP117AIDRVR) - base 0x48, ADD0=1 for 0x49
+    micro_vault.temp_sensor.addressor.address_line.line ~ micro_vault.power_3v3.vcc  # ADD0 to V+ for 0x49
+
+    # Input filter
+    dmm_input_filter = new FilterElectricalRC
+    dmm_input_filter.in_.line ~ dmm_out.vcc
+    dmm_input_filter.in_.reference.gnd ~ dmm_out.gnd
+    dmm_input_filter.out ~ micro_vault.adc.inputs[0]
+    # Device gnd should be connected to microVault gnd
+    dmm_out.gnd ~ micro_vault.power_3v3.gnd
+
+    # Configure input filter
+    dmm_input_filter.capacitor.capacitance = 100nF +/- 10%
+    dmm_input_filter.resistor.resistance = 10kohm +/- 1%
+
+    # Isolated supply for microVault
+    micro_vault_power_supply = new EVISUN_B2409S_1WR3
+    power_24v_isolated ~ micro_vault_power_supply.power_in
+    micro_vault_power_supply.power_out ~ micro_vault.power_9v
+
+    micro_vault_ldo_3v3 = new LDK220M_R
+    micro_vault_ldo_3v3.power_in ~ micro_vault_power_supply.power_out
+    micro_vault_ldo_3v3.power_out ~ micro_vault.power_3v3
+
+    # Isolator for i2c, needs to float with respect to the cells
+    micro_vault_isolator = new Texas_Instruments_ISO1640_driver
+    micro_vault_isolator.package -> Texas_Instruments_ISO1640QDWRQ1_package
+    power_3v3_isolated ~ micro_vault_isolator.power_rails[0]
+    micro_vault_ldo_3v3.power_out ~ micro_vault_isolator.power_rails[1]
+    i2c_isolated ~> micro_vault_isolator ~> micro_vault.i2c
+
+    # micro_vault_ldo_3v3.v_out = 3.3V +/- 5%
+    micro_vault_ldo_3v3.feedback_div.r_bottom.resistance = 9.9kohm to 10.1kohm
+    micro_vault_ldo_3v3.feedback_div.r_top.resistance = 17.82kohm to 18.18kohm
+
+    i2c_pullup_micro_vault = new I2CPullup
+    micro_vault.power_3v3 ~ i2c_pullup_micro_vault.power
+    micro_vault.i2c ~ i2c_pullup_micro_vault.i2c
+
+    # Cells
+    cell1 = new Cell
+    cell2 = new Cell
+    cell3 = new Cell
+    cell4 = new Cell
+    cell5 = new Cell
+    cell6 = new Cell
+    cell7 = new Cell
+    cell8 = new Cell
+
+    # Connect Cell outputs to cell_outputs
+    cell1.power_out.gnd ~ cell_outputs[0]
+    cell1.power_out.vcc ~ cell_outputs[1]
+    cell2.power_out.vcc ~ cell_outputs[2]
+    cell3.power_out.vcc ~ cell_outputs[3]
+    cell4.power_out.vcc ~ cell_outputs[4]
+    cell5.power_out.vcc ~ cell_outputs[5]
+    cell6.power_out.vcc ~ cell_outputs[6]
+    cell7.power_out.vcc ~ cell_outputs[7]
+    cell8.power_out.vcc ~ cell_outputs[8]
+
+    # LED Data
+    led_data_in ~ cell1.cell_down.led_data
+    cell8.cell_up.led_data ~ led_data_out
+
+    # Common gnd
+    power_24v_isolated.gnd ~ power_5v_isolated.gnd
+    power_24v_isolated.gnd ~ power_3v3_isolated.gnd
+
+    # Mux
+    i2c_mux = new TCA9548APWR_driver
+    gpio_mux = new MultiplexerI2C8Ch
+
+
+    power_3v3_isolated ~ i2c_mux.power
+    power_3v3_isolated ~ gpio_mux.power_3v3
+
+    # Set Addresses
+    i2c_mux.i2c.address = 0x70
+    gpio_mux.i2c.address = 0x21
+
+    # Set pins for address
+    i2c_mux.addressor.address_lines[0].line ~ i2c_mux.power.gnd
+    i2c_mux.addressor.address_lines[1].line ~ i2c_mux.power.gnd
+    i2c_mux.addressor.address_lines[2].line ~ i2c_mux.power.gnd
+    gpio_mux.gpio_expander.addressor.address_lines[0].line ~ gpio_mux.power_3v3.vcc
+
+    i2c_isolated ~ i2c_mux.i2c
+    i2c_isolated ~ gpio_mux.i2c
+
+    # Block cell connections
+    block_down.cell ~ cell1.cell_down.cell
+    block_up.cell ~ cell8.cell_up.cell
+
+    # Cell Power
+    power_24v_isolated ~ cell1.power_in
+    power_24v_isolated ~ cell2.power_in
+    power_24v_isolated ~ cell3.power_in
+    power_24v_isolated ~ cell4.power_in
+    power_24v_isolated ~ cell5.power_in
+    power_24v_isolated ~ cell6.power_in
+    power_24v_isolated ~ cell7.power_in
+    power_24v_isolated ~ cell8.power_in
+
+    power_5v_isolated ~ cell1.power_5v
+    power_5v_isolated ~ cell2.power_5v
+    power_5v_isolated ~ cell3.power_5v
+    power_5v_isolated ~ cell4.power_5v
+    power_5v_isolated ~ cell5.power_5v
+    power_5v_isolated ~ cell6.power_5v
+    power_5v_isolated ~ cell7.power_5v
+    power_5v_isolated ~ cell8.power_5v
+
+    power_3v3_isolated ~ cell1.power_isolator
+    power_3v3_isolated ~ cell2.power_isolator
+    power_3v3_isolated ~ cell3.power_isolator
+    power_3v3_isolated ~ cell4.power_isolator
+    power_3v3_isolated ~ cell5.power_isolator
+    power_3v3_isolated ~ cell6.power_isolator
+    power_3v3_isolated ~ cell7.power_isolator
+    power_3v3_isolated ~ cell8.power_isolator
+
+    # Cell to cell connections
+    cell1.cell_up ~ cell2.cell_down
+    cell2.cell_up ~ cell3.cell_down
+    cell3.cell_up ~ cell4.cell_down
+    cell4.cell_up ~ cell5.cell_down
+    cell5.cell_up ~ cell6.cell_down
+    cell6.cell_up ~ cell7.cell_down
+    cell7.cell_up ~ cell8.cell_down
+
+    # Cell to i2c mux connections
+    i2c_mux.i2cs[0] ~ cell1.i2c
+    i2c_mux.i2cs[1] ~ cell2.i2c
+    i2c_mux.i2cs[2] ~ cell3.i2c
+    i2c_mux.i2cs[3] ~ cell4.i2c
+    i2c_mux.i2cs[4] ~ cell5.i2c
+    i2c_mux.i2cs[5] ~ cell6.i2c
+    i2c_mux.i2cs[6] ~ cell7.i2c
+    i2c_mux.i2cs[7] ~ cell8.i2c
+
+    # Cell to dmm mux connections
+    gpio_mux.outputs[0] ~ cell1.dmm_relay_enable
+    gpio_mux.outputs[1] ~ cell2.dmm_relay_enable
+    gpio_mux.outputs[2] ~ cell3.dmm_relay_enable
+    gpio_mux.outputs[3] ~ cell4.dmm_relay_enable
+    gpio_mux.outputs[4] ~ cell5.dmm_relay_enable
+    gpio_mux.outputs[5] ~ cell6.dmm_relay_enable
+    gpio_mux.outputs[6] ~ cell7.dmm_relay_enable
+    gpio_mux.outputs[7] ~ cell8.dmm_relay_enable
+
+    # DMM Mux output connections
+    dmm_out ~ cell1.dmm_out
+    dmm_out ~ cell2.dmm_out
+    dmm_out ~ cell3.dmm_out
+    dmm_out ~ cell4.dmm_out
+    dmm_out ~ cell5.dmm_out
+    dmm_out ~ cell6.dmm_out
+    dmm_out ~ cell7.dmm_out
+    dmm_out ~ cell8.dmm_out
+
+
+component Connector:
+    pins = new Electrical[20]
+
+module Test:
+    # Create components
+    cellsims = new CellSim8Ch[2]
+    connector = new Connector
+
+    # Create power rails
+    power_24v = new ElectricPower
+    power_3v3 = new ElectricPower
+
+    # Coms
+    i2c = new I2C
+
+    # Connect cellsims to power and i2c
+    for cellsim in cellsims:
+        cellsim.i2c ~ i2c
+        cellsim.power_24v ~ power_24v
+        cellsim.power_3v3 ~ power_3v3
+
+    # Connect cellsim blocks in series
+    cellsims[0].block_up ~ cellsims[1].block_down
+
+    # Cells to conector
+    cellsims[0].cell_outputs[0] ~ connector.pins[0]
+    cellsims[0].cell_outputs[1] ~ connector.pins[1]
+    cellsims[0].cell_outputs[2] ~ connector.pins[2]
+    cellsims[0].cell_outputs[3] ~ connector.pins[3]
+    cellsims[0].cell_outputs[4] ~ connector.pins[4]
+    cellsims[0].cell_outputs[5] ~ connector.pins[5]
+    cellsims[0].cell_outputs[6] ~ connector.pins[6]
+    cellsims[0].cell_outputs[7] ~ connector.pins[7]
+    cellsims[0].cell_outputs[8] ~ connector.pins[8]
+    # This is already connected with the block_up/block_down
+    # cellsims[1].cell_outputs[0] ~ connector.pins[8]
+    cellsims[1].cell_outputs[1] ~ connector.pins[9]
+    cellsims[1].cell_outputs[2] ~ connector.pins[10]
+    cellsims[1].cell_outputs[3] ~ connector.pins[11]
+    cellsims[1].cell_outputs[4] ~ connector.pins[12]
+    cellsims[1].cell_outputs[5] ~ connector.pins[13]
+    cellsims[1].cell_outputs[6] ~ connector.pins[14]
+    cellsims[1].cell_outputs[7] ~ connector.pins[15]
+    cellsims[1].cell_outputs[8] ~ connector.pins[16]

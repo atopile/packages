@@ -1,0 +1,38 @@
+import Capacitor, ElectricPower, ElectricSignal
+
+component _SK6805EC20:
+    # component SK6805-EC20
+    lcsc_id = "C2890036"
+    # pins
+    signal VDD ~ pin 1
+    signal DOUT ~ pin 2
+    signal GND ~ pin 3
+    signal DIN ~ pin 4
+
+    power = new ElectricPower
+    power.vcc ~ VDD
+    power.gnd ~ GND
+
+    din = new ElectricSignal
+    din.line ~ DIN
+    din.reference.gnd ~ power.gnd
+
+    dout = new ElectricSignal
+    dout.line ~ DOUT
+    dout.reference.gnd ~ power.gnd
+
+module SK6805EC20:
+    ic = new _SK6805EC20
+    power = new ElectricPower
+    ic.power ~ power
+
+    din = new ElectricSignal
+    ic.din ~ din
+
+    dout = new ElectricSignal
+    ic.dout ~ dout
+
+    cap = new Capacitor
+    power ~ cap.power
+    cap.package = "C0402"
+    cap.capacitance = 100nF +/- 20%
