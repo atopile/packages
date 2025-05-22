@@ -1,7 +1,40 @@
 # TCA9548APWR I2C Multiplexer
 
-The TCA9548APWR is an I2C multiplexer that allows you to connect up to 8 I2C devices with the same address to a single I2C bus. Its kind of weird to need this, but it's a thing.
+## Usage
 
-![tca9548apwr](https://github.com/user-attachments/assets/253c89ef-9241-4367-bfd8-c0a92912e43c)
+```
+import I2C
+import ElectricPower
 
-<img width="527" alt="Screenshot 2024-10-16 at 11 37 52" src="https://github.com/user-attachments/assets/ffa0e33e-cc14-405b-bba4-ca7032b41634">
+from "atopile/ti-tca9548a/tca9548a.ato" import TCA9548APWR_driver
+module Test:
+    # Create 8 muxes
+    muxes = new TCA9548APWR_driver[8]
+
+    # Create I2C and Power
+    power = new ElectricPower
+    i2c = new I2C
+
+    # Connect I2C
+    for mux in muxes:
+        i2c ~ mux.i2c
+        power ~ mux.power
+
+    # Assert addresses
+    assert muxes[0].i2c.address is 0x70
+    assert muxes[1].i2c.address is 0x71
+    assert muxes[2].i2c.address is 0x72
+    assert muxes[3].i2c.address is 0x73
+    assert muxes[4].i2c.address is 0x74
+    assert muxes[5].i2c.address is 0x75
+    assert muxes[6].i2c.address is 0x76
+    assert muxes[7].i2c.address is 0x77
+```
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
