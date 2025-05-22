@@ -7,12 +7,12 @@
 import I2C
 import Power
 
-from "atopile/microchip-mcp4725/microchip-mcp4725.ato" import Microchip_Tech_MCP4725_driver
+from "atopile/microchip-mcp4725/microchip-mcp4725.ato" import Microchip_MCP4725_driver
 
 
 module Test:
     # Create 2 DACs
-    dacs = new Microchip_Tech_MCP4725_driver[2]
+    dacs = new Microchip_MCP4725_driver[2]
 
     # Create power and I2C interfaces
     power = new ElectricPower
