@@ -1,0 +1,69 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import ElectricPower, ElectricSignal, Capacitor, Resistor, Inductor
+
+from "components/digital-regulator.ato" import DigitalRegulator
+
+
+module DigitalBuck from DigitalRegulator:
+    """
+    Buck regulator with adjustable output voltage
+    controled via a DAC with I2C interface
+    """
+    regulator = new TPS563201DDCR
+
+    # Connections
+    power_in.vcc ~ regulator.VIN
+    power_in.gnd ~ regulator.GND
+    power_out.gnd ~ regulator.GND
+
+    # Feedback
+    regulator.VFB ~ feedback_div.output.line
+
+    # Input caps
+    input_caps = new Capacitor[2]
+    for cap in input_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "C0805"
+        power_in ~ cap.power
+
+    # Output caps
+    output_caps = new Capacitor[3]
+    for cap in output_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "C0805"
+        power_out ~ cap.power
+
+    # Bootstrap cap
+    bootstrap_cap = new Capacitor
+    bootstrap_cap.capacitance = 100nF +/- 20%
+    bootstrap_cap.package = "C0402"
+    regulator.VBST ~> bootstrap_cap ~> regulator.SW
+
+    # Inductor
+    inductor = new Inductor
+    inductor.lcsc_id = "C408335"
+    regulator.SW ~> inductor ~> power_out.vcc
+
+    # Enable
+    enable_resistor = new Resistor
+    enable_resistor.resistance = 10kohm +/- 5%
+    enable_resistor.package = "R0402"
+    enable.line ~> enable_resistor ~> regulator.EN
+
+
+component TPS563201DDCR:
+    # component TPS563201DDCR
+    # footprint = "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL"
+    lcsc_id = "C116592"
+
+    vref = 0.768V
+
+    # power_out.current += 3A
+    # pins
+    signal GND ~ pin 1
+    signal SW ~ pin 2
+    signal VIN ~ pin 3
+    signal VFB ~ pin 4
+    signal EN ~ pin 5
+    signal VBST ~ pin 6
