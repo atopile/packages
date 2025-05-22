@@ -3,7 +3,7 @@
 ## Usage
 
 ```ato
-from "atopile/cm5.ato" import CM5
+from "atopile/rpi-cm5/cm5.ato" import CM5
 
 module App:
     # Components
@@ -11,39 +11,17 @@ module App:
 
     # Interfaces
     power_5v = new Power
+    i2c = new I2C
 
     # Connect Power
     power_5v ~ cm5.power_5v
+    i2c ~ cm5.i2c[0]
 
 ```
 
 ## Overview
 
 This package provides the necessary components and interfaces to integrate the Raspberry Pi Compute Module 5 into your hardware designs using atopile.
-
-## Features
-
-- **Processor:** High-performance ARM Cortex CPU
-- **Memory:** LPDDR4X SDRAM options
-- **Connectivity:** PCIe, Gigabit Ethernet, USB 3.0/2.0, MIPI DSI/CSI, etc.
-- **Storage:** eMMC flash options or interface for external storage
-- **Power Interface:** Requires 5V input, minimum 2A (ideally 3A+)
-- **GPIO Pins:** Extensive General Purpose Input/Output pins
-- **Wireless:** Optional Wi-Fi and Bluetooth module
-
-## Example Layout
-
-(Consider adding an image or link to an example carrier board layout if available)
-
-### Layout Notes
-
-- Basic functional layout provided
-
-## Documentation & Resources
-
-- [Official Raspberry Pi CM5 Documentation](https://www.raspberrypi.com/documentation/) (Update with direct link when available)
-- [CM5 Datasheet](https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf)
-- [CM5 Design Guide](link-to-design-guide) (Add link when available)
 
 ## Contributing
 
