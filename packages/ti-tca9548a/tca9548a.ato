@@ -1,129 +1,23 @@
-import ElectricPower, I2C, ElectricLogic, Resistor, Capacitor
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Resistor
+import Capacitor
+import Addressor
+
 from "resistors.ato" import I2CPullup
 
-
-module TCA9548APWR:
-    ic = new _TCA9548APWR
-    power = new ElectricPower
-    i2c = new I2C
-    reset = new ElectricLogic
-    i2c.sda.line ~ ic.SDA
-    i2c.scl.line ~ ic.SCL
-
-    # connect the power
-    power.vcc ~ ic.VCC
-    power.gnd ~ ic.GND
-
-    #bypass caps
-    c1 = new Capacitor
-    c1.capacitance = 100nF +/- 20%
-    c1.package = "C0402"
-    c1.power ~ power
-
-    c2 = new Capacitor
-    c2.capacitance = 2.2uF +/- 20%
-    c2.package = "C0603"
-    c2.power ~ power
-
-    # Reset
-    reset.line ~ ic.RESET_
-    reset_pullup = new Resistor
-    reset_pullup.resistance = 10kohm +/- 10%
-    reset_pullup.package = "R0402"
-    reset.line ~ reset_pullup.p1; reset_pullup.p2 ~ power.vcc
-    power ~ reset.reference
-
-    # Address bits
-    # +------+------+------+----------------+-----------------+
-    # |  A2  |  A1  |  A0  | Decimal Output | Hexadecimal Out |
-    # +------+------+------+----------------+-----------------+
-    # |  L   |  L   |  L   |      112       |       70        |
-    # +------+------+------+----------------+-----------------+
-    # |  L   |  L   |  H   |      113       |       71        |
-    # +------+------+------+----------------+-----------------+
-    # |  L   |  H   |  L   |      114       |       72        |
-    # +------+------+------+----------------+-----------------+
-    # |  L   |  H   |  H   |      115       |       73        |
-    # +------+------+------+----------------+-----------------+
-    # |  H   |  L   |  L   |      116       |       74        |
-    # +------+------+------+----------------+-----------------+
-    # |  H   |  L   |  H   |      117       |       75        |
-    # +------+------+------+----------------+-----------------+
-    # |  H   |  H   |  L   |      118       |       76        |
-    # +------+------+------+----------------+-----------------+
-    # |  H   |  H   |  H   |      119       |       77        |
-    # +------+------+------+----------------+-----------------+
-
-    # Set bits below:
-    ic.A0 ~ power.gnd
-    ic.A1 ~ power.gnd
-    ic.A2 ~ power.gnd
-
-    i2c0 = new I2C
-    i2c0.sda.line ~ ic.SD0
-    i2c0.scl.line ~ ic.SC0
-    pullup0 = new I2CPullup
-    pullup0.i2c ~ i2c0
-    pullup0.power ~ power
-
-    i2c1 = new I2C
-    i2c1.sda.line ~ ic.SD1
-    i2c1.scl.line ~ ic.SC1
-    pullup1 = new I2CPullup
-    pullup1.i2c ~ i2c1
-    pullup1.power ~ power
-
-    i2c2 = new I2C
-    i2c2.sda.line ~ ic.SD2
-    i2c2.scl.line ~ ic.SC2
-    pullup2 = new I2CPullup
-    pullup2.i2c ~ i2c2
-    pullup2.power ~ power
-
-    i2c3 = new I2C
-    i2c3.sda.line ~ ic.SD3
-    i2c3.scl.line ~ ic.SC3
-    pullup3 = new I2CPullup
-    pullup3.i2c ~ i2c3
-    pullup3.power ~ power
-
-    i2c4 = new I2C
-    i2c4.sda.line ~ ic.SD4
-    i2c4.scl.line ~ ic.SC4
-    pullup4 = new I2CPullup
-    pullup4.i2c ~ i2c4
-    pullup4.power ~ power
-
-    i2c5 = new I2C
-    i2c5.sda.line ~ ic.SD5
-    i2c5.scl.line ~ ic.SC5
-    pullup5 = new I2CPullup
-    pullup5.i2c ~ i2c5
-    pullup5.power ~ power
-
-    i2c6 = new I2C
-    i2c6.sda.line ~ ic.SD6
-    i2c6.scl.line ~ ic.SC6
-    pullup6 = new I2CPullup
-    pullup6.i2c ~ i2c6
-    pullup6.power ~ power
-
-    i2c7 = new I2C
-    i2c7.sda.line ~ ic.SD7
-    i2c7.scl.line ~ ic.SC7
-    pullup7 = new I2CPullup
-    pullup7.i2c ~ i2c7
-    pullup7.power ~ power
-
-
-component _TCA9548APWR:
-    # component TCA9548APWR
-    footprint = "TSSOP-24_L7.8-W4.4-P0.65-LS6.4-BL"
+component TCA9548APWR_package:
     lcsc_id = "C130026"
+
     # pins
     signal A0 ~ pin 1
     signal A1 ~ pin 2
-    signal RESET_ ~ pin 3
+    signal RESET ~ pin 3
     signal SD0 ~ pin 4
     signal SC0 ~ pin 5
     signal SD1 ~ pin 6
@@ -145,3 +39,106 @@ component _TCA9548APWR:
     signal SCL ~ pin 22
     signal SDA ~ pin 23
     signal VCC ~ pin 24
+
+module TCA9548APWR_driver:
+    # External Interfaces
+    power = new ElectricPower
+    i2c = new I2C
+    reset = new ElectricLogic
+
+    # Package
+    package = new TCA9548APWR_package
+
+    # Connect I2C
+    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ package.SCL
+
+    # Connect Power
+    power.vcc ~ package.VCC
+    power.gnd ~ package.GND
+
+    # Bypass caps
+    bypass_caps = new Capacitor[2]
+    for cap in bypass_caps:
+        power.vcc ~> cap ~> power.gnd
+        cap.package = "C0402"
+
+    bypass_caps[0].capacitance = 100nF +/- 20%
+    bypass_caps[1].capacitance = 2.2uF +/- 20%
+
+    # Reset
+    reset.line ~ package.RESET
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 10%
+    reset_pullup.package = "R0402"
+    reset.line ~> reset_pullup ~> power.vcc
+    reset.reference ~ power
+
+    # Addressor
+    addressor = new Addressor<address_bits=3>
+    assert addressor.base is 0x70
+    assert addressor.address is i2c.address
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[1].line ~ package.A1
+    addressor.address_lines[2].line ~ package.A2
+
+    for address_line in addressor.address_lines:
+        address_line.reference ~ power
+
+    # I2C channels
+    i2cs = new I2C[8]
+
+    # Connect I2C channels to package
+    i2cs[0].sda.line ~ package.SD0
+    i2cs[0].scl.line ~ package.SC0
+    i2cs[1].sda.line ~ package.SD1
+    i2cs[1].scl.line ~ package.SC1
+    i2cs[2].sda.line ~ package.SD2
+    i2cs[2].scl.line ~ package.SC2
+    i2cs[3].sda.line ~ package.SD3
+    i2cs[3].scl.line ~ package.SC3
+    i2cs[4].sda.line ~ package.SD4
+    i2cs[4].scl.line ~ package.SC4
+    i2cs[5].sda.line ~ package.SD5
+    i2cs[5].scl.line ~ package.SC5
+    i2cs[6].sda.line ~ package.SD6
+    i2cs[6].scl.line ~ package.SC6
+    i2cs[7].sda.line ~ package.SD7
+    i2cs[7].scl.line ~ package.SC7
+
+    # Pullups on each I2C channel
+    pullups = new I2CPullup[8]
+    for pullup in pullups:
+        pullup.power ~ power
+
+    i2cs[0] ~ pullups[0].i2c
+    i2cs[1] ~ pullups[1].i2c
+    i2cs[2] ~ pullups[2].i2c
+    i2cs[3] ~ pullups[3].i2c
+    i2cs[4] ~ pullups[4].i2c
+    i2cs[5] ~ pullups[5].i2c
+    i2cs[6] ~ pullups[6].i2c
+    i2cs[7] ~ pullups[7].i2c
+
+module Test:
+    # Create 8 muxes
+    muxes = new TCA9548APWR_driver[8]
+
+    # Create I2C and Power
+    power = new ElectricPower
+    i2c = new I2C
+
+    # Connect I2C
+    for mux in muxes:
+        i2c ~ mux.i2c
+        power ~ mux.power
+
+    # Assert addresses
+    assert muxes[0].i2c.address is 0x70
+    assert muxes[1].i2c.address is 0x71
+    assert muxes[2].i2c.address is 0x72
+    assert muxes[3].i2c.address is 0x73
+    assert muxes[4].i2c.address is 0x74
+    assert muxes[5].i2c.address is 0x75
+    assert muxes[6].i2c.address is 0x76
+    assert muxes[7].i2c.address is 0x77
