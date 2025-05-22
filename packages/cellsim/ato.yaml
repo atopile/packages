@@ -1,0 +1,44 @@
+requires-atopile: ^0.3.0
+
+paths:
+  src: .
+  layout: ./layouts
+  footprints: ./footprints
+
+builds:
+  cell:
+    entry: cell.ato:Cell
+    exclude_targets: [mfg-data]
+    exclude_checks:
+      - I2C.requires_unique_addresses
+      - requires_external_usage
+
+  cellsim-8ch:
+    entry: cellsim-8ch.ato:CellSim8Ch
+    exclude_targets: [mfg-data]
+    exclude_checks:
+      - I2C.requires_unique_addresses
+      - requires_external_usage
+
+package:
+  identifier: atopile/cellsim
+  repository: https://github.com/atopile/packages
+  version: 0.1.0
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Cellsimulator for BMS development
+  license: MIT
+dependencies:
+  - type: registry
+    identifier: atopile/ti-lv284x
+    release: 0.1.0
+  - type: registry
+    identifier: atopile/st-ldk220
+    release: 0.1.0
+  - type: registry
+    identifier: atopile/ti-tca9548a
+    release: 0.1.1
+  - type: registry
+    identifier: atopile/ti-iso1640x
+    release: 0.1.0

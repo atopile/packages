@@ -1,0 +1,137 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import ElectricSignal
+import Capacitor
+import Addressor
+import Resistor
+
+module Texas_Instruments_ADS1219IPWR:
+    # External interfaces
+    power = new ElectricPower
+    power_analog = new ElectricPower
+    i2c = new I2C
+    reference = new ElectricPower
+    inputs = new ElectricSignal[4]
+
+    # Required interfaces
+    power.required = True
+    i2c.required = True
+    reference.required = True
+
+    ic = new _Texas_Instruments_ADS1219IPWR
+
+    # Digital power
+    power.vcc ~ ic.DVDD
+    power.gnd ~ ic.DGND
+    assert power.voltage within 2.7V to 5.5V
+
+    # Analog power
+    power_analog.vcc ~ ic.AVDD
+    power_analog.gnd ~ ic.AGND
+
+    # Netties
+    agnd_nettie = new Resistor
+    agnd_nettie.resistance = 0ohm
+    agnd_nettie.package = "R0402"
+    power.gnd ~> agnd_nettie ~> power_analog.gnd
+
+    avdd_nettie = new Resistor
+    avdd_nettie.resistance = 0ohm
+    avdd_nettie.package = "R0402"
+    power_analog.vcc ~> avdd_nettie ~> power.vcc
+
+    # Input capacitors
+    decoupling_caps = new Capacitor[3]
+    for cap in decoupling_caps:
+        cap.capacitance = 1uF +/- 20%
+        cap.package = "C0402"
+
+    power ~ decoupling_caps[0].power
+    power_analog ~ decoupling_caps[1].power
+    power_analog ~ decoupling_caps[2].power
+
+    # Inputs
+    inputs[0].line ~ ic.AIN0
+    inputs[1].line ~ ic.AIN1
+    inputs[2].line ~ ic.AIN2
+    inputs[3].line ~ ic.AIN3
+
+    # Input references
+    for input in inputs:
+        input.reference.gnd ~ power_analog.gnd
+
+    # Reference
+    reference.vcc ~ ic.REFN
+    reference.gnd ~ ic.REFP
+
+    # Address 0x40
+    addressor = new Addressor<address_bits=2>
+    assert i2c.address is addressor.address
+    assert addressor.base is 0x40
+    addressor.address_lines[0].line ~ ic.A0
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].line ~ ic.A1
+    addressor.address_lines[1].reference ~ power
+
+    # I2C connections
+    i2c.scl.line ~ ic.SCL
+    i2c.sda.line ~ ic.SDA
+
+    # Reset - disabled by default
+    ic.RESETh ~ power.vcc
+
+
+component _Texas_Instruments_ADS1219IPWR:
+    """Texas_Instruments_ADS1219IPWR component"""
+    lcsc_id = "C2869313"
+    manufacturer = "Texas Instruments"
+    mpn = "ADS1219IPWR"
+    datasheet_url = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2303010401_Texas-Instruments-ADS1219IPWR_C2869313.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal A0 ~ pin 1
+    signal A1 ~ pin 2
+    signal AGND ~ pin 5
+    signal AIN0 ~ pin 11
+    signal AIN1 ~ pin 10
+    signal AIN2 ~ pin 7
+    signal AIN3 ~ pin 6
+    signal AVDD ~ pin 12
+    signal DGND ~ pin 4
+    signal DRDYh ~ pin 14
+    signal DVDD ~ pin 13
+    signal REFN ~ pin 8
+    signal REFP ~ pin 9
+    signal RESETh ~ pin 3
+    signal SCL ~ pin 16
+    signal SDA ~ pin 15
+
+
+module Test:
+    """Test module for Texas_Instruments_ADS1219IPWR"""
+
+    # Components
+    adcs = new Texas_Instruments_ADS1219IPWR[4]
+
+    # Interfaces
+    power = new ElectricPower
+    power.voltage = 3.3V +/- 10%
+    reference = new ElectricPower
+    i2c = new I2C
+
+    # Connect interfaces
+    for adc in adcs:
+        power ~ adc.power
+        i2c ~ adc.i2c
+        reference ~ adc.reference
+
+    # Address configuration
+    assert adcs[0].i2c.address is 0x40
+    assert adcs[1].i2c.address is 0x41
+    assert adcs[2].i2c.address is 0x42
+    assert adcs[3].i2c.address is 0x43

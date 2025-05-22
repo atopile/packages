@@ -1,0 +1,70 @@
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "components/ti_addressor.py" import TIAddressor
+
+component Texas_Instruments_TMP117AIDRVR:
+    """Texas_Instruments_TMP117AIDRVR component"""
+    lcsc_id = "C699536"
+    manufacturer = "Texas Instruments"
+    mpn = "TMP117AIDRVR"
+    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_2309221403_Texas-Instruments-TMP117AIDRVR_C699536.pdf"
+    designator_prefix = "U"
+
+    # pins
+    signal ADD0 ~ pin 4
+    signal ALERT ~ pin 3
+    signal EP ~ pin 7
+    signal GND ~ pin 2
+    signal SCL ~ pin 1
+    signal SDA ~ pin 6
+    signal Vplus ~ pin 5
+
+    power = new ElectricPower
+    power.vcc ~ Vplus
+    power.gnd ~ GND
+    power.gnd ~ EP
+
+    i2c = new I2C
+    i2c.scl.line ~ SCL
+    i2c.sda.line ~ SDA
+
+    # Set required interfaces
+    power.required = True
+    i2c.required = True
+
+    # Address pin
+    # I2C Address Configuration:
+    #   ADD0 Pin    | Address
+    #   ---------------------
+    #   GND         | 0x48
+    #   V+          | 0x49
+    #   SDA         | 0x4A
+    #   SCL         | 0x4B
+    addressor = new TIAddressor
+    addressor.address_line.line ~ ADD0
+    addressor.address_line.reference ~ power
+    assert addressor.base is 0x48
+    assert i2c.address is addressor.address
+
+
+module Test:
+    # Create components
+    temp_sensors = new Texas_Instruments_TMP117AIDRVR[4]
+
+    # Create interfaces
+    power = new ElectricPower
+    i2c = new I2C
+
+    # Set Addresses
+    temp_sensors[0].i2c.address = 0x48
+    temp_sensors[1].i2c.address = 0x49
+    temp_sensors[2].i2c.address = 0x4A
+    temp_sensors[3].i2c.address = 0x4B
+
+    # Connect up components
+    for sensor in temp_sensors:
+        sensor.power ~ power
+        sensor.i2c ~ i2c
