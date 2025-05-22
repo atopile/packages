@@ -1,4 +1,10 @@
-import ElectricPower, I2C, SPI, USB2_0, ElectricLogic, USB3, UART
+import ElectricPower
+import I2C
+import SPI
+import USB2_0
+import ElectricLogic
+import USB3
+import UART
 
 from "components/cm5.py" import CM5_MINIMAL
 from "components/HANRUNZhongshan_HanRun_Elec_HR911130A.py" import HANRUNZhongshan_HanRun_Elec_HR911130A
@@ -21,15 +27,11 @@ module CM5:
     power_3v3.gnd ~ power_5v.gnd
 
     # I2C
-    i2c0 = new I2C
-    i2c1 = new I2C
-    i2c2 = new I2C
-    i2c3 = new I2C
-
-    i2c0 ~ cm5.i2c0
-    i2c1 ~ cm5.i2c1
-    i2c2 ~ cm5.i2c2
-    i2c3 ~ cm5.i2c3
+    i2cs = new I2C[4]
+    i2cs[0] ~ cm5.i2c0
+    i2cs[1] ~ cm5.i2c1
+    i2cs[2] ~ cm5.i2c2
+    i2cs[3] ~ cm5.i2c3
 
     # SPI
     spi0 = new SPI
