@@ -25,7 +25,6 @@ from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640QDWRQ1
 from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640BDR_package
 
 
-
 module CellSim8Ch:
 
     # External interfaces
@@ -182,6 +181,12 @@ module CellSim8Ch:
     # Set Addresses
     i2c_mux.i2c.address = 0x70
     gpio_mux.i2c.address = 0x21
+
+    # Set pins for address
+    i2c_mux.addressor.address_lines[0].line ~ i2c_mux.power.gnd
+    i2c_mux.addressor.address_lines[1].line ~ i2c_mux.power.gnd
+    i2c_mux.addressor.address_lines[2].line ~ i2c_mux.power.gnd
+    gpio_mux.gpio_expander.addressor.address_lines[0].line ~ gpio_mux.power_3v3.vcc
 
     i2c_isolated ~ i2c_mux.i2c
     i2c_isolated ~ gpio_mux.i2c
