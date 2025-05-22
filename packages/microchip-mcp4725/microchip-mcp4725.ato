@@ -8,8 +8,8 @@ import ElectricSignal
 import Addressor
 import Capacitor
 
-component Microchip_Tech_MCP4725A0T_E_CH_package:
-    """Microchip_Tech_MCP4725A0T_E_CH component"""
+component Microchip_MCP4725A0T_E_CH_package:
+    """Microchip_MCP4725A0T_E_CH component"""
     lcsc_id = "C144198"
     manufacturer = "Microchip Tech"
     mpn = "MCP4725A0T-E/CH"
@@ -25,9 +25,9 @@ component Microchip_Tech_MCP4725A0T_E_CH_package:
     signal VSS ~ pin 2
 
 
-module Microchip_Tech_MCP4725_driver:
-    """Microchip_Tech_MCP4725_driver"""
-    package = new Microchip_Tech_MCP4725A0T_E_CH_package
+module Microchip_MCP4725_driver:
+    """Microchip_MCP4725_driver"""
+    package = new Microchip_MCP4725A0T_E_CH_package
 
     # power
     power = new ElectricPower
@@ -46,6 +46,10 @@ module Microchip_Tech_MCP4725_driver:
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
+    # Set required interfaces
+    power.required = True
+    i2c.required = True
+
     # Output
     output = new ElectricSignal
     output.line ~ package.VOUT
@@ -61,7 +65,7 @@ module Microchip_Tech_MCP4725_driver:
 
 module Test:
     # Create 2 DACs
-    dacs = new Microchip_Tech_MCP4725_driver[2]
+    dacs = new Microchip_MCP4725_driver[2]
 
     # Create power and I2C interfaces
     power = new ElectricPower
