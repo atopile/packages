@@ -46,6 +46,10 @@ module Microchip_MCP4725_driver:
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
+    # Set required interfaces
+    power.required = True
+    i2c.required = True
+
     # Output
     output = new ElectricSignal
     output.line ~ package.VOUT
