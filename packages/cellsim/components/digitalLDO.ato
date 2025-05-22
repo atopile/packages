@@ -1,0 +1,56 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Resistor, Capacitor
+
+from "components/digital-regulator.ato" import DigitalRegulator
+
+module DigitalLDO from DigitalRegulator:
+    """
+    LDO regulator with adjustable output voltage
+    controled via a DAC with I2C interface
+    """
+    regulator = new TLV75901PDRVR
+
+    # Configure parameters
+    assert power_in.voltage within 1.5V to 6V
+    assert power_out.voltage within 0.55V to 5.5V
+
+    # Connections
+    power_in.vcc ~ regulator.IN
+    power_in.gnd ~ regulator.GND
+    power_out.vcc ~ regulator.OUT
+    power_out.gnd ~ regulator.GND
+
+    # Output cap
+    output_cap_1 = new Capacitor
+    output_cap_1.capacitance = 1uF +/- 10%
+    output_cap_1.package = "C0402"
+    power_out ~ output_cap_1.power
+
+    # Enable
+    enable_resistor = new Resistor
+    enable_resistor.resistance = 10kohm +/- 5%
+    enable_resistor.package = "R0402"
+    enable.line ~> enable_resistor ~> regulator.EN
+
+    # Feedback
+    regulator.FB ~ feedback_div.output.line
+
+
+component TLV75901PDRVR:
+    # component TLV75901PDRVR
+    # 1A LDO, 1.5V to 6V input, 0.55V to 5.5V output
+    # footprint = "WSON-6_L2.0-W2.0-P0.65-TL-EP"
+    lcsc_id = "C544759"
+    vref = 0.55V
+    dropout_voltage = 0.225V
+
+    # pins
+    signal OUT ~ pin 1
+    signal FB ~ pin 2
+    signal GND ~ pin 3
+    signal EN ~ pin 4
+    signal DNC ~ pin 5
+    signal IN ~ pin 6
+    signal EP ~ pin 7
+
+    GND ~ EP

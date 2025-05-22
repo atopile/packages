@@ -1,0 +1,75 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricSignal
+import I2C
+import ElectricLogic
+
+from "components/ti_addressor.py" import TIAddressor
+
+module Texas_Instruments_ADS1115:
+    """
+    ADC with 16-bit resolution
+    """
+    ic = new _Texas_Instruments_ADS1115IDGSR
+
+    # External interfaces
+    power = new ElectricPower
+    i2c = new I2C
+    inputs = new ElectricSignal[4]
+    data_ready = new ElectricLogic
+
+    # I2C
+    i2c.sda.line ~ ic.SDA
+    i2c.scl.line ~ ic.SCL
+    i2c.address = 0x48
+    ic.A0 ~ power.gnd
+
+    # Power
+    power.vcc ~ ic.VCC
+    power.gnd ~ ic.GND
+    assert power.voltage within 2V to 5.5V
+
+    # Inputs
+    inputs[0].line ~ ic.IN1
+    inputs[1].line ~ ic.IN2
+    inputs[2].line ~ ic.IN3
+    inputs[3].line ~ ic.IN4
+
+    for input in inputs:
+        input.reference.gnd ~ power.gnd
+
+
+    # Addressor
+    addressor = new TIAddressor
+    addressor.base = 0x48
+    addressor.i2c ~ i2c
+    addressor.address_line.line ~ ic.A0
+    assert i2c.address is addressor.address
+
+    # Alert Ready
+    alert_ready = new ElectricLogic
+    alert_ready.line ~ ic.ALERT
+    alert_ready.reference ~ power
+
+
+
+component _Texas_Instruments_ADS1115IDGSR:
+    """
+    ADC with 16-bit resolution
+    """
+    lcsc_id = "C37593"
+    mpn = "ADS1115IDGSR"
+
+    # pins
+    signal SDA ~ pin 9
+    signal SCL ~ pin 10
+    signal VCC ~ pin 8
+    signal GND ~ pin 3
+    signal IN1 ~ pin 4
+    signal IN2 ~ pin 5
+    signal IN3 ~ pin 6
+    signal IN4 ~ pin 7
+    signal A0 ~ pin 1
+    signal ALERT ~ pin 2
