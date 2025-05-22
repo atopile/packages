@@ -2,7 +2,9 @@
 
 ## Usage
 
-```
+```ato
+#pragma experiment("FOR_LOOP")
+
 import ElectricPower
 import I2C
 
