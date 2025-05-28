@@ -1,20 +1,13 @@
 import Resistor, Capacitor, Diode, Inductor, ElectricPower, ElectricLogic, ElectricSignal, ResistorVoltageDivider
 from "regulators.ato" import AdjustableRegulator
+from "parts/TI_LV2842XLVDDCR/TI_LV2842XLVDDCR.ato" import TI_LV2842XLVDDCR_package
+from "parts/Sunlord_SWPA4030S100MT/Sunlord_SWPA4030S100MT.ato" import Sunlord_SWPA4030S100MT_package
+from "parts/Hottech_1N5819WS/Hottech_1N5819WS.ato" import Hottech_1N5819WS_package
 
-
-component _LV2842X:
+component _LV2842X from TI_LV2842XLVDDCR_package:
     """
     High Efficiency Wide Input Voltage Range Buck Regulator
     """
-    footprint = "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR"
-
-    # pins
-    signal CB ~ pin 1
-    signal GND ~ pin 2
-    signal FB ~ pin 3
-    signal SHDN_hash ~ pin 4
-    signal VIN ~ pin 5
-    signal SW ~ pin 6
 
     power_in = new ElectricPower
     power_in.vcc ~ VIN
@@ -35,7 +28,7 @@ component _LV2842X:
     feedback.reference.gnd ~ GND
 
     shutdown = new ElectricLogic
-    shutdown.line ~ SHDN_hash
+    shutdown.line ~ nSHDN
     shutdown.reference.gnd ~ GND
 
 
@@ -106,23 +99,13 @@ module LV2842x from AdjustableRegulator:
     # v_ripple = 0V to 0.2V # typically ~ 10% of Vout
 
 
-component Diode_1N5819WS from Diode:
-    # component 1N5819WS
-    footprint = "SOD-323_L1.8-W1.3-LS2.5-RD"
-    lcsc_id = "C191023"
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
+component Diode_1N5819WS from Hottech_1N5819WS_package:
+    cathode ~ K
+    anode ~ A
 
 
-component SWPA4030S100MT from Inductor:
-    # component SWPA4030S100MT
-    footprint = "IND-SMD_L4.0-W4.0"
-    lcsc_id = "C38117"
-    # pins
-    p1 ~ pin 1
-    p2 ~ pin 2
-    assert inductance is 10uH +/- 20%
+component SWPA4030S100MT from Sunlord_SWPA4030S100MT_package:
+    pass
 
 
 component LV2842X from _LV2842X:

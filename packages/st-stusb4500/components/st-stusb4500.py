@@ -4,7 +4,7 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.units import P  # noqa: F401
 from faebryk.libs.library import L  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
+
 
 # Components
 from .ESDA25W import ESDA25W
@@ -50,17 +50,8 @@ class _STUSB4500QTR(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C2678061"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C2678061")
     designator_prefix = L.f_field(F.has_designator_prefix)("U")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "STMicroelectronics",
-            DescriptiveProperties.partno: "STUSB4500QTR",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_2106070703_STMicroelectronics-STUSB4500QTR_C2678061.pdf"
-    )
 
     @L.rt_field
     def pin_association_heuristic(self):
@@ -212,7 +203,7 @@ class STUSB4500QTR(Module):
 
         # VSINK SWITCH
         # self.VSINK_MOSFET.channel_type.alias_is(F.MOSFET.ChannelType.P_CHANNEL)
-        self.vsink_mosfet.add(F.has_descriptive_properties_defined({"LCSC": "C471913"}))
+        self.vsink_mosfet.add(F.has_explicit_part.by_supplier("C471913"))
         # VBUS to VSINK switching
         self.power_vbus.hv.connect_via(self.vsink_mosfet, self.power_vsink.hv)
 

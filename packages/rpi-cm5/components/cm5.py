@@ -315,7 +315,7 @@ class CM5_MINIMAL(Module):
             L.Range.from_center_rel(2 * P.kohm, 0.05)
         )
         # self.power_led.color.constrain_subset(F.LED.Color.GREEN)
-        self.power_led.add(F.has_descriptive_properties_defined({"LCSC": "C12624"}))
+        self.power_led.add(F.has_explicit_part.by_supplier("C12624"))
         self.power_led_resistor.add(F.has_package("R0402"))
 
         # Activity LED
@@ -326,7 +326,7 @@ class CM5_MINIMAL(Module):
             L.Range.from_center_rel(2 * P.kohm, 0.05)
         )
         # self.activity_led.color.constrain_subset(F.LED.Color.YELLOW)
-        self.activity_led.add(F.has_descriptive_properties_defined({"LCSC": "C72038"}))
+        self.activity_led.add(F.has_explicit_part.by_supplier("C72038"))
         self.activity_led_resistor.add(F.has_package("R0402"))
         # self.activity_led.add(F.has_package())
 

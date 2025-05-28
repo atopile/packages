@@ -1,0 +1,15 @@
+#pragma experiment("TRAITS")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+
+component OPSCO_SK6805_EC20_package:
+    trait is_atomic_part<manufacturer="OPSCO", partnumber="SK6805-EC20", footprint="LED-SMD_4P-L2.0-W2.0-BR.kicad_mod", symbol="SK6805-EC20.kicad_sym", model="LED-SMD_4P-L2.0-W2.0-BR.step">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C2890036", manufacturer="OPSCO", partno="SK6805-EC20">
+    trait has_designator_prefix<prefix="LED">
+
+    # pins
+    signal DIN ~ pin 4
+    signal DOUT ~ pin 2
+    signal GND ~ pin 3
+    signal VDD ~ pin 1
