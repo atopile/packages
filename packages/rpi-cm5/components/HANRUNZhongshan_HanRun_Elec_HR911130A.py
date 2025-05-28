@@ -7,7 +7,6 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
 from faebryk.libs.units import P  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
 
 
 logger = logging.getLogger(__name__)
@@ -42,17 +41,8 @@ class _HANRUNZhongshan_HanRun_Elec_HR911130A(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C54408"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C54408")
     designator_prefix = L.f_field(F.has_designator_prefix)("RJ")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "HANRUN(Zhongshan HanRun Elec)",
-            DescriptiveProperties.partno: "HR911130A",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_1811141815_HANRUN-Zhongshan-HanRun-Elec-HR911130A_C54408.pdf"
-    )
 
     @L.rt_field
     def attach_via_pinmap(self):

@@ -1,6 +1,5 @@
 import faebryk.library._F as F
 from faebryk.libs.library import L
-from faebryk.libs.picker.picker import DescriptiveProperties
 
 
 class ESDA25P35_1U1M(F.Diode):
@@ -14,17 +13,8 @@ class ESDA25P35_1U1M(F.Diode):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C1974707"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C1974707")
     designator_prefix = L.f_field(F.has_designator_prefix)("D")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "STMicroelectronics",
-            DescriptiveProperties.partno: "ESDA25P35-1U1M",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2201300300_STMicroelectronics-ESDA25P35-1U1M_C1974707.pdf"
-    )
 
     @L.rt_field
     def pin_association_heuristic(self):

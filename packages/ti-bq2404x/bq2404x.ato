@@ -1,4 +1,5 @@
 import Resistor, Capacitor, ElectricPower, ElectricLogic
+from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 
 
 module BQ24045DSQR from BQ2404XDSQR:
@@ -54,7 +55,7 @@ module BQ2404XDSQR:
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
     ic.ISET2 ~ ic.IN # set to 500mA
 
-    charge_status.line ~ ic.CHG
+    charge_status.line ~ ic.nCHG
     charge_status.reference.gnd ~ power_in.gnd
 
     # Optional status LEDs
@@ -72,24 +73,7 @@ module BQ2404XDSQR:
     # charge_led.gnd ~ ic.CHG
 
 
-component _BQ2404XDSQR:
-    # component BQ24045DSQR
-    footprint = "WSON-10_L2.0-W2.0-P0.40-BL-EP"
-    # lcsc_id = "C148983"
-    # lcsc_id = "C148983"
-    # pins
-    signal IN ~ pin 1
-    signal ISET ~ pin 2
-    signal VSS ~ pin 3
-    signal PRETERM ~ pin 4
-    signal PG ~ pin 5
-    signal NC ~ pin 6
-    signal ISET2 ~ pin 7
-    signal CHG ~ pin 8
-    signal TS ~ pin 9
-    signal OUT ~ pin 10
-    signal EP ~ pin 11
-
+component _BQ2404XDSQR from TI_BQ24045DSQR_package:
     signal gnd ~ VSS
     gnd ~ EP
 
