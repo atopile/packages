@@ -5,6 +5,7 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
 from faebryk.libs.units import P  # noqa: F401
+from faebryk.libs.smd import SMDSize
 
 # Interfaces
 
@@ -316,7 +317,7 @@ class CM5_MINIMAL(Module):
         )
         # self.power_led.color.constrain_subset(F.LED.Color.GREEN)
         self.power_led.add(F.has_explicit_part.by_supplier("C12624"))
-        self.power_led_resistor.add(F.has_package("R0402"))
+        self.power_led_resistor.add(F.has_package_requirements(size=SMDSize.I0402))
 
         # Activity LED
         self.power_3v3.hv.connect_via(
@@ -327,7 +328,7 @@ class CM5_MINIMAL(Module):
         )
         # self.activity_led.color.constrain_subset(F.LED.Color.YELLOW)
         self.activity_led.add(F.has_explicit_part.by_supplier("C72038"))
-        self.activity_led_resistor.add(F.has_package("R0402"))
+        self.activity_led_resistor.add(F.has_package_requirements(size=SMDSize.I0402))
         # self.activity_led.add(F.has_package())
 
         self.power_3v3.connect(
