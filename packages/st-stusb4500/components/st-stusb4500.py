@@ -4,7 +4,7 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.units import P  # noqa: F401
 from faebryk.libs.library import L  # noqa: F401
-
+from faebryk.libs.smd import SMDSize
 
 # Components
 from .ESDA25W import ESDA25W
@@ -143,7 +143,7 @@ class STUSB4500QTR(Module):
         self.vbus_vs_disch_r.resistance.constrain_subset(
             L.Range.from_center_rel(1 * P.kohm, 0.01)
         )
-        self.vbus_vs_disch_r.add(F.has_package("R0402"))
+        self.vbus_vs_disch_r.add(F.has_package_requirements(size=SMDSize.I0402))
         self.power_vbus.hv.connect_via(
             self.vbus_vs_disch_r, self.pd_controller.VBUS_VS_DISCH
         )
@@ -157,14 +157,14 @@ class STUSB4500QTR(Module):
         self.vreg_2v7_cap.capacitance.constrain_subset(
             L.Range.from_center_rel(1 * P.uF, 0.2)
         )
-        self.vreg_2v7_cap.add(F.has_package("C0402"))
+        self.vreg_2v7_cap.add(F.has_package_requirements(size=SMDSize.I0402))
 
         self.vreg_1v2_cap.unnamed[0].connect(self.pd_controller.VREG_1V2.lv)
         self.vreg_1v2_cap.unnamed[1].connect(self.pd_controller.VREG_1V2.hv)
         self.vreg_1v2_cap.capacitance.constrain_subset(
             L.Range.from_center_rel(1 * P.uF, 0.2)
         )
-        self.vreg_1v2_cap.add(F.has_package("C0402"))
+        self.vreg_1v2_cap.add(F.has_package_requirements(size=SMDSize.I0402))
 
         # Regulator rail net naming
         # vreg_2v7 = F.Net.with_name("VREG_2V7")
@@ -177,7 +177,7 @@ class STUSB4500QTR(Module):
         self.vbus_cap.capacitance.constrain_subset(
             L.Range.from_center_rel(4.7 * P.uF, 0.3)
         )
-        self.vbus_cap.add(F.has_package("C0603"))
+        self.vbus_cap.add(F.has_package_requirements(size=SMDSize.I0603))
         self.vbus_cap.max_voltage.constrain_subset(
             L.Range(30 * P.V, float("inf") * P.V)
         )
@@ -215,7 +215,7 @@ class STUSB4500QTR(Module):
         self.vsink_gate_r.resistance.constrain_subset(
             L.Range.from_center_rel(22 * P.kohm, 0.03)
         )
-        self.vsink_gate_r.add(F.has_package("R0402"))
+        self.vsink_gate_r.add(F.has_package_requirements(size=SMDSize.I0402))
         self.vsink_mosfet.gate.connect_via(
             self.vsink_gate_r, self.pd_controller.VBUS_EN_SNK
         )
@@ -224,7 +224,7 @@ class STUSB4500QTR(Module):
         self.vsink_gate_pullup.resistance.constrain_subset(
             L.Range.from_center_rel(100 * P.kohm, 0.02)
         )
-        self.vsink_gate_pullup.add(F.has_package("R0402"))
+        self.vsink_gate_pullup.add(F.has_package_requirements(size=SMDSize.I0402))
         self.vsink_mosfet.gate.connect_via(
             self.vsink_gate_pullup, self.vsink_mosfet.drain
         )
@@ -233,12 +233,12 @@ class STUSB4500QTR(Module):
         self.vsink_gate_snub_r.resistance.constrain_subset(
             L.Range.from_center_rel(100 * P.ohm, 0.01)
         )
-        self.vsink_gate_snub_r.add(F.has_package("R0402"))
+        self.vsink_gate_snub_r.add(F.has_package_requirements(size=SMDSize.I0402))
 
         self.vsink_gate_snub_c.capacitance.constrain_subset(
             L.Range.from_center_rel(100 * P.nF, 0.2)
         )
-        self.vsink_gate_snub_c.add(F.has_package("C0402"))
+        self.vsink_gate_snub_c.add(F.has_package_requirements(size=SMDSize.I0402))
 
         # Connect RC snubber between gate and source
         self.vsink_mosfet.gate.connect_via(
@@ -249,7 +249,7 @@ class STUSB4500QTR(Module):
         self.disch_r.resistance.constrain_subset(
             L.Range.from_center_rel(1 * P.kohm, 0.01)
         )
-        self.disch_r.add(F.has_package("R0402"))
+        self.disch_r.add(F.has_package_requirements(size=SMDSize.I0402))
         self.power_vbus.hv.connect_via(self.disch_r, self.pd_controller.DISCH)
 
         # I2C nets
@@ -268,7 +268,7 @@ class STUSB4500QTR(Module):
                 r.resistance.constrain_subset(
                     L.Range.from_center_rel(4.7 * P.kohm, 0.03)
                 )
-                r.add(F.has_package("R0402"))
+                r.add(F.has_package_requirements(size=SMDSize.I0402))
 
         F.ElectricLogic.connect_all_node_references([self.power_mcu] + [self.i2c])
         # ------------------------------------
