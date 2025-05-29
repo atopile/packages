@@ -42,7 +42,7 @@ Legend:
 |  O  |     |     |     |  X  |  ?  |  O  | ti-tca6408          |
 |  O  |     |     |     |  X  |  ?  |  O  | ti-tca9548a         |
 |  O  |     |     |     |  X  |  ?  |  O  | ti-tlv75901         |
-|  O  |  ?  |  ?  |  O  |  X  |  ?  |     | ti-tps54560x        |
+|  O  |  ?  |     |  X  |  X  |  ?  |     | ti-tps54560x        |
 |  O  |     |     |     |  X  |  ?  |  O  | ti-tps563201        |
 |  O  |  O  |     |     |  X  |  ?  |     | ti-tps63020         |
 |  O  |  O  |     |     |  X  |  ?  |     | usb-connectors      |
