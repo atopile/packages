@@ -7,12 +7,16 @@ Legend:
 - EMB: Uses embedded part instead of external part
 - MNU: Needs rerun with new manufacturer
 
+- O needs to be done
+- X done
+- ? Find out whether needed
+
 | ✅  | FP  | DEP | ERR | VER | EMB | MNU | PART                |
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | ------------------- |
 |  O  |  X  |     |     |  X  |  ?  |  O  | addressable-leds    |
 |  O  |     |     |     |  X  |  ?  |  O  | buttons             |
-|  O  |  ?  |  O  |     |  X  |  ?  |     | cellsim             |
-|  O  |  ?  |  O  |     |  X  |  ?  |     | esp32s3             |
+|  O  |  ?  |  O  |  ?  |  X  |  ?  |     | cellsim             |
+|  O  |  ?  |  O  |  ?  |  X  |  ?  |     | esp32s3             |
 |  O  |  O  |     |     |  X  |  ?  |  O  | indicator-leds      |
 |  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4725   |
 |  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4728   |
@@ -27,7 +31,7 @@ Legend:
 |  O  |     |     |     |  X  |  ?  |  O  | pin-headers         |
 |  O  |  O  |     |     |  X  |  ?  |     | programming-headers |
 |  O  |     |     |     |  X  |  ?  |  O  | relays              |
-|  O  |  ?  |  O  |     |  X  |  ?  |     | rp2040              |
+|  O  |  ?  |  O  |  ?  |  X  |  ?  |     | rp2040              |
 |  O  |     |     |     |  X  |  ?  |  O  | rpi-cm5             |
 |  O  |  O  |     |     |  X  |  ?  |     | saleae-header       |
 |  O  |  X  |     |     |  X  |  ?  |  O  | sd-card-slots       |
