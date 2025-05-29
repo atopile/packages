@@ -9,43 +9,42 @@ Legend:
 
 | ✅  | FP  | DEP | ERR | VER | EMB | MNU | PART                |
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | ------------------- |
-|  O  |  X  |     |     |  O  |  ?  |  O  | addressable-leds    |
-|  O  |     |     |     |  O  |  ?  |  O  | buttons             |
-|  O  |  ?  |  O  |     |  O  |  ?  |     | cellsim             |
-|  O  |  ?  |  O  |     |  O  |  ?  |     | esp32s3             |
-|  O  |  O  |     |     |  O  |  ?  |  O  | indicator-leds      |
-|  O  |     |     |     |  O  |  ?  |  O  | microchip-mcp4725   |
-|  O  |     |     |     |  O  |  ?  |  O  | microchip-mcp4728   |
-|  O  |     |     |     |  O  |  ?  |  O  | addressable-leds    |
-|  O  |     |     |     |  O  |  ?  |  O  | buttons             |
-|  O  |     |     |     |  O  |  ?  |  O  | cellsim             |
-|  O  |     |     |     |  O  |  ?  |  O  | esp32s3             |
-|  O  |     |     |     |  O  |  ?  |  O  | indicator-leds      |
-|  O  |     |     |     |  O  |  ?  |  O  | microchip-mcp4725   |
-|  O  |     |     |     |  O  |  ?  |  O  | microchip-mcp4728   |
-|  O  |  O  |     |     |  O  |  ?  |     | nau7802             |
-|  O  |     |     |     |  O  |  ?  |  O  | PARTS.md            |
-|  O  |     |     |     |  O  |  ?  |  O  | pin-headers         |
-|  O  |  O  |     |     |  O  |  ?  |     | programming-headers |
-|  O  |     |     |     |  O  |  ?  |  O  | relays              |
-|  O  |  ?  |  O  |     |  O  |  ?  |     | rp2040              |
-|  O  |     |     |     |  O  |  ?  |  O  | rpi-cm5             |
-|  O  |  O  |     |     |  O  |  ?  |     | saleae-header       |
-|  O  |  X  |     |     |  O  |  ?  |  O  | sd-card-slots       |
-|  O  |  X  |     |     |  O  |  ?  |  O  | st-ldk220           |
-|  O  |     |     |     |  O  |  ?  |  O  | st-stusb4500        |
-|  O  |     |     |     |  O  |  ?  |  O  | tdpower-tdk20x      |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-ads1115          |
-|  O  |  X  |     |     |  O  |  ?  |  O  | ti-bq2404x          |
-|  O  |     |     |     |  O  |  O  |  X  | ti-ina232           |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-iso1640x         |
-|  O  |  X  |     |     |  O  |  ?  |  O  | ti-lv284x           |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-tca6408          |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-tca9548a         |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-tlv75901         |
-|  O  |  ?  |  ?  |  O  |  O  |  ?  |     | ti-tps54560x        |
-|  O  |     |     |     |  O  |  ?  |  O  | ti-tps563201        |
-|  O  |  O  |     |     |  O  |  ?  |     | ti-tps63020         |
-|  O  |  O  |     |     |  O  |  ?  |     | usb-connectors      |
-|  O  |  O  |     |     |  O  |  ?  |     | xt-connectors       |
-|  O  |     |     |     |  O  |  ?  |  O  | ylptech-byyxx       |
+|  O  |  X  |     |     |  X  |  ?  |  O  | addressable-leds    |
+|  O  |     |     |     |  X  |  ?  |  O  | buttons             |
+|  O  |  ?  |  O  |     |  X  |  ?  |     | cellsim             |
+|  O  |  ?  |  O  |     |  X  |  ?  |     | esp32s3             |
+|  O  |  O  |     |     |  X  |  ?  |  O  | indicator-leds      |
+|  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4725   |
+|  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4728   |
+|  O  |     |     |     |  X  |  ?  |  O  | addressable-leds    |
+|  O  |     |     |     |  X  |  ?  |  O  | buttons             |
+|  O  |     |     |     |  X  |  ?  |  O  | cellsim             |
+|  O  |     |     |     |  X  |  ?  |  O  | esp32s3             |
+|  O  |     |     |     |  X  |  ?  |  O  | indicator-leds      |
+|  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4725   |
+|  O  |     |     |     |  X  |  ?  |  O  | microchip-mcp4728   |
+|  O  |  O  |     |     |  X  |  ?  |     | nau7802             |
+|  O  |     |     |     |  X  |  ?  |  O  | pin-headers         |
+|  O  |  O  |     |     |  X  |  ?  |     | programming-headers |
+|  O  |     |     |     |  X  |  ?  |  O  | relays              |
+|  O  |  ?  |  O  |     |  X  |  ?  |     | rp2040              |
+|  O  |     |     |     |  X  |  ?  |  O  | rpi-cm5             |
+|  O  |  O  |     |     |  X  |  ?  |     | saleae-header       |
+|  O  |  X  |     |     |  X  |  ?  |  O  | sd-card-slots       |
+|  O  |  X  |     |     |  X  |  ?  |  O  | st-ldk220           |
+|  O  |     |     |     |  X  |  ?  |  O  | st-stusb4500        |
+|  O  |     |     |     |  X  |  ?  |  O  | tdpower-tdk20x      |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-ads1115          |
+|  O  |  X  |     |     |  X  |  ?  |  O  | ti-bq2404x          |
+|  O  |     |     |     |  X  |  O  |  X  | ti-ina232           |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-iso1640x         |
+|  O  |  X  |     |     |  X  |  ?  |  O  | ti-lv284x           |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-tca6408          |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-tca9548a         |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-tlv75901         |
+|  O  |  ?  |  ?  |  O  |  X  |  ?  |     | ti-tps54560x        |
+|  O  |     |     |     |  X  |  ?  |  O  | ti-tps563201        |
+|  O  |  O  |     |     |  X  |  ?  |     | ti-tps63020         |
+|  O  |  O  |     |     |  X  |  ?  |     | usb-connectors      |
+|  O  |  O  |     |     |  X  |  ?  |     | xt-connectors       |
+|  O  |     |     |     |  X  |  ?  |  O  | ylptech-byyxx       |
