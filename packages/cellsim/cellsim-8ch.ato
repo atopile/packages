@@ -94,16 +94,16 @@ module CellSim8Ch:
     micro_vault = new MicroVault
 
     # # MicroVault Addresses
-    # assert micro_vault.adc.i2c.address is 0x41
-    # assert micro_vault.temp_sensor.i2c.address is 0x49
+    assert micro_vault.adc.i2c.address is 0x41
+    assert micro_vault.temp_sensor.i2c.address is 0x49
 
     # MicroVault Addresses - set directly in component connections
     # ADC (ADS1219IPWR) - base 0x40, A0=1, A1=0 for 0x41
-    micro_vault.adc.addressor.address_lines[0].line ~ micro_vault._power_5v3.vcc  # A0 to V+ for 0x41
-    micro_vault.adc.addressor.address_lines[1].line ~ micro_vault._power_5v3.gnd  # A1 to GND for 0x41
+    # micro_vault.adc.addressor.address_lines[0].line ~ micro_vault._power_5v3.vcc  # A0 to V+ for 0x41
+    # micro_vault.adc.addressor.address_lines[1].line ~ micro_vault._power_5v3.gnd  # A1 to GND for 0x41
 
     # Temperature Sensor (TMP117AIDRVR) - base 0x48, ADD0=1 for 0x49
-    micro_vault.temp_sensor.addressor.address_line.line ~ micro_vault.power_3v3.vcc  # ADD0 to V+ for 0x49
+    # micro_vault.temp_sensor.addressor.address_line.line ~ micro_vault.power_3v3.vcc  # ADD0 to V+ for 0x49
 
     # Input filter
     dmm_input_filter = new FilterElectricalRC
@@ -179,8 +179,8 @@ module CellSim8Ch:
     power_3v3_isolated ~ gpio_mux.power_3v3
 
     # Set Addresses
-    i2c_mux.i2c.address = 0x70
-    gpio_mux.i2c.address = 0x21
+    assert i2c_mux.i2c.address is 0x70
+    assert gpio_mux.i2c.address is 0x21
 
     # Set pins for address
     i2c_mux.addressor.address_lines[0].line ~ i2c_mux.power.gnd

@@ -39,7 +39,7 @@ module MultiplexerI2C8Ch:
     power_3v3 ~ gpio_expander.power
 
     i2c ~ gpio_expander.i2c
-    gpio_expander.i2c.address = 0x21
+    # assert gpio_expander.i2c.address is 0x21
 
     gpio_expander.gpios[1].line ~ mux.S2 # Select 3
     gpio_expander.gpios[2].line ~ mux.S1 # Select 2
