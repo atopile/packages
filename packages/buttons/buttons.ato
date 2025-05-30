@@ -6,25 +6,8 @@ import Button
 import ElectricLogic
 import ElectricPower
 
-component ButtonSKRPACE010 from Button:
-    """
-    Small SMD button
-    """
-    lcsc_id = "C139797"
-    # Pin mapping
-    unnamed[0] ~ pin 1
-    unnamed[0] ~ pin 2
-    unnamed[1] ~ pin 3
-    unnamed[1] ~ pin 4
-
-component ButtonSKTDLDE010 from Button:
-    """
-    Small SMD right angle button
-    """
-    lcsc_id = "C115365"
-    # Pin mapping
-    unnamed[0] ~ pin 1
-    unnamed[1] ~ pin 2
+from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
+from "parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010.ato" import ALPSALPINE_SKTDLDE010_package
 
 module ButtonPullup:
     """
@@ -66,16 +49,16 @@ module Test:
     """
     # Make and configure buttons
     btn_pullup_vertical = new ButtonPullup
-    btn_pullup_vertical.btn -> ButtonSKRPACE010
+    btn_pullup_vertical.btn -> ALPSALPINE_SKRPACE010_package
 
     btn_pullup_horizontal = new ButtonPullup
-    btn_pullup_horizontal.btn -> ButtonSKTDLDE010
+    btn_pullup_horizontal.btn -> ALPSALPINE_SKTDLDE010_package
 
     btn_pulldown_vertical = new ButtonPulldown
-    btn_pulldown_vertical.btn -> ButtonSKRPACE010
+    btn_pulldown_vertical.btn -> ALPSALPINE_SKRPACE010_package
 
     btn_pulldown_horizontal = new ButtonPulldown
-    btn_pulldown_horizontal.btn -> ButtonSKTDLDE010
+    btn_pulldown_horizontal.btn -> ALPSALPINE_SKTDLDE010_package
 
     # Create example signals
     enable = new ElectricLogic
