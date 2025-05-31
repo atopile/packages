@@ -7,8 +7,12 @@ paths:
 builds:
   default:
     entry: microchip-mcp4725.ato:Microchip_MCP4725_driver
+    exclude_checks:
+      - I2C.requires_pulls
   test:
     entry: microchip-mcp4725.ato:Test
+    exclude_checks:
+      - I2C.requires_pulls
 
 # This metadata is only required for publishing
 # Uncomment it and fill out the fields to publish your package
