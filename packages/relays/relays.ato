@@ -8,6 +8,8 @@ import PoweredLED
 
 from "components/switch.py" import PowerSwitch
 
+from "parts/HF_HFD4_5/HF_HFD4_5.ato" import HF_HFD4_5_package
+
 module PowerRelay:
     """
     DPDT relay with 5V coil and 5V indicator LED
@@ -50,7 +52,7 @@ module PowerRelay:
     control.line ~> fet_ilim_resistor ~> power.gnd
 
 
-component HFXiamen_Hongfa_Electroacoustic_HFD4_5:
+component HFXiamen_Hongfa_Electroacoustic_HFD4_5 from HF_HFD4_5_package:
     """HFXiamen_Hongfa_Electroacoustic_HFD4_5 component"""
     lcsc_id = "C23510"
     manufacturer = "HF(Xiamen Hongfa Electroacoustic)"
