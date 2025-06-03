@@ -10,30 +10,11 @@ import Resistor
 
 from "components/ti_addressor.py" import TIAddressor
 
-component Texas_Instruments_INA232x_package:
-    """TEXAS_INSTRUMENTS_INA232x component"""
-    manufacturer = "TEXAS INSTRUMENTS"
-    datasheet_url = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2309210949_Texas-Instruments-INA232AIDDFR_C5447660.pdf"
-    lcsc_id = "C5447660"
-    mpn = "INA232AIDDFR"
-    # shunt_input_voltage = -81.9175mV to 81.9175mV # ADCRANGE = 0
-    # shunt_input_voltage = -20.4794mV to 20.48mV # ADCRANGE = 1
-    shunt_input_voltage = 75mV
-
-    # pins
-    signal A0 ~ pin 7
-    signal ALERT ~ pin 8
-    signal GND ~ pin 3
-    signal IN_ ~ pin 2
-    signal INplus ~ pin 1
-    signal SCL ~ pin 5
-    signal SDA ~ pin 6
-    signal VS ~ pin 4
-
+from "parts/TEXAS_INSTRUMENTS_INA232AIDDFR/TEXAS_INSTRUMENTS_INA232AIDDFR.ato" import TEXAS_INSTRUMENTS_INA232AIDDFR_package
 
 module Texas_Instruments_INA232x_driver:
     """Texas Instruments INA232x driver"""
-    package = new Texas_Instruments_INA232x_package
+    package = new TEXAS_INSTRUMENTS_INA232AIDDFR_package
 
     power = new ElectricPower
     power.required = True
@@ -42,7 +23,7 @@ module Texas_Instruments_INA232x_driver:
     power.gnd ~ package.GND
 
     max_current: current
-
+    shunt_input_voltage = 75mV
 
     # i2c
     i2c = new I2C
@@ -56,15 +37,15 @@ module Texas_Instruments_INA232x_driver:
 
     # shunt input
     shunt_input = new DifferentialPair
-    shunt_input.p.line ~ package.INplus
-    shunt_input.n.line ~ package.IN_
+    shunt_input.p.line ~ package.INpos
+    shunt_input.n.line ~ package.INneg
 
     # shunt resistor
     shunt = new Resistor
     shunt.package = "R1206"
     shunt_input.p.line ~> shunt ~> shunt_input.n.line
-    assert shunt.resistance <= package.shunt_input_voltage / max_current * 1.1
-    assert shunt.resistance >= package.shunt_input_voltage / max_current * 0.9
+    assert shunt.resistance <= shunt_input_voltage / max_current * 1.1
+    assert shunt.resistance >= shunt_input_voltage / max_current * 0.9
 
     # decoupling cap
     decoupling_cap = new Capacitor
@@ -96,6 +77,15 @@ module Test:
 
     power = new ElectricPower
     i2c = new I2C
+
+    # I2C Pullup
+    pullups = new Resistor[2]
+    for pullup in pullups:
+        pullup.package = "R0402"
+        pullup.resistance = 10kohm +/- 10%
+
+    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
 
     for sensor in current_sensors:
         sensor.power ~ power
