@@ -1,4 +1,8 @@
-import Resistor, Capacitor, ElectricPower, ElectricLogic
+import Resistor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 
 
@@ -17,13 +21,16 @@ module BQ24040DSQR from BQ2404XDSQR:
 
 
 module BQ2404XDSQR:
-    ic = new _BQ2404XDSQR
+    ic = new TI_BQ24045DSQR_package
     power_in = new ElectricPower
-    power_in ~ ic.power_in
+    power_in.vcc ~ ic.IN
+    power_in.gnd ~ ic.VSS
+    power_in.gnd ~ ic.EP
     charge_current: current
 
     power_batt = new ElectricPower
-    power_batt ~ ic.power_out
+    power_batt.vcc ~ ic.OUT
+    power_batt.gnd ~ ic.VSS
 
     power_good = new ElectricLogic
 
@@ -71,16 +78,3 @@ module BQ2404XDSQR:
     # charge_led.current = 0.5mA to 2mA
     # charge_led.input ~ ic.OUT
     # charge_led.gnd ~ ic.CHG
-
-
-component _BQ2404XDSQR from TI_BQ24045DSQR_package:
-    signal gnd ~ VSS
-    gnd ~ EP
-
-    power_in = new ElectricPower
-    power_in.vcc ~ IN
-    power_in.gnd ~ gnd
-
-    power_out = new ElectricPower
-    power_out.vcc ~ OUT
-    power_out.gnd ~ gnd
