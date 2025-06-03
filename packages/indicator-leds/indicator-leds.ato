@@ -4,8 +4,13 @@
 #   1. treat component selections as defaults
 #   2. use specialization within fabll modules
 
-import LED, Resistor, ElectricPower
+import LED
+import Resistor
+import ElectricPower
 
+from "parts/Hubei_KENTO_Elec_KT_0603G/Hubei_KENTO_Elec_KT_0603G.ato" import Hubei_KENTO_Elec_KT_0603G_driver
+from "parts/Hubei_KENTO_Elec_Blue_light_0603/Hubei_KENTO_Elec_Blue_light_0603.ato" import Hubei_KENTO_Elec_Blue_light_0603_driver
+from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_driver
 
 module LEDIndicator:
     power = new ElectricPower
@@ -30,45 +35,12 @@ module LEDIndicator:
 
 
 module LEDIndicatorRed from LEDIndicator:
-    led -> _KT_0603R
+    led -> Hubei_KENTO_Elec_KT_0603R_driver
 
 
 module LEDIndicatorGreen from LEDIndicator:
-    led -> _KT_0603G
+    led -> Hubei_KENTO_Elec_KT_0603G_driver
 
 
 module LEDIndicatorBlue from LEDIndicator:
-    led -> _KT_0603B
-
-
-component _KT_0603B from LED:
-    # component Blue light 0603
-    footprint = "LED0603-RD"
-    lcsc_id = "C2288"
-    forward_voltage = 2.9V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
-
-
-component _KT_0603G from LED:
-    # component 0603 Green 509-620mcd
-    footprint = "LED0603-RD"
-    lcs = "C12624"
-    forward_voltage = 2.75V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    anode ~ pin 2
-    cathode ~ pin 1
-
-
-component _KT_0603R from LED:
-    # component KT-0603R
-    footprint = "LED0603-RD"
-    lcs = "C2286"
-    forward_voltage = 2V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
+    led -> Hubei_KENTO_Elec_Blue_light_0603_driver
