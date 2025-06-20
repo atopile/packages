@@ -132,36 +132,12 @@ component LV2841Y from _LV2842X:
     max_output_current = 600mA
 
 
-module Test8V:
+module Test:
     """
     Test design
     """
-    regulator = new LV2842x
-    assert regulator.v_in is 10V +/- 10%
-    regulator.v_out = 8V +/- 5%
-
-
-module Test5V:
-    """
-    Test design
-    """
-    regulator = new LV2842x
-    assert regulator.v_in is 10V +/- 10%
-    regulator.v_out = 5V +/- 5%
-
-module Test3V3:
-    """
-    Test design
-    """
-    regulator = new LV2842x
-    assert regulator.v_in is 10V +/- 10%
-    regulator.v_out = 3.3V +/- 5%
-
-
-module Test1V8:
-    """
-    Test design
-    """
-    regulator = new LV2842x
-    assert regulator.v_in is 10V +/- 10%
-    regulator.v_out = 1.8V +/- 5%
+    regulators = new LV2842x[4]
+    regulators[0].v_out = 8V +/- 10%
+    regulators[1].v_out = 5V +/- 10%
+    regulators[2].v_out = 3.3V +/- 10%
+    regulators[3].v_out = 1.8V +/- 10%
