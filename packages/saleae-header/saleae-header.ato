@@ -5,9 +5,11 @@ import ElectricSignal, Resistor
 # import UART from "generics/interfaces.ato"
 # import USB2 from "generics/interfaces.ato"
 
+from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package
+
 
 module SaleaeHeader:
-    header = new PZ254_2_04_S
+    header = new HCTL_PZ254_2_04_S_package
     ch0 = new ElectricSignal
     ch1 = new ElectricSignal
     ch2 = new ElectricSignal
@@ -68,18 +70,3 @@ module SaleaeHeader:
 component _protection_resistor from Resistor:
     resistance = 1kohm +/- 5%
     package = "R0402"
-
-
-component PZ254_2_04_S:
-    footprint = "HDR-SMD_8P-P2.54-V-M-R2-C4-LS7.4"
-    lcsc_id = "C3294462"
-
-    # pins
-    signal _1 ~ pin 1
-    signal _2 ~ pin 2
-    signal _3 ~ pin 3
-    signal _4 ~ pin 4
-    signal _5 ~ pin 5
-    signal _6 ~ pin 6
-    signal _7 ~ pin 7
-    signal _8 ~ pin 8

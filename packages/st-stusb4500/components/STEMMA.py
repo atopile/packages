@@ -1,7 +1,6 @@
 import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
 
 
 class STEMMA_RIGHT_ANGLE(Module):
@@ -21,17 +20,8 @@ class STEMMA_RIGHT_ANGLE(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C160404"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C160404")
     designator_prefix = L.f_field(F.has_designator_prefix)("CN")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "JST Sales America",
-            DescriptiveProperties.partno: "SM04B-SRSS-TB(LF)(SN)",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_JST-SM04B-SRSS-TB-LF-SN_C160404.pdf"
-    )
 
     @L.rt_field
     def pin_association_heuristic(self):

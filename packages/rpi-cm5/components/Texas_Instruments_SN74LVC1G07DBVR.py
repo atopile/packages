@@ -7,7 +7,7 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
 from faebryk.libs.units import P  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +32,8 @@ class _Texas_Instruments_SN74LVC1G07DBVR(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C7829"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C7829")
     designator_prefix = L.f_field(F.has_designator_prefix)("U")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "Texas Instruments",
-            DescriptiveProperties.partno: "SN74LVC1G07DBVR",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_1809251740_Texas-Instruments-SN74LVC1G07DBVR_C7829.pdf"
-    )
 
     @L.rt_field
     def attach_via_pinmap(self):

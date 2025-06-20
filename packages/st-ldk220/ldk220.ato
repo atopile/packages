@@ -1,5 +1,6 @@
 import Capacitor
 from "regulators.ato" import AdjustableLDO
+from "parts/ST_LDK220M_R/ST_LDK220M_R.ato" import ST_LDK220M_R_package
 
 
 module LDK220M_R from AdjustableLDO:
@@ -43,13 +44,5 @@ module Test from LDK220M_R:
     assert v_in is 5V +/- 5%
 
 
-component _LDK220M_R:
-    footprint = "SOT-23-5_L3.0-W1.7-P0.95-LS2.8-BL"
-    lcsc_id = "C443854"
-
-    # pins
-    signal IN ~ pin 1
-    signal GND ~ pin 2
-    signal EN ~ pin 3
-    signal ADJ_NC ~ pin 4
-    signal OUT ~ pin 5
+component _LDK220M_R from ST_LDK220M_R_package:
+    pass

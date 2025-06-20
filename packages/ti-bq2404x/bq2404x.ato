@@ -1,4 +1,9 @@
-import Resistor, Capacitor, ElectricPower, ElectricLogic
+import Resistor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+
+from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 
 
 module BQ24045DSQR from BQ2404XDSQR:
@@ -16,13 +21,16 @@ module BQ24040DSQR from BQ2404XDSQR:
 
 
 module BQ2404XDSQR:
-    ic = new _BQ2404XDSQR
+    ic = new TI_BQ24045DSQR_package
     power_in = new ElectricPower
-    power_in ~ ic.power_in
+    power_in.vcc ~ ic.IN
+    power_in.gnd ~ ic.VSS
+    power_in.gnd ~ ic.EP
     charge_current: current
 
     power_batt = new ElectricPower
-    power_batt ~ ic.power_out
+    power_batt.vcc ~ ic.OUT
+    power_batt.gnd ~ ic.VSS
 
     power_good = new ElectricLogic
 
@@ -54,7 +62,7 @@ module BQ2404XDSQR:
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
     ic.ISET2 ~ ic.IN # set to 500mA
 
-    charge_status.line ~ ic.CHG
+    charge_status.line ~ ic.nCHG
     charge_status.reference.gnd ~ power_in.gnd
 
     # Optional status LEDs
@@ -70,33 +78,3 @@ module BQ2404XDSQR:
     # charge_led.current = 0.5mA to 2mA
     # charge_led.input ~ ic.OUT
     # charge_led.gnd ~ ic.CHG
-
-
-component _BQ2404XDSQR:
-    # component BQ24045DSQR
-    footprint = "WSON-10_L2.0-W2.0-P0.40-BL-EP"
-    # lcsc_id = "C148983"
-    # lcsc_id = "C148983"
-    # pins
-    signal IN ~ pin 1
-    signal ISET ~ pin 2
-    signal VSS ~ pin 3
-    signal PRETERM ~ pin 4
-    signal PG ~ pin 5
-    signal NC ~ pin 6
-    signal ISET2 ~ pin 7
-    signal CHG ~ pin 8
-    signal TS ~ pin 9
-    signal OUT ~ pin 10
-    signal EP ~ pin 11
-
-    signal gnd ~ VSS
-    gnd ~ EP
-
-    power_in = new ElectricPower
-    power_in.vcc ~ IN
-    power_in.gnd ~ gnd
-
-    power_out = new ElectricPower
-    power_out.vcc ~ OUT
-    power_out.gnd ~ gnd

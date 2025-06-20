@@ -1,7 +1,6 @@
 import faebryk.library._F as F
 from faebryk.core.module import Module
 from faebryk.libs.library import L
-from faebryk.libs.picker.picker import DescriptiveProperties
 
 
 class ESDA25W(Module):
@@ -20,17 +19,8 @@ class ESDA25W(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C2935152"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C2935152")
     designator_prefix = L.f_field(F.has_designator_prefix)("D")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "STMicroelectronics",
-            DescriptiveProperties.partno: "ESDA25W",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2201201600_STMicroelectronics-ESDA25W_C2935152.pdf"
-    )
 
     @L.rt_field
     def pin_association(self):

@@ -1,22 +1,25 @@
-requires-atopile: "0.6.0"
+requires-atopile: "^0.9.0"
 
 paths:
   src: ./
   layout: ./layouts
-  footprints: ./footprints
 
 builds:
   default:
     entry: microchip-mcp4725.ato:Microchip_MCP4725_driver
+    exclude_checks:
+      - I2C.requires_pulls
   test:
     entry: microchip-mcp4725.ato:Test
+    exclude_checks:
+      - I2C.requires_pulls
 
 # This metadata is only required for publishing
 # Uncomment it and fill out the fields to publish your package
 package:
   identifier: atopile/microchip-mcp4725
   repository: https://github.com/atopile/packages
-  version: "0.1.1"
+  version: "0.1.3"
   authors:
     - name: atopile
       email: hi@atopile.io
