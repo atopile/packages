@@ -110,6 +110,8 @@ module TCA9548APWR_driver:
     pullups = new I2CPullup[8]
     for pullup in pullups:
         pullup.power ~ power
+        pullup.r_sda.resistance = 2kohm +/- 10%
+        pullup.r_scl.resistance = 2kohm +/- 10%
 
     i2cs[0] ~ pullups[0].i2c
     i2cs[1] ~ pullups[1].i2c
