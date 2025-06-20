@@ -29,29 +29,24 @@ module Test:
     # Components
     micro = new Micro
     sensor = new Sensor
-    isolator = new Texas_Instruments_ISO1640_driver
+    isolator1 = new TEXAS_INSTRUMENTS_ISO1640BDR_driver # 400V
+    # isolator1 = new TEXAS_INSTRUMENTS_ISO1640QDWRQ1_driver # 1500V
 
     # Power Rails
     power = new ElectricPower
     power_iso = new ElectricPower
 
-    # Select Package
-    # isolator.package -> Texas_Instruments_ISO1640QDWRQ1_package   #1500v
-    isolator.package -> TEXAS_INSTRUMENTS_ISO1640BDR_package      #400v
-
     # Connections - isolator is 'bridgable'
-    micro.i2c ~> isolator ~> sensor.i2c
-    # alternative connection method:
-    # micro.i2c ~> isolator.i2cs[0]
-    #sensor.i2c ~> isolator.i2cs[1]
+    micro.i2c ~> isolator1 ~> sensor.i2c
 
     # Power
     power ~ micro.power
-    power ~ isolator.power_rails[0]
+    power ~ isolator1.power_rails[0]
 
     # Isolated Power
     power_iso ~ sensor.power
-    power_iso ~ isolator.power_rails[1]
+    power_iso ~ isolator1.power_rails[1]
+
 
 
 ```
