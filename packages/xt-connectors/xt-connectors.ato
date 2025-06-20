@@ -1,54 +1,41 @@
 #C431092
 import ElectricPower
 
-component XT30_Male_Right_Angle:
-    """Male XT30 connector with right angle pins. This side would go on the device typically"""
-    signal gnd ~ pin 1
-    signal vin ~ pin 2
+from "parts/AMASS_XT30PW_F20_G_Y/AMASS_XT30PW_F20_G_Y.ato" import AMASS_XT30PW_F20_G_Y_package
+from "parts/AMASS_XT30PW_M30_G_Y/AMASS_XT30PW_M30_G_Y.ato" import AMASS_XT30PW_M30_G_Y_package
+from "parts/AMASS_XT30UPB_F30_G_Y/AMASS_XT30UPB_F30_G_Y.ato" import AMASS_XT30UPB_F30_G_Y_package
+from "parts/AMASS_XT30U_M/AMASS_XT30U_M.ato" import AMASS_XT30U_M_package
+
+module XTConnector_base:
     power = new ElectricPower
-    power.vcc ~ vin
-    power.gnd ~ gnd
+    
+module XT30_Male_Right_Angle from XTConnector_base:
+    # Package
+    package = new AMASS_XT30PW_F20_G_Y_package
+    # Connections
+    power.vcc ~ package.1
+    power.gnd ~ package.2
 
-    footprint = "CONN-TH_XT30PW-M"
-    lcsc_id = "C431092"
-    designator_prefix = "J"
+module XT30_Male_Vertical from XTConnector_base:
+    # Package
+    package = new AMASS_XT30U_M_package
+    # Connections
+    power.vcc ~ package.1
+    power.gnd ~ package.2
 
-component XT30_Male_Vertical:
-    """Male XT30 connector with vertical pins. This side would go on the device typically"""
-    signal gnd ~ pin 2
-    signal vin ~ pin 1
-    power = new ElectricPower
-    power.vcc ~ vin
-    power.gnd ~ gnd
+module XT30_Female_Right_Angle from XTConnector_base:
+    # Package
+    package = new AMASS_XT30PW_M30_G_Y_package
+    # Connections
+    power.vcc ~ package.1
+    power.gnd ~ package.2
 
-    # component XT30U-M
-    footprint = "CONN-TH_XT30U-M"
-    lcsc_id = "C99101"
-    designator_prefix = "J"
-
-component XT30_Female_Right_Angle:
-    """Female XT30 connector with right angle pins. This side would go on the battery typically"""
-    signal gnd ~ pin 2
-    signal vin ~ pin 1
-    power = new ElectricPower
-    power.vcc ~ vin
-    power.gnd ~ gnd
-
-    # component XT30PW-F
-    footprint = "CONN-TH_XT30PW-F-1"
-    lcsc_id = "C2913282"
-
-component XT30_Female_Vertical:
-    """Female XT30 connector with vertical pins. This side would go on the battery typically"""
-    signal gnd ~ pin 2
-    signal vin ~ pin 1
-    power = new ElectricPower
-    power.vcc ~ vin
-    power.gnd ~ gnd
-
-    # component XT30UPB-F
-    footprint = "CONN-TH_XT30UPB-F"
-    lcsc_id = "C108769"
+module XT30_Female_Vertical from XTConnector_base:
+    # Package
+    package = new AMASS_XT30UPB_F30_G_Y_package
+    # Connections
+    power.vcc ~ package.1
+    power.gnd ~ package.2
 
 
 module Test:
