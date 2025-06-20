@@ -5,8 +5,8 @@ import I2C
 import ElectricLogic
 import Capacitor
 
-from "components/texas_instruments_tca6408.ato" import Texas_Instruments_TCA6408
-from "components/texas_instruments_cd74h_c4051p_wr.ato" import Texas_Instruments_CD74HC4051PWR
+from "texas_instruments_tca6408.ato" import Texas_Instruments_TCA6408
+from "texas_instruments_cd74h_c4051p_wr.ato" import Texas_Instruments_CD74HC4051PWR
 
 module MultiplexerI2C8Ch:
     """
@@ -39,7 +39,7 @@ module MultiplexerI2C8Ch:
     power_3v3 ~ gpio_expander.power
 
     i2c ~ gpio_expander.i2c
-    gpio_expander.i2c.address = 0x21
+    # assert gpio_expander.i2c.address is 0x21
 
     gpio_expander.gpios[1].line ~ mux.S2 # Select 3
     gpio_expander.gpios[2].line ~ mux.S1 # Select 2
