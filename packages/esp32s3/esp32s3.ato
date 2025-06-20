@@ -1,17 +1,17 @@
 import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0_IF, JTAG, ElectricLogic
 
 from "atopile/buttons/buttons.ato" import ButtonPullup, ButtonSKRPACE010
-
+from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R2/Espressif_Systems_ESP32_S3_WROOM_1_N16R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
 
 module ESP32S3:
     """
     This is an esp32-s3 module.
     """
-    ic = new ESP32_S3_WROOM_1_N16R2_
+    ic = new Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
     power = new ElectricPower
 
     # connect up power
-    power.vcc ~ ic._3V3
+    power.vcc ~ ic.P3V3
     power.gnd ~ ic.GND
 
     # decoupling caps
@@ -101,51 +101,3 @@ module ESP32S3:
     signal io46 ~ ic.IO46
     signal io47 ~ ic.IO47
     signal io48 ~ ic.IO48
-
-
-component ESP32_S3_WROOM_1_N16R2_:
-    footprint = "WIRELM-SMD_ESP32-S3-WROOM-1"
-    lcsc_id = "C2913205"
-
-    # pins
-    signal GND ~ pin 41
-    GND ~ pin 40
-    signal IO1 ~ pin 39
-    signal IO2 ~ pin 38
-    signal TXD0 ~ pin 37
-    signal RXD0 ~ pin 36
-    signal IO42 ~ pin 35
-    signal IO41 ~ pin 34
-    signal IO40 ~ pin 33
-    signal IO39 ~ pin 32
-    signal IO38 ~ pin 31
-    signal IO37 ~ pin 30
-    signal IO36 ~ pin 29
-    signal IO35 ~ pin 28
-    signal IO0 ~ pin 27
-    signal IO45 ~ pin 26
-    signal IO48 ~ pin 25
-    signal IO47 ~ pin 24
-    signal IO21 ~ pin 23
-    signal IO14 ~ pin 22
-    signal IO13 ~ pin 21
-    signal IO12 ~ pin 20
-    signal IO11 ~ pin 19
-    signal IO10 ~ pin 18
-    signal IO9 ~ pin 17
-    signal IO46 ~ pin 16
-    signal IO3 ~ pin 15
-    signal IO20 ~ pin 14
-    signal IO19 ~ pin 13
-    signal IO8 ~ pin 12
-    signal IO18 ~ pin 11
-    signal IO17 ~ pin 10
-    signal IO16 ~ pin 9
-    signal IO15 ~ pin 8
-    signal IO7 ~ pin 7
-    signal IO6 ~ pin 6
-    signal IO5 ~ pin 5
-    signal IO4 ~ pin 4
-    signal EN ~ pin 3
-    signal _3V3 ~ pin 2
-    GND ~ pin 1
