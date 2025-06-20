@@ -6,7 +6,7 @@ import logging
 import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
+
 from faebryk.libs.units import P  # noqa: F401
 
 logger = logging.getLogger(__name__)
@@ -32,17 +32,8 @@ class TYPE_C_16PIN_2MD073(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C2765186"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C2765186")
     designator_prefix = L.f_field(F.has_designator_prefix)("USB")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "SHOU HAN",
-            DescriptiveProperties.partno: "TYPE-C 16PIN 2MD(073)",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2111231930_SHOU-HAN-TYPE-C-16PIN-2MD-073_C2765186.pdf"
-    )
 
     @L.rt_field
     def pin_association_heuristic(self):

@@ -1,4 +1,10 @@
-import I2C, Resistor, Capacitor, ElectricPower, DifferentialPair
+import I2C
+import Resistor
+import Capacitor
+import ElectricPower
+import DifferentialPair
+
+from "parts/Nuvoton_Tech_NAU7802SGI/Nuvoton_Tech_NAU7802SGI.ato" import Nuvoton_Tech_NAU7802SGI_package
 
 
 module NAU7802Base:
@@ -8,14 +14,14 @@ module NAU7802Base:
     i2c = new I2C
     force = new ElectricPower  # / excitation power
 
-    ic = new NAU7802SGI
+    ic = new Nuvoton_Tech_NAU7802SGI_package
 
     power.hv ~ ic.DVDD
     power.gnd ~ ic.DVSS
     power.gnd ~ ic.AVSS
 
-    i2c.sda ~ ic.SDA
-    i2c.scl ~ ic.SCL
+    i2c.sda.line ~ ic.SDIO
+    i2c.scl.line ~ ic.SCLK
     i2c.sda.reference.gnd ~ power.gnd
 
     # bypass caps
@@ -105,30 +111,30 @@ module _Filter:
     sense_cap.capacitance = 100nF +/- 20%
     sense_cap.package = "C0402"
 
-    input.n ~ sense_n_r.p1; sense_n_r.p2 ~ output.n
-    input.p ~ sense_p_r.p1; sense_p_r.p2 ~ output.p
+    input.n.line ~ sense_n_r.p1; sense_n_r.p2 ~ output.n.line
+    input.p.line ~ sense_p_r.p1; sense_p_r.p2 ~ output.p.line
 
     sense_n_r.p2 ~ sense_cap.p1; sense_cap.p2 ~ sense_p_r.p2
 
 
-component NAU7802SGI:
-    footprint = "SOP-16_L9.9-W3.9-P1.27-LS6.0-BL"
-    lcsc_id = "C5180029"
+# component NAU7802SGI:
+#     footprint = "SOP-16_L9.9-W3.9-P1.27-LS6.0-BL"
+#     lcsc_id = "C5180029"
 
-    # pins
-    signal REFP ~ pin 1
-    signal VIN1N ~ pin 2
-    signal VIN1P ~ pin 3
-    signal VIN2N ~ pin 4
-    signal VIN2P ~ pin 5
-    signal VBG ~ pin 6
-    signal REFN ~ pin 7
-    signal AVSS ~ pin 8
-    signal DVSS ~ pin 9
-    signal XIN ~ pin 10
-    signal XOUT ~ pin 11
-    signal DRDY ~ pin 12
-    signal SCL ~ pin 13
-    signal SDA ~ pin 14
-    signal DVDD ~ pin 15
-    signal AVDD_LDO ~ pin 16
+#     # pins
+#     signal REFP ~ pin 1
+#     signal VIN1N ~ pin 2
+#     signal VIN1P ~ pin 3
+#     signal VIN2N ~ pin 4
+#     signal VIN2P ~ pin 5
+#     signal VBG ~ pin 6
+#     signal REFN ~ pin 7
+#     signal AVSS ~ pin 8
+#     signal DVSS ~ pin 9
+#     signal XIN ~ pin 10
+#     signal XOUT ~ pin 11
+#     signal DRDY ~ pin 12
+#     signal SCL ~ pin 13
+#     signal SDA ~ pin 14
+#     signal DVDD ~ pin 15
+#     signal AVDD_LDO ~ pin 16

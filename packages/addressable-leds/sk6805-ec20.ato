@@ -4,17 +4,12 @@
 import Capacitor
 import ElectricPower
 import ElectricLogic
+from "parts/OPSCO_SK6805_EC20/OPSCO_SK6805_EC20.ato" import OPSCO_SK6805_EC20_package
 
 from "bridgable_logic.py" import BridgableLogic
 
-component SK6805EC20_package:
-    footprint = "LED-SMD_4P-L2.0-W2.0-BR"
-    lcsc_id = "C2890036"
-
-    signal VDD ~ pin 1
-    signal DOUT ~ pin 2
-    signal GND ~ pin 3
-    signal DIN ~ pin 4
+component SK6805EC20_package from OPSCO_SK6805_EC20_package:
+    pass
 
 module SK6805EC20_driver from BridgableLogic:
     package = new SK6805EC20_package

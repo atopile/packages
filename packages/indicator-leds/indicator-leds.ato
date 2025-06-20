@@ -4,8 +4,13 @@
 #   1. treat component selections as defaults
 #   2. use specialization within fabll modules
 
-import LED, Resistor, ElectricPower
+import LED
+import Resistor
+import ElectricPower
 
+from "parts/Hubei_KENTO_Elec_KT_0603G/Hubei_KENTO_Elec_KT_0603G.ato" import Hubei_KENTO_Elec_KT_0603G_driver
+from "parts/Hubei_KENTO_Elec_Blue_light_0603/Hubei_KENTO_Elec_Blue_light_0603.ato" import Hubei_KENTO_Elec_Blue_light_0603_driver
+from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_driver
 
 module LEDIndicator:
     power = new ElectricPower
@@ -32,93 +37,27 @@ module LEDIndicator:
 
 
 module LEDIndicatorRed from LEDIndicator:
-    led -> _KT_0603R
+    led -> Hubei_KENTO_Elec_KT_0603R_driver
 
 
 module LEDIndicatorGreen from LEDIndicator:
-    led -> _KT_0603G
+    led -> Hubei_KENTO_Elec_KT_0603G_driver
 
 
 module LEDIndicatorBlue from LEDIndicator:
-    led -> _KT_0603B
+    led -> Hubei_KENTO_Elec_Blue_light_0603_driver
 
 
-module LEDIndicatorYellow from LEDIndicator:
-    led -> _KT_0603Y
+# TODO
+# module LEDIndicatorYellow from LEDIndicator:
+#     led -> _KT_0603Y
+# 
+# 
+# module LEDIndicatorYellowGreen from LEDIndicator:
+#     led -> _KT_0603YG
+# 
+# 
+# module LEDIndicatorWhite from LEDIndicator:
+#     led -> _KT_0603W
+# 
 
-
-module LEDIndicatorYellowGreen from LEDIndicator:
-    led -> _KT_0603YG
-
-
-module LEDIndicatorWhite from LEDIndicator:
-    led -> _KT_0603W
-
-
-component _KT_0603B from LED:
-    """Hubei KENTO Elec KT-0603B Blue LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C2288"
-    forward_voltage = 2.9V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
-
-
-component _KT_0603G from LED:
-    """Hubei KENTO Elec KT-0603G Green LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C12624"
-    forward_voltage = 2.75V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
-
-
-component _KT_0603R from LED:
-    """Hubei KENTO Elec KT-0603R Red LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C2286"
-    forward_voltage = 2V +/- 10%
-    max_current = 20mA +/- 20%
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
-
-
-component _KT_0603Y from LED:
-    """Hubei KENTO Elec KT-0603Y Yellow LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C2287"
-    forward_voltage = 1.8V to 2.4V
-    max_current = 25mA +/- 20%
-
-    # pins
-    anode ~ pin 1
-    cathode ~ pin 2
-
-
-component _KT_0603YG from LED:
-    """Hubei KENTO Elec KT-0603YG Yellow-Green LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C2289"
-    forward_voltage = 2.0V to 2.2V
-    max_current = 20mA +/- 20%
-
-    # pins
-    cathode ~ pin 1
-    anode ~ pin 2
-
-
-component _KT_0603W from LED:
-    """Hubei KENTO Elec KT-0603W White LED"""
-    footprint = "LED0603-RD"
-    lcsc_id = "C2290"
-    forward_voltage = 2.6V to 3.1V
-    max_current = 30mA +/- 20%
-
-    # pins
-    anode ~ pin 1
-    cathode ~ pin 2

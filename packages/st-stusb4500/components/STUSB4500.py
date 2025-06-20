@@ -2,7 +2,6 @@ import faebryk.library._F as F
 from faebryk.libs.library import L
 from faebryk.libs.units import P
 from faebryk.core.module import Module
-from faebryk.libs.picker.picker import DescriptiveProperties
 
 
 class _STUSB4500QTR(Module):
@@ -44,17 +43,8 @@ class _STUSB4500QTR(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C2678061"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C2678061")
     designator_prefix = L.f_field(F.has_designator_prefix)("U")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "STMicroelectronics",
-            DescriptiveProperties.partno: "STUSB4500QTR",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_2106070703_STMicroelectronics-STUSB4500QTR_C2678061.pdf"
-    )
 
     @L.rt_field
     def pin_association_heuristic(self):

@@ -7,7 +7,7 @@ import faebryk.library._F as F  # noqa: F401
 from faebryk.core.module import Module
 from faebryk.libs.library import L  # noqa: F401
 from faebryk.libs.units import P  # noqa: F401
-from faebryk.libs.picker.picker import DescriptiveProperties
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,17 +28,8 @@ class HRSHirose_DF40C_100DS_0_4V51(Module):
     # ----------------------------------------
     #                 traits
     # ----------------------------------------
-    lcsc_id = L.f_field(F.has_descriptive_properties_defined)({"LCSC": "C597931"})
+    explicit_part = L.f_field(F.has_explicit_part.by_supplier)("C597931")
     designator_prefix = L.f_field(F.has_designator_prefix)("CN")
-    descriptive_properties = L.f_field(F.has_descriptive_properties_defined)(
-        {
-            DescriptiveProperties.manufacturer: "HRS(Hirose)",
-            DescriptiveProperties.partno: "DF40C-100DS-0.4V(51)",
-        }
-    )
-    datasheet = L.f_field(F.has_datasheet_defined)(
-        "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_HRS-Hirose-DF40C-100DS-0-4V-51_C597931.pdf"
-    )
 
     @L.rt_field
     def attach_via_pinmap(self):

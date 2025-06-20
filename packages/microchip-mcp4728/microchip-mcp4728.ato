@@ -5,29 +5,11 @@ import ElectricPower
 import I2C
 import Capacitor
 
-component Microchip_Tech_MCP4728_package:
-    """Microchip_Tech_MCP4728_E_UN component"""
-    lcsc_id = "C108207"
-    manufacturer = "Microchip Tech"
-    mpn = "MCP4728-E/UN"
-    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_1811151641_Microchip-Tech-MCP4728-E-UN_C108207.pdf"
-    designator_prefix = "U"
-
-    # pins
-    signal LDACh ~ pin 4
-    signal RDY_BSYh ~ pin 5
-    signal SCL ~ pin 2
-    signal SDA ~ pin 3
-    signal VDD ~ pin 1
-    signal VOUTA ~ pin 6
-    signal VOUTB ~ pin 7
-    signal VOUTC ~ pin 8
-    signal VOUTD ~ pin 9
-    signal VSS ~ pin 10
+from "parts/MICROCHIP_MCP4728_E_UN/MICROCHIP_MCP4728_E_UN.ato" import MICROCHIP_MCP4728_E_UN_package
 
 module Microchip_MCP4728_driver:
     """Microchip_Tech_MCP4728_E_UN component"""
-    ic = new Microchip_Tech_MCP4728_package
+    ic = new MICROCHIP_MCP4728_E_UN_package
 
     # Power
     power = new ElectricPower
