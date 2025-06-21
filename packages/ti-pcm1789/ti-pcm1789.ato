@@ -8,11 +8,176 @@ import ElectricLogic
 import Addressor
 import Resistor
 import Capacitor
+import I2S
+import DifferentialPair
 
 from "parts/Texas_Instruments_PCM1789PWR/Texas_Instruments_PCM1789PWR.ato" import Texas_Instruments_PCM1789PWR_package
 
 module Texas_Instruments_PCM1789_driver:
+    """Texas Instruments PCM1789 2-CH I2S Audio DAC"""
     package = new Texas_Instruments_PCM1789PWR_package
 
+    # Interfaces
     power_5v = new ElectricPower
+    power_5v.required = True
     power_3v3 = new ElectricPower
+    power_3v3.required = True
+    i2s = new I2S
+    i2s.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # Outputs
+    balanced_outputs = new DifferentialPair[2]
+    balanced_outputs[0].p.line ~ package.VOUTLpos
+    balanced_outputs[0].n.line ~ package.VOUTLneg
+    balanced_outputs[1].p.line ~ package.VOUTRpos
+    balanced_outputs[1].n.line ~ package.VOUTRneg
+    
+    # Power
+    power_5v.vcc ~ package.VCC2
+    power_5v.vcc ~ package.VCC1
+    power_5v.gnd ~ package.AGND2
+    power_5v.gnd ~ package.AGND1
+
+    power_3v3.vcc ~ package.VDD
+    power_3v3.gnd ~ package.DGND
+
+    cap_5v = new Capacitor[2]
+    for cap in cap_5v:
+        cap.package = "C0402"
+        cap.capacitance = 1uF +/- 20%
+        power_5v.vcc ~> cap ~> power_5v.gnd
+    
+    cap_3v3 = new Capacitor
+    cap_3v3.package = "C0402"
+    cap_3v3.capacitance = 100nF +/- 20%
+    power_3v3.vcc ~> cap_3v3 ~> power_3v3.gnd    
+
+
+    vcom_cap = new Capacitor
+    vcom_cap.package = "C0402"
+    vcom_cap.capacitance = 10uF +/- 20%
+    package.VCOM ~> vcom_cap ~> power_3v3.gnd
+
+    # Communications Interfacese
+    i2c.scl.line ~ package.MD_SDA_DEMP
+    i2c.scl.line ~ package.MC_SCL_FMT
+
+    i2s.sd.line ~ package.DIN
+    i2s.ws.line ~ package.LRCK
+    i2s.sck.line ~ package.BCK
+
+    master_clock = new ElectricLogic
+    master_clock.line ~ package.SCKI
+    master_clock.reference ~ power_3v3
+
+    # Addressor
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x4C
+    addressor.address_lines[0].line ~ package.MS_ADR0_RSV
+    addressor.address_lines[1].line ~ package.ADR5_ADR1_RSV
+    for address_line in addressor.address_lines:
+        address_line.reference ~ power_3v3
+
+    
+
+# module Texas_Instruments_PCM1865_driver:
+#     """Texas Instruments 4-Channel Audio ADC"""
+#     # Interfaces
+#     i2s = new I2S
+#     i2s.required = True
+#     i2c = new I2C
+#     i2c.required = True
+#     balanced_inputs = new DifferentialPair[4]
+
+#     # Components
+#     package = new Texas_Instruments_PCM1865DBTR_package
+#     oscillator = new Crystal_Oscillator
+
+#     # Connect inputs
+#     balanced_inputs[0].p.line ~ package.VINL1_VIN1P
+#     balanced_inputs[0].n.line ~ package.VINL2_VIN1M
+#     balanced_inputs[1].p.line ~ package.VINR1_VIN2P
+#     balanced_inputs[1].n.line ~ package.VINR2_VIN2M
+#     balanced_inputs[2].p.line ~ package.VINR3_VIN3P
+#     balanced_inputs[2].n.line ~ package.VINR4_VIN3M
+#     balanced_inputs[3].p.line ~ package.VINL3_VIN4P
+#     balanced_inputs[3].n.line ~ package.VINL4_VIN4M
+
+#     # Power
+#     power_3v3 = new ElectricPower
+#     power_3v3.required = True
+
+#     _power_vref = new ElectricPower
+#     _power_vref.hv ~ package.VREF
+#     _power_vref.lv ~ package.AGND
+
+#     vref_cap = new Capacitor
+#     vref_cap.package = "C0402"
+#     vref_cap.capacitance = 2.2uF +/- 20%
+#     _power_vref.hv ~> vref_cap ~> _power_vref.lv
+
+#     _power_avdd = new ElectricPower
+#     power_3v3 ~ _power_avdd
+#     _power_avdd.hv ~ package.AVDD
+#     _power_avdd.lv ~ package.AGND
+
+#     avdd_caps = new Capacitor[2]
+#     for cap in avdd_caps:
+#         cap.package = "C0402"
+#         _power_avdd.hv ~> cap ~> _power_avdd.lv
+#     avdd_caps[0].capacitance = 10uF +/- 20%
+#     avdd_caps[1].capacitance = 100nF +/- 20%
+
+#     _power_ldo = new ElectricPower
+#     _power_ldo.hv ~ package.LDO
+#     _power_ldo.lv ~ package.DGND
+
+#     _power_ldo_cap = new Capacitor
+#     _power_ldo_cap.package = "C0402"
+#     _power_ldo_cap.capacitance = 2.2uF +/- 20%
+#     _power_ldo.hv ~> _power_ldo_cap ~> _power_ldo.lv
+
+#     _power_iovdd = new ElectricPower
+#     power_3v3 ~ _power_iovdd
+#     _power_iovdd.hv ~ package.IOVDD
+#     _power_iovdd.hv ~ package.DVDD
+#     _power_iovdd.lv ~ package.AGND
+
+#     power_iovdd_caps = new Capacitor[2]
+#     for cap in power_iovdd_caps:
+#         cap.package = "C0402"
+#         _power_iovdd.hv ~> cap ~> _power_iovdd.lv
+#     power_iovdd_caps[0].capacitance = 10uF +/- 20%
+#     power_iovdd_caps[1].capacitance = 100nF +/- 20%
+
+#     # Comms interfaces
+#     i2c.scl.line ~ package.MC_SCL
+#     i2c.sda.line ~ package.MOSI_SDA
+#     # Select I2C mode
+#     package.MD0 ~ package.DGND
+
+#     i2s.sd.line ~ package.DOUT
+#     i2s.ws.line ~ package.LRCK
+#     i2s.sck.line ~ package.BCK
+
+#     # Clocks
+#     master_clock = new ElectricLogic
+#     master_clock.line ~ package.SCKI3_3V
+#     master_clock.reference ~ _power_iovdd
+
+#     package.XI ~> oscillator ~> package.XO
+#     oscillator.current_limiting_resistor.resistance = 0ohm
+#     oscillator.current_limiting_resistor.package = "0402"
+#     oscillator.xtal_if.gnd ~ package.DGND
+#     for capacitor in oscillator.capacitors:
+#         capacitor.package = "C0402"
+#         capacitor.capacitance = 15pF +/- 10%
+#     crystal = new Yangxing_Tech_X322525MOB4SI_package
+#     crystal.OSC1 ~ oscillator.xtal_if.xin
+#     crystal.OSC2 ~ oscillator.xtal_if.xout
+#     crystal.GND ~ package.DGND
+
+#     # Connect gnds
+#     package.DGND ~ package.AGND
