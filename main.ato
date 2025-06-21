@@ -1,4 +1,27 @@
-"""Brand new atopile project!"""
+import ElectricPower
+import I2C
 
-module App:
-    pass
+from "parts/JST_Sales_America_BM04B_SRSS_TB_LF__SN/JST_Sales_America_BM04B_SRSS_TB_LF__SN.ato" import JST_Sales_America_BM04B_SRSS_TB_LF__SN_package
+
+module StemmaQTVertical:
+    connector = new JST_Sales_America_BM04B_SRSS_TB_LF__SN_package
+    power = new ElectricPower
+    i2c = new I2C
+
+    power.gnd ~ connector.1
+    power.vcc ~ connector.2
+    i2c.sda.line ~ connector.3
+    i2c.scl.line ~ connector.4
+
+    assert power.voltage within 3.3V * 0.95 to 5V * 1.05
+
+
+module Example:
+    power = new ElectricPower
+    power.voltage = 3.3V +/- 5%
+
+    i2c = new I2C
+
+    stemma_qt_vertical = new StemmaQTVertical
+    i2c ~ stemma_qt_vertical.i2c
+    power ~ stemma_qt_vertical.power
