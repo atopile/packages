@@ -1,0 +1,18 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Addressor
+import Resistor
+import Capacitor
+
+from "parts/Texas_Instruments_PCM1789PWR/Texas_Instruments_PCM1789PWR.ato" import Texas_Instruments_PCM1789PWR_package
+
+module Texas_Instruments_PCM1789_driver:
+    package = new Texas_Instruments_PCM1789PWR_package
+
+    power_5v = new ElectricPower
+    power_3v3 = new ElectricPower
