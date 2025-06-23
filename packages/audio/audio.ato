@@ -1,0 +1,45 @@
+import ElectricPower
+import Resistor
+
+# System Audio Analog Electrical Balanced XLR XLR_c
+
+# INTERFACES
+interface Audio:
+    pass
+
+interface AudioAnalog from Audio:
+    pass
+
+interface AudioAnalogElectrical from AudioAnalog:
+    pass
+
+interface AudioAnalogElectricalBalanced from AudioAnalogElectrical:
+    pass
+
+interface XLR3:
+    pass
+
+interface TRS:
+    pass
+
+# CONNECTORS
+module ConnectorXLR3Receptacle:
+    signal pin1
+    signal pin2
+    signal pin3
+
+module ConnectorRCAReceptacle:
+    # Female RCA Receptacle
+    signal inner_sleeve
+    signal outer_shell
+
+module ConnectorTRSReceptacle:
+    signal tip
+    signal ring
+    signal sleeve
+
+module ConnectorTRRSReceptacle:
+    signal tip
+    signal ring1
+    signal ring2
+    signal sleeve
