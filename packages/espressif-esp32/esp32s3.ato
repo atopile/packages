@@ -24,11 +24,23 @@ from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N8R8/Espressif_Systems_ESP32_S3_W
 from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R2/Espressif_Systems_ESP32_S3_WROOM_1_N16R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
 from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R8/Espressif_Systems_ESP32_S3_WROOM_1_N16R8.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
 
+module ESP32_S3_WROOM_N8R2 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+
+module ESP32_S3_WROOM_N8R8 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R8_package
+
+module ESP32_S3_WROOM_N16R2 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
+
+module ESP32_S3_WROOM_N16R8 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
+
 module ESP32_S3_WROOM:
     """
     This is an esp32-s3 module.
     """
-    package = new Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+    package = new Espressif_Systems_ESP32_S3_WROOM_1_N8R8_package
 
     # Power
     power = new ElectricPower
@@ -221,23 +233,6 @@ module ESP32_S3_WROOM:
     # CAN
     # can = new CAN[2] #TODO: add CAN to std library
 
-# module ESP32_S3_WROOM_N8R2 from ESP32_S3_WROOM:
-    # package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
-
-module ESP32_S3_WROOM_N8R8 from ESP32_S3_WROOM:
-    package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R8_package
-
-module ESP32_S3_WROOM_N16R2 from ESP32_S3_WROOM:
-    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
-
-module ESP32_S3_WROOM_N16R8 from ESP32_S3_WROOM:
-    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
-
-module Test:
-    # esp32_n8r2 = new ESP32_S3_WROOM_N8R2
-    esp32_n8r8 = new ESP32_S3_WROOM_N8R8
-    esp32_n16r2 = new ESP32_S3_WROOM_N16R2
-    esp32_n16r8 = new ESP32_S3_WROOM_N16R8
 
 component Espressif_Systems_ESP32_S3_WROOM_base:
     # pins
