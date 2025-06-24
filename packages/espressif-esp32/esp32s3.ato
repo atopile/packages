@@ -1,5 +1,6 @@
 #pragma experiment("TRAITS")
-#pragma experiment("FOR_LOOPS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
 import has_designator_prefix
 import has_part_picked
@@ -18,13 +19,16 @@ import ElectricLogic
 import FilterElectricalRC
 
 from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
+from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N8R2/Espressif_Systems_ESP32_S3_WROOM_1_N8R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N8R8/Espressif_Systems_ESP32_S3_WROOM_1_N8R8.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N8R8_package
 from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R2/Espressif_Systems_ESP32_S3_WROOM_1_N16R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
+from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R8/Espressif_Systems_ESP32_S3_WROOM_1_N16R8.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
 
 module ESP32_S3_WROOM:
     """
     This is an esp32-s3 module.
     """
-    package = new Espressif_Systems_ESP32_S3_WROOM_base
+    package = new Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
 
     # Power
     power = new ElectricPower
@@ -52,7 +56,7 @@ module ESP32_S3_WROOM:
     # Enable pullup
     enable_pullup = new Resistor
     enable.line ~> enable_pullup ~> power.vcc
-    enable_pullup.resistance = 10kOhms +/- 20%
+    enable_pullup.resistance = 10kohm +/- 20%
     enable_pullup.package = "R0402"
 
     # Enable Debounce Capacitor
@@ -61,14 +65,8 @@ module ESP32_S3_WROOM:
     enable_debounce_cap.capacitance = 1uF +/- 20%
     enable_debounce_cap.package = "C0402"
 
-    # Enable Button
-    reset_button = new ButtonPulldown
-    reset_button.btn -> ButtonSKRPACE010
-    reset_button.output.line ~ package.EN
-    reset_button.output.reference ~ power
-
     # reset button
-    reset_button = new ButtonPullup
+    reset_button = new ButtonPulldown
     reset_button.btn -> ButtonSKRPACE010
     reset_button.output ~ enable
     reset_button.pulldown.resistance = 100ohm +/- 20%
@@ -87,7 +85,7 @@ module ESP32_S3_WROOM:
     boot_button.pulldown.package = "R0402"
 
     # GPIO
-    gpios = new ElectricLogic[48]
+    gpios = new ElectricLogic[49]
     gpios[0].line ~ package.IO0
     gpios[1].line ~ package.IO1
     gpios[2].line ~ package.IO2
@@ -131,8 +129,8 @@ module ESP32_S3_WROOM:
     gpios[40].line ~ package.IO40
     gpios[41].line ~ package.IO41
     gpios[42].line ~ package.IO42
-    gpios[43].line ~ package.IO43
-    gpios[44].line ~ package.IO44
+    # gpios[43].no_connect = True
+    # gpios[44].no_connect = True
     gpios[45].line ~ package.IO45
     gpios[46].line ~ package.IO46
     gpios[47].line ~ package.IO47
@@ -143,6 +141,8 @@ module ESP32_S3_WROOM:
 
     # for gpio in gpios[22:34]:
     #     gpio.no_connect = True
+    # gpios[43].no_connect = True
+    # gpios[44].no_connect = True
 
     # connect up USB
     usb2 = new USB2_0
@@ -161,7 +161,7 @@ module ESP32_S3_WROOM:
     # spi[0].no_connect = True
     # spi[1].no_connect = True
 
-    spi_cs = new ElectricLogic[2]
+    spi_cs = new ElectricLogic[4]
     # FSPI high speed pinout (interface 4c)
     spi_cs[2] ~ gpios[10]
     spi[2].mosi ~ gpios[11]
@@ -221,6 +221,23 @@ module ESP32_S3_WROOM:
     # CAN
     # can = new CAN[2] #TODO: add CAN to std library
 
+# module ESP32_S3_WROOM_N8R2 from ESP32_S3_WROOM:
+    # package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+
+module ESP32_S3_WROOM_N8R8 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N8R8_package
+
+module ESP32_S3_WROOM_N16R2 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R2_package
+
+module ESP32_S3_WROOM_N16R8 from ESP32_S3_WROOM:
+    package -> Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
+
+module Test:
+    # esp32_n8r2 = new ESP32_S3_WROOM_N8R2
+    esp32_n8r8 = new ESP32_S3_WROOM_N8R8
+    esp32_n16r2 = new ESP32_S3_WROOM_N16R2
+    esp32_n16r8 = new ESP32_S3_WROOM_N16R8
 
 component Espressif_Systems_ESP32_S3_WROOM_base:
     # pins
