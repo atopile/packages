@@ -1,38 +1,3 @@
-from "espressif-esp32s3.ato" import Espressif_Systems_ESP32_S3_WROOM_base
-from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N8R2/Espressif_Systems_ESP32_S3_WROOM_1_N8R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
 
 module ESP32:
     pass
-    # ram = 512kB
-    # flash = 4MB
-
-# Series
-module ESP32_S3 from ESP32:
-    # Dual core, xtensa LS7
-    pass
-
-module ESP32_S2 from ESP32:
-    # Single core, xtensa LS7
-    pass
-
-module ESP32_C3 from ESP32:
-    # Single core, RISC-V
-    pass
-
-# Form factor
-module ESP32_S3_WROOM from ESP32_S3:
-    package = new Espressif_Systems_ESP32_S3_WROOM_base
-
-
-# Usage example:
-
-module App:
-    esp32 = new ESP32_S3
-    # assert esp32.ram >= 512kB
-    # assert esp32.flash >= 4MB
-
-    # Something like this would be cool
-    # assert count(esp32.spi) >= 2
-    # assert count(esp32.i2c) >= 2
-    # assert count(esp32.usb) >= 1
-    # assert count(esp32.jtag) >= 1
