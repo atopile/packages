@@ -4,36 +4,37 @@ import ElectricPower
 import ElectricLogic
 
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
+from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
 
 
 module BQ24045DSQR from BQ2404XDSQR:
     """
     BQ24045DSQR is a 4.35V version of the BQ2404XDSQR
     """
-    ic.lcsc_id = "C148983"
+    package -> TI_BQ24045DSQR_package
 
 
 module BQ24040DSQR from BQ2404XDSQR:
     """
     BQ24040DSQR is a 4.2V version of the BQ2404XDSQR
     """
-    ic.lcsc_id = "C81080"
+    # package -> Texas_Instruments_BQ24040DSQR_package
+    pass
 
 
 module BQ2404XDSQR:
-    ic = new TI_BQ24045DSQR_package
+    package = new Texas_Instruments_BQ24040DSQR_package
     power_in = new ElectricPower
-    power_in.vcc ~ ic.IN
-    power_in.gnd ~ ic.VSS
-    power_in.gnd ~ ic.EP
+    power_in.vcc ~ package.IN
+    power_in.gnd ~ package.VSS
+    power_in.gnd ~ package.EP
     charge_current: current
 
     power_batt = new ElectricPower
-    power_batt.vcc ~ ic.OUT
-    power_batt.gnd ~ ic.VSS
+    power_batt.vcc ~ package.OUT
+    power_batt.gnd ~ package.VSS 
 
     power_good = new ElectricLogic
-
     charge_status = new ElectricLogic
 
     input_cap = new Capacitor
@@ -48,33 +49,19 @@ module BQ2404XDSQR:
 
     # ISet resistor - 540ohm = 1A to 10.8kohm = 100mA (RISET = 540 / IOUT)
     iset_resistor = new Resistor
-    iset_resistor.p1 ~ ic.ISET
-    iset_resistor.p2 ~ ic.VSS
+    iset_resistor.p1 ~ package.ISET
+    iset_resistor.p2 ~ package.VSS
     iset_resistor.package = "R0402"
 
     # default
-    charge_current = 900mA +/- 10%
+    charge_current = 200mA +/- 10%
 
     assert charge_current is 540V / iset_resistor.resistance
     assert iset_resistor.resistance is 540V / charge_current
     assert iset_resistor.resistance within 540ohm to 10.8kohm
 
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
-    ic.ISET2 ~ ic.IN # set to 500mA
+    package.ISET2 ~ package.IN # set to 500mA
 
-    charge_status.line ~ ic.nCHG
+    charge_status.line ~ package.nCHG
     charge_status.reference.gnd ~ power_in.gnd
-
-    # Optional status LEDs
-    # you need pullups if you want to read the status of the IC
-    # power_good_led = new LEDIndicatorGreen
-    # power_good_led.v_in = 5V +/- 10%
-    # power_good_led.current = 0.5mA to 2mA
-    # power_good_led.input ~ ic.OUT
-    # power_good_led.gnd ~ ic.PG
-
-    # charge_led = new LEDIndicatorBlue
-    # charge_led.v_in = 5V +/- 10%
-    # charge_led.current = 0.5mA to 2mA
-    # charge_led.input ~ ic.OUT
-    # charge_led.gnd ~ ic.CHG
