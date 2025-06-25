@@ -6,7 +6,7 @@ from faebryk.core.module import Module
 from faebryk.libs.library import L
 
 
-class can_bridge_power_by_name(F.can_bridge.impl()):
+class can_bridge_by_name(F.can_bridge.impl()):
     def __init__(self, input_name: str = "output", output_name: str = "output"):
         super().__init__()
         self._input_name = input_name

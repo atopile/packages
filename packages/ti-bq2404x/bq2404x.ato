@@ -6,7 +6,7 @@ import Resistor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-from "can_bridge_power_by_name.py" import can_bridge_power_by_name
+from "can_bridge_by_name.py" import can_bridge_by_name
 
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
@@ -27,22 +27,30 @@ module BQ24040DSQR from BQ2404XDSQR:
     pass
 
 module BQ2404XDSQR:
+    """
+    BQ2404XDSQR 1A 1S Battery Charger
+    """
     package = new Texas_Instruments_BQ24040DSQR_package
+    
+    # Parameters
+    charge_current: current
+
+    # Input power
     power_in = new ElectricPower
     assert power_in.voltage within 4.45V to 6.45V
     power_in.required = True
     power_in.vcc ~ package.IN
     power_in.gnd ~ package.VSS
     power_in.gnd ~ package.EP
-    charge_current: current
 
+    # Output power
     power_batt = new ElectricPower
     power_batt.required = True
     power_batt.vcc ~ package.OUT
     power_batt.gnd ~ package.VSS
 
-    # Make bridgable
-    trait can_bridge_power_by_name<input_name="power_in", output_name="power_batt">
+    # Make bridgable - eg power_in ~> charger ~> battery.power
+    trait can_bridge_by_name<input_name="power_in", output_name="power_batt">
 
     # Power good - active low
     power_good = new ElectricLogic
@@ -58,13 +66,14 @@ module BQ2404XDSQR:
     temperature_sense = new ElectricSignal
     temperature_sense.line ~ package.TS
     temperature_sense.reference.gnd ~ power_in.gnd
-    
 
+    # Input Capacitor
     input_cap = new Capacitor
     input_cap.power ~ power_in
     input_cap.package = "C0402"
     input_cap.capacitance = 1uF +/- 20%
 
+    # Output Capacitor
     output_cap = new Capacitor
     output_cap.power ~ power_batt
     output_cap.package = "C0402"
@@ -84,6 +93,7 @@ module BQ2404XDSQR:
     assert iset_resistor.resistance within 540ohm to 10.8kohm
 
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
+    #TODO: should be configured based on charge_current
     package.ISET2 ~ power_in.vcc # set to 500mA
 
 
