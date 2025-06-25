@@ -34,13 +34,13 @@ module Test:
     # Charge indicator
     charge_led = new PoweredLED
     power.vcc ~> charge_led ~> charger.charge_status.line
-    charge_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    charge_led.current_limiting_resistor.resistance = 10kohm +/- 10%
     charge_led.led.lcsc_id = "C2288"
 
     # Power good indicator
     power_good_led = new PoweredLED
     power.vcc ~> power_good_led ~> charger.power_good.line
-    power_good_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    power_good_led.current_limiting_resistor.resistance = 10kohm +/- 10%
     power_good_led.led.lcsc_id = "C12624"
 
     # Temperature sensor - 10k ohm NTC
