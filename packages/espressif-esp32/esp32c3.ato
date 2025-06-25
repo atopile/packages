@@ -19,13 +19,13 @@ import ElectricLogic
 import FilterElectricalRC
 
 from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
-from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N8R2/Espressif_Systems_ESP32_S3_WROOM_1_N8R2.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+from "parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/Espressif_Systems_ESP32_C3_WROOM_02_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 
 module ESP32_C3_WROOM:
     """
     This is an esp32-c3 module.
     """
-    package = new Espressif_Systems_ESP32_S3_WROOM_1_N8R2_package
+    package = new Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 
     # Power
     power = new ElectricPower
@@ -82,7 +82,7 @@ module ESP32_C3_WROOM:
     boot_button.pulldown.package = "R0402"
 
     # GPIO
-    gpios = new ElectricLogic[20]
+    gpios = new ElectricLogic[22]
     gpios[0].line ~ package.IO0
     gpios[1].line ~ package.IO1
     gpios[2].line ~ package.IO2
@@ -103,6 +103,8 @@ module ESP32_C3_WROOM:
     # gpio[17].no_connect = True
     gpios[18].line ~ package.IO18
     gpios[19].line ~ package.IO19
+    gpios[20].line ~ package.IO18
+    gpios[21].line ~ package.IO19
 
     for gpio in gpios:
         gpio.reference ~ power
