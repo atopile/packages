@@ -1,9 +1,12 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 import Capacitor
 import Resistor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
+from "can_bridge_power_by_name.py" import can_bridge_power_by_name
 
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
@@ -37,6 +40,9 @@ module BQ2404XDSQR:
     power_batt.required = True
     power_batt.vcc ~ package.OUT
     power_batt.gnd ~ package.VSS
+
+    # Make bridgable
+    trait can_bridge_power_by_name<input_name="power_in", output_name="power_batt">
 
     # Power good - active low
     power_good = new ElectricLogic
@@ -99,8 +105,8 @@ module Test:
     # Connect power
     power = new ElectricPower
     power.voltage = 5V
-    power ~ charger.power_in
-    charger.power_batt ~ battery.power
+
+    power ~> charger ~> battery.power
 
     # Charge indicator
     charge_led = new PoweredLED
