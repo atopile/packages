@@ -20,6 +20,17 @@ import FilterElectricalRC
 
 from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/Espressif_Systems_ESP32_C3_WROOM_02_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_N4_package
+from "parts/Espressif_Systems_ESP32_C3_WROOM_02_H4/Espressif_Systems_ESP32_C3_WROOM_02_H4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_H4_package
+from "parts/Espressif_Systems_ESP32_C3_WROOM_02U_N4/Espressif_Systems_ESP32_C3_WROOM_02U_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
+
+module ESP32_C3_WROOM_02_N4 from ESP32_C3_WROOM:
+    package -> Espressif_Systems_ESP32_C3_WROOM_02_N4_package
+
+module ESP32_C3_WROOM_02_H4 from ESP32_C3_WROOM:
+    package -> Espressif_Systems_ESP32_C3_WROOM_02_H4_package
+
+module ESP32_C3_WROOM_02U_N4 from ESP32_C3_WROOM:
+    package -> Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
 
 module ESP32_C3_WROOM:
     """
@@ -163,10 +174,3 @@ module ESP32_C3_WROOM:
     usb2 = new USB2_0
     usb2.usb_if.d.n ~ gpios[18]
     usb2.usb_if.d.p ~ gpios[19]
-
-module ESP32_C3_WROOM_02_H4 from ESP32_C3_WROOM:
-    package -> Espressif_Systems_ESP32_C3_WROOM_02_H4_package
-
-module Test:
-    # esp32_n8r2 = new ESP32_S3_WROOM_N8R2
-    esp32_n8r8 = new ESP32_C3_WROOM_02_H4

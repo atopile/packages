@@ -1,11 +1,13 @@
+#pragma experiment("BRIDGE_CONNECT")
+
 import ElectricPower
-import USB2_0_IF
+import USB2_0
 import Resistor
 from "parts/kinghelm_KH_TYPE_C_16P/kinghelm_KH_TYPE_C_16P.ato" import kinghelm_KH_TYPE_C_16P_package
 
 
 module GenericUSBConn:
-    usb2 = new USB2_0_IF
+    usb2 = new USB2_0
 
 
 module USBCConn from GenericUSBConn:
@@ -13,15 +15,15 @@ module USBCConn from GenericUSBConn:
     conn = new kinghelm_KH_TYPE_C_16P_package
 
     # Connect VBUS
-    conn.VBUS ~ usb2.buspower.hv
-    conn.GND ~ usb2.buspower.gnd
-    conn.EP ~ usb2.buspower.gnd
+    conn.VBUS ~ usb2.usb_if.buspower.hv
+    conn.GND ~ usb2.usb_if.buspower.gnd
+    conn.EP ~ usb2.usb_if.buspower.gnd
 
     # Connect USB
-    conn.DP1 ~ usb2.d.p.line
-    conn.DP2 ~ usb2.d.p.line
-    conn.DN1 ~ usb2.d.n.line
-    conn.DN2 ~ usb2.d.n.line
+    conn.DP1 ~ usb2.usb_if.d.p.line
+    conn.DP2 ~ usb2.usb_if.d.p.line
+    conn.DN1 ~ usb2.usb_if.d.n.line
+    conn.DN2 ~ usb2.usb_if.d.n.line
 
     # Add CC resistors
     cc1_res = new Resistor
@@ -31,5 +33,5 @@ module USBCConn from GenericUSBConn:
     cc1_res.package = "R0402"
     cc2_res.package = "R0402"
 
-    conn.CC1 ~ cc1_res.p1; cc1_res.p2 ~ usb2.buspower.gnd
-    conn.CC2 ~ cc2_res.p1; cc2_res.p2 ~ usb2.buspower.gnd
+    conn.CC1 ~> cc1_res ~> usb2.usb_if.buspower.gnd
+    conn.CC2 ~> cc2_res ~> usb2.usb_if.buspower.gnd
