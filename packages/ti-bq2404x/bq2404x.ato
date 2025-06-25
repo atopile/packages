@@ -3,6 +3,7 @@ import Capacitor
 import Resistor
 import ElectricPower
 import ElectricLogic
+import ElectricSignal
 
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
@@ -35,10 +36,23 @@ module BQ2404XDSQR:
     power_batt = new ElectricPower
     power_batt.required = True
     power_batt.vcc ~ package.OUT
-    power_batt.gnd ~ package.VSS 
+    power_batt.gnd ~ package.VSS
 
+    # Power good - active low
     power_good = new ElectricLogic
+    power_good.line ~ package.nPG
+    power_good.reference.gnd ~ power_in.gnd
+
+    # Charge status - active low
     charge_status = new ElectricLogic
+    charge_status.line ~ package.nCHG
+    charge_status.reference.gnd ~ power_in.gnd
+
+    # Temperature connection
+    temperature_sense = new ElectricSignal
+    temperature_sense.line ~ package.TS
+    temperature_sense.reference.gnd ~ power_in.gnd
+    
 
     input_cap = new Capacitor
     input_cap.power ~ power_in
@@ -56,7 +70,7 @@ module BQ2404XDSQR:
     iset_resistor.p2 ~ package.VSS
     iset_resistor.package = "R0402"
 
-    # default
+    # Set default charge current
     charge_current = 200mA +/- 10%
 
     assert charge_current is 540V / iset_resistor.resistance
@@ -64,18 +78,16 @@ module BQ2404XDSQR:
     assert iset_resistor.resistance within 540ohm to 10.8kohm
 
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
-    package.ISET2 ~ package.IN # set to 500mA
+    package.ISET2 ~ power_in.vcc # set to 500mA
 
-    charge_status.line ~ package.nCHG
-    charge_status.reference.gnd ~ power_in.gnd
 
 import Battery
 import PoweredLED
 module Test:
     """
-    Test module for BQ2404XDSQR
+    Test module for BQ24040DSQR
     """
-    charger = new BQ2404XDSQR
+    charger = new BQ24040DSQR
 
     battery = new Battery
     battery.voltage = 4.2V
@@ -90,7 +102,19 @@ module Test:
     power ~ charger.power_in
     charger.power_batt ~ battery.power
 
-    # Status indicators
+    # Charge indicator
     charge_led = new PoweredLED
-    charger.charge_status.line ~> charger_led ~> power.gnd
-    
+    power.vcc ~> charge_led ~> charger.charge_status.line
+    charge_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    charge_led.led.lcsc_id = "C2288"
+
+    # Power good indicator
+    power_good_led = new PoweredLED
+    power.vcc ~> power_good_led ~> charger.power_good.line
+    power_good_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    power_good_led.led.lcsc_id = "C12624"
+
+    # Temperature sensor - 10k ohm NTC
+    temp_sensor = new Resistor
+    temp_sensor.lcsc_id = "C2892547"
+    charger.temperature_sense.line ~> temp_sensor ~> power.gnd
