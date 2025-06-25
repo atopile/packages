@@ -1,39 +1,52 @@
-# ADS1115 4ch 16-bit ADC
+# BQ2404XDSQR 1A 1S Battery Charger
 
-Sample Rate: 860sps
-Communication: I2C
-Input Voltage: 1.8-5.5V
+Input Voltage: 4.45V - 6.45V
+Charge termination Voltage: 4.20V/4.35V
 
 ## Usage
 
 ```ato
+import Battery
+import PoweredLED
+import Resistor
 
-import I2C
-import Power
-
-from "atopile/ti-ads1115/ti-ads1115.ato" import Texas_Instruments_ADS1115_driver
-
+from "atopile/ti-bq2404x/bq2404x.ato" import BQ24040DSQR
 
 module Test:
-    """Test component"""
-    # ADCs
-    adcs = new Texas_Instruments_ADS1115_driver[4]
+    """
+    Test module for BQ24040DSQR
+    """
+    charger = new BQ24040DSQR
 
+    battery = new Battery
+    battery.voltage = 4.2V
+    battery.capacity = 300mAh
+
+    # Configure charge current to 1C
+    charger.charge_current = battery.capacity / 1h +/- 10%
+
+    # Connect power
     power = new ElectricPower
-    i2c = new I2C
-
-    # Configure power
     power.voltage = 5V
+    power ~ charger.power_in
+    charger.power_batt ~ battery.power
 
-    adcs[0].i2c.address = 0x48
-    adcs[1].i2c.address = 0x49
-    adcs[2].i2c.address = 0x4A
-    adcs[3].i2c.address = 0x4B
+    # Charge indicator
+    charge_led = new PoweredLED
+    power.vcc ~> charge_led ~> charger.charge_status.line
+    charge_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    charge_led.led.lcsc_id = "C2288"
 
-    # Power and I2c
-    for adc in adcs:
-        adc.power ~ power
-        adc.i2c ~ i2c
+    # Power good indicator
+    power_good_led = new PoweredLED
+    power.vcc ~> power_good_led ~> charger.power_good.line
+    power_good_led.current_limiting_resistor.resistance = 10ohm +/- 10%
+    power_good_led.led.lcsc_id = "C12624"
+
+    # Temperature sensor - 10k ohm NTC
+    temp_sensor = new Resistor
+    temp_sensor.lcsc_id = "C2892547"
+    charger.temperature_sense.line ~> temp_sensor ~> power.gnd
 
 
 ```
