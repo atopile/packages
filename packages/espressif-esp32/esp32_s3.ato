@@ -251,7 +251,7 @@ module ExampleESP32_S3_WROOM_1_N16R8:
 
     # Connect USB power thru shunt to ESP32
     usb_c.usb2.usb_if.buspower ~ ldo_3V3.power_in
-    ldo_3V3.power_out ~> current_sensor.shunt ~> esp32_s3.power
+    ldo_3V3.power_out ~> current_sensor ~> esp32_s3.power
     ldo_3V3.power_out.gnd ~ esp32_s3.power.gnd
 
     # Configure and Connect I2C Current Sensor

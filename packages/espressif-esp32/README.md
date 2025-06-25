@@ -22,7 +22,7 @@ module App:
 
     # Connect USB power thru shunt to ESP32
     usb_c.usb2.usb_if.buspower ~ ldo_3V3.power_in
-    ldo_3V3.power_out ~> current_sensor.shunt ~> esp32_s3.power
+    ldo_3V3.power_out ~> current_sensor ~> esp32_s3.power
     ldo_3V3.power_out.gnd ~ esp32_s3.power.gnd
 
     # Configure and Connect I2C Current Sensor
@@ -44,21 +44,22 @@ module App:
 ```
 
 ## Overview
+
 This package provides a set of modules for the ESP32 microcontroller family from Espressif.
 
 To select the right module for your application, visit: https://www.espressif.com/en/products/modules
 
 ## Currently supported modules
 
-| Series   | Package    | Flash/PSRAM | Module Name             |
-|----------|------------|-------------|-------------------------|
-| ESP32-S3 | WROOM-1    | N8R2        | ESP32_S3_WROOM_1_N8R2   |
-|          |            | N8R8        | ESP32_S3_WROOM_1_N8R8   |
-|          |            | N16R2       | ESP32_S3_WROOM_1_N16R2  |
-|          |            | N16R8       | ESP32_S3_WROOM_1_N16R8  |
-| ESP32-C3 | WROOM-02U  | N4          | ESP32_C3_WROOM_02U_N4   |
-|          | WROOM-02   | N4          | ESP32_C3_WROOM_02_N4    |
-|          |            | H4          | ESP32_C3_WROOM_02_H4    |
+| Series   | Package   | Flash/PSRAM | Module Name            |
+| -------- | --------- | ----------- | ---------------------- |
+| ESP32-S3 | WROOM-1   | N8R2        | ESP32_S3_WROOM_1_N8R2  |
+|          |           | N8R8        | ESP32_S3_WROOM_1_N8R8  |
+|          |           | N16R2       | ESP32_S3_WROOM_1_N16R2 |
+|          |           | N16R8       | ESP32_S3_WROOM_1_N16R8 |
+| ESP32-C3 | WROOM-02U | N4          | ESP32_C3_WROOM_02U_N4  |
+|          | WROOM-02  | N4          | ESP32_C3_WROOM_02_N4   |
+|          |           | H4          | ESP32_C3_WROOM_02_H4   |
 
 ## Contributing
 
