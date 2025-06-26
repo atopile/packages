@@ -1,0 +1,56 @@
+requires-atopile: ^0.9.0
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  esp32_s3_base:
+    entry: esp32_s3.ato:ESP32_S3_WROOM
+  # esp32-s3-wroom-1-n8r2:
+  #   entry: esp32_s3.ato:ESP32_S3_WROOM_1_N8R2
+  # esp32-s3-wroom-1-n8r8:
+  #   entry: esp32_s3.ato:ESP32_S3_WROOM_1_N8R8
+  # esp32-s3-wroom-1-n16r2:
+  #   entry: esp32_s3.ato:ESP32_S3_WROOM_1_N16R2
+  # esp32-s3-wroom-1-n16r8:
+  #   entry: esp32s3.ato:ESP32_S3_WROOM_N16R8
+  esp32_c3_base:
+    entry: esp32_c3.ato:ESP32_C3_WROOM
+  # esp32-c3-wroom-02-n4:
+  #   entry: esp32_c3.ato:ESP32_C3_WROOM_02_N4
+  # esp32-c3-wroom-02-h4:
+  #   entry: esp32_c3.ato:ESP32_C3_WROOM_02_H4
+  # esp32-c3-wroom-02u-n4:
+  #   entry: esp32_c3.ato:ESP32_C3_WROOM_02U_N4
+  example_esp32_s3_wroom_1_n16r8:
+    entry: esp32_s3.ato:ExampleESP32_S3_WROOM_1_N16R8
+
+package:
+  identifier: atopile/esp32
+  repository: https://github.com/atopile/packages
+  version: 0.1.2
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: The ESP32 microcontroller family from Espressif
+  license: MIT
+dependencies:
+  - type: registry
+    identifier: atopile/buttons
+    release: 0.1.7
+  - type: registry
+    identifier: atopile/ti-tlv75901
+    release: 0.1.2
+  - type: registry
+    identifier: atopile/ti-ina232
+    release: 0.2.0
+    # - type: registry
+    #   identifier: atopile/usb-connectors
+    #   release: 0.1.2
+  - type: registry
+    identifier: atopile/usb-connectors
+    release: 0.2.0
+  - type: registry
+    identifier: atopile/addressable-leds
+    release: 0.2.2
