@@ -260,9 +260,10 @@ module ExampleESP32_S3_WROOM_1_N16R8:
 
     # Configure and Connect I2C Current Sensor
     current_sensor.i2c.address = 0x48
-    current_sensor.max_current = 355mA * 1.2#20% margin on max active current
+    current_sensor.max_current = 355mA * 1.2 #20% margin on max active current
     micro.i2c[0] ~ current_sensor.i2c
 
+    # Connect I2C Pullups
     pullups = new Resistor[2]
     for pullup in pullups:
         pullup.package = "R0402"
