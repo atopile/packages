@@ -237,36 +237,47 @@ module ESP32_S3_WROOM:
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
 from "atopile/ti-ina232/ti-ina232.ato" import Texas_Instruments_INA232x_driver
 from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+from "atopile/addressable-leds/sk6805-ec20.ato" import SK6805EC20_driver
+
 
 module ExampleESP32_S3_WROOM_1_N16R8:
     # Components
-    esp32_s3 = new ESP32_S3_WROOM
+    micro = new ESP32_S3_WROOM
     usb_c = new USBCConn
     current_sensor = new Texas_Instruments_INA232x_driver
     ldo_3V3 = new TLV75901_driver
+    leds = new SK6805EC20_driver[5]
+
+    # Power
+    power_3v3 = new ElectricPower
+    usb_c.usb2.usb_if.buspower ~> ldo_3V3 ~> current_sensor ~> power_3v3
+    power_3v3 ~ micro.power
+    power_3v3 ~ current_sensor.power
 
     # Configure LDO
     ldo_3V3.v_in = 5V +/- 5%
     ldo_3V3.v_out = 3.3V +/- 3%
 
-    # Connect USB power thru shunt to ESP32
-    usb_c.usb2.usb_if.buspower ~ ldo_3V3.power_in
-    ldo_3V3.power_out ~> current_sensor ~> esp32_s3.power
-    ldo_3V3.power_out.gnd ~ esp32_s3.power.gnd
-
     # Configure and Connect I2C Current Sensor
     current_sensor.i2c.address = 0x48
-    current_sensor.max_current = 0.355*1.2A #20% margin on max active current
-    current_sensor.power ~ usb_c.usb2.usb_if.buspower
-    esp32_s3.i2c[0] ~ current_sensor.i2c
+    current_sensor.max_current = 355mA * 1.2#20% margin on max active current
+    micro.i2c[0] ~ current_sensor.i2c
 
     pullups = new Resistor[2]
     for pullup in pullups:
         pullup.package = "R0402"
         pullup.resistance = 4.7kohm +/- 10%
 
-    esp32_s3.i2c[0].sda.line ~> pullups[0] ~> esp32_s3.power.vcc
-    esp32_s3.i2c[0].scl.line ~> pullups[1] ~> esp32_s3.power.vcc
+    micro.i2c[0].sda.line ~> pullups[0] ~> micro.power.vcc
+    micro.i2c[0].scl.line ~> pullups[1] ~> micro.power.vcc
 
     # Connect USB
-    usb_c.usb2 ~ esp32_s3.usb2
+    usb_c.usb2 ~ micro.usb2
+
+    # Connect Addressable LEDs
+    for led in leds:
+        led.power ~ power_3v3
+
+    micro.gpios[10] ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4]
+
+    
