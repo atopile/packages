@@ -89,14 +89,18 @@ module TRSReceptacle:
     package.3 ~ ring
     package.4 ~ tip
 
+module TRSReceptacleBalanced from TRSReceptacle:
     # Balanced
+    # carries<Audio>
     balanced = new DifferentialPair
     balanced.p.line ~ tip
     balanced.n.line ~ ring
     balanced.p.reference.gnd ~ sleeve
     balanced.n.reference.gnd ~ sleeve
 
+module TRSReceptacleStereo from TRSReceptacle:
     # Stereo
+    # carries<Audio>
     left = new ElectricSignal
     right = new ElectricSignal
     left.line ~ tip
@@ -104,7 +108,7 @@ module TRSReceptacle:
     left.reference.gnd ~ sleeve
     right.reference.gnd ~ sleeve
 
-module ConnectorTRRSReceptacle:
+module TRRSReceptacle:
     """
         TRRS Receptacle, Ring 1 is nearest to the tip
     """
@@ -119,6 +123,8 @@ module ConnectorTRRSReceptacle:
     package.3 ~ ring1
     package.4 ~ tip
 
+module TRRSReceptacleMicrophone from TRRSReceptacle:
+    #carries<Audio>
     left = new ElectricSignal
     right = new ElectricSignal
     microphone = new ElectricSignal
