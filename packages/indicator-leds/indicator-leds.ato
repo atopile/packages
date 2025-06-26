@@ -11,6 +11,9 @@ import ElectricPower
 from "parts/Hubei_KENTO_Elec_KT_0603G/Hubei_KENTO_Elec_KT_0603G.ato" import Hubei_KENTO_Elec_KT_0603G_driver
 from "parts/Hubei_KENTO_Elec_Blue_light_0603/Hubei_KENTO_Elec_Blue_light_0603.ato" import Hubei_KENTO_Elec_Blue_light_0603_driver
 from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_driver
+from "parts/Hubei_KENTO_Elec_KT_0603Y/Hubei_KENTO_Elec_KT_0603Y.ato" import Hubei_KENTO_Elec_KT_0603Y_driver
+from "parts/Hubei_KENTO_Elec_KT_0603YG/Hubei_KENTO_Elec_KT_0603YG.ato" import Hubei_KENTO_Elec_KT_0603YG_driver
+from "parts/Hubei_KENTO_Elec_KT_0603W/Hubei_KENTO_Elec_KT_0603W.ato" import Hubei_KENTO_Elec_KT_0603W_driver
 
 module LEDIndicator:
     power = new ElectricPower
@@ -48,16 +51,13 @@ module LEDIndicatorBlue from LEDIndicator:
     led -> Hubei_KENTO_Elec_Blue_light_0603_driver
 
 
-# TODO
-# module LEDIndicatorYellow from LEDIndicator:
-#     led -> _KT_0603Y
-# 
-# 
-# module LEDIndicatorYellowGreen from LEDIndicator:
-#     led -> _KT_0603YG
-# 
-# 
-# module LEDIndicatorWhite from LEDIndicator:
-#     led -> _KT_0603W
-# 
+module LEDIndicatorYellow from LEDIndicator:
+    led -> Hubei_KENTO_Elec_KT_0603Y_driver
 
+
+module LEDIndicatorYellowGreen from LEDIndicator:
+    led -> Hubei_KENTO_Elec_KT_0603YG_driver
+
+
+module LEDIndicatorWhite from LEDIndicator:
+    led -> Hubei_KENTO_Elec_KT_0603W_driver
