@@ -1,9 +1,29 @@
 import ElectricPower
 import Resistor
+import DifferentialPair
+import ElectricSignal
+
+from "parts/SHOU_HAN_PJ_320D/SHOU_HAN_PJ_320D.ato" import SHOU_HAN_PJ_320D_package
+from "parts/Texas_Instruments_NE5532ADR/Texas_Instruments_NE5532ADR.ato" import Texas_Instruments_NE5532ADR_package
 
 # System Audio Analog Electrical Balanced XLR XLR_c
 
 # INTERFACES
+interface SystemAudioStereo:
+    l = new Audio
+    r = new Audio
+
+interface SystemAudioMono:
+    line = new Audio
+
+interface SystemAudioDolby5_1:
+    front_left = new Audio
+    front_right = new Audio
+    center = new Audio
+    subwoofer = new Audio
+    surround_left = new Audio
+    surround_right = new Audio
+
 interface Audio:
     pass
 
@@ -16,11 +36,16 @@ interface AudioAnalogElectrical from AudioAnalog:
 interface AudioAnalogElectricalBalanced from AudioAnalogElectrical:
     pass
 
-interface XLR3:
-    pass
+interface DMX:
+    # What use is DMX if just one diff pair?
+    data = new DifferentialPair
 
-interface TRS:
-    pass
+interface ClearCom:
+    power = new ElectricPower
+    duplex_audio = new ElectricSignal
+
+interface AudioBalanced from DifferentialPair:
+    p.reference ~ n.reference
 
 # CONNECTORS
 module ConnectorXLR3Receptacle:
@@ -28,18 +53,83 @@ module ConnectorXLR3Receptacle:
     signal pin2
     signal pin3
 
-module ConnectorRCAReceptacle:
+    balanced = new AudioBalanced
+    balanced.p.line ~ pin2
+    balanced.n.line ~ pin3
+    balanced.p.reference.gnd ~ pin1
+
+    dmx = new DMX
+    dmx.data.p.line ~ pin3
+    dmx.data.n.line ~ pin2
+    dmx.data.p.reference.gnd ~ pin1
+    dmx.data.n.reference.gnd ~ pin1
+
+    clear_com = new ClearCom
+    clear_com.power.gnd ~ pin1
+    clear_com.power.vcc ~ pin2
+    clear_com.duplex_audio.line ~ pin3
+
+module RCAReceptacle:
     # Female RCA Receptacle
     signal inner_sleeve
     signal outer_shell
 
-module ConnectorTRSReceptacle:
+    line = new ElectricSignal
+    line.line ~ inner_sleeve
+    line.reference.gnd ~ outer_shell
+
+module TRSReceptacle:
     signal tip
     signal ring
     signal sleeve
 
+    package = new SHOU_HAN_PJ_320D_package
+    package.1 ~ sleeve
+    package.2 ~ sleeve
+    package.3 ~ ring
+    package.4 ~ tip
+
+    # Balanced
+    balanced = new DifferentialPair
+    balanced.p.line ~ tip
+    balanced.n.line ~ ring
+    balanced.p.reference.gnd ~ sleeve
+    balanced.n.reference.gnd ~ sleeve
+
+    # Stereo
+    left = new ElectricSignal
+    right = new ElectricSignal
+    left.line ~ tip
+    right.line ~ ring
+    left.reference.gnd ~ sleeve
+    right.reference.gnd ~ sleeve
+
 module ConnectorTRRSReceptacle:
+    """
+        TRRS Receptacle, Ring 1 is nearest to the tip
+    """
     signal tip
     signal ring1
     signal ring2
     signal sleeve
+
+    package = new SHOU_HAN_PJ_320D_package
+    package.1 ~ sleeve
+    package.2 ~ ring2
+    package.3 ~ ring1
+    package.4 ~ tip
+
+    left = new ElectricSignal
+    right = new ElectricSignal
+    microphone = new ElectricSignal
+    sleeve ~ microphone.reference.gnd
+    sleeve ~ left.reference.gnd
+    sleeve ~ right.reference.gnd
+
+module ACDiffPairToSingleEndedBuffer:
+    """
+        Buffer a differential pair to a single ended signal
+    """
+    differential_in = new DifferentialPair
+    single_ended_out = new ElectricSignal
+    opamps_package = new Texas_Instruments_NE5532ADR_package
