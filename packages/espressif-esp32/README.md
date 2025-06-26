@@ -1,9 +1,19 @@
 # ESP32 Modules
 
+## Interfaces
+
+- power
+- i2c
+- usb2
+- jtag
+- spi
+- gpio
+- i2s
+
 ## Usage
 
 ```ato
-from "atopile/espressif-esp32/esp32_s3.ato" import ESP32_S3_WROOM_1_N16R8
+from "atopile/espressif-esp32/esp32_s3.ato" import ESP32_S3_WROOM
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
 from "atopile/ti-ina232/ti-ina232.ato" import Texas_Instruments_INA232x_driver
 from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
