@@ -45,6 +45,14 @@ module NXP_PN5321_driver:
     power_svdd = new ElectricPower
     power_vmid = new ElectricPower
 
+    # Required connections
+    antenna_output.required = True
+    i2c.required = True
+    power_3v3.required = True
+
+    # Constrian voltage
+    power_3v3.voltage = 3V to 3.6V
+
     # All power rails connected to 3v3 (external power supply)
     for rail in [power_3v3, power_tvdd, power_vbat, power_dvdd, power_pvdd, power_avdd, power_svdd]:
         rail ~ power_3v3
