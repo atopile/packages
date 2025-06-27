@@ -63,7 +63,7 @@ module Texas_Instruments_PCM1789_driver:
     _power_vcom.vcc ~> decoupling_10uf[3] ~> _power_vcom.gnd # VCOM
 
     # Mode select
-    package.MODE ~ power_3v3.gnd # Short to GND for I2C
+    package.MODE ~ power_3v3.gnd # Short to GND for serial I2C
 
     # Mute
     mute_control = new ElectricLogic
@@ -125,6 +125,7 @@ module Texas_Instruments_PCM1789_driver:
 
     # Master clock
     master_clock = new ElectricLogic
+    master_clock.required = True
     master_clock_series_resistor = new Resistor
     master_clock_series_resistor.resistance = 22ohm +/- 2%
     master_clock_series_resistor.package = "R0402"
