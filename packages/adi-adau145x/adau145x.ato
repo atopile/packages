@@ -18,10 +18,12 @@ import Resistor
 import SPI
 import BJT
 
-from "can_bridge_electrical_by_name.py" import can_bridge_electrical_by_name
+from "can_bridge_by_name.py" import can_bridge_by_name
+from "can_bridge_symmetric.py" import can_bridge_symmetric
 
 from "parts/Analog_Devices_ADAU1452WBCPZ/Analog_Devices_ADAU1452WBCPZ.ato" import Analog_Devices_ADAU1452WBCPZ_package
 from "parts/Nexperia_PBSS5350X_115/Nexperia_PBSS5350X_115.ato" import Nexperia_PBSS5350X_115_package
+from "parts/TAE_TXM12_288M0004322FBCDO00T/TAE_TXM12_288M0004322FBCDO00T.ato" import TAE_TXM12_288M0004322FBCDO00T_driver
 
 module Analog_Devices_ADAU145x_package:
     """
@@ -393,15 +395,15 @@ module _BypassCapacitor from Capacitor:
     big_cap.capacitance = 100nF +/- 10%
     small_cap.capacitance = 10nF +/- 10%
 
-    big_cap.package = "C0402"
-    small_cap.package = "C0402"
+    big_cap.package = "0402"
+    small_cap.package = "0402"
 
 
 module _PLLFilter:
     input = new Electrical
     output = new Electrical
 
-    trait can_bridge_electrical_by_name
+    trait can_bridge_by_name
 
     r = new Resistor
     c1 = new Capacitor
@@ -414,6 +416,9 @@ module _PLLFilter:
     input ~> r ~> c1 ~> output
     input ~> c2 ~> output
 
+module _BridgeableXTAL from Crystal:
+    trait can_bridge_by_name<input_name="unnamed[0]", output_name="unnamed[1]">
+
 module _OscillatorDriver:
     """
     Drives the ADAU145x on-chip crystal oscillator.
@@ -424,29 +429,40 @@ module _OscillatorDriver:
     """
 
     # Ports
-    input  = new Electrical   # XTALIN/MCLK pin on ADAU145x
-    output = new Electrical   # XTALOUT pin on ADAU145x
-    ground = new Electrical   # Local ground reference (tie to DGND/AGND)
+    input  = new Electrical
+    output = new Electrical
+    ground = new Electrical
 
-    trait can_bridge_electrical_by_name
+    trait can_bridge_by_name
 
     # Components
-    xtal        = new Crystal
-    r_damp      = new Resistor
-    c_load_in   = new Capacitor
-    c_load_out  = new Capacitor
+    xtal   = new _BridgeableXTAL
+    r_damp = new Resistor
+    c_load = new Capacitor[2]
 
     # ‑-- Assertions ---------------------------------------------------------
     assert xtal.frequency within 3.072MHz to 24.576MHz
+    # I don't believe this is correct, but it's what the datasheet says
+    #assert xtal.shunt_capacitance within 7pF +/- 10%
+    assert xtal.shunt_capacitance within 7pF +/- 30%
+
     assert r_damp.resistance within 100ohm +/- 10%
-    assert c_load_in.capacitance  within 22pF +/- 10%
-    assert c_load_out.capacitance within 22pF +/- 10%
+
+    c_stray = 2pF to 5pF
+    load_capacitance: F
+    # x.c = c[0] * c[1] / (c[0] + c[1]) + c_stray
+    # x.c = c**2 / 2*c + c_stray
+    # x.c = c / 2 + c_stray
+    assert xtal.load_capacitance within load_capacitance / 2 + c_stray
+    assert load_capacitance within 2 * (xtal.load_capacitance - c_stray) 
+
+    for c in c_load:
+        assert c.capacitance within load_capacitance * (1 +/- 10%)
 
     # ‑-- Connectivity -------------------------------------------------------
-    output  ~> r_damp ~> xtal.unnamed[0]
-    xtal.unnamed[1] ~ input                # XTALOUT-R-XTAL-XTALIN chain
-    input   ~> c_load_in  ~> ground        # Load cap on XTALIN
-    output  ~> c_load_out ~> ground        # Load cap on XTALOUT
+    input ~> r_damp ~> xtal ~> output
+    xtal.unnamed[0] ~> c_load[0] ~> ground
+    xtal.unnamed[1] ~> c_load[1] ~> ground
 
 
 module Analog_Devices_ADAU145x_driver:
@@ -495,22 +511,22 @@ module Analog_Devices_ADAU145x_driver:
 
     for c in decoupling_power_io.capacitors:
         #c -> _BypassCapacitor
-        c.package = "C0402"
+        c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_analog.capacitors:
         #c -> _BypassCapacitor
-        c.package = "C0402"
+        c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_digital.capacitors:
         #c -> _BypassCapacitor
-        c.package = "C0402"
+        c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_pll.capacitors:
         #c -> _BypassCapacitor
-        c.package = "C0402"
+        c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in bulk_decoupling_power_caps:
-        c.package = "C0805"
+        c.package = "0805"
         c.capacitance = 10uF +/- 20%
 
     # pllfilter
@@ -543,3 +559,10 @@ module Analog_Devices_ADAU145x_driver:
     vdrive_min_load_res.package = "R0402"
     model.package.IOVDD[0] ~> vdrive_min_load_res ~> model.package.VDRIVE
     
+    model.xtal_out ~> oscillator_driver ~> model.xtal_in
+    
+    # parts
+    oscillator_driver.xtal -> TAE_TXM12_288M0004322FBCDO00T_driver
+    oscillator_driver.r_damp.package = "0402"
+    oscillator_driver.c_load[0].package = "0402"
+    oscillator_driver.c_load[1].package = "0402"

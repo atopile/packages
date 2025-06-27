@@ -1,0 +1,40 @@
+#pragma experiment("TRAITS")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+import Crystal
+
+component TAE_TXM12_288M0004322FBCDO00T_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    #trait is_auto_generated<system="ato_part", source="easyeda:C362472", date="2025-06-27T20:52:30.489788+00:00", checksum="42dbd65673646c066f9288d2d2efd7943a6a95c726aa8bdf42a77a0e11422845">
+
+    trait is_atomic_part<manufacturer="TAE", partnumber="TXM12.288M0004322FBCDO00T", footprint="CRYSTAL-SMD_4P-L3.2-W2.5-BL-2.kicad_mod", symbol="SMD-3225_4P12.288MHZ12PF.kicad_sym", model="CRYSTAL-SMD_4P-L3.2-W2.5-BL-2.STEP">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C362472", manufacturer="TAE", partno="TXM12.288M0004322FBCDO00T">
+    trait has_designator_prefix<prefix="X">
+
+    # pins
+    signal GND ~ pin 4
+    GND ~ pin 2
+    signal OUT ~ pin 3
+    signal nOE ~ pin 1
+
+
+
+
+module TAE_TXM12_288M0004322FBCDO00T_driver from Crystal:
+    xtal = new TAE_TXM12_288M0004322FBCDO00T_package
+
+    xtal.GND ~ gnd
+    xtal.OUT ~ unnamed[1]
+    xtal.nOE ~ unnamed[0]
+
+
+    assert shunt_capacitance is 5pF
+    assert frequency is 12.288MHz
+    assert load_capacitance is 12pF
+    assert equivalent_series_resistance is 60ohm
+    assert frequency_tolerance is 20ppm
+    assert frequency_temperature_tolerance is 10ppm
+

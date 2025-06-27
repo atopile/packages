@@ -3,11 +3,10 @@
 
 import faebryk.library._F as F
 from faebryk.core.module import Module
-from faebryk.libs.library import L
 
 
-class can_bridge_electrical_by_name(F.can_bridge.impl()):
-    def __init__(self, input_name: str = "output", output_name: str = "output"):
+class can_bridge_by_name(F.can_bridge.impl()):
+    def __init__(self, input_name: str = "input", output_name: str = "output"):
         super().__init__()
         self._input_name = input_name
         self._output_name = output_name
@@ -17,4 +16,3 @@ class can_bridge_electrical_by_name(F.can_bridge.impl()):
 
     def get_out(self):
         return self.get_obj(Module)[self._output_name]
-        
