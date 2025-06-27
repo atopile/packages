@@ -1,5 +1,7 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
+import has_single_electric_reference_shared
 import Capacitor
 import ElectricLogic
 import ElectricPower
@@ -17,6 +19,8 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
 
     Datasheet: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2309071116_Microchip-Tech-CAP1188-1-CP-TR_C2652057.pdf
     """
+
+    trait has_single_electric_reference_shared<gnd_only=True>
 
     power = new ElectricPower
     i2c = new I2C
@@ -43,20 +47,32 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     interrupt.line ~ capacitive_sensor.nALERT_nBC_IRQ
     address.line ~ capacitive_sensor.ADDR_COMM
 
-    pullup = new Resistor
-    pullup.package = "R0402"
-    assert pullup.resistance within 10 kohm +/- 5%
-    interrupt.line ~> pullup ~> interrupt.reference.hv
+    # Pull-ups / pull-downs
 
-    reset_pulldown = new Resistor
-    reset_pulldown.package = "R0402"
-    assert reset_pulldown.resistance within 10 kohm +/- 5%
-    reset.line ~> reset_pulldown ~> reset.reference.lv
+    pull_up_interrupt = new Resistor
+    pull_up_interrupt.package = "R0402"
+    assert pull_up_interrupt.resistance within 10 kohm +/- 5%
+    interrupt.line ~> pull_up_interrupt ~> interrupt.reference.hv
 
-    address_pulldown = new Resistor
-    address_pulldown.package = "R0402"
-    assert address_pulldown.resistance within 10 kohm +/- 5%
-    address.line ~> address_pulldown ~> address.reference.lv
+    pull_down_reset = new Resistor
+    pull_down_reset.package = "R0402"
+    assert pull_down_reset.resistance within 10 kohm +/- 5%
+    reset.line ~> pull_down_reset ~> reset.reference.lv
+
+    pull_down_address = new Resistor
+    pull_down_address.package = "R0402"
+    assert pull_down_address.resistance within 10 kohm +/- 5%
+    address.line ~> pull_down_address ~> address.reference.lv
+
+    pull_up_scl = new Resistor
+    pull_up_scl.package = "R0603"
+    assert pull_up_scl.resistance within 10 kohm +/- 5%
+    i2c.scl.line ~> pull_up_scl ~> i2c.scl.reference.hv
+
+    pull_up_sda = new Resistor
+    pull_up_sda.package = "R0603"
+    assert pull_up_sda.resistance within 10 kohm +/- 5%
+    i2c.sda.line ~> pull_up_sda ~> i2c.sda.reference.hv
 
     # Pads
     capacitive_sensor.CS1 ~ pads[0].line
