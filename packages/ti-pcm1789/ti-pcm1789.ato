@@ -8,6 +8,8 @@ import ElectricLogic
 import Addressor
 import Resistor
 import Capacitor
+import DifferentialPair
+import I2S
 
 from "parts/Texas_Instruments_PCM1789PWR/Texas_Instruments_PCM1789PWR.ato" import Texas_Instruments_PCM1789PWR_package
 
@@ -30,6 +32,7 @@ module Texas_Instruments_PCM1789_driver:
     power_3v3.required = True
     assert power_3v3.voltage within 3V to 3.6V
     power_3v3.vcc ~ package.VDD
+    power_3v3.gnd ~ package.DGND
 
     # connect gnds
     power_3v3.gnd ~ power_5v.gnd
@@ -71,7 +74,7 @@ module Texas_Instruments_PCM1789_driver:
     mute_control.line ~> mute_control_pullup ~> power_3v3.vcc
 
     mute_status = new ElectricLogic
-    mute_status.line ~ package.AMUTEO
+    mute_status.line ~ package.ZERO2_AMUTEO
     mute_status.reference ~ power_3v3
 
     # I2C
@@ -86,8 +89,8 @@ module Texas_Instruments_PCM1789_driver:
     addressor = new Addressor<address_bits=2>
     assert i2c.address is addressor.address
     assert addressor.base is 0x4C
-    addressor.address_lines[1] ~ package.ADR5_ADR1_RSV
-    addressor.address_lines[0] ~ package.ADR4_ADR0_RSV
+    addressor.address_lines[1].line ~ package.ADR5_ADR1_RSV
+    addressor.address_lines[0].line ~ package.MS_ADR0_RSV
 
     # Reset - active low (Defaults to normal operation)
     reset = new ElectricLogic
@@ -105,23 +108,27 @@ module Texas_Instruments_PCM1789_driver:
     for resistor in i2s_series_resistors:
         resistor.resistance = 22ohm +/- 2%
         resistor.package = "R0402"
-    i2s.sd ~> i2s_series_resistors[0] ~> package.DIN
-    i2s.ws ~> i2s_series_resistors[1] ~> package.LRCK
-    i2s.sck ~> i2s_series_resistors[2] ~> package.BCK
+    i2s.sd.line ~> i2s_series_resistors[0] ~> package.DIN
+    i2s.ws.line ~> i2s_series_resistors[1] ~> package.LRCK
+    i2s.sck.line ~> i2s_series_resistors[2] ~> package.BCK
+    i2s.sd.reference ~ power_3v3
+    i2s.ws.reference ~ power_3v3
+    i2s.sck.reference ~ power_3v3
 
     # Master clock
     master_clock = new ElectricLogic
     master_clock_series_resistor = new Resistor
     master_clock_series_resistor.resistance = 22ohm +/- 2%
     master_clock_series_resistor.package = "R0402"
-    master_clock ~> master_clock_series_resistor ~> package.SCKI
+    master_clock.line ~> master_clock_series_resistor ~> package.SCKI
+    master_clock.reference ~ power_3v3
 
     # Outputs
     outputs = new DifferentialPair[2]
-    outputs[0].p ~ package.VOUTLpos
-    outputs[0].n ~ package.VOUTLneg
-    outputs[1].p ~ package.VOUTRpos
-    outputs[1].n ~ package.VOUTRneg
+    outputs[0].p.line ~ package.VOUTLpos
+    outputs[0].n.line ~ package.VOUTLneg
+    outputs[1].p.line ~ package.VOUTRpos
+    outputs[1].n.line ~ package.VOUTRneg
 
     for output in outputs:
         output.p.reference ~ power_5v
