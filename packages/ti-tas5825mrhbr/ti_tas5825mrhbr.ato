@@ -11,15 +11,6 @@ import I2S
 import Resistor
 
 from "parts/Texas_Instruments_TAS5825MRHBR/Texas_Instruments_TAS5825MRHBR.ato" import Texas_Instruments_TAS5825MRHBR_package
-from "parts/cjiang_FXL0630_100_M/cjiang_FXL0630_100_M.ato" import cjiang_FXL0630_100_M_package
-
-
-module cjiang_FXL0630_100_M_driver from Inductor:
-    package = new cjiang_FXL0630_100_M_package
-
-    unnamed[0] ~ package.1
-    unnamed[1] ~ package.2
-
 
 module OutputStage:
     """
@@ -45,8 +36,8 @@ module OutputStage:
     output.p.line ~> output_cap_pos ~> reference.lv
     output.n.line ~> output_cap_neg ~> reference.lv
 
-    inductor_pos -> cjiang_FXL0630_100_M_driver
-    inductor_neg -> cjiang_FXL0630_100_M_driver
+    inductor_pos.lcsc_id = "C167223"
+    inductor_neg.lcsc_id = "C167223"
 
     assert bootstrap_pos.capacitance within 470 nF +/- 10%
     assert bootstrap_neg.capacitance within 470 nF +/- 10%
@@ -86,7 +77,7 @@ module Texas_Instruments_TAS5825MRHBR_driver:
     output_b = new DifferentialPair
 
     # Components
-    package = new Texas_Instruments_TAS5825MRHBR_package
+    amplifier = new Texas_Instruments_TAS5825MRHBR_package
     output_stage_a = new OutputStage
     output_stage_b = new OutputStage
     address_resistor = new Resistor
@@ -97,15 +88,15 @@ module Texas_Instruments_TAS5825MRHBR_driver:
     # Connect all references
 
     # Connect output stages
-    package.OUT_Apos ~ output_stage_a.input.p.line
-    package.OUT_Aneg ~ output_stage_a.input.n.line
-    package.OUT_Bpos ~ output_stage_b.input.p.line
-    package.OUT_Bneg ~ output_stage_b.input.n.line
+    amplifier.OUT_Apos ~ output_stage_a.input.p.line
+    amplifier.OUT_Aneg ~ output_stage_a.input.n.line
+    amplifier.OUT_Bpos ~ output_stage_b.input.p.line
+    amplifier.OUT_Bneg ~ output_stage_b.input.n.line
 
-    package.BST_Apos ~ output_stage_a.bootstrap.p.line
-    package.BST_Aneg ~ output_stage_a.bootstrap.n.line
-    package.BST_Bpos ~ output_stage_b.bootstrap.p.line
-    package.BST_Bneg ~ output_stage_b.bootstrap.n.line
+    amplifier.BST_Apos ~ output_stage_a.bootstrap.p.line
+    amplifier.BST_Aneg ~ output_stage_a.bootstrap.n.line
+    amplifier.BST_Bpos ~ output_stage_b.bootstrap.p.line
+    amplifier.BST_Bneg ~ output_stage_b.bootstrap.n.line
 
     output_stage_a.output ~ output_a
     output_stage_b.output ~ output_b
@@ -115,68 +106,79 @@ module Texas_Instruments_TAS5825MRHBR_driver:
 
     # Decoupling capacitors
     # PVDD decoupling
-    pvdd_decoupling_caps = new Capacitor[6]
-    for cap in pvdd_decoupling_caps[:3]:
+    pvdd_caps = new Capacitor[6]
+    for cap in pvdd_caps[:3]:
         cap.package = "C0805"
+        assert cap.max_voltage >= power_pvdd.voltage * 1.5
         assert cap.capacitance within 22 uF +/- 20%
+        power_pvdd.hv ~> cap ~> power_pvdd.lv
 
-    for cap in pvdd_decoupling_caps[3:]:
+    for cap in pvdd_caps[3:]:
         cap.package = "C0402"
+        assert cap.max_voltage >= power_pvdd.voltage * 1.5
         assert cap.capacitance within 100 nF +/- 20%
+        power_pvdd.hv ~> cap ~> power_pvdd.lv
 
     # DVDD decoupling
-    dvdd_decoupling_caps = new Capacitor[2]
+    dvdd_caps = new Capacitor[2]
 
-    dvdd_decoupling_caps[0].package = "C0603"
-    assert dvdd_decoupling_caps[0].capacitance within 4.7 uF +/- 20%
+    dvdd_caps[0].package = "C0603"
+    assert dvdd_caps[0].max_voltage >= power_dvdd.voltage * 1.5
+    assert dvdd_caps[0].capacitance within 4.7 uF +/- 20%
+    power_dvdd.hv ~> dvdd_caps[0] ~> power_dvdd.lv
 
-    dvdd_decoupling_caps[1].package = "C0402"
-    assert dvdd_decoupling_caps[1].capacitance within 100 nF +/- 20%
+    dvdd_caps[1].package = "C0402"
+    assert dvdd_caps[1].max_voltage >= power_dvdd.voltage * 1.5
+    assert dvdd_caps[1].capacitance within 100 nF +/- 20%
+    power_dvdd.hv ~> dvdd_caps[1] ~> power_dvdd.lv
 
     # Power
-    power_pvdd.hv ~ package.PVDD
-    power_dvdd.hv ~ package.DVDD
+    power_pvdd.hv ~ amplifier.PVDD
+    power_dvdd.hv ~ amplifier.DVDD
 
-    for gnd in [package.PGND, power_pvdd.lv, package.AGND, package.DGND, package.EP]:
+    for gnd in [amplifier.PGND, power_pvdd.lv, amplifier.AGND, amplifier.DGND, amplifier.EP]:
         power_pvdd.lv ~ gnd
 
     # I2C
-    i2c.scl.line ~ package.SCL
-    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ amplifier.SCL
+    i2c.sda.line ~ amplifier.SDA
 
     # I2S
-    i2s.sck.line ~ package.SCLK
-    i2s.ws.line ~ package.LRCLK
-    i2s.sd.line ~ package.SDIN
+    i2s.sck.line ~ amplifier.SCLK
+    i2s.ws.line ~ amplifier.LRCLK
+    i2s.sd.line ~ amplifier.SDIN
 
     # Control signals
-    fault.line ~ package.GPIO0
-    mute.line ~ package.GPIO1
-    warn.line ~ package.GPIO2
-    pdn.line ~ package.nPDN
+    fault.line ~ amplifier.GPIO0
+    mute.line ~ amplifier.GPIO1
+    warn.line ~ amplifier.GPIO2
+    pdn.line ~ amplifier.nPDN
 
     # Pullups for control signals
-    pullups = new Resistor[4]
+    pull_up_fault = new Resistor
+    pull_up_mute = new Resistor
+    pull_up_warn = new Resistor
+    pull_up_pdn = new Resistor
 
-    fault.line ~> pullups[0] ~> fault.reference.hv
-    mute.line ~> pullups[1] ~> mute.reference.hv
-    warn.line ~> pullups[2] ~> warn.reference.hv
-    pdn.line ~> pullups[3] ~> pdn.reference.hv
+    fault.line ~> pull_up_fault ~> fault.reference.hv
+    mute.line ~> pull_up_mute ~> mute.reference.hv
+    warn.line ~> pull_up_warn ~> warn.reference.hv
+    pdn.line ~> pull_up_pdn ~> pdn.reference.hv
 
-    for pullup in pullups:
+    for pullup in [pull_up_fault, pull_up_mute, pull_up_warn, pull_up_pdn]:
         pullup.package = "R0402"
         assert pullup.resistance within 10 kohm +/- 5%
 
     # Decoupling for internal things
-    package.VR_DIG ~> vr_dig_cap ~> power_pvdd.lv
-    package.GVDD ~> gvdd_cap ~> power_dvdd.lv
-    package.AVDD ~> avdd_cap ~> power_dvdd.lv
+    amplifier.VR_DIG ~> vr_dig_cap ~> power_pvdd.lv
+    amplifier.GVDD ~> gvdd_cap ~> power_dvdd.lv
+    amplifier.AVDD ~> avdd_cap ~> power_dvdd.lv
 
     for cap in [vr_dig_cap, gvdd_cap, avdd_cap]:
         cap.package = "C0402"
         assert cap.capacitance within 1 uF +/- 20%
 
     # Address resistor
-    package.ADR ~> address_resistor ~> power_dvdd.lv
+    amplifier.ADR ~> address_resistor ~> power_dvdd.lv
     address_resistor.package = "R0402"
     assert address_resistor.resistance within 10 ohm +/- 50%
