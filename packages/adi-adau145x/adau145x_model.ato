@@ -1,0 +1,202 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+
+from "adau145x_family.ato" import Analog_Devices_ADAU145x_package_family
+
+import has_single_electric_reference_shared
+
+import ElectricPower
+import Electrical
+import SPI
+import I2C
+import ElectricLogic
+import I2S
+import ElectricSignal
+
+module Analog_Devices_ADAU145x_model:
+    package = new Analog_Devices_ADAU145x_package_family
+    
+    # power
+    power_io = new ElectricPower
+    power_analog = new ElectricPower
+    power_digital = new ElectricPower
+    power_pll = new ElectricPower
+
+    regulator_vdrive = new Electrical
+
+    assert power_io.voltage >= 1.8V * 0.95
+    assert power_io.voltage <= 3.3V * 1.10
+    assert power_analog.voltage within 3.3V +/- 10%
+    assert power_digital.voltage within 1.2V +/- 5%
+    assert power_pll.voltage within 3.3V +/- 10%
+
+    power_io.hv ~ package.N_IOVDD
+    power_analog.hv ~ package.N_AVDD
+    power_digital.hv ~ package.N_DVDD
+    power_pll.hv ~ package.N_PVDD
+
+    power_analog.lv ~ package.N_AGND
+    power_digital.lv ~ package.N_DGND
+    power_pll.lv ~ package.N_PGND
+
+    power_digital.lv ~ power_analog.lv
+    power_digital.lv ~ power_pll.lv
+
+    # not 100% sure
+    power_io.lv ~ power_digital.lv
+
+    regulator_vdrive ~ package.VDRIVE
+
+
+    # peripherals
+    spi = new SPI
+    spi_cs = new ElectricLogic
+
+    spi.sclk.line ~ package.SCLK_SCL
+    spi.miso.line ~ package.MISO_SDA
+    spi.mosi.line ~ package.MOSI_ADDR1
+    spi_cs.line ~ package.SS_ADDR0
+
+
+    spi_master = new SPI
+    spi_master_cs = new ElectricLogic
+
+    spi_master.sclk.line ~ package.SCL_M_SCLK_M_MP2
+    spi_master.miso.line ~ package.SDA_M_MISO_M_MP3
+    spi_master.mosi.line ~ package.MOSI_M_MP1
+    spi_master_cs.line ~ package.SS_M_MP0
+
+
+    i2c = new I2C
+    i2c_address_bits = new ElectricLogic[2]
+
+    i2c.scl.line ~ package.SCLK_SCL
+    i2c.sda.line ~ package.MISO_SDA
+
+    i2c_address_bits[0].line ~ package.SS_ADDR0
+    i2c_address_bits[1].line ~ package.MOSI_ADDR1
+
+    i2c_master = new I2C
+
+    i2c.scl.line ~ package.SCL_M_SCLK_M_MP2
+    i2c.sda.line ~ package.SDA_M_MISO_M_MP3
+
+    i2s_ins = new I2S[4]
+    i2s_outs = new I2S[4]
+
+    i2s_ins[0].ws.line ~ package.LRCLK_IN0_MP10
+    i2s_ins[1].ws.line ~ package.LRCLK_IN1_MP11
+    i2s_ins[2].ws.line ~ package.LRCLK_IN2_MP12
+    i2s_ins[3].ws.line ~ package.LRCLK_IN3_MP13
+    i2s_outs[0].ws.line ~ package.LRCLK_OUT0_MP4
+    i2s_outs[1].ws.line ~ package.LRCLK_OUT1_MP5
+    i2s_outs[2].ws.line ~ package.LRCLK_OUT2_MP8
+    i2s_outs[3].ws.line ~ package.LRCLK_OUT3_MP9
+
+    i2s_ins[0].sck.line ~ package.BCLK_IN0
+    i2s_ins[1].sck.line ~ package.BCLK_IN1
+    i2s_ins[2].sck.line ~ package.BCLK_IN2
+    i2s_ins[3].sck.line ~ package.BCLK_IN3
+    i2s_outs[0].sck.line ~ package.BCLK_OUT0
+    i2s_outs[1].sck.line ~ package.BCLK_OUT1
+    i2s_outs[2].sck.line ~ package.BCLK_OUT2
+    i2s_outs[3].sck.line ~ package.BCLK_OUT3
+
+    i2s_ins[0].sd.line ~ package.SDATA_IN0
+    i2s_ins[1].sd.line ~ package.SDATA_IN1
+    i2s_ins[2].sd.line ~ package.SDATA_IN2
+    i2s_ins[3].sd.line ~ package.SDATA_IN3
+    i2s_outs[0].sd.line ~ package.SDATA_OUT0
+    i2s_outs[1].sd.line ~ package.SDATA_OUT1
+    i2s_outs[2].sd.line ~ package.SDATA_OUT2
+    i2s_outs[3].sd.line ~ package.SDATA_OUT3
+
+    gpios = new ElectricLogic[14]
+
+    gpios[0].line ~ package.SS_M_MP0
+    gpios[1].line ~ package.MOSI_M_MP1
+    gpios[2].line ~ package.SCL_M_SCLK_M_MP2
+    gpios[3].line ~ package.SDA_M_MISO_M_MP3
+    gpios[4].line ~ package.LRCLK_OUT0_MP4
+    gpios[5].line ~ package.LRCLK_OUT1_MP5
+    gpios[6].line ~ package.MP6
+    gpios[7].line ~ package.MP7
+    gpios[8].line ~ package.LRCLK_OUT2_MP8
+    gpios[9].line ~ package.LRCLK_OUT3_MP9
+    gpios[10].line ~ package.LRCLK_IN0_MP10
+    gpios[11].line ~ package.LRCLK_IN1_MP11
+    gpios[12].line ~ package.LRCLK_IN2_MP12
+    gpios[13].line ~ package.LRCLK_IN3_MP13
+
+    aux_adc_inputs = new ElectricSignal[6]
+
+    aux_adc_inputs[0].line ~ package.AUXADC0
+    aux_adc_inputs[1].line ~ package.AUXADC1
+    aux_adc_inputs[2].line ~ package.AUXADC2
+    aux_adc_inputs[3].line ~ package.AUXADC3
+    aux_adc_inputs[4].line ~ package.AUXADC4
+    aux_adc_inputs[5].line ~ package.AUXADC5
+
+
+    spdif_in = new ElectricSignal
+    spdif_out = new ElectricSignal
+
+    spdif_in.line ~ package.SPDIFIN
+    spdif_out.line ~ package.SPDIFOUT
+
+    temperature_sensor_in_p = new Electrical
+    temperature_sensor_in_n = new Electrical
+
+    temperature_sensor_in_p ~ package.THD_P
+    temperature_sensor_in_n ~ package.THD_M
+
+    xtal_in = new Electrical
+    xtal_out = new Electrical
+
+    xtal_in ~ package.XTALIN_MCLK
+    xtal_out ~ package.XTALOUT
+
+    # TODO PLL
+    pll_mclk = new Electrical
+    pll_filter = new Electrical
+    pll_clock_out = new Electrical
+
+    pll_mclk ~ package.XTALIN_MCLK
+    pll_filter ~ package.PLLFILT
+    pll_clock_out ~ package.CLKOUT
+
+    # configure
+    reset_disable = new ElectricLogic
+    selfboot_enable = new ElectricLogic
+
+    reset_disable.line ~ package.nRESET
+    selfboot_enable.line ~ package.SELFBOOT
+    
+    # logic references
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    for logic in [
+        spi,
+        spi_cs,
+        spi_master_cs,
+        i2c,
+        i2c_master,
+        spdif_in,
+        spdif_out,
+        reset_disable,
+        selfboot_enable,
+    ]:
+        logic.reference_shim ~ power_io
+
+    for logic in i2c_address_bits:
+        logic.reference_shim ~ power_io
+    for logic in i2s_ins:
+        logic.reference_shim ~ power_io
+    for logic in i2s_outs:
+        logic.reference_shim ~ power_io
+    for logic in gpios:
+        logic.reference_shim ~ power_io
+    for logic in aux_adc_inputs:
+        logic.reference_shim ~ power_io
