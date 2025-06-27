@@ -3,6 +3,7 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 
+import BJT
 import Capacitor
 import Crystal
 import Electrical
@@ -16,7 +17,7 @@ import MultiCapacitor
 import Net
 import Resistor
 import SPI
-import BJT
+import TestPoint
 
 from "can_bridge_by_name.py" import can_bridge_by_name
 from "can_bridge_symmetric.py" import can_bridge_symmetric
@@ -463,6 +464,7 @@ module _OscillatorDriver:
     input ~> r_damp ~> xtal ~> output
     xtal.unnamed[0] ~> c_load[0] ~> ground
     xtal.unnamed[1] ~> c_load[1] ~> ground
+    xtal.gnd ~> ground
 
 
 module Analog_Devices_ADAU145x_driver:
@@ -479,6 +481,9 @@ module Analog_Devices_ADAU145x_driver:
         model.power_pll,
     ]:
         power ~ rail
+
+    tp_power_io = new TestPoint
+    tp_power_io.contact ~ model.power_io.hv
 
     # Decoupling caps
     bulk_decoupling_power_caps = new Capacitor[4]
@@ -531,11 +536,12 @@ module Analog_Devices_ADAU145x_driver:
 
     # pllfilter
     pll_filter = new _PLLFilter
-    model.power_pll.hv ~> pll_filter ~> model.pll_filter
+    model.pll_filter ~> pll_filter ~> model.power_pll.hv
 
     # oscillator
     oscillator_driver = new _OscillatorDriver
     model.xtal_in ~> oscillator_driver ~> model.xtal_out
+    oscillator_driver.ground ~ power.lv
     
     # power supply
     # power_io IOVDD, reference voltage for digital input output, externally supplied, max current 47mA
@@ -548,18 +554,18 @@ module Analog_Devices_ADAU145x_driver:
     output_debug_resistor.resistance = 0ohm +/- 0.05
     output_debug_resistor.package = "R0603"
 
-    bjt_pnp = new Nexperia_PBSS5350X_115_package # LCSC C426844	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
-    model.package.IOVDD[0] ~ bjt_pnp.E
-    model.package.VDRIVE ~ bjt_pnp.B
+    bjt_pnp = new BJT # LCSC C426844	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
+    bjt_pnp.doping_type = "PNP"
+    bjt_pnp.lcsc_id = "C426844"
+    model.package.IOVDD[0] ~ bjt_pnp.emitter
+    model.package.VDRIVE ~ bjt_pnp.base
     for dvdd in model.package.DVDD:
-        bjt_pnp.C ~> output_debug_resistor ~> dvdd
+        bjt_pnp.collector ~> output_debug_resistor ~> dvdd
 
     vdrive_min_load_res = new Resistor
     vdrive_min_load_res.resistance = 1kohm +/- 5%
     vdrive_min_load_res.package = "R0402"
     model.package.IOVDD[0] ~> vdrive_min_load_res ~> model.package.VDRIVE
-    
-    model.xtal_out ~> oscillator_driver ~> model.xtal_in
     
     # parts
     oscillator_driver.xtal -> TAE_TXM12_288M0004322FBCDO00T_driver
