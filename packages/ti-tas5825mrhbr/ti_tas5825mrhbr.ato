@@ -1,6 +1,8 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
+import has_single_electric_reference_shared
 import DifferentialPair
 import ElectricLogic
 import ElectricPower
@@ -62,6 +64,8 @@ module Texas_Instruments_TAS5825MRHBR_driver:
 
     Datasheet: https://www.lcsc.com/datasheet/lcsc_datasheet_1912202033_Texas-Instruments-TAS5825MRHBR_C471049.pdf
     """
+
+    trait has_single_electric_reference_shared<gnd_only=True>
 
     # Power
     power_pvdd = new ElectricPower
