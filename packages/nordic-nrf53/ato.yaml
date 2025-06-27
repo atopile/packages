@@ -1,0 +1,27 @@
+requires-atopile: ^0.9.8
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  ref-nrf5340-buck:
+    entry: nrf5340.ato:NRF5340_BUCK
+
+package:
+  identifier: atopile/nrf5340
+  repository: https://github.com/atopile/packages
+  version: 0.1.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: The nrf5340 microcontroller from Nordic Semiconductor
+  license: MIT
+
+dependencies:
+- type: registry
+  identifier: atopile/buttons
+  release: 0.1.6
+- type: registry
+  identifier: atopile/usb-connectors
+  release: 0.2.0

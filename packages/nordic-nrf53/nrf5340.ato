@@ -1,0 +1,217 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0, JTAG, ElectricLogic, Inductor, SWD, MultiSPI
+
+from "atopile/buttons/buttons.ato" import ButtonPullup, ButtonSKRPACE010
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "parts/Nordic_Semicon_NRF5340_QKAA_R/Nordic_Semicon_NRF5340_QKAA_R.ato" import Nordic_Semicon_NRF5340_QKAA_R_package
+from "parts/Sunlord_MCL1608S100MT/Sunlord_MCL1608S100MT.ato" import Sunlord_MCL1608S100MT_package # 50mA
+from "parts/Sunlord_MCL2012H100MT/Sunlord_MCL2012H100MT.ato" import Sunlord_MCL2012H100MT_package # 100mA
+from "parts/TOGNJING_XTM20032000DT00351005/TOGNJING_XTM20032000DT00351005.ato" import TOGNJING_XTM20032000DT00351005_package
+
+module NRF5340_driver:
+    """
+    This is an nrf5340 module.
+    """
+    package = new Nordic_Semicon_NRF5340_QKAA_R_package
+    
+    signal gnd
+    gnd ~ package.VSS
+    
+    power_vdd = new ElectricPower
+    power_vdd.vcc ~ package.VDD
+    power_vdd.gnd ~ gnd
+    power_vdd.voltage = 1.8V to 3.3V
+
+    power_vddh = new ElectricPower
+    power_vddh.vcc ~ package.VDDH
+    power_vddh.gnd ~ gnd
+    power_vddh.voltage = 5V +/- 10%
+
+    power_vbus = new ElectricPower
+    power_vbus.vcc ~ package.VBUS
+    power_vbus.gnd ~ gnd
+    power_vbus.voltage = 5V +/- 10%
+
+    # Decoupling Capacitors
+    vdd_decoupling_capacitors = new Capacitor[10]
+    for cap in vdd_decoupling_capacitors[0:7]:
+        cap.power ~ power_vdd
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "C0402"
+    vdd_decoupling_capacitors[8].capacitance = 1uF +/- 20%
+    vdd_decoupling_capacitors[8].package = "C0805"
+    vdd_decoupling_capacitors[8].power.vcc ~ package.A19
+    vdd_decoupling_capacitors[9].capacitance = 1uF +/- 20%
+    vdd_decoupling_capacitors[9].package = "C0805"
+    vdd_decoupling_capacitors[9].power.vcc ~ package.B8
+
+    misc_decoupling_caps = new Capacitor[4]
+    misc_decoupling_caps[0].capacitance = 4.7uF +/- 20%
+    misc_decoupling_caps[0].package = "C0805"
+    misc_decoupling_caps[0].power ~ power_vbus
+    misc_decoupling_caps[1].capacitance = 4.7uF +/- 20%
+    misc_decoupling_caps[1].package = "C0805"
+    misc_decoupling_caps[1].power.vcc ~ package.DECUSB
+    misc_decoupling_caps[1].power.gnd ~ gnd
+    misc_decoupling_caps[2].capacitance = 100nF +/- 20%
+    misc_decoupling_caps[2].package = "0603"
+    misc_decoupling_caps[2].power.vcc ~ package.DECN
+    misc_decoupling_caps[2].power.gnd ~ gnd
+    misc_decoupling_caps[3].capacitance = 1uF +/- 20%
+    misc_decoupling_caps[3].package = "0603"
+    misc_decoupling_caps[3].power.vcc ~ package.DECA
+    misc_decoupling_caps[3].power.gnd ~ gnd
+
+    # USB
+    usb = new USB2_0
+    usb.usb_if.d.p.line ~ package.Dpos
+    usb.usb_if.d.n.line ~ package.Dneg
+    usb_res = new Resistor
+    usb_res.resistance = 2.2ohms +/- 5%
+    usb.usb_if.buspower.vcc ~> usb_res ~> package.VBUS
+    usb.usb_if.buspower.gnd ~ gnd
+
+    # Crystal
+    crystal = new TOGNJING_XTM20032000DT00351005_package
+    package.XC1 ~ crystal.1
+    package.XC2 ~ crystal.3
+    crystal.GND ~ gnd
+
+    # SWD
+    swd = new SWD
+    swd.reset.line ~ package.nRESET
+    swd.clk.line ~ package.SWDCLK
+    swd.dio.line ~ package.SWDIO
+    swd.reset.reference ~ power_vdd
+
+    # I2C
+
+    # I2S
+
+    # QSPI
+    qspi = new MultiSPI<data_lane_count=4>
+    qspi.clock.line ~ package.P0_17_SCK
+    qspi.chip_select.line ~ package.P0_18_CSN
+    qspi.data[0].line ~ package.P0_14_IO1
+    qspi.data[1].line ~ package.P0_15_IO2
+    qspi.data[2].line ~ package.P0_16_IO3
+    qspi.data[3].line ~ package.P0_13_IO0
+
+    # Antenna
+
+    # GPIO
+    # All possible GPIO, some are used for interfaces
+    gpios = new ElectricLogic[48]
+    gpios[0].line ~ package.P1_13
+    gpios[1].line ~ package.P1_15
+    gpios[2].line ~ package.P1_14
+    gpios[3].line ~ package.P1_12
+    gpios[4].line ~ package.P1_11
+    gpios[5].line ~ package.P0_31
+    gpios[6].line ~ package.P0_30
+    gpios[7].line ~ package.P1_00
+    gpios[8].line ~ package.P0_00_XL1
+    gpios[9].line ~ package.P1_01
+    gpios[10].line ~ package.P0_01_XL2
+    gpios[11].line ~ package.P1_10
+    gpios[12].line ~ package.P0_29
+    gpios[13].line ~ package.P0_04_AIN0
+    gpios[14].line ~ package.P0_02_NFC1
+    gpios[15].line ~ package.P0_05_AIN1
+    gpios[16].line ~ package.P0_03_NFC2
+    gpios[17].line ~ package.P0_06_AIN2
+    gpios[18].line ~ package.P0_07_AIN3
+    gpios[19].line ~ package.P1_02_TWI
+    gpios[20].line ~ package.P0_28_AIN7
+    gpios[21].line ~ package.P1_03_TWI
+    gpios[22].line ~ package.P0_08_TRACEDATA3_SCK
+    gpios[23].line ~ package.P0_09_TRACEDATA2_MOSI
+    gpios[24].line ~ package.P0_10_TRACEDATA1_MISO
+    gpios[25].line ~ package.P0_11_TRACEDATA0_CSN
+    gpios[26].line ~ package.P0_12_TRACECLK_DCX
+    gpios[27].line ~ package.P0_14_IO1
+    gpios[28].line ~ package.P0_15_IO2
+    gpios[29].line ~ package.P0_17_SCK
+    gpios[30].line ~ package.P0_18_CSN
+    gpios[31].line ~ package.P0_20
+    gpios[32].line ~ package.P0_22
+    gpios[33].line ~ package.P0_23
+    gpios[34].line ~ package.P1_05
+    gpios[35].line ~ package.P1_07
+    gpios[36].line ~ package.P1_09
+    gpios[37].line ~ package.P0_25_AIN4
+    gpios[38].line ~ package.P0_27_AIN6
+    gpios[39].line ~ package.P0_13_IO0
+    gpios[40].line ~ package.P0_16_IO3
+    gpios[41].line ~ package.P0_19
+    gpios[42].line ~ package.P0_21
+    gpios[43].line ~ package.P1_04
+    gpios[44].line ~ package.P1_06
+    gpios[45].line ~ package.P1_08
+    gpios[46].line ~ package.P0_24
+    gpios[47].line ~ package.P0_26_AIN5
+
+module NRF5340_BUCK from NRF5340_driver:
+    """
+        Additional hardware to configure the internal regulators for Buck mode
+    """
+    package.VDDH ~ package.VBUS
+
+    # USB C Connector
+    usbc = new USBCConn
+    usbc.usb2 ~ usb
+
+    # HV Buck Converter
+    hv_buck_ind = new Sunlord_MCL2012H100MT_driver
+    package.DCCH ~> hv_buck_ind ~> package.VDD
+    hv_decouple_cap = new Capacitor
+    hv_decouple_cap.power ~ power_vddh
+    hv_decouple_cap.capacitance = 4.7uF +/- 20%
+    hv_decouple_cap.package = "C0805"
+    vdd_buck_decouple_cap = new Capacitor
+    vdd_buck_decouple_cap.capacitance = 2.2uF +/- 20%
+    vdd_buck_decouple_cap.package = "C0805"
+    vdd_buck_decouple_cap.power.vcc ~ package.L1
+    vdd_buck_decouple_cap.power.gnd ~ gnd
+    
+    # Internal Regulator Buck Converters
+    # VREG MAIN
+    vreg_main_buck_ind = new Sunlord_MCL1608S100MT_driver
+    package.DCCD ~> vreg_main_buck_ind ~> package.DECD
+    vreg_main_decouple_cap = new Capacitor
+    vreg_main_decouple_cap.capacitance = 1uF +/- 20%
+    vreg_main_decouple_cap.package = "C0402"
+    vreg_main_decouple_cap.power.vcc ~ package.DECD
+    vreg_main_decouple_cap.power.gnd ~ gnd
+    
+    # VREG RADIO
+    vreg_radio_buck_ind = new Sunlord_MCL1608S100MT_driver
+    package.DCCR ~> vreg_radio_buck_ind ~> package.DECR
+    vreg_radio_decoupling_caps = new Capacitor[2]
+    vreg_radio_decoupling_caps[0].capacitance = 1uF +/- 20%
+    vreg_radio_decoupling_caps[0].package = "C0402"
+    vreg_radio_decoupling_caps[0].power.vcc ~ package.DECR
+    vreg_radio_decoupling_caps[0].power.gnd ~ gnd
+    vreg_radio_decoupling_caps[1].capacitance = 2.2nF +/- 20%
+    vreg_radio_decoupling_caps[1].package = "C0402"
+    vreg_radio_decoupling_caps[1].power.vcc ~ package.DECRF
+    vreg_radio_decoupling_caps[1].power.gnd ~ gnd
+
+
+module Sunlord_MCL2012H100MT_driver from Inductor:
+    package = new Sunlord_MCL2012H100MT_package
+    p1 ~ package.1
+    p2 ~ package.2
+    inductance = 10uH
+    max_current = 100mA
+
+module Sunlord_MCL1608S100MT_driver from Inductor:
+    package = new Sunlord_MCL1608S100MT_package
+    p1 ~ package.1
+    p2 ~ package.2
+    inductance = 10uH
+    max_current = 50mA
