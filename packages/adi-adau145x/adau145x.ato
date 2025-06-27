@@ -16,6 +16,7 @@ import MultiCapacitor
 import Net
 import Resistor
 import SPI
+import BJT
 
 from "can_bridge_electrical_by_name.py" import can_bridge_electrical_by_name
 
@@ -511,4 +512,22 @@ module Analog_Devices_ADAU145x_driver:
     # oscillator
     oscillator_driver = new _OscillatorDriver
     model.xtal_in ~> oscillator_driver ~> model.xtal_out
+    
+    # power supply
+    # power_io IOVDD, reference voltage for digital input output, externally supplied, max current 47mA
+    # power_analog AVDD, powers DSP core, optionally can be derived using internal LDO, max current 2mA
+    # power_digital DVDD, powers auxilary ADC, externally supplied, max current 690mA
+    # power_pll PVDD, powers PLL and reference for VCO, externally supplied
+
+    # DVDD internal LDO
+    bjt_pnp = new BJT # LCSC C426844	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
+    bjt_pnp.doping_type = BJT.DopingType.PNP # TODO: Move this to part driver when ato create part is working
+    model.package.IOVDD[0] ~ bjt_pnp.emitter # TODO: Figure out which IOVDD and DVDD to use
+    model.package.VDRIVE ~ bjt_pnp.base
+    model.package.DVDD[0] ~ bjt_pnp.collector
+
+    vdrive_min_load_res = new Resistor
+    vdrive_min_load_res.resistance = 1kohm +/- 5%
+    vdrive_min_load_res.package = "R0402"
+    model.package.IOVDD[0] ~> vdrive_min_load_res ~> model.package.VDRIVE
     
