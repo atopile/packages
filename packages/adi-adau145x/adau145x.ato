@@ -122,8 +122,14 @@ module Analog_Devices_ADAU145x_driver:
     ]:
         power ~ rail
 
-    # tp_power_io = new TestPoint
-    # tp_power_io.contact ~ model.power_io.hv
+    tp_power = new TestPoint
+    tp_power.contact ~ power.hv
+    tp_power_digital = new TestPoint
+    tp_power_digital.contact ~ model.power_digital.hv
+    tp_gnd = new TestPoint
+    tp_gnd.contact ~ power.lv
+    tp_clockout = new TestPoint
+    tp_clockout.contact ~ model.pll_clock_out
 
     # Decoupling caps
     bulk_decoupling_power_caps = new Capacitor[4]
