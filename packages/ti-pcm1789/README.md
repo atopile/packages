@@ -38,6 +38,7 @@ module Example:
     # Connect data
     micro.i2c ~ dac.i2c
     micro.i2s ~ dac.i2s
+    micro.clock_out ~ dac.master_clock
 
     # Connect outputs
     dac.outputs[0] ~ xlrs[0].balanced
