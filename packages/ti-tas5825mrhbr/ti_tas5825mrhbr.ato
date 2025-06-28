@@ -12,6 +12,7 @@ import I2C
 import I2S
 import Resistor
 
+# from "tas-addressor.py" import TAS_addressor
 from "parts/Texas_Instruments_TAS5825MRHBR/Texas_Instruments_TAS5825MRHBR.ato" import Texas_Instruments_TAS5825MRHBR_package
 
 module OutputStage:
@@ -195,6 +196,11 @@ module Texas_Instruments_TAS5825MRHBR_driver:
         assert cap.capacitance within 1 uF +/- 20%
 
     # Address resistor
-    amplifier.ADR ~> address_resistor ~> power_dvdd.lv
-    address_resistor.package = "R0402"
-    assert address_resistor.resistance within 10 ohm +/- 50%
+    # addressor = new TAS_addressor
+    # addressor.base = 0x4C
+    # assert addressor.address is i2c.address
+    # amplifier.ADR ~> addressor.addr_resistor ~> power_dvdd.lv
+    addr_resistor = new Resistor
+    addr_resistor.package = "R0402"
+    addr_resistor.resistance = 4.7kohm +/- 5%
+    amplifier.ADR ~> addr_resistor ~> power_dvdd.lv
