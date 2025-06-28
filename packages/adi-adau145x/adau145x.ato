@@ -17,7 +17,6 @@ import MultiCapacitor
 import Net
 import Resistor
 import SPI
-import TestPoint
 
 from "can_bridge_by_name.py" import can_bridge_by_name
 from "can_bridge_symmetric.py" import can_bridge_symmetric
@@ -25,6 +24,7 @@ from "can_bridge_symmetric.py" import can_bridge_symmetric
 from "adau145x_model.ato" import Analog_Devices_ADAU145x_model
 from "parts/Nexperia_PBSS5350X_115/Nexperia_PBSS5350X_115.ato" import Nexperia_PBSS5350X_115_package
 from "parts/TAE_TXM12_288M0004322FBCDO00T/TAE_TXM12_288M0004322FBCDO00T.ato" import TAE_TXM12_288M0004322FBCDO00T_driver
+from "parts/GENERIC_TESTPOINT/GENERIC_TESTPOINT.ato" import GENERIC_TESTPOINT
 
 
 module _BypassCapacitor from Capacitor:
@@ -107,6 +107,9 @@ module _OscillatorDriver:
     xtal.unnamed[1] ~> c_load[1] ~> ground
     xtal.gnd ~> ground
 
+# Hacking using local test point part
+module TestPoint from GENERIC_TESTPOINT:
+    pass
 
 module Analog_Devices_ADAU145x_driver:
     model = new Analog_Devices_ADAU145x_model
