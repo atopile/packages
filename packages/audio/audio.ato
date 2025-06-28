@@ -8,42 +8,52 @@ from "parts/HOOYA_DIN_323PP/HOOYA_DIN_323PP.ato" import HOOYA_DIN_323PP_package
 from "parts/HOOYA_DIN_327/HOOYA_DIN_327.ato" import HOOYA_DIN_327_package
 from "parts/SHOU_HAN_PJ_320D/SHOU_HAN_PJ_320D.ato" import SHOU_HAN_PJ_320D_package
 from "parts/Texas_Instruments_NE5532ADR/Texas_Instruments_NE5532ADR.ato" import Texas_Instruments_NE5532ADR_package
+from "parts/Neutrik_NCJ6FA_H/Neutrik_NCJ6FA_H.ato" import Neutrik_NCJ6FA_H_package
 
 # System Audio Analog Electrical Balanced XLR XLR_c
+
+module XLRBalancedSystemAudioStereoOutput:
+    stereo = new SystemAudioStereo
+    xlr_balanced_l = new XLR3HeaderBalanced
+    xlr_balanced_r = new XLR3HeaderBalanced
+
+    stereo.l ~ xlr_balanced_l.balanced.audio
+    stereo.r ~ xlr_balanced_r.balanced.audio
 
 # ------------------------------------------------------------------------------
 # INTERFACES
 # ------------------------------------------------------------------------------
 interface SystemAudioStereo:
-    l = new Audio
-    r = new Audio
+    l = new AudioChannel
+    r = new AudioChannel
 
 interface SystemAudioMono:
-    line = new Audio
+    line = new AudioChannel
 
 interface SystemAudioDolby5_1:
-    front_left = new Audio
-    front_right = new Audio
-    center = new Audio
-    subwoofer = new Audio
-    surround_left = new Audio
-    surround_right = new Audio
+    front_left = new AudioChannel
+    front_right = new AudioChannel
+    center = new AudioChannel
+    subwoofer = new AudioChannel
+    surround_left = new AudioChannel
+    surround_right = new AudioChannel
 
-interface Audio:
+interface AudioChannel:
     pass
 
 interface DMX:
     # What use is DMX if just one diff pair?
     data = new DifferentialPair
 
-interface ClearCom:
-    power = new ElectricPower
-    duplex_audio = new ElectricSignal
 
 interface AudioBalanced:
+    audio = new AudioChannel
     dp = new DifferentialPair
     dp.p.reference ~ dp.n.reference
-    # carries<Audio>
+
+interface AudioSingleEnded:
+    audio = new AudioChannel
+    line = new ElectricSignal
 
 # ------------------------------------------------------------------------------
 # XLR CONNECTORS
@@ -63,14 +73,15 @@ module XLR3Header:
     package.3 ~ pin3
     package.G ~ gnd
 
-module XLR3HeaderBalanced from XLR3Header:
+module XLR3HeaderBalanced:
     """
         XLR 3 Pin Male Header wired for one balanced audio channel
     """
+    xlr3_header = new XLR3Header
     balanced = new AudioBalanced
-    balanced.dp.p.line ~ pin2
-    balanced.dp.n.line ~ pin3
-    balanced.dp.p.reference.gnd ~ pin1
+    balanced.dp.p.line ~ xlr3_header.pin2
+    balanced.dp.n.line ~ xlr3_header.pin3
+    balanced.dp.p.reference.gnd ~ xlr3_header.pin1
 
 module XLR3Receptacle:
     """
@@ -87,21 +98,53 @@ module XLR3Receptacle:
     package.3 ~ pin3
     package.G ~ gnd
 
-module XLR3ReceptacleBalanced from XLR3Receptacle:
+module XLR3ReceptacleBalanced:
     """
         XLR 3 Pin Female Socket Receptacle wired for one balanced audio channel
     """
+    xlr3_receptacle = new XLR3Receptacle
     balanced = new AudioBalanced
-    balanced.dp.p.line ~ pin2
-    balanced.dp.n.line ~ pin3
-    balanced.dp.p.reference.gnd ~ pin1
+    balanced.dp.p.line ~ xlr3_receptacle.pin2
+    balanced.dp.n.line ~ xlr3_receptacle.pin3
+    balanced.dp.p.reference.gnd ~ xlr3_receptacle.pin1
 
-module XLR3ReceptacleDMX from XLR3Receptacle:
+module XLR3ReceptacleDMX:
+    xlr3_receptacle = new XLR3Receptacle
     dmx = new DMX
-    dmx.data.p.line ~ pin3
-    dmx.data.n.line ~ pin2
-    dmx.data.p.reference.gnd ~ pin1
-    dmx.data.n.reference.gnd ~ pin1
+    dmx.data.p.line ~ xlr3_receptacle.pin3
+    dmx.data.n.line ~ xlr3_receptacle.pin2
+    dmx.data.p.reference.gnd ~ xlr3_receptacle.pin1
+    dmx.data.n.reference.gnd ~ xlr3_receptacle.pin1
+
+module XLR3TRSReceptacle:
+    signal pin1
+    signal pin2
+    signal pin3
+    signal gnd
+    signal tip
+    signal ring
+    signal sleeve
+
+    package = new Neutrik_NCJ6FA_H_package
+    package.1 ~ pin1
+    package.2 ~ pin2
+    package.3 ~ pin3
+    package.G ~ gnd
+    package.T ~ tip
+    package.R ~ ring
+    package.S ~ sleeve
+
+module XLR3TRSReceptacleBalanced:
+    xlr3_trs_receptacle = new XLR3TRSReceptacle
+    balanced = new AudioBalanced
+    # XLR
+    balanced.dp.p.line ~ xlr3_trs_receptacle.pin3
+    balanced.dp.n.line ~ xlr3_trs_receptacle.pin2
+    balanced.dp.p.reference.gnd ~ xlr3_trs_receptacle.pin1
+    # TRS
+    balanced.dp.p.line ~ xlr3_trs_receptacle.tip
+    balanced.dp.n.line ~ xlr3_trs_receptacle.ring
+    balanced.dp.p.reference.gnd ~ xlr3_trs_receptacle.sleeve
 
 # ------------------------------------------------------------------------------
 # RCA CONNECTORS
@@ -133,24 +176,26 @@ module TRSReceptacle:
     package.3 ~ ring
     package.4 ~ tip
 
-module TRSReceptacleBalanced from TRSReceptacle:
+module TRSReceptacleBalanced:
     # Balanced
-    # carries<Audio>
+    audio = new AudioChannel
+    trs = new TRSReceptacle
     balanced = new DifferentialPair
-    balanced.p.line ~ tip
-    balanced.n.line ~ ring
-    balanced.p.reference.gnd ~ sleeve
-    balanced.n.reference.gnd ~ sleeve
+    balanced.dp.p.line ~ trs.tip
+    balanced.dp.n.line ~ trs.ring
+    balanced.dp.p.reference.gnd ~ trs.sleeve
+    balanced.dp.n.reference.gnd ~ trs.sleeve
 
-module TRSReceptacleStereo from TRSReceptacle:
+module TRSReceptacleStereo:
     # Stereo
-    # carries<Audio>
+    stereo = new SystemAudioStereo
+    trs = new TRSReceptacle
     left = new ElectricSignal
     right = new ElectricSignal
-    left.line ~ tip
-    right.line ~ ring
-    left.reference.gnd ~ sleeve
-    right.reference.gnd ~ sleeve
+    left.line ~ trs.tip
+    right.line ~ trs.ring
+    left.reference.gnd ~ trs.sleeve
+    right.reference.gnd ~ trs.sleeve
 
 module TRRSReceptacle:
     """
@@ -167,11 +212,23 @@ module TRRSReceptacle:
     package.3 ~ ring1
     package.4 ~ tip
 
-module TRRSReceptacleMicrophone from TRRSReceptacle:
-    #carries<Audio>
-    left = new ElectricSignal
-    right = new ElectricSignal
-    microphone = new ElectricSignal
-    sleeve ~ microphone.reference.gnd
-    sleeve ~ left.reference.gnd
-    sleeve ~ right.reference.gnd
+module TRRSReceptacleSingleEnded:
+    trrs = new TRRSReceptacle
+    stereo = new SystemAudioStereo
+    microphone = new AudioChannel
+    trrs = new TRRSReceptacle
+
+    single_ended_audios = new AudioSingleEnded[3]
+    # trrs.tip ~ microphone.line
+    # trrs.ring1 ~ left.line
+    # trrs.ring2 ~ right.line
+    trrs.sleeve ~ microphone.reference.gnd
+    trrs.sleeve ~ stereo.l.reference.gnd
+    trrs.sleeve ~ stereo.r.reference.gnd
+
+module TRRSReceptacleSingleEndedMicrophoneAndStereo:
+    trrs = new TRRSReceptacleSingleEnded
+    stereo = new SystemAudioStereo
+    microphone = new AudioChannel
+
+    # trrs.tip ~ microphone.line
