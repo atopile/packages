@@ -32,15 +32,6 @@ interface SystemAudioDolby5_1:
 interface Audio:
     pass
 
-interface AudioAnalog from Audio:
-    pass
-
-interface AudioAnalogElectrical from AudioAnalog:
-    pass
-
-interface AudioAnalogElectricalBalanced from AudioAnalogElectrical:
-    pass
-
 interface DMX:
     # What use is DMX if just one diff pair?
     data = new DifferentialPair
@@ -119,7 +110,7 @@ module RCAReceptacle:
     signal inner_sleeve
     signal outer_shell
 
-    package = new BOOMELE_AV_5_package
+    package = new BOOMELE_AV_5_package #TODO: Please someone find a non-yellow rca
     package.1 ~ inner_sleeve
     package.2 ~ outer_shell
 
