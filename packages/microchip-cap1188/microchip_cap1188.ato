@@ -6,6 +6,7 @@ import Capacitor
 import ElectricLogic
 import ElectricPower
 import I2C
+import SPI
 import Resistor
 
 from "parts/Microchip_Tech_CAP1188_1_CP_TR/Microchip_Tech_CAP1188_1_CP_TR.ato" import Microchip_Tech_CAP1188_1_CP_TR_package
@@ -24,6 +25,9 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
 
     power = new ElectricPower
     i2c = new I2C
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    leds = new ElectricLogic[8]
     reset = new ElectricLogic
     interrupt = new ElectricLogic
     address = new ElectricLogic
@@ -31,6 +35,7 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
 
     capacitive_sensor = new Microchip_Tech_CAP1188_1_CP_TR_package
 
+    assert power.voltage within 3V to 3.6V
     power.hv ~ capacitive_sensor.VDD
     power.lv ~ capacitive_sensor.GND
 
@@ -40,7 +45,17 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     assert decouple_cap.capacitance within 100 nF +/- 30%
     power.hv ~> decouple_cap ~> power.lv
 
-    # Data
+    # SPI
+    spi.sclk.reference ~ power
+    spi.sclk.line ~ capacitive_sensor.SMCLK_BC_CLK_SPI_CLK
+    spi.mosi.line ~ capacitive_sensor.WAKE_SPI_MOSI
+    spi.miso.line ~ capacitive_sensor.SMDATA_BC_DATA_SPI_MSIO_SPI_MISO
+    spi_cs.reference ~ power
+    spi_cs.line ~ capacitive_sensor.nSPI_CS
+
+    # I2C
+    i2c.sda.reference ~ power
+    i2c.scl.reference ~ power
     i2c.sda.line ~ capacitive_sensor.SMDATA_BC_DATA_SPI_MSIO_SPI_MISO
     i2c.scl.line ~ capacitive_sensor.SMCLK_BC_CLK_SPI_CLK
     reset.line ~ capacitive_sensor.RESET
@@ -48,33 +63,47 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     address.line ~ capacitive_sensor.ADDR_COMM
 
     # Pull-ups / pull-downs
-
+    # Interrupt
     pull_up_interrupt = new Resistor
     pull_up_interrupt.package = "R0402"
     assert pull_up_interrupt.resistance within 10 kohm +/- 5%
+    interrupt.reference ~ power
     interrupt.line ~> pull_up_interrupt ~> interrupt.reference.hv
 
+    # Reset
     pull_down_reset = new Resistor
     pull_down_reset.package = "R0402"
     assert pull_down_reset.resistance within 10 kohm +/- 5%
+    reset.reference ~ power
     reset.line ~> pull_down_reset ~> reset.reference.lv
 
-    pull_down_address = new Resistor
-    pull_down_address.package = "R0402"
-    assert pull_down_address.resistance within 10 kohm +/- 5%
-    address.line ~> pull_down_address ~> address.reference.lv
+    # Address
+    # Table 4-1: ADDR_COMM Pin Decode
+    # | Connection | Protocol Used  | SMBus Address |
+    # |----------|----------------|---------------|
+    # | GND      | 4-wire SPI     | n/a           |
+    # | 56k      | 3-wire SPI     | n/a           |
+    # | 68k      | Reserved       | n/a           |
+    # | 82k      | SMBus / I2C    | 0101_100(r/w) |
+    # | 100k     | SMBus / I2C    | 0101_011(r/w) |
+    # | 120k     | SMBus / I2C    | 0101_010(r/w) |
+    # | 150k     | SMBus / I2C    | 0101_001(r/w) |
+    # | VDD      | SMBus / I2C    | 0101_000(r/w) |
+    address.reference ~ power
+    address.required = True
 
-    pull_up_scl = new Resistor
-    pull_up_scl.package = "R0603"
-    assert pull_up_scl.resistance within 10 kohm +/- 5%
-    i2c.scl.line ~> pull_up_scl ~> i2c.scl.reference.hv
+    # Add I2C pullups in application
+    # pull_up_scl = new Resistor
+    # pull_up_scl.package = "R0603"
+    # assert pull_up_scl.resistance within 10 kohm +/- 5%
+    # i2c.scl.line ~> pull_up_scl ~> i2c.scl.reference.hv
 
-    pull_up_sda = new Resistor
-    pull_up_sda.package = "R0603"
-    assert pull_up_sda.resistance within 10 kohm +/- 5%
-    i2c.sda.line ~> pull_up_sda ~> i2c.sda.reference.hv
+    # pull_up_sda = new Resistor
+    # pull_up_sda.package = "R0603"
+    # assert pull_up_sda.resistance within 10 kohm +/- 5%
+    # i2c.sda.line ~> pull_up_sda ~> i2c.sda.reference.hv
 
-    # Pads
+    # Capacitive sensor pads
     capacitive_sensor.CS1 ~ pads[0].line
     capacitive_sensor.CS2 ~ pads[1].line
     capacitive_sensor.CS3 ~ pads[2].line
@@ -83,3 +112,13 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     capacitive_sensor.CS6 ~ pads[5].line
     capacitive_sensor.CS7 ~ pads[6].line
     capacitive_sensor.CS8 ~ pads[7].line
+
+    # LEDs
+    capacitive_sensor.LED1 ~ leds[0].line
+    capacitive_sensor.LED2 ~ leds[1].line
+    capacitive_sensor.LED3 ~ leds[2].line
+    capacitive_sensor.LED4 ~ leds[3].line
+    capacitive_sensor.LED5 ~ leds[4].line
+    capacitive_sensor.LED6 ~ leds[5].line
+    capacitive_sensor.LED7 ~ leds[6].line
+    capacitive_sensor.LED8 ~ leds[7].line
