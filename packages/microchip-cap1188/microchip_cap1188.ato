@@ -90,7 +90,7 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     # | 150k     | SMBus / I2C    | 0101_001(r/w) |
     # | VDD      | SMBus / I2C    | 0101_000(r/w) |
     address.reference ~ power
-    address.required = True
+    address.line.required = True
 
     # Add I2C pullups in application
     # pull_up_scl = new Resistor
@@ -122,3 +122,21 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     capacitive_sensor.LED6 ~ leds[5].line
     capacitive_sensor.LED7 ~ leds[6].line
     capacitive_sensor.LED8 ~ leds[7].line
+
+module CAP1188_Example:
+    # from "atopile/microchip-cap1188/microchip_cap1188.ato" import Microchip_Tech_CAP1188_1_CP_TR_driver
+
+    import I2C
+    import ElectricPower
+    import Resistor
+
+    touch_sensor = new Microchip_Tech_CAP1188_1_CP_TR_driver
+
+    power_3v3 = new ElectricPower
+
+    power_3v3 ~ touch_sensor.power
+
+    address_select = new Resistor
+    address_select.package = "R0402"
+    address_select.resistance = 0 ohm +/- 0.05 ohm
+    touch_sensor.address.line ~> address_select ~> power_3v3.lv # 4w spi
