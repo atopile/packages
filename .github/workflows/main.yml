@@ -16,7 +16,7 @@ jobs:
       - name: Discover Packages
         id: packages
         run: |
-          echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | grep 'microchip-cap1188' | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+          echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
 
   test-and-publish:
     permissions:
@@ -42,21 +42,8 @@ jobs:
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - id: build
-        run: ato build
+      - run: ato build
         working-directory: ${{ matrix.package }}
-        continue-on-error: true
-
-      - name: Upload layouts
-        if: steps.build.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: layouts
-          path: ${{ matrix.package }}/build/builds/default/default.*.kicad_pcb
-
-      - name: Check build status
-        if: steps.build.outcome == 'failure'
-        run: exit 1
 
       # Publish package
       - uses: atopile/publish-package@v1
