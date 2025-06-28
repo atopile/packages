@@ -1,5 +1,6 @@
 import I2S
 import I2C
+import ElectricLogic
 import ElectricPower
 import DifferentialPair
 
@@ -10,6 +11,7 @@ module Micro:
     power_3v3 = new ElectricPower
     i2s = new I2S
     i2c = new I2C
+    clock_out = new ElectricLogic
 
 module XLR:
     balanced = new DifferentialPair
@@ -32,6 +34,7 @@ module Example:
     # Connect data
     micro.i2c ~ dac.i2c
     micro.i2s ~ dac.i2s
+    micro.clock_out ~ dac.master_clock
 
     # Connect outputs
     dac.outputs[0] ~ xlrs[0].balanced
