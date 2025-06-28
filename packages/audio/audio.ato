@@ -3,12 +3,17 @@ import Resistor
 import DifferentialPair
 import ElectricSignal
 
+from "parts/BOOMELE_AV_5/BOOMELE_AV_5.ato" import BOOMELE_AV_5_package
+from "parts/HOOYA_DIN_323PP/HOOYA_DIN_323PP.ato" import HOOYA_DIN_323PP_package
+from "parts/HOOYA_DIN_327/HOOYA_DIN_327.ato" import HOOYA_DIN_327_package
 from "parts/SHOU_HAN_PJ_320D/SHOU_HAN_PJ_320D.ato" import SHOU_HAN_PJ_320D_package
 from "parts/Texas_Instruments_NE5532ADR/Texas_Instruments_NE5532ADR.ato" import Texas_Instruments_NE5532ADR_package
 
 # System Audio Analog Electrical Balanced XLR XLR_c
 
+# ------------------------------------------------------------------------------
 # INTERFACES
+# ------------------------------------------------------------------------------
 interface SystemAudioStereo:
     l = new Audio
     r = new Audio
@@ -44,40 +49,88 @@ interface ClearCom:
     power = new ElectricPower
     duplex_audio = new ElectricSignal
 
-interface AudioBalanced from DifferentialPair:
-    p.reference ~ n.reference
+interface AudioBalanced:
+    dp = new DifferentialPair
+    dp.p.reference ~ dp.n.reference
+    # carries<Audio>
 
-# CONNECTORS
-module ConnectorXLR3Receptacle:
+# ------------------------------------------------------------------------------
+# XLR CONNECTORS
+# ------------------------------------------------------------------------------
+module XLR3Header:
+    """
+        XLR 3 Pin Male Header
+    """
     signal pin1
     signal pin2
     signal pin3
+    signal gnd
 
+    package = new HOOYA_DIN_327_package
+    package.1 ~ pin1
+    package.2 ~ pin2
+    package.3 ~ pin3
+    package.G ~ gnd
+
+module XLR3HeaderBalanced from XLR3Header:
+    """
+        XLR 3 Pin Male Header wired for one balanced audio channel
+    """
     balanced = new AudioBalanced
-    balanced.p.line ~ pin2
-    balanced.n.line ~ pin3
-    balanced.p.reference.gnd ~ pin1
+    balanced.dp.p.line ~ pin2
+    balanced.dp.n.line ~ pin3
+    balanced.dp.p.reference.gnd ~ pin1
 
+module XLR3Receptacle:
+    """
+        XLR 3 Pin Female Socket Receptacle
+    """
+    signal pin1
+    signal pin2
+    signal pin3
+    signal gnd
+
+    package = new HOOYA_DIN_323PP_package
+    package.1 ~ pin1
+    package.2 ~ pin2
+    package.3 ~ pin3
+    package.G ~ gnd
+
+module XLR3ReceptacleBalanced from XLR3Receptacle:
+    """
+        XLR 3 Pin Female Socket Receptacle wired for one balanced audio channel
+    """
+    balanced = new AudioBalanced
+    balanced.dp.p.line ~ pin2
+    balanced.dp.n.line ~ pin3
+    balanced.dp.p.reference.gnd ~ pin1
+
+module XLR3ReceptacleDMX from XLR3Receptacle:
     dmx = new DMX
     dmx.data.p.line ~ pin3
     dmx.data.n.line ~ pin2
     dmx.data.p.reference.gnd ~ pin1
     dmx.data.n.reference.gnd ~ pin1
 
-    clear_com = new ClearCom
-    clear_com.power.gnd ~ pin1
-    clear_com.power.vcc ~ pin2
-    clear_com.duplex_audio.line ~ pin3
-
+# ------------------------------------------------------------------------------
+# RCA CONNECTORS
+# ------------------------------------------------------------------------------
 module RCAReceptacle:
-    # Female RCA Receptacle
     signal inner_sleeve
     signal outer_shell
 
+    package = new BOOMELE_AV_5_package
+    package.1 ~ inner_sleeve
+    package.2 ~ outer_shell
+
+module RCAReceptacleSingleEnded from RCAReceptacle:
     line = new ElectricSignal
     line.line ~ inner_sleeve
     line.reference.gnd ~ outer_shell
 
+# ------------------------------------------------------------------------------
+# TRS CONNECTORS
+# ------------------------------------------------------------------------------
 module TRSReceptacle:
     signal tip
     signal ring
@@ -131,11 +184,3 @@ module TRRSReceptacleMicrophone from TRRSReceptacle:
     sleeve ~ microphone.reference.gnd
     sleeve ~ left.reference.gnd
     sleeve ~ right.reference.gnd
-
-module ACDiffPairToSingleEndedBuffer:
-    """
-        Buffer a differential pair to a single ended signal
-    """
-    differential_in = new DifferentialPair
-    single_ended_out = new ElectricSignal
-    opamps_package = new Texas_Instruments_NE5532ADR_package
