@@ -112,6 +112,7 @@ module Analog_Devices_ADAU145x_driver:
     model = new Analog_Devices_ADAU145x_model
 
     power = new ElectricPower
+    power.required = True
 
     # connect thermal pad
     model.package.EP ~ power.lv
@@ -200,7 +201,7 @@ module Analog_Devices_ADAU145x_driver:
     output_debug_resistor.resistance = 0ohm +/- 0.05
     output_debug_resistor.package = "R0603"
 
-    bjt_pnp = new BJT # LCSC C426844	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
+    bjt_pnp = new BJT #	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
     bjt_pnp.doping_type = "PNP"
     bjt_pnp.lcsc_id = "C426844"
     model.package.IOVDD[0] ~ bjt_pnp.emitter
@@ -218,3 +219,11 @@ module Analog_Devices_ADAU145x_driver:
     oscillator_driver.r_damp.package = "0402"
     oscillator_driver.c_load[0].package = "0402"
     oscillator_driver.c_load[1].package = "0402"
+
+    # Passthrough required
+    reset_disable = new ElectricLogic
+    pll_mclk = new ElectricLogic
+    reset_disable ~ model.reset_disable
+    pll_mclk.line ~ model.pll_mclk
+    reset_disable.required = True
+    pll_mclk.required = True

@@ -160,7 +160,9 @@ module Analog_Devices_ADAU145x_model:
 
     # TODO PLL
     pll_mclk = new Electrical
+    pll_mclk.required = True
     pll_filter = new Electrical
+    pll_filter.required = True
     pll_clock_out = new Electrical
 
     pll_mclk ~ package.XTALIN_MCLK
@@ -172,6 +174,7 @@ module Analog_Devices_ADAU145x_model:
     selfboot_enable = new ElectricLogic
 
     reset_disable.line ~ package.nRESET
+    reset_disable.required = True
     selfboot_enable.line ~ package.SELFBOOT
     
     # logic references
