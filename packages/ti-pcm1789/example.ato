@@ -1,21 +1,17 @@
-# TI PCM1789 2-CH I2S Audio DAC
-
-## Usage
-
-```ato
-
 import I2S
 import I2C
+import ElectricLogic
 import ElectricPower
 import DifferentialPair
 
-from "atopile/ti-pcm1789/ti-pcm1789.ato" import Texas_Instruments_PCM1789_driver
+from "ti-pcm1789.ato" import Texas_Instruments_PCM1789_driver
 
 
 module Micro:
     power_3v3 = new ElectricPower
     i2s = new I2S
     i2c = new I2C
+    clock_out = new ElectricLogic
 
 module XLR:
     balanced = new DifferentialPair
@@ -43,14 +39,3 @@ module Example:
     # Connect outputs
     dac.outputs[0] ~ xlrs[0].balanced
     dac.outputs[1] ~ xlrs[1].balanced
-
-
-```
-
-## Contributing
-
-Contributions to this package are welcome via pull requests on the GitHub repository.
-
-## License
-
-This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
