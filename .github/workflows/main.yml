@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: layouts
-          path: build/builds/default/default.*.kicad_pcb
+          path: ${{ matrix.package }}/build/builds/default/default.*.kicad_pcb
 
       - name: Check build status
         if: steps.build.outcome == 'failure'
