@@ -80,6 +80,16 @@ module Texas_Instruments_TAS5825MRHBR_driver:
     output_a = new DifferentialPair
     output_b = new DifferentialPair
 
+    # Required interfaces
+    i2c.required = True
+    i2s.required = True
+    power_pvdd.required = True
+    power_dvdd.required = True
+
+    # Power rail voltages
+    assert power_pvdd.voltage within 4.5V to 26.5V
+    assert power_dvdd.voltage within 2.7V to 5.5V
+
     # Components
     amplifier = new Texas_Instruments_TAS5825MRHBR_package
     output_stage_a = new OutputStage
@@ -90,6 +100,8 @@ module Texas_Instruments_TAS5825MRHBR_driver:
     avdd_cap = new Capacitor
 
     # Connect all references
+    for logic in [fault, mute, warn, pdn]:
+        logic.reference ~ power_dvdd
 
     # Connect output stages
     amplifier.OUT_Apos ~ output_stage_a.input.p.line
