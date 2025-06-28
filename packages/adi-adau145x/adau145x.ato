@@ -96,7 +96,7 @@ module _OscillatorDriver:
     # x.c = c**2 / 2*c + c_stray
     # x.c = c / 2 + c_stray
     assert xtal.load_capacitance within load_capacitance / 2 + c_stray
-    assert load_capacitance within 2 * (xtal.load_capacitance - c_stray) 
+    assert load_capacitance within 2 * (xtal.load_capacitance - c_stray)
 
     for c in c_load:
         assert c.capacitance within load_capacitance * (1 +/- 10%)
@@ -192,7 +192,7 @@ module Analog_Devices_ADAU145x_driver:
     oscillator_driver = new _OscillatorDriver
     model.xtal_in ~> oscillator_driver ~> model.xtal_out
     oscillator_driver.ground ~ power.lv
-    
+
     # power supply
     # power_io IOVDD, reference voltage for digital input output, externally supplied, max current 47mA
     # power_analog AVDD, powers DSP core, optionally can be derived using internal LDO, max current 2mA
@@ -216,7 +216,7 @@ module Analog_Devices_ADAU145x_driver:
     vdrive_min_load_res.resistance = 1kohm +/- 5%
     vdrive_min_load_res.package = "R0402"
     model.package.IOVDD[0] ~> vdrive_min_load_res ~> model.package.VDRIVE
-    
+
     # parts
     oscillator_driver.xtal -> TAE_TXM12_288M0004322FBCDO00T_driver
     oscillator_driver.r_damp.package = "0402"
