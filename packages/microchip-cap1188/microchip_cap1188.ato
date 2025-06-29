@@ -92,16 +92,11 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     address.reference ~ power
     address.line.required = True
 
-    # Add I2C pullups in application
-    # pull_up_scl = new Resistor
-    # pull_up_scl.package = "R0603"
-    # assert pull_up_scl.resistance within 10 kohm +/- 5%
-    # i2c.scl.line ~> pull_up_scl ~> i2c.scl.reference.hv
-
-    # pull_up_sda = new Resistor
-    # pull_up_sda.package = "R0603"
-    # assert pull_up_sda.resistance within 10 kohm +/- 5%
-    # i2c.sda.line ~> pull_up_sda ~> i2c.sda.reference.hv
+    # Address select - TODO: implement addressor module
+    address_select = new Resistor
+    address_select.package = "R0402"
+    assert address_select.resistance within 0 ohm to 200kohm
+    address.line ~> address_select ~> power.lv
 
     # Capacitive sensor pads
     capacitive_sensor.CS1 ~ pads[0].line
@@ -126,17 +121,13 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
 module CAP1188_Example:
     # from "atopile/microchip-cap1188/microchip_cap1188.ato" import Microchip_Tech_CAP1188_1_CP_TR_driver
 
-    import I2C
     import ElectricPower
     import Resistor
 
     touch_sensor = new Microchip_Tech_CAP1188_1_CP_TR_driver
 
     power_3v3 = new ElectricPower
-
     power_3v3 ~ touch_sensor.power
 
-    address_select = new Resistor
-    address_select.package = "R0402"
-    address_select.resistance = 0 ohm +/- 0.05 ohm
-    touch_sensor.address.line ~> address_select ~> power_3v3.lv # 4w spi
+    # Select address
+    touch_sensor.address_select.resistance = 82kohm +/- 2%
