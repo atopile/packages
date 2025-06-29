@@ -97,11 +97,16 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     # address.reference ~ power
     # address.line.required = True
 
+
     # Address select - TODO: implement addressor module
     address_select = new Resistor
     address_select.package = "R0402"
     assert address_select.resistance within 0 ohm to 200kohm
     address.line ~> address_select ~> power.lv
+
+    # Select address (hardcoded for now)
+    address_select.resistance = 100kohm +/- 2%
+    i2c.address = 0x2B
 
     # Capacitive sensor pads
     capacitive_sensor.CS1 ~ pads[0].line
@@ -133,6 +138,3 @@ module CAP1188_Example:
 
     power_3v3 = new ElectricPower
     power_3v3 ~ touch_sensor.power
-
-    # Select address
-    touch_sensor.address_select.resistance = 82kohm +/- 2%
