@@ -116,6 +116,7 @@ module Analog_Devices_ADAU145x_driver:
 
     power = new ElectricPower
     power.required = True
+    assert power.voltage within 3.3V +/- 10%
 
     # connect thermal pad
     model.package.EP ~ power.lv
