@@ -133,8 +133,12 @@ module CAP1188_Example:
 
     import ElectricPower
     import Resistor
+    import I2C
 
     touch_sensor = new Microchip_Tech_CAP1188_1_CP_TR_driver
 
     power_3v3 = new ElectricPower
     power_3v3 ~ touch_sensor.power
+
+    i2c = new I2C
+    i2c ~ touch_sensor.i2c
