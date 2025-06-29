@@ -36,6 +36,7 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     capacitive_sensor = new Microchip_Tech_CAP1188_1_CP_TR_package
 
     assert power.voltage within 3V to 3.6V
+    power.required = True
     power.hv ~ capacitive_sensor.VDD
     power.lv ~ capacitive_sensor.GND
 
@@ -61,6 +62,10 @@ module Microchip_Tech_CAP1188_1_CP_TR_driver:
     reset.line ~ capacitive_sensor.RESET
     interrupt.line ~ capacitive_sensor.nALERT_nBC_IRQ
     address.line ~ capacitive_sensor.ADDR_COMM
+
+    # want to say either i2c or spi is required
+    i2c.required = True
+    # spi.required = True
 
     # Pull-ups / pull-downs
     # Interrupt
