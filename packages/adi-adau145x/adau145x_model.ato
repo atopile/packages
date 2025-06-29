@@ -14,6 +14,7 @@ import I2C
 import ElectricLogic
 import I2S
 import ElectricSignal
+import Addressor
 
 module Analog_Devices_ADAU145x_model:
     package = new Analog_Devices_ADAU145x_package_family
@@ -77,11 +78,20 @@ module Analog_Devices_ADAU145x_model:
 
     i2c_address_bits[0].line ~ package.SS_ADDR0
     i2c_address_bits[1].line ~ package.MOSI_ADDR1
+    for i2c_address_bit in i2c_address_bits:
+        i2c_address_bit.reference_shim ~ power_io
+
+    addressor = new Addressor<address_bits=2>
+    addressor.address_lines[0] ~ i2c_address_bits[0]
+    addressor.address_lines[1] ~ i2c_address_bits[1]
+    addressor.base = 0x38
+    assert i2c.address is addressor.address
+    # i2c.address.required = True # want required parameters
 
     i2c_master = new I2C
 
-    i2c.scl.line ~ package.SCL_M_SCLK_M_MP2
-    i2c.sda.line ~ package.SDA_M_MISO_M_MP3
+    i2c_master.scl.line ~ package.SCL_M_SCLK_M_MP2
+    i2c_master.sda.line ~ package.SDA_M_MISO_M_MP3
 
     i2s_ins = new I2S[4]
     i2s_outs = new I2S[4]
