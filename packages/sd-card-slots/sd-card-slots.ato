@@ -138,7 +138,8 @@ from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
 
 module PushPushMicroSDSPI_Example:
     esp32 = new ESP32_C3_WROOM
-    sd_card = new PushPushMicroSDSPI
+    sd_card = new PushPullSDSPI
+    micro_sd_card = new PushPushMicroSDSPI
     usbc = new USBCConn
     ldo_3v3 = new TLV75901_driver
 
@@ -165,3 +166,19 @@ module PushPushMicroSDSPI_Example:
     sd_bypass_cap.capacitance = 100 nF +/- 20%
     sd_bypass_cap.package = "C0402"
     sd_bypass_cap.power ~ sd_card.power
+
+    # Connect micro SD Card
+    micro_sd_card.spi ~ esp32.spi[0]
+    micro_sd_card.spi_cs ~ esp32.spi_cs[1]
+    micro_pullups = new Resistor[3]
+    for pullup in micro_pullups:
+        pullup.resistance = 10 kohm +/- 5%
+        pullup.package = "R0402"
+    micro_sd_card.spi.miso.line ~> micro_pullups[0] ~> esp32.power.hv
+    micro_sd_card.spi.mosi.line ~> micro_pullups[1] ~> esp32.power.hv
+    micro_sd_card.spi.sclk.line ~> micro_pullups[2] ~> esp32.power.hv
+
+    micro_sd_bypass_cap = new Capacitor
+    micro_sd_bypass_cap.capacitance = 100 nF +/- 20%
+    micro_sd_bypass_cap.package = "C0402"
+    micro_sd_bypass_cap.power ~ micro_sd_card.power
