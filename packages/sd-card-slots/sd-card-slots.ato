@@ -1,0 +1,167 @@
+import SPI, ElectricPower, ElectricSignal, ElectricLogic
+from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_package
+from "parts/XUNPU_SD_102/XUNPU_SD_102.ato" import XUNPU_SD_102_package
+
+# microSD card slots
+## Push Push
+module PushPushMicroSD:
+    """
+        Push push microSD card slot, card is spring loaded
+    """
+    package = new Korean_Hroparts_Elec_TF_01A_package
+
+    power = new ElectricPower
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
+    power.gnd ~ package.GND
+
+module PushPushMicroSDSPI from PushPushMicroSD:
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    power ~ spi.sclk.reference
+    spi.miso.line ~ package.DAT0D0
+    spi.mosi.line ~ package.CMDDI
+    spi.sclk.line ~ package.CLKSCLK
+    spi_cs.line ~ package.CDDAT3CS
+
+module PushPushMicroSD4bit from PushPushMicroSDSPI:
+    sd_4bit = new SD4bit
+    sd_4bit.clk ~ package.CLKSCLK
+    sd_4bit.cmd ~ package.CMDDI
+    sd_4bit.data0 ~ package.DAT0D0
+    sd_4bit.data1 ~ package.DAT1RSV
+    sd_4bit.data2 ~ package.DAT2RSV
+    sd_4bit.cd_data3 ~ package.CDDAT3CS
+    sd_4bit.gnd ~ package.GND
+
+module PushPushMicroSDUHS1 from PushPushMicroSD:
+    uhs1 = new UHS1
+    uhs1.clk ~ package.CLKSCLK
+    uhs1.cmd ~ package.CMDDI
+    uhs1.data0 ~ package.DAT0D0
+    uhs1.data1 ~ package.DAT1RSV
+    uhs1.data2 ~ package.DAT2RSV
+    uhs1.cd_data3 ~ package.CDDAT3CS
+    uhs1.gnd ~ package.GND
+
+# Push Pull
+# TODO: Add PushPull variant (not spring loaded)
+module PushPullMicroSDSPI:
+    pass
+
+# Standard/Full-size SD card slots
+# TODO: Add PushPush variant (spring loaded)
+module PushPullSD:
+    """
+        Push push full-size SD card slot, card is spring loaded
+    """
+    package = new XUNPU_SD_102_package
+
+    power = new ElectricPower
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS1
+    power.gnd ~ package.VSS2
+    power.gnd ~ package.EP
+
+    write_protect = new ElectricLogic
+    write_protect.line ~ package.nWP
+
+module PushPullSDSPI from PushPullSD:
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    power ~ spi.sclk.reference
+    spi.miso.line ~ package.DAT0
+    spi.mosi.line ~ package.CMD
+    spi.sclk.line ~ package.CLK
+    spi_cs.line ~ package.CD_DAT3
+
+module PushPullSD4bit from PushPullSD:
+    sd_4bit = new SD4bit
+    sd_4bit.clk ~ package.CLK
+    sd_4bit.cmd ~ package.CMD
+    sd_4bit.data0 ~ package.DAT0
+    sd_4bit.data1 ~ package.DAT1
+    sd_4bit.data2 ~ package.DAT2
+    sd_4bit.cd_data3 ~ package.CD_DAT3
+    sd_4bit.gnd ~ power.gnd
+
+module PushPullSDUHS1 from PushPullSD:
+    uhs1 = new UHS1
+    uhs1.clk ~ package.CLK
+    uhs1.cmd ~ package.CMD
+    uhs1.data0 ~ package.DAT0
+    uhs1.data1 ~ package.DAT1
+    uhs1.data2 ~ package.DAT2
+    uhs1.cd_data3 ~ package.CD_DAT3
+    uhs1.gnd ~ power.gnd
+
+
+# SD Card interfaces
+interface SD4bit:
+    signal data0
+    signal data1
+    signal data2
+    signal cd_data3
+    signal clk
+    signal cmd
+    signal gnd
+
+# UHS-1 104Mbps
+# UHS-2 312Mbps
+# UHS-3 624Mbps
+interface UHS1:
+    signal data0
+    signal data1
+    signal data2
+    signal cd_data3
+    signal clk
+    signal cmd
+    signal gnd
+
+interface UHS2:
+    pass
+
+interface UHS3:
+    pass
+
+interface SDExpress:
+    pass
+    # PCIe
+
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Resistor, Capacitor
+from "atopile/esp32/esp32_c3.ato" import ESP32_C3_WROOM
+# from "atopile/sd-card-slots/sd-card-slots.ato" import PushPushMicroSDSPI
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+
+module PushPushMicroSDSPI_Example:
+    esp32 = new ESP32_C3_WROOM
+    sd_card = new PushPushMicroSDSPI
+    usbc = new USBCConn
+    ldo_3v3 = new TLV75901_driver
+
+    # Configure LDO
+    ldo_3v3.v_in = 5V +/- 5%
+    ldo_3v3.v_out = 3.3V +/- 3%
+
+    # Connect USB
+    usbc.usb2 ~ esp32.usb2
+    usbc.usb2.usb_if.buspower ~> ldo_3v3 ~> esp32.power
+
+    # Connect SD Card
+    sd_card.spi ~ esp32.spi[0]
+    sd_card.spi_cs ~ esp32.spi_cs[0]
+    pullups = new Resistor[3]
+    for pullup in pullups:
+        pullup.resistance = 10 kohm +/- 5%
+        pullup.package = "R0402"
+    sd_card.spi.miso.line ~> pullups[0] ~> esp32.power.hv
+    sd_card.spi.mosi.line ~> pullups[1] ~> esp32.power.hv
+    sd_card.spi.sclk.line ~> pullups[2] ~> esp32.power.hv
+
+    sd_bypass_cap = new Capacitor
+    sd_bypass_cap.capacitance = 100 nF +/- 20%
+    sd_bypass_cap.package = "C0402"
+    sd_bypass_cap.power ~ sd_card.power
