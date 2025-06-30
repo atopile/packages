@@ -3,7 +3,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("MODULE_TEMPLATING")
 
-import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0, JTAG, ElectricLogic, Inductor, SWD, MultiSPI
+import ElectricPower, Capacitor, Resistor, SPI, I2C, USB2_0, JTAG, ElectricLogic, Inductor, SWD, MultiSPI, UART
 
 from "atopile/buttons/buttons.ato" import ButtonPullup, ButtonSKRPACE010
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
@@ -17,10 +17,10 @@ module NRF5340_driver:
     This is an nrf5340 module.
     """
     package = new Nordic_Semicon_NRF5340_QKAA_R_package
-    
+
     signal gnd
     gnd ~ package.VSS
-    
+
     power_vdd = new ElectricPower
     power_vdd.vcc ~ package.VDD
     power_vdd.gnd ~ gnd
@@ -89,8 +89,14 @@ module NRF5340_driver:
     swd.reset.reference ~ power_vdd
 
     # I2C
+    i2cs = new I2C[4]
+
+    # UART
+    uarts = new UART[4]
 
     # I2S
+
+    # NFC
 
     # QSPI
     qspi = new MultiSPI<data_lane_count=4>
@@ -177,7 +183,7 @@ module NRF5340_BUCK from NRF5340_driver:
     vdd_buck_decouple_cap.package = "C0805"
     vdd_buck_decouple_cap.power.vcc ~ package.L1
     vdd_buck_decouple_cap.power.gnd ~ gnd
-    
+
     # Internal Regulator Buck Converters
     # VREG MAIN
     vreg_main_buck_ind = new Sunlord_MCL1608S100MT_driver
@@ -187,7 +193,7 @@ module NRF5340_BUCK from NRF5340_driver:
     vreg_main_decouple_cap.package = "C0402"
     vreg_main_decouple_cap.power.vcc ~ package.DECD
     vreg_main_decouple_cap.power.gnd ~ gnd
-    
+
     # VREG RADIO
     vreg_radio_buck_ind = new Sunlord_MCL1608S100MT_driver
     package.DCCR ~> vreg_radio_buck_ind ~> package.DECR
