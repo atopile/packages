@@ -49,9 +49,9 @@ module TLV75901_driver from AdjustableRegulator:
     enable_divider = new ResistorVoltageDivider
     enable_divider.power ~ power_in
     enable_divider.output ~ enable
-    enable_divider.v_in = v_in
+    assert enable_divider.v_in is v_in
     assert enable_divider.v_out within 1.25V to 1.5V
-    enable_divider.total_resistance = 100kohm to 200kohm
+    enable_divider.r_top.resistance = 100kohm to 200kohm
     enable_divider.r_top.package = "R0402"
     enable_divider.r_bottom.package = "R0402"
 
@@ -62,6 +62,9 @@ module TLV75901_driver from AdjustableRegulator:
     feedback_div.r_top.resistance = 10kohm +/- 5%
     feedback_div.r_top.package = "R0402"
     feedback_div.r_bottom.package = "R0402"
+
+from "atopile/buttons/buttons.ato" import ButtonPulldown
+from "atopile/buttons/buttons.ato" import ButtonSKRPACE010
 
 module Test:
     # Create LDO
@@ -81,3 +84,9 @@ module Test:
     # Connect to regulator (Interfaces)
     power_in ~ ldo.power_in
     power_out ~ ldo.power_out
+
+    # Disable button
+    disable_button = new ButtonPulldown
+    disable_button.btn -> ButtonSKRPACE010
+    disable_button.output ~ ldo.enable
+    disable_button.pulldown.resistance = 1kohms +/- 20%
