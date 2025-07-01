@@ -33,6 +33,7 @@ module Knowles_SPH0641LU4H_1_driver from MicrophoneI2S:
 
     decoupling_capacitor = new Capacitor
     decoupling_capacitor.package = "C0402"
+    # assert decoupling_capacitor.temperature_coefficient is "C0G" # should specify C0G to avoid piezoelectric affect according to datasheet
     assert decoupling_capacitor.max_voltage >= power.voltage * 1.5
     assert decoupling_capacitor.capacitance within 100 nF +/- 30%
     power.hv ~> decoupling_capacitor ~> power.lv
