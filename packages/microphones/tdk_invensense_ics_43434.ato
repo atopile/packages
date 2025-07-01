@@ -1,0 +1,57 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Capacitor
+import ElectricPower
+import Resistor
+import I2S
+
+from "microphone.ato" import MicrophoneI2S
+
+from "parts/TDK_InvenSense_ICS_43434/TDK_InvenSense_ICS_43434.ato" import TDK_InvenSense_ICS_43434_package
+
+module TDK_InvenSense_ICS_43434_driver from MicrophoneI2S:
+    """
+    The ICS-43434 is digital I2S output bottom port microphone. The
+    complete ICS-43434 solution consists of a MEMS sensor, signal
+    conditioning, an analog-to-digital converter, decimation and
+    antialiasing filters, power management, and an industry standard
+    24-bit I²S interface. The I²S interface allows the
+    ICS-43434 to connect directly to digital processors, such as DSPs
+    and microcontrollers, without the need for an audio codec in the
+    system.
+    """
+    package = new TDK_InvenSense_ICS_43434_package
+
+    assert power.voltage within 1.65V to 3.63V
+    assert i2s.sample_rate within 32 kHz to 64 kHz
+    assert i2s.bit_depth is 24 bit
+
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    i2s.sck.line ~ package.SCK
+    i2s.ws.line ~ package.WS
+    i2s.sd.line ~ package.SD
+
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.package = "C0402"
+    assert decoupling_capacitor.max_voltage >= power.voltage * 1.5
+    assert decoupling_capacitor.capacitance within 100 nF +/- 30%
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    sd_pulldown_resistor = new Resistor
+    sd_pulldown_resistor.package = "R0402"
+    assert sd_pulldown_resistor.resistance within 100 kohm +/- 1%
+    i2s.sd.line ~> sd_pulldown_resistor ~> power.lv
+
+module TDK_InvenSense_ICS_43434_example:
+    """
+    Minimal example of how to use the TDK InvenSense ICS-43434 I2S microphone.
+    """
+    #from "atopile/microphones/tdk_invensense_ics_43434.ato" import TDK_InvenSense_ICS_43434_driver
+
+    microphone = new TDK_InvenSense_ICS_43434_driver
+
+    power_3v3 = new ElectricPower
+    power_3v3 ~ microphone.power
+
+    i2s = new I2S
+    i2s ~ microphone.i2s
