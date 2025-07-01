@@ -1,0 +1,48 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Capacitor
+import ElectricPower
+import PDM
+
+from "microphone.ato" import MicrophonePDM
+
+from "parts/LinkMems_LMD2718T261_OA1/LinkMems_LMD2718T261_OA1.ato" import LinkMems_LMD2718T261_OA1_package
+
+module LinkMems_LMD2718T261_OA1_driver from MicrophonePDM:
+    """
+    The LMD2718T MEMS Microphones are integrated with specialized Pre-amplification ASIC
+    to provide high sensitivity, high SNR output from a capacitive audio sensor. It's packaged for
+    surface mounting and high temperature reflow assembly. Data format is a single bit PDM.
+    """
+    package = new LinkMems_LMD2718T261_OA1_package
+
+    #1.62V to 3.6V
+    assert power.voltage within 1.8V * (1 + (-0.1 to 2))
+
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    pdm.data.line ~ package.DATA
+    pdm.clock.line ~ package.CLK
+    pdm.select.line ~ package.L_R
+
+    pdm.select.line.required = True
+
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.package = "C0402"
+    assert decoupling_capacitor.max_voltage >= power.voltage * 1.5
+    assert decoupling_capacitor.capacitance within 100 nF +/- 30%
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+module LinkMems_LMD2718T261_OA1_example:
+    """
+    Minimal example of how to use the LinkMems LMD2718T261-OA1 PDM microphone.
+    """
+    #from "atopile/microphones/linkmems_ldm2718t261_oa1.ato" import LinkMems_LMD2718T261_OA1_driver
+
+    microphone = new LinkMems_LMD2718T261_OA1_driver
+
+    power_3v3 = new ElectricPower
+    power_3v3 ~ microphone.power
+
+    pdm = new PDM
+    pdm ~ microphone.pdm
+    microphone.pdm.select.line ~ power_3v3.lv
