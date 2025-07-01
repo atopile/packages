@@ -1,0 +1,32 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Battery
+import ElectricPower
+
+from "parts/EEMB_BATTERY_LP402535/EEMB_BATTERY_LP402535.ato" import EMB_BATTERY_LP402535_package
+
+module LP402535_driver from Battery:
+    """
+    LP402535 is a 3.6V lithium-ion battery with a capacity of 320mAh.
+    """
+    package = new EMB_BATTERY_LP402535_package
+    power = new ElectricPower
+    power.required = True
+
+    power.lv ~ package.GND
+    power.hv ~ package.VDD
+
+    assert voltage within 2.750V to 4.200V
+    assert capacity within 300mAh to 320mAh
+
+module LP402535_Example:
+    """
+    Minimal example of how to use the LP402535 battery.
+    """
+    #from "atopile/batteries/eemb_battery_lp402535.ato" import LP402535_driver
+
+    battery = new LP402535_driver
+
+    power_3v3 = new ElectricPower
+    power_3v3 ~ battery.power
