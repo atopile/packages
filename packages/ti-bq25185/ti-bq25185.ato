@@ -1,0 +1,75 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+from "can_bridge_by_name.py" import can_bridge_by_name
+
+from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
+
+
+module BQ24185:
+    """
+    BQ24185 1A, Single-Input, Single Cell Li-Ion and Li-Pol Battery Charger With Power Path
+    """
+    package = new BQ25185DLHR_BQ25185DLHR_package
+
+    # Parameters
+    charge_current: Current
+
+    # Power Interfaces
+    power_vbus = new ElectricPower
+    power_sys = new ElectricPower
+    power_batt = new ElectricPower
+
+    # Required interfaces
+    power_vbus.required = True
+    power_sys.required = True
+    power_batt.required = True
+
+    # Power rail voltages
+    assert power_vbus.voltage within 3V to 18V
+    assert power_sys.voltage within 1.8V to 4.5V
+    assert power_batt.voltage within 1.8V to 4.4V
+    # Max VSYS current = 3.125A
+
+    # Power package connections
+    power_vbus.vcc ~ package.IN
+    power_sys.vcc ~ package.SYS
+    power_batt.vcc ~ package.BAT
+    power_vbus.gnd ~ package.GND
+    power_sys.gnd ~ package.GND
+    power_batt.gnd ~ package.GND
+    package.GND ~ package.EP
+
+    # Control/Status
+    stat = new ElectricLogic[2]
+    n_charge_enable = new ElectricLogic
+    ilim_vset = new ElectricLogic
+    temp_sense_manual_reset = new ElectricLogic
+
+    # Connect to package
+    n_charge_enable.line ~ package.nCE
+    ilim_vset.line ~ package.ILIM_VSET
+    temp_sense_manual_reset.line ~ package.TS_MR
+    stat[0].line ~ package.STAT1
+    stat[1].line ~ package.STAT2
+
+    # Charge enable is active low - pull high to disable
+    charge_enable_resistor = new Resistor
+    charge_enable_resistor.resistance = 10kohm +/- 10%
+    charge_enable_resistor.package = "R0402"
+    n_charge_enable.line ~> charge_enable_resistor ~> power_sys.gnd
+
+    # Input current and battery voltage limit configuration
+    ilim_vset_resistor = new Resistor
+    ilim_vset_resistor.resistance = 10kohm +/- 10%
+    ilim_vset_resistor.package = "R0402"
+    ilim_vset.line ~> ilim_vset_resistor ~> power_sys.gnd
+
+    #
+    k_iset = 300 A*Ω
+    r_iset_nominal = k_iset / charge_current
