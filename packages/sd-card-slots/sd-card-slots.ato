@@ -1,6 +1,7 @@
 import SPI, ElectricPower, ElectricSignal, ElectricLogic
 from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_package
 from "parts/XUNPU_SD_102/XUNPU_SD_102.ato" import XUNPU_SD_102_package
+from "parts/SOFNG_SD_006M/SOFNG_SD_006M.ato" import SOFNG_SD_006M_package
 
 # microSD card slots
 ## Push Push
@@ -58,7 +59,7 @@ module PushPullMicroSDSPI:
 # TODO: Add PushPush variant (spring loaded)
 module PushPullSD:
     """
-        Push push full-size SD card slot, card is spring loaded
+        Push pull full-size SD card slot, card is not spring loaded
     """
     package = new XUNPU_SD_102_package
 
@@ -105,6 +106,55 @@ module PushPullSDUHS1 from PushPullSD:
     uhs1.cd_data3 ~ package.CD_DAT3
     uhs1.gnd ~ power.gnd
 
+module PushPushSD:
+    """
+        Push push full-size SD card slot, card is spring loaded
+    """
+    package = new SOFNG_SD_006M_package
+
+    power = new ElectricPower
+    power.vcc ~ package.VDD
+    power.gnd ~ package.Vss1
+    power.gnd ~ package.Vss2
+    power.gnd ~ package.12
+    power.gnd ~ package.13
+
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100 nF +/- 20%
+    bypass_cap.package = "C0402"
+    bypass_cap.power ~ power
+
+    write_protect = new ElectricLogic
+    write_protect.line ~ package.WP
+
+module PushPushSDSPI from PushPushSD:
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    power ~ spi.sclk.reference
+    spi.miso.line ~ package.DAT0
+    spi.mosi.line ~ package.CMD
+    spi.sclk.line ~ package.CLK
+    spi_cs.line ~ package.CD_DAT3
+
+module PushPushSD4bit from PushPushSD:
+    sd_4bit = new SD4bit
+    sd_4bit.clk ~ package.CLK
+    sd_4bit.cmd ~ package.CMD
+    sd_4bit.data0 ~ package.DAT0
+    sd_4bit.data1 ~ package.DAT1
+    sd_4bit.data2 ~ package.DAT2
+    sd_4bit.cd_data3 ~ package.CD_DAT3
+    sd_4bit.gnd ~ power.gnd
+
+module PushPushSDUHS1 from PushPushSD:
+    uhs1 = new UHS1
+    uhs1.clk ~ package.CLK
+    uhs1.cmd ~ package.CMD
+    uhs1.data0 ~ package.DAT0
+    uhs1.data1 ~ package.DAT1
+    uhs1.data2 ~ package.DAT2
+    uhs1.cd_data3 ~ package.CD_DAT3
+    uhs1.gnd ~ power.gnd
 
 # SD Card interfaces
 interface SD4bit:
@@ -173,11 +223,6 @@ module PushPushMicroSDSPI_Example:
     sd_card.spi.mosi.line ~> pullups[1] ~> esp32.power.hv
     sd_card.spi.sclk.line ~> pullups[2] ~> esp32.power.hv
 
-    sd_bypass_cap = new Capacitor
-    sd_bypass_cap.capacitance = 100 nF +/- 20%
-    sd_bypass_cap.package = "C0402"
-    sd_bypass_cap.power ~ sd_card.power
-
     # Connect micro SD Card
     micro_sd_card.spi ~ esp32.spi[2]
     micro_sd_card.spi_cs ~ esp32.gpios[3]
@@ -189,8 +234,3 @@ module PushPushMicroSDSPI_Example:
     micro_sd_card.spi.miso.line ~> micro_pullups[0] ~> esp32.power.hv
     micro_sd_card.spi.mosi.line ~> micro_pullups[1] ~> esp32.power.hv
     micro_sd_card.spi.sclk.line ~> micro_pullups[2] ~> esp32.power.hv
-
-    micro_sd_bypass_cap = new Capacitor
-    micro_sd_bypass_cap.capacitance = 100 nF +/- 20%
-    micro_sd_bypass_cap.package = "C0402"
-    micro_sd_bypass_cap.power ~ micro_sd_card.power
