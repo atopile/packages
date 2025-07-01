@@ -15,6 +15,11 @@ module PushPushMicroSD:
     power.gnd ~ package.VSS
     power.gnd ~ package.GND
 
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100 nF +/- 20%
+    bypass_cap.package = "C0402"
+    bypass_cap.power ~ power
+
 module PushPushMicroSDSPI from PushPushMicroSD:
     spi = new SPI
     spi_cs = new ElectricSignal
@@ -62,6 +67,11 @@ module PushPullSD:
     power.gnd ~ package.VSS1
     power.gnd ~ package.VSS2
     power.gnd ~ package.EP
+
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100 nF +/- 20%
+    bypass_cap.package = "C0402"
+    bypass_cap.power ~ power
 
     write_protect = new ElectricLogic
     write_protect.line ~ package.nWP
@@ -152,8 +162,9 @@ module PushPushMicroSDSPI_Example:
     usbc.usb2.usb_if.buspower ~> ldo_3v3 ~> esp32.power
 
     # Connect SD Card
-    sd_card.spi ~ esp32.spi[0]
-    sd_card.spi_cs ~ esp32.spi_cs[0]
+    sd_card.spi ~ esp32.spi[2]
+    sd_card.spi_cs ~ esp32.spi_cs[2]
+    sd_card.power ~ esp32.power
     pullups = new Resistor[3]
     for pullup in pullups:
         pullup.resistance = 10 kohm +/- 5%
@@ -168,8 +179,9 @@ module PushPushMicroSDSPI_Example:
     sd_bypass_cap.power ~ sd_card.power
 
     # Connect micro SD Card
-    micro_sd_card.spi ~ esp32.spi[0]
-    micro_sd_card.spi_cs ~ esp32.spi_cs[1]
+    micro_sd_card.spi ~ esp32.spi[2]
+    micro_sd_card.spi_cs ~ esp32.gpios[3]
+    micro_sd_card.power ~ esp32.power
     micro_pullups = new Resistor[3]
     for pullup in micro_pullups:
         pullup.resistance = 10 kohm +/- 5%
