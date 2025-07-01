@@ -81,7 +81,7 @@ module ButtonPulldown:
 
 module TestPullupPulldownButtons:
     """
-    Test module for buttons
+    Test module for pullup/pulldown buttons
     """
     # Create example signals
     config_pins = new ElectricSignal[2]
@@ -99,6 +99,9 @@ module TestPullupPulldownButtons:
     config_pins[1] ~ btn_pulldown_horizontal.output
 
 module TestButtons:
+    """
+    Test module for direct use of horizontal and vertical buttons
+    """
     config_pins = new ElectricSignal[2]
     power = new ElectricPower
     for config_pin in config_pins:
