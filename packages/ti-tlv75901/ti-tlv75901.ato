@@ -4,34 +4,23 @@ import Resistor
 import Capacitor
 import ElectricLogic
 import ElectricPower
+import ResistorVoltageDivider
 
 from "regulators.ato" import AdjustableRegulator
-
-component TLV75901PDRVR_package:
-    # component TLV75901PDRVR
-    # 1A LDO, 1.5V to 6V input, 0.55V to 5.5V output
-    lcsc_id = "C544759"
-
-    # pins
-    signal OUT ~ pin 1
-    signal FB ~ pin 2
-    signal GND ~ pin 3
-    signal EN ~ pin 4
-    signal DNC ~ pin 5
-    signal IN ~ pin 6
-    signal EP ~ pin 7
+from "parts/TI_TLV75901PDRVR/TI_TLV75901PDRVR.ato" import TI_TLV75901PDRVR_package
 
 module TLV75901_driver from AdjustableRegulator:
     """
     LDO regulator with adjustable output voltage
     controled via a DAC with I2C interface
     """
-    package = new TLV75901PDRVR_package
+    package = new TI_TLV75901PDRVR_package
 
     # Configure parameters
     assert power_in.voltage within 1.5V to 6V
     assert power_out.voltage within 0.55V to 5.5V
     assert v_ref is 0.55V +/- 0.1%
+    assert v_in - v_out >= 0.225V
 
     # Connections
     power_in.vcc ~ package.IN
@@ -44,15 +33,28 @@ module TLV75901_driver from AdjustableRegulator:
     output_cap_1 = new Capacitor
     output_cap_1.capacitance = 1uF +/- 10%
     output_cap_1.package = "C0402"
-    power_out ~ output_cap_1.power
+    power_in ~ output_cap_1.power
+
+    # input cap
+    input_cap_1 = new Capacitor
+    input_cap_1.capacitance = 1uF +/- 10%
+    input_cap_1.package = "C0402"
+    power_out ~ input_cap_1.power
 
     # Enable
+    # Active high above 1V, on by default, pull below 0.3V to disable output
     enable = new ElectricLogic
-    enable_resistor = new Resistor
-    enable_resistor.resistance = 10kohm +/- 5%
-    enable_resistor.package = "R0402"
-    enable.line ~ enable_resistor.p1
-    enable_resistor.p2 ~ package.EN
+    enable.line ~ package.EN
+    enable.reference.lv ~ power_in.lv
+    enable_divider = new ResistorVoltageDivider
+    enable_divider.power ~ power_in
+    enable_divider.output ~ enable
+    assert enable_divider.v_in is v_in
+    assert enable_divider.v_out within 1.25V to 1.5V
+    enable_divider.r_top.resistance = 100kohm to 200kohm
+    enable_divider.r_top.package = "R0402"
+    enable_divider.r_bottom.package = "R0402"
+
 
     # Feedback
     power_out ~ feedback_div.power
@@ -60,6 +62,9 @@ module TLV75901_driver from AdjustableRegulator:
     feedback_div.r_top.resistance = 10kohm +/- 5%
     feedback_div.r_top.package = "R0402"
     feedback_div.r_bottom.package = "R0402"
+
+from "atopile/buttons/buttons.ato" import ButtonPulldown
+from "atopile/buttons/buttons.ato" import VerticalButton
 
 module Test:
     # Create LDO
@@ -79,3 +84,9 @@ module Test:
     # Connect to regulator (Interfaces)
     power_in ~ ldo.power_in
     power_out ~ ldo.power_out
+
+    # Disable button
+    disable_button = new ButtonPulldown
+    disable_button.button.button -> VerticalButton
+    disable_button.output ~ ldo.enable
+    disable_button.pulldown.resistance = 1kohms +/- 20%
