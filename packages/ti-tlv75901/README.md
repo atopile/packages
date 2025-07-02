@@ -1,6 +1,6 @@
-# Relays
+# TLV75901 LDO
 
-Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
+TLV75901 LDO Regulator with adjustable output voltage
 
 ## Usage
 
@@ -9,6 +9,8 @@ Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
 import ElectricPower
 
 from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+from "atopile/buttons/buttons.ato" import ButtonPulldown
+from "atopile/buttons/buttons.ato" import VerticalButton
 
 module Test:
     # Create LDO
@@ -28,6 +30,12 @@ module Test:
     # Connect to regulator (Interfaces)
     power_in ~ ldo.power_in
     power_out ~ ldo.power_out
+
+    # Disable button
+    disable_button = new ButtonPulldown
+    disable_button.button.button -> VerticalButton
+    disable_button.output ~ ldo.enable
+    disable_button.pulldown.resistance = 1kohms +/- 20%
 
 ```
 
