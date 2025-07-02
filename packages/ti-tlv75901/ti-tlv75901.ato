@@ -64,7 +64,7 @@ module TLV75901_driver from AdjustableRegulator:
     feedback_div.r_bottom.package = "R0402"
 
 from "atopile/buttons/buttons.ato" import ButtonPulldown
-from "atopile/buttons/buttons.ato" import ButtonSKRPACE010
+from "atopile/buttons/buttons.ato" import VerticalButton
 
 module Test:
     # Create LDO
@@ -87,6 +87,6 @@ module Test:
 
     # Disable button
     disable_button = new ButtonPulldown
-    disable_button.btn -> ButtonSKRPACE010
+    disable_button.button.button -> VerticalButton
     disable_button.output ~ ldo.enable
     disable_button.pulldown.resistance = 1kohms +/- 20%
