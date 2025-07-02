@@ -1,28 +1,34 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import Capacitor
 import ElectricPower
 import ElectricLogic
+import can_bridge_by_name
 from "parts/OPSCO_SK6805_EC20/OPSCO_SK6805_EC20.ato" import OPSCO_SK6805_EC20_package
 
-from "bridgable_logic.py" import BridgableLogic
 
 component SK6805EC20_package from OPSCO_SK6805_EC20_package:
     pass
 
-module SK6805EC20_driver from BridgableLogic:
+module SK6805EC20_driver:
     package = new SK6805EC20_package
     power = new ElectricPower
 
     power.vcc ~ package.VDD
     power.gnd ~ package.GND
 
+    data_in = new ElectricLogic
+    data_out = new ElectricLogic
+
     data_in.line ~ package.DIN
     data_out.line ~ package.DOUT
 
     power ~ data_in.reference
     power ~ data_out.reference
+
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
 
     # decouple power
     cap = new Capacitor
