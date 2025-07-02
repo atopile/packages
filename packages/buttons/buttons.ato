@@ -11,10 +11,6 @@ import ElectricPower
 import has_single_electric_reference_shared
 import can_bridge_by_name
 
-from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010_driver.ato" import ALPSALPINE_SKRPACE010_button_driver
-from "parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010_driver.ato" import ALPSALPINE_SKTDLDE010_button_driver
-
-
 module Button:
     """
         Momentary switch with two terminals connecting 2x Electricals
@@ -119,3 +115,25 @@ module TestButtons:
 
     # Connect second button to pull config_pins[1] to hv through 10k
     config_pins[1].line ~> btn_vertical ~> pull_resistors[1] ~> power.hv
+
+
+# TODO: Move these drivers to separate files
+from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
+
+module ALPSALPINE_SKRPACE010_button_driver from Button:
+    package = new ALPSALPINE_SKRPACE010_package
+    # pins
+    input ~ package.1
+    input ~ package.2
+    output ~ package.3
+    output ~ package.4
+
+from "parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010.ato" import ALPSALPINE_SKTDLDE010_package
+
+module ALPSALPINE_SKTDLDE010_button_driver from Button:
+    package = new ALPSALPINE_SKTDLDE010_package
+    # pins
+    input ~ package.1
+    output ~ package.2
+    # package.3 mechanical
+    # package.4 mechanical
