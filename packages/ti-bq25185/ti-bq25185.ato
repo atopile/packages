@@ -10,6 +10,8 @@ import can_bridge_by_name
 import PoweredLED
 import has_single_electric_reference_shared
 
+from "atopile/buttons/buttons.ato" import HorizontalButton
+
 from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
 from "ResistanceMapper.py" import ResistanceMapper
 
@@ -140,13 +142,13 @@ module BQ25185_example:
 
     # Charge indicator
     charge_led = new PoweredLED
-    power_system.vcc ~> charge_led ~> battery_charger.status[1].line
+    power_system.hv ~> charge_led ~> battery_charger.status[1].line
     charge_led.current_limiting_resistor.resistance = 10kohm +/- 10%
     charge_led.led.lcsc_id = "C2288"
 
     # Fault indicator
     fault_led = new PoweredLED
-    power_system.vcc ~> fault_led ~> battery_charger.status[0].line
+    power_system.hv ~> fault_led ~> battery_charger.status[0].line
     fault_led.current_limiting_resistor.resistance = 10kohm +/- 10%
     fault_led.led.lcsc_id = "C12624"
 
@@ -156,6 +158,5 @@ module BQ25185_example:
     battery_charger.temperature_sense_manual_reset_control.line ~> temp_sensor ~> power_system.gnd
 
     # Factory mode button
-    # factory_mode_button = new Button
-    # factory_mode_button.output ~> battery_charger.temperature_sense_manual_reset_control
-    # factory_mode_button.reference ~> battery_charger.temperature_sense_manual_reset_control.reference
+    factory_mode_button = new HorizontalButton
+    power_system.lv ~> factory_mode_button ~> battery_charger.temperature_sense_manual_reset_control.line
