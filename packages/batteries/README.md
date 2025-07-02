@@ -1,33 +1,25 @@
-# Microchip CAP1188 Capacitive Touch Sensor
-
-## Interfaces
-
-- power
-- i2c
-- spi
+# Batteries
 
 ## Usage
 
 ```ato
-    from "atopile/microchip-cap1188/microchip_cap1188.ato" import Microchip_Tech_CAP1188_1_CP_TR_driver
+from "atopile/batteries/eemb_battery_lp402535.ato" import LP402535_driver
 
-    import ElectricPower
+import ElectricPower
 
 module App:
+    battery = new LP402535_driver
+    connector = new MOLEX_532610271_package
 
-    touch_sensor = new Microchip_Tech_CAP1188_1_CP_TR_driver
-
-    power_3v3 = new ElectricPower
-    power_3v3 ~ touch_sensor.power
-
-    # Select address
-    touch_sensor.address_select.resistance = 82kohm +/- 2%
-
+    power_battery = new ElectricPower
+    power_battery ~ battery.power
+    power_battery.hv ~ connector.2
+    power_battery.lv ~ connector.1
 ```
 
 ## Overview
 
-This package contains a driver for the Microchip CAP1188 capacitive touch sensor.
+This package contains the base for various battery types and battery implementations.
 
 ## Contributing
 
