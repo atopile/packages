@@ -1,0 +1,50 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import can_bridge_by_name
+
+from "parts/OPSCO_Optoelectronics_SK6805SIDE_G_001/OPSCO_Optoelectronics_SK6805SIDE_G_001.ato" import OPSCO_Optoelectronics_SK6805SIDE_G_001_package
+
+module SK6805Side_driver:
+    package = new OPSCO_Optoelectronics_SK6805SIDE_G_001_package
+    power = new ElectricPower
+
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
+
+    data_in = new ElectricLogic
+    data_out = new ElectricLogic
+
+    data_in.line ~ package.DIN
+    data_out.line ~ package.DOUT
+
+    power ~ data_in.reference
+    power ~ data_out.reference
+
+    # decouple power
+    cap = new Capacitor
+    power ~ cap.power
+    cap.package = "C0402"
+    cap.capacitance = 100nF +/- 20%
+
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+
+module Test:
+    leds = new SK6805Side_driver[10]
+
+    # Create ElectricPower
+    power = new ElectricPower
+
+    # Connect power to each LED
+    for led in leds:
+        power ~ led.power
+
+    # Create ElectricLogic
+    data_in = new ElectricLogic
+
+    data_in ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> leds[5] ~> leds[6] ~> leds[7] ~> leds[8] ~> leds[9]
