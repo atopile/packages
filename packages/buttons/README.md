@@ -5,6 +5,13 @@ Implements vertical and horizontal momentary switches as well as a pullup and pu
 ## Usage
 
 ```ato
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricSignal
+import ElectricPower
+import Resistor
+
 from "atopile/buttons/buttons.ato" import ButtonPullup
 from "atopile/buttons/buttons.ato" import ButtonDown
 from "atopile/buttons/buttons.ato" import VerticalButton
