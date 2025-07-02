@@ -7,6 +7,8 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import can_bridge_by_name
+import PoweredLED
+import has_single_electric_reference_shared
 
 from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
 from "ResistanceMapper.py" import ResistanceMapper
@@ -27,7 +29,7 @@ module BQ25185_driver:
     power_sys = new ElectricPower
     power_batt = new ElectricPower
 
-    trait can_bridge_by_name<input_name= "power_batt", output_name= "power_sys">
+    trait can_bridge_by_name<input_name= "power_vbus", output_name= "power_batt">
 
     # Required interfaces
     power_vbus.required = True
@@ -77,6 +79,8 @@ module BQ25185_driver:
     charge_current_limit_control = new ElectricSignal
     temperature_sense_manual_reset_control = new ElectricSignal
 
+    #trait has_single_electric_reference_shared<exclude=["power_vbus","power_batt"], gnd_only=True>
+
     # Connect to package
     charge_enable.line ~ package.nCE
     input_current_voltage_control.line ~ package.ILIM_VSET
@@ -122,11 +126,36 @@ module BQ25185_example:
     power_battery = new ElectricPower
     power_system = new ElectricPower
 
-    power_battery ~> battery_charger ~> power_system
-    power_usb ~ battery_charger.power_vbus
+    power_usb.voltage = 5V +/- 5%
+    battery_charger.input_current_limit = 500mA
 
-    power_battery.voltage = 3.0V to 4.2V # mimic that a battery is connected
+    power_usb ~> battery_charger ~> power_battery
+    power_system ~ battery_charger.power_sys
+
+    # mimic that a battery is connected
+    power_battery.voltage = 3.0V to 4.2V
+    battery_capacity = 300mAh
+    battery_charger.charge_current_limit = battery_capacity / 1h # 1C charge rate
     battery_charger.battery_voltage_limit = power_battery.voltage
 
-    battery_charger.input_current_limit = 1100mA
-    battery_charger.charge_current_limit = 200mA
+    # Charge indicator
+    charge_led = new PoweredLED
+    power_system.vcc ~> charge_led ~> battery_charger.status[1].line
+    charge_led.current_limiting_resistor.resistance = 10kohm +/- 10%
+    charge_led.led.lcsc_id = "C2288"
+
+    # Fault indicator
+    fault_led = new PoweredLED
+    power_system.vcc ~> fault_led ~> battery_charger.status[0].line
+    fault_led.current_limiting_resistor.resistance = 10kohm +/- 10%
+    fault_led.led.lcsc_id = "C12624"
+
+    # Temperature sensor - 10k ohm NTC
+    temp_sensor = new Resistor
+    temp_sensor.lcsc_id = "C2892547"
+    battery_charger.temperature_sense_manual_reset_control.line ~> temp_sensor ~> power_system.gnd
+
+    # Factory mode button
+    # factory_mode_button = new Button
+    # factory_mode_button.output ~> battery_charger.temperature_sense_manual_reset_control
+    # factory_mode_button.reference ~> battery_charger.temperature_sense_manual_reset_control.reference
