@@ -6,18 +6,15 @@ import Capacitor
 import ElectricPower
 import ElectricLogic
 import can_bridge_by_name
-from "parts/OPSCO_SK6805_EC20/OPSCO_SK6805_EC20.ato" import OPSCO_SK6805_EC20_package
 
+from "parts/OPSCO_Optoelectronics_SK6805SIDE_G_001/OPSCO_Optoelectronics_SK6805SIDE_G_001.ato" import OPSCO_Optoelectronics_SK6805SIDE_G_001_package
 
-component SK6805EC20_package from OPSCO_SK6805_EC20_package:
-    pass
-
-module SK6805EC20_driver:
-    package = new SK6805EC20_package
+module SK6805Side_driver:
+    package = new OPSCO_Optoelectronics_SK6805SIDE_G_001_package
     power = new ElectricPower
 
     power.vcc ~ package.VDD
-    power.gnd ~ package.GND
+    power.gnd ~ package.VSS
 
     data_in = new ElectricLogic
     data_out = new ElectricLogic
@@ -28,16 +25,17 @@ module SK6805EC20_driver:
     power ~ data_in.reference
     power ~ data_out.reference
 
-    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
-
     # decouple power
     cap = new Capacitor
     power ~ cap.power
     cap.package = "C0402"
     cap.capacitance = 100nF +/- 20%
 
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+
 module Test:
-    leds = new SK6805EC20_driver[10]
+    leds = new SK6805Side_driver[10]
 
     # Create ElectricPower
     power = new ElectricPower
