@@ -1,6 +1,6 @@
-# Relays
+# TLV75901 LDO
 
-Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
+TLV75901 LDO Regulator with adjustable output voltage
 
 ## Usage
 
