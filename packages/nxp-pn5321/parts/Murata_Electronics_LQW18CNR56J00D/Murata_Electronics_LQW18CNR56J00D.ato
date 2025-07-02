@@ -1,0 +1,26 @@
+#pragma experiment("TRAITS")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+import Inductor
+
+component Murata_Electronics_LQW18CNR56J00D_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    trait is_auto_generated<system="ato_part", source="easyeda:C91630", date="2025-06-27T20:47:46.345344+00:00", checksum="f0f24f36ea654d1ba746b3a418f035c02cd08461f3a2444e77d7f4db1123f85f">
+
+    trait is_atomic_part<manufacturer="Murata Electronics", partnumber="LQW18CNR56J00D", footprint="IND-SMD_L1.6-W0.8-1.kicad_mod", symbol="LQW18CNR56J00D.kicad_sym", model="IND-SMD_L1.6-W0.8-1.STEP">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C91630", manufacturer="Murata Electronics", partno="LQW18CNR56J00D">
+    trait has_designator_prefix<prefix="L">
+
+    # pins
+    pin 2
+    pin 1
+
+module Murata_Electronics_LQW18CNR56J00D_driver from Inductor:
+    package = new Murata_Electronics_LQW18CNR56J00D_package
+    unnamed[0] ~ package.1
+    unnamed[1] ~ package.2
+    inductance = 560nH +/- 5%
+    max_current = 450mA

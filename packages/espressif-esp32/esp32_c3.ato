@@ -18,7 +18,7 @@ import UART
 import ElectricLogic
 import FilterElectricalRC
 
-from "atopile/buttons/buttons.ato" import ButtonPulldown, ButtonSKRPACE010
+from "atopile/buttons/buttons.ato" import ButtonPulldown, VerticalButton
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/Espressif_Systems_ESP32_C3_WROOM_02_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_H4/Espressif_Systems_ESP32_C3_WROOM_02_H4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_H4_package
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02U_N4/Espressif_Systems_ESP32_C3_WROOM_02U_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
@@ -75,7 +75,7 @@ module ESP32_C3_WROOM:
 
     # reset button
     reset_button = new ButtonPulldown
-    reset_button.btn -> ButtonSKRPACE010
+    reset_button.button.button -> VerticalButton
     reset_button.output ~ enable
     reset_button.pulldown.resistance = 100ohm +/- 20%
     reset_button.pulldown.package = "R0402"
@@ -87,7 +87,7 @@ module ESP32_C3_WROOM:
 
     # Boot Button
     boot_button = new ButtonPulldown
-    boot_button.btn -> ButtonSKRPACE010
+    boot_button.button.button -> VerticalButton
     boot_button.output ~ boot
     boot_button.pulldown.resistance = 100ohm +/- 20%
     boot_button.pulldown.package = "R0402"
