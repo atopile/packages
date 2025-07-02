@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Skip all jobs if PR is in draft
-    if: github.event.pull_request.draft == false || github.base_ref == "main"
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
 
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
