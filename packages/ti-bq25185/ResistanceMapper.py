@@ -7,7 +7,7 @@ from faebryk.libs.library import L
 from faebryk.libs.units import P
 
 
-class ResistorWithMapping(Module):
+class ResistanceMapper(Module):
     resistor: F.Resistor
     input_current_limit = L.p_field(units=P.A)
     battery_voltage_limit = L.p_field(units=P.V)

@@ -9,7 +9,7 @@ import ElectricSignal
 import can_bridge_by_name
 
 from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
-from "ResistorWithMapping.py" import ResistorWithMapping
+from "ResistanceMapper.py" import ResistanceMapper
 
 module BQ25185_driver:
     """
@@ -92,7 +92,7 @@ module BQ25185_driver:
     charge_enable.line ~> charge_enable_resistor ~> power_sys.gnd
 
     # Input current and battery voltage limit configuration
-    input_current_voltage_control_resistor = new ResistorWithMapping
+    input_current_voltage_control_resistor = new ResistanceMapper
     input_current_voltage_control_resistor.resistor.package = "R0402"
     input_current_voltage_control.line ~> input_current_voltage_control_resistor ~> power_sys.gnd
     input_current_voltage_control_resistor.input_current_limit = input_current_limit
