@@ -1,0 +1,205 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import has_single_electric_reference_shared
+import DifferentialPair
+import ElectricLogic
+import ElectricPower
+import Inductor
+import Capacitor
+import I2C
+import I2S
+import Resistor
+
+# from "tas-addressor.py" import TAS_addressor
+from "parts/Texas_Instruments_TAS5825MRHBR/Texas_Instruments_TAS5825MRHBR.ato" import Texas_Instruments_TAS5825MRHBR_package
+
+module OutputStage:
+    """
+    Output stage for the TAS5825MRHBR amplifier
+    """
+
+    output = new DifferentialPair
+    input = new DifferentialPair
+    bootstrap = new DifferentialPair
+    reference = new ElectricPower
+
+    inductor_pos = new Inductor
+    inductor_neg = new Inductor
+    bootstrap_pos = new Capacitor
+    bootstrap_neg = new Capacitor
+    output_cap_pos = new Capacitor
+    output_cap_neg = new Capacitor
+
+    input.p.line ~> inductor_pos ~> output.p.line
+    input.n.line ~> inductor_neg ~> output.n.line
+    bootstrap.p.line ~> bootstrap_pos ~> input.p.line
+    bootstrap.n.line ~> bootstrap_neg ~> input.n.line
+    output.p.line ~> output_cap_pos ~> reference.lv
+    output.n.line ~> output_cap_neg ~> reference.lv
+
+    inductor_pos.lcsc_id = "C167223"
+    inductor_neg.lcsc_id = "C167223"
+
+    assert bootstrap_pos.capacitance within 470 nF +/- 10%
+    assert bootstrap_neg.capacitance within 470 nF +/- 10%
+    assert bootstrap_pos.max_voltage >= 30V
+    assert bootstrap_neg.max_voltage >= 30V
+
+    bootstrap_pos.package = "C0603"
+    bootstrap_neg.package = "C0603"
+
+    assert output_cap_pos.capacitance within 680 nF +/- 10%
+    assert output_cap_neg.capacitance within 680 nF +/- 10%
+    assert output_cap_pos.max_voltage >= 30V
+    assert output_cap_neg.max_voltage >= 30V
+
+    output_cap_pos.package = "C0805"
+    output_cap_neg.package = "C0805"
+
+
+module Texas_Instruments_TAS5825MRHBR_driver:
+    """
+    Texas Instruments TAS5825MRHBR audio amplifier driver
+
+    Datasheet: https://www.lcsc.com/datasheet/lcsc_datasheet_1912202033_Texas-Instruments-TAS5825MRHBR_C471049.pdf
+    """
+
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    # Power
+    power_pvdd = new ElectricPower
+    power_dvdd = new ElectricPower
+
+    i2c = new I2C
+    i2s = new I2S
+    fault = new ElectricLogic
+    mute = new ElectricLogic
+    warn = new ElectricLogic
+    pdn = new ElectricLogic
+    output_a = new DifferentialPair
+    output_b = new DifferentialPair
+
+    # Required interfaces
+    i2c.required = True
+    i2s.required = True
+    power_pvdd.required = True
+    power_dvdd.required = True
+
+    # Power rail voltages
+    assert power_pvdd.voltage within 4.5V to 26.5V
+    assert power_dvdd.voltage within 2.7V to 5.5V
+
+    # Components
+    amplifier = new Texas_Instruments_TAS5825MRHBR_package
+    output_stage_a = new OutputStage
+    output_stage_b = new OutputStage
+    vr_dig_cap = new Capacitor
+    gvdd_cap = new Capacitor
+    avdd_cap = new Capacitor
+
+    # Connect all references
+    for logic in [fault, mute, warn, pdn]:
+        logic.reference ~ power_dvdd
+
+    # Connect output stages
+    amplifier.OUT_Apos ~ output_stage_a.input.p.line
+    amplifier.OUT_Aneg ~ output_stage_a.input.n.line
+    amplifier.OUT_Bpos ~ output_stage_b.input.p.line
+    amplifier.OUT_Bneg ~ output_stage_b.input.n.line
+
+    amplifier.BST_Apos ~ output_stage_a.bootstrap.p.line
+    amplifier.BST_Aneg ~ output_stage_a.bootstrap.n.line
+    amplifier.BST_Bpos ~ output_stage_b.bootstrap.p.line
+    amplifier.BST_Bneg ~ output_stage_b.bootstrap.n.line
+
+    output_stage_a.output ~ output_a
+    output_stage_b.output ~ output_b
+
+    output_stage_a.reference ~ power_dvdd
+    output_stage_b.reference ~ power_dvdd
+
+    # Decoupling capacitors
+    # PVDD decoupling
+    pvdd_caps = new Capacitor[6]
+    for cap in pvdd_caps[:3]:
+        cap.package = "C0805"
+        assert cap.max_voltage >= power_pvdd.voltage * 1.5
+        assert cap.capacitance within 22 uF +/- 20%
+        power_pvdd.hv ~> cap ~> power_pvdd.lv
+
+    for cap in pvdd_caps[3:]:
+        cap.package = "C0402"
+        assert cap.max_voltage >= power_pvdd.voltage * 1.5
+        assert cap.capacitance within 100 nF +/- 20%
+        power_pvdd.hv ~> cap ~> power_pvdd.lv
+
+    # DVDD decoupling
+    dvdd_caps = new Capacitor[2]
+
+    dvdd_caps[0].package = "C0603"
+    assert dvdd_caps[0].max_voltage >= power_dvdd.voltage * 1.5
+    assert dvdd_caps[0].capacitance within 4.7 uF +/- 20%
+    power_dvdd.hv ~> dvdd_caps[0] ~> power_dvdd.lv
+
+    dvdd_caps[1].package = "C0402"
+    assert dvdd_caps[1].max_voltage >= power_dvdd.voltage * 1.5
+    assert dvdd_caps[1].capacitance within 100 nF +/- 20%
+    power_dvdd.hv ~> dvdd_caps[1] ~> power_dvdd.lv
+
+    # Power
+    power_pvdd.hv ~ amplifier.PVDD
+    power_dvdd.hv ~ amplifier.DVDD
+
+    for gnd in [amplifier.PGND, power_pvdd.lv, amplifier.AGND, amplifier.DGND, amplifier.EP]:
+        power_pvdd.lv ~ gnd
+
+    # I2C
+    i2c.scl.line ~ amplifier.SCL
+    i2c.sda.line ~ amplifier.SDA
+
+    # I2S
+    i2s.sck.line ~ amplifier.SCLK
+    i2s.ws.line ~ amplifier.LRCLK
+    i2s.sd.line ~ amplifier.SDIN
+
+    # Control signals
+    fault.line ~ amplifier.GPIO0
+    mute.line ~ amplifier.GPIO1
+    warn.line ~ amplifier.GPIO2
+    pdn.line ~ amplifier.nPDN
+
+    # Pullups for control signals
+    pull_up_fault = new Resistor
+    pull_up_mute = new Resistor
+    pull_up_warn = new Resistor
+    pull_up_pdn = new Resistor
+
+    fault.line ~> pull_up_fault ~> fault.reference.hv
+    mute.line ~> pull_up_mute ~> mute.reference.hv
+    warn.line ~> pull_up_warn ~> warn.reference.hv
+    pdn.line ~> pull_up_pdn ~> pdn.reference.hv
+
+    for pullup in [pull_up_fault, pull_up_mute, pull_up_warn, pull_up_pdn]:
+        pullup.package = "R0402"
+        assert pullup.resistance within 10 kohm +/- 5%
+
+    # Decoupling for internal things
+    amplifier.VR_DIG ~> vr_dig_cap ~> power_pvdd.lv
+    amplifier.GVDD ~> gvdd_cap ~> power_dvdd.lv
+    amplifier.AVDD ~> avdd_cap ~> power_dvdd.lv
+
+    for cap in [vr_dig_cap, gvdd_cap, avdd_cap]:
+        cap.package = "C0402"
+        assert cap.capacitance within 1 uF +/- 20%
+
+    # Address resistor
+    # addressor = new TAS_addressor
+    # addressor.base = 0x4C
+    # assert addressor.address is i2c.address
+    # amplifier.ADR ~> addressor.addr_resistor ~> power_dvdd.lv
+    addr_resistor = new Resistor
+    addr_resistor.package = "R0402"
+    addr_resistor.resistance = 4.7kohm +/- 5%
+    amplifier.ADR ~> addr_resistor ~> power_dvdd.lv
