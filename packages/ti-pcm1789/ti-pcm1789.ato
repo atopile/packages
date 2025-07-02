@@ -1,0 +1,144 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Addressor
+import Resistor
+import Capacitor
+import DifferentialPair
+import I2S
+
+from "parts/Texas_Instruments_PCM1789PWR/Texas_Instruments_PCM1789PWR.ato" import Texas_Instruments_PCM1789PWR_package
+
+module Texas_Instruments_PCM1789_driver:
+    """
+    Texas Instruments PCM1789 2-CH I2S Audio DAC
+    """
+    package = new Texas_Instruments_PCM1789PWR_package
+
+    # Power
+    power_5v = new ElectricPower
+    power_5v.required = True
+    assert power_5v.voltage within 4.5V to 5.5V
+    power_5v.vcc ~ package.VCC1
+    power_5v.vcc ~ package.VCC2
+    power_5v.gnd ~ package.AGND1
+    power_5v.gnd ~ package.AGND2
+
+    power_3v3 = new ElectricPower
+    power_3v3.required = True
+    assert power_3v3.voltage within 3V to 3.6V
+    power_3v3.vcc ~ package.VDD
+    power_3v3.gnd ~ package.DGND
+
+    # connect gnds
+    power_3v3.gnd ~ power_5v.gnd
+
+    # Internal Reference
+    _power_vcom = new ElectricPower
+    _power_vcom.vcc ~ package.VCOM
+    _power_vcom.gnd ~ package.AGND1
+
+    # Decoupling
+    decoupling_1uf = new Capacitor[3]
+    for cap in decoupling_1uf:
+        cap.capacitance = 1uF +/- 10%
+        cap.package = "C0402"
+    # connect decoupling capacitors
+    power_3v3.vcc ~> decoupling_1uf[0] ~> power_3v3.gnd # VDD
+    power_5v.vcc ~> decoupling_1uf[1] ~> power_5v.gnd # VCC1
+    power_5v.vcc ~> decoupling_1uf[2] ~> power_5v.gnd # VCC2
+
+    decoupling_10uf = new Capacitor[4]
+    for cap in decoupling_10uf:
+        cap.capacitance = 10uF +/- 10%
+        cap.package = "C0603"
+    # connect decoupling capacitors
+    power_3v3.vcc ~> decoupling_10uf[0] ~> power_3v3.gnd # VDD
+    power_5v.vcc ~> decoupling_10uf[1] ~> power_5v.gnd # VCC1
+    power_5v.vcc ~> decoupling_10uf[2] ~> power_5v.gnd # VCC2
+    _power_vcom.vcc ~> decoupling_10uf[3] ~> _power_vcom.gnd # VCOM
+
+    # Mode select
+    package.MODE ~ power_3v3.gnd # Short to GND for serial I2C
+
+    # Mute
+    mute_control = new ElectricLogic
+    mute_control.line ~ package.AMUTEI
+    mute_control.reference ~ power_3v3
+
+    mute_control_pullup = new Resistor
+    mute_control_pullup.resistance = 10kohm +/- 5%
+    mute_control_pullup.package = "R0402"
+    mute_control.line ~> mute_control_pullup ~> power_3v3.vcc # Pullup for default no mute
+
+    # Mute status
+    mute_status = new ElectricLogic
+    mute_status.line ~ package.ZERO2_AMUTEO
+    mute_status.reference ~ power_3v3
+
+    mute_status_pullup = new Resistor
+    mute_status_pullup.resistance = 10kohm +/- 5%
+    mute_status_pullup.package = "R0402"
+    mute_status.line ~> mute_status_pullup ~> power_3v3.vcc # AMUTEO active low, open drain output
+
+    # I2C
+    i2c = new I2C
+    i2c.required = True
+    i2c.sda.line ~ package.MD_SDA_DEMP
+    i2c.scl.line ~ package.MC_SCL_FMT
+    i2c.sda.reference ~ power_3v3
+    i2c.scl.reference ~ power_3v3
+
+    # I2C Addressor
+    addressor = new Addressor<address_bits=2>
+    assert i2c.address is addressor.address
+    assert addressor.base is 0x4C
+    addressor.address_lines[1].line ~ package.ADR5_ADR1_RSV
+    addressor.address_lines[0].line ~ package.MS_ADR0_RSV
+
+    # Reset - active low (Defaults to normal operation)
+    reset = new ElectricLogic
+    reset.line ~ package.RST
+    reset.reference ~ power_3v3
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 2%
+    reset_pullup.package = "R0402"
+    reset.line ~> reset_pullup ~> power_3v3.vcc
+
+    # I2S
+    i2s = new I2S
+    i2s.required = True
+    i2s_series_resistors = new Resistor[3]
+    for resistor in i2s_series_resistors:
+        resistor.resistance = 22ohm +/- 2%
+        resistor.package = "R0402"
+    i2s.sd.line ~> i2s_series_resistors[0] ~> package.DIN
+    i2s.ws.line ~> i2s_series_resistors[1] ~> package.LRCK
+    i2s.sck.line ~> i2s_series_resistors[2] ~> package.BCK
+    i2s.sd.reference ~ power_3v3
+    i2s.ws.reference ~ power_3v3
+    i2s.sck.reference ~ power_3v3
+
+    # Master clock
+    master_clock = new ElectricLogic
+    master_clock.required = True
+    master_clock_series_resistor = new Resistor
+    master_clock_series_resistor.resistance = 22ohm +/- 2%
+    master_clock_series_resistor.package = "R0402"
+    master_clock.line ~> master_clock_series_resistor ~> package.SCKI
+    master_clock.reference ~ power_3v3
+
+    # Outputs
+    outputs = new DifferentialPair[2]
+    outputs[0].p.line ~ package.VOUTLpos
+    outputs[0].n.line ~ package.VOUTLneg
+    outputs[1].p.line ~ package.VOUTRpos
+    outputs[1].n.line ~ package.VOUTRneg
+
+    for output in outputs:
+        output.p.reference ~ power_5v
+        output.n.reference ~ power_5v
