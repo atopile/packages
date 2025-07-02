@@ -122,14 +122,14 @@ module Texas_Instruments_TAS5825MRHBR_driver:
 
     # Decoupling capacitors
     # PVDD decoupling
-    pvdd_caps = new Capacitor[6]
-    for cap in pvdd_caps[:3]:
+    pvdd_caps = new Capacitor[9]
+    for cap in pvdd_caps[:6]:
         cap.package = "C0805"
         assert cap.max_voltage >= power_pvdd.voltage * 1.5
-        assert cap.capacitance within 22 uF +/- 20%
+        assert cap.capacitance within 10 uF +/- 20%
         power_pvdd.hv ~> cap ~> power_pvdd.lv
 
-    for cap in pvdd_caps[3:]:
+    for cap in pvdd_caps[6:]:
         cap.package = "C0402"
         assert cap.max_voltage >= power_pvdd.voltage * 1.5
         assert cap.capacitance within 100 nF +/- 20%
