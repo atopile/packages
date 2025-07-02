@@ -1,22 +1,20 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
 
-import Battery
 import ElectricPower
 
-from "parts/EEMB_BATTERY_LP402535/EEMB_BATTERY_LP402535.ato" import EMB_BATTERY_LP402535_package
+from "battery.ato" import BatterySecondary
 
-module LP402535_driver from Battery:
+from "parts/EEMB_BATTERY_LP402535/EEMB_BATTERY_LP402535.ato" import EMB_BATTERY_LP402535_package
+from "parts/MOLEX_532610271/MOLEX_532610271.ato" import MOLEX_532610271_package
+
+module LP402535_driver from BatterySecondary:
     """
     LP402535 is a 3.6V lithium-ion battery with a capacity of 320mAh.
     """
     package = new EMB_BATTERY_LP402535_package
-    power = new ElectricPower
-    power.required = True
 
-    power.lv ~ package.GND
-    power.hv ~ package.VDD
-
+    assert charge_current_max <= 320mA
     assert voltage within 2.750V to 4.200V
     assert capacity within 300mAh to 320mAh
 
@@ -27,6 +25,11 @@ module LP402535_Example:
     #from "atopile/batteries/eemb_battery_lp402535.ato" import LP402535_driver
 
     battery = new LP402535_driver
+    connector = new MOLEX_532610271_package
 
-    power_3v3 = new ElectricPower
-    power_3v3 ~ battery.power
+    power_battery = new ElectricPower
+    power_battery ~ battery.power
+    power_battery.hv ~ connector.2
+    power_battery.lv ~ connector.1
+    power_battery.lv ~ connector.3
+    power_battery.lv ~ connector.4

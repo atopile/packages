@@ -1,0 +1,28 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+
+module Battery:
+    """
+    Battery base
+    """
+    voltage: V
+    capacity: Ah
+    discharge_current_max: A
+
+    power = new ElectricPower
+    power.required = True
+    power.voltage = voltage
+
+module BatteryPrimary from Battery:
+    """
+    Primary batteries can not be charged.
+    """
+    pass
+
+module BatterySecondary from Battery:
+    """
+    Secondary batteries can be charged.
+    """
+    charge_current_max: A
