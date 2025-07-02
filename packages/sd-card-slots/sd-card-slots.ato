@@ -2,164 +2,152 @@ import SPI
 import ElectricPower
 import ElectricSignal
 import ElectricLogic
-from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_package
-from "parts/XUNPU_SD_102/XUNPU_SD_102.ato" import XUNPU_SD_102_package
-from "parts/SOFNG_SD_006M/SOFNG_SD_006M.ato" import SOFNG_SD_006M_package
 
-# microSD card slots
-## Push Push
-module PushPushMicroSD:
+import can_bridge_by_name
+
+from "parts/XUNPU_SD_102/XUNPU_SD_102_driver.ato" import XUNPU_SD_102_driver
+from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A_driver.ato" import Korean_Hroparts_Elec_TF_01A_driver
+from "parts/SOFNG_SD_006M/SOFNG_SD_006M_driver.ato" import SOFNG_SD_006M_driver
+
+module SDSlot:
+    sdbus = new SDBus
+
+module MicroSDSlot from SDSlot:
+    mech_receptacle = new SDMicroSlotMechanicalInterface
+
+module StandardSDSlot from SDSlot:
+    mech_receptacle = new SDStandardSlotMechanicalInterface
+
+module SDSlotDriver:
     """
-    Push push microSD card slot, card is spring loaded
+    SD Card driver module, provides common implementation shared by SD cards.
     """
-    package = new Korean_Hroparts_Elec_TF_01A_package
-
-    power = new ElectricPower
-    power.vcc ~ package.VDD
-    power.gnd ~ package.VSS
-    power.gnd ~ package.GND
-
+    sd_card_interface = new SDInterface
     bypass_cap = new Capacitor
     bypass_cap.capacitance = 100 nF +/- 20%
     bypass_cap.package = "C0402"
-    bypass_cap.power ~ power
+    bypass_cap.power ~ sd_card_interface.power
 
-module PushPushMicroSDSPI from PushPushMicroSD:
+module SDSPI:
+    card = new SDSlot # Replace with sd card driver instance
+
     spi = new SPI
     spi_cs = new ElectricSignal
-    power ~ spi.sclk.reference
-    spi.miso.line ~ package.DAT0D0
-    spi.mosi.line ~ package.CMDDI
-    spi.sclk.line ~ package.CLKSCLK
-    spi_cs.line ~ package.CDDAT3CS
+    card.power ~ spi.sclk.reference
+    spi.miso.line ~ card.sdbus.DAT0
+    spi.mosi.line ~ card.sdbus.CMD
+    spi.sclk.line ~ card.sdbus.CLK
+    spi_cs.line ~ card.sdbus.CD_DAT3
 
-module PushPushMicroSD4bit from PushPushMicroSDSPI:
-    sd_4bit = new SD4bit
-    sd_4bit.clk ~ package.CLKSCLK
-    sd_4bit.cmd ~ package.CMDDI
-    sd_4bit.data0 ~ package.DAT0D0
-    sd_4bit.data1 ~ package.DAT1RSV
-    sd_4bit.data2 ~ package.DAT2RSV
-    sd_4bit.cd_data3 ~ package.CDDAT3CS
-    sd_4bit.gnd ~ package.GND
+module SD:
+    """
+    SD Card module, provides common implementation shared by SD cards.
+    """
+    mech_card = new SDMicroSlotMechanicalInterface
 
-module PushPushMicroSDUHS1 from PushPushMicroSD:
-    uhs1 = new UHS1
-    uhs1.clk ~ package.CLKSCLK
-    uhs1.cmd ~ package.CMDDI
-    uhs1.data0 ~ package.DAT0D0
-    uhs1.data1 ~ package.DAT1RSV
-    uhs1.data2 ~ package.DAT2RSV
-    uhs1.cd_data3 ~ package.CDDAT3CS
-    uhs1.gnd ~ package.GND
-
-# Push Pull
-# TODO: Add PushPull variant (not spring loaded)
-module PushPullMicroSDSPI:
+interface SDMicroSlotMechanicalInterface:
     pass
 
-# Standard/Full-size SD card slots
-# TODO: Add PushPush variant (spring loaded)
-module PushPullSD:
-    """
-        Push pull full-size SD card slot, card is not spring loaded
-    """
-    package = new XUNPU_SD_102_package
+interface SDStandardSlotMechanicalInterface:
+    pass
 
-    power = new ElectricPower
-    power.vcc ~ package.VDD
-    power.gnd ~ package.VSS1
-    power.gnd ~ package.VSS2
-    power.gnd ~ package.EP
+interface SDProtocol:
+    pass
 
-    bypass_cap = new Capacitor
-    bypass_cap.capacitance = 100 nF +/- 20%
-    bypass_cap.package = "C0402"
-    bypass_cap.power ~ power
+module SDTransit:
+    low = new SDLogical
+    high = new SDProtocol
 
-    write_protect = new ElectricLogic
-    write_protect.line ~ package.nWP
+    trait can_bridge_by_name<input_name="low", output_name="high">
 
-module PushPullSDSPI from PushPullSD:
+module SDTransitSPI from SDTransit:
     spi = new SPI
     spi_cs = new ElectricSignal
-    power ~ spi.sclk.reference
-    spi.miso.line ~ package.DAT0
-    spi.mosi.line ~ package.CMD
-    spi.sclk.line ~ package.CLK
-    spi_cs.line ~ package.CD_DAT3
 
-module PushPullSD4bit from PushPullSD:
-    sd_4bit = new SD4bit
-    sd_4bit.clk ~ package.CLK
-    sd_4bit.cmd ~ package.CMD
-    sd_4bit.data0 ~ package.DAT0
-    sd_4bit.data1 ~ package.DAT1
-    sd_4bit.data2 ~ package.DAT2
-    sd_4bit.cd_data3 ~ package.CD_DAT3
-    sd_4bit.gnd ~ power.gnd
+    spi.clk ~ SDLogical.clock
+    spi.miso ~ SDLogical.data
+    spi.mosi ~ SDLogical.command
+    spi_cs ~ SDLogical.chip_select
 
-module PushPullSDUHS1 from PushPullSD:
-    uhs1 = new UHS1
-    uhs1.clk ~ package.CLK
-    uhs1.cmd ~ package.CMD
-    uhs1.data0 ~ package.DAT0
-    uhs1.data1 ~ package.DAT1
-    uhs1.data2 ~ package.DAT2
-    uhs1.cd_data3 ~ package.CD_DAT3
-    uhs1.gnd ~ power.gnd
 
-module PushPushSD:
-    """
-        Push push full-size SD card slot, card is spring loaded
-    """
-    package = new SOFNG_SD_006M_package
 
+
+
+
+interface SDLogical:
+    # This is NOW being used as an SD card
     power = new ElectricPower
-    power.vcc ~ package.VDD
-    power.gnd ~ package.Vss1
-    power.gnd ~ package.Vss2
-    power.gnd ~ package.12
-    power.gnd ~ package.13
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+    data = new ElectricLogic[4]
+    clock = new ElectricLogic
+    chip_select = new ElectricLogic
+    command = new ElectricLogic
 
-    bypass_cap = new Capacitor
+module SDAssembly:
+    """
+    Assembly has both a receptacle and a theoretical SD card in it and nothing else captured as design intent in the model
+    We allow anything that behaves as an SD card, limited by the set of existing operational SD cards, as long as it behaves like an sd card.
+    """
+    low = new SDBus
+    # DRIVER CIRCUITRY
+    bypass_cap = new Capacitor # Are these needed on EEMC? Maybe only in socketed version
     bypass_cap.capacitance = 100 nF +/- 20%
     bypass_cap.package = "C0402"
-    bypass_cap.power ~ power
+    bypass_cap.power ~ sd_card_interface.power
 
-    write_protect = new ElectricLogic
-    write_protect.line ~ package.WP
+module SDAssemblySocketed from SDAssembly:
+    """
 
-module PushPushSDSPI from PushPushSD:
-    spi = new SPI
-    spi_cs = new ElectricSignal
-    power ~ spi.sclk.reference
-    spi.miso.line ~ package.DAT0
-    spi.mosi.line ~ package.CMD
-    spi.sclk.line ~ package.CLK
-    spi_cs.line ~ package.CD_DAT3
+    """
 
-module PushPushSD4bit from PushPushSD:
+module SDReceptacle:
+    sdbus = new SDBus
+
+module SDAssemblyMicroSD from SDAssembly:
+    receptacle = new Korean_Hroparts_Elec_TF_01A_model
+    low ~ receptacle.sdbus
+
+
+module SD4bit:
+    card = new _SD
+
     sd_4bit = new SD4bit
-    sd_4bit.clk ~ package.CLK
-    sd_4bit.cmd ~ package.CMD
-    sd_4bit.data0 ~ package.DAT0
-    sd_4bit.data1 ~ package.DAT1
-    sd_4bit.data2 ~ package.DAT2
-    sd_4bit.cd_data3 ~ package.CD_DAT3
-    sd_4bit.gnd ~ power.gnd
+    sd_4bit.clk ~ card.sdbus.CLK
+    sd_4bit.cmd ~ card.sdbus.CMD
+    sd_4bit.data0 ~ card.sdbus.DAT0
+    sd_4bit.data1 ~ card.sdbus.DAT1
+    sd_4bit.data2 ~ card.sdbus.DAT2
+    sd_4bit.cd_data3 ~ card.sdbus.CD_DAT3
+    sd_4bit.gnd ~ card.power.gnd
 
-module PushPushSDUHS1 from PushPushSD:
+module SDUHS1:
+    card = new _SD
+
     uhs1 = new UHS1
-    uhs1.clk ~ package.CLK
-    uhs1.cmd ~ package.CMD
-    uhs1.data0 ~ package.DAT0
-    uhs1.data1 ~ package.DAT1
-    uhs1.data2 ~ package.DAT2
-    uhs1.cd_data3 ~ package.CD_DAT3
-    uhs1.gnd ~ power.gnd
+    uhs1.clk ~ card.sdbus.CLK
+    uhs1.cmd ~ card.sdbus.CMD
+    uhs1.data0 ~ card.sdbus.DAT0
+    uhs1.data1 ~ card.sdbus.DAT1
+    uhs1.data2 ~ card.sdbus.DAT2
+    uhs1.cd_data3 ~ card.sdbus.CD_DAT3
+    uhs1.gnd ~ card.power.gnd
 
 # SD Card interfaces
+interface SDBus:
+    signal CD_DAT3
+    signal CMD
+    signal VSS1
+    signal VDD
+    signal CLK
+    signal VSS2
+    signal DAT0
+    signal DAT1
+    signal DAT2
+    signal WP # Write protect
+    signal CD # Card detect
+
+
 interface SD4bit:
     signal data0
     signal data1
