@@ -6,24 +6,28 @@ import Resistor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-from "can_bridge_by_name.py" import can_bridge_by_name
+import can_bridge_by_name
 
 from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
+from "ResistorWithMapping.py" import ResistorWithMapping
 
-
-module BQ24185:
+module BQ25185_driver:
     """
-    BQ24185 1A, Single-Input, Single Cell Li-Ion and Li-Pol Battery Charger With Power Path
+    BQ25185 1A, Single-Input, Single Cell Li-Ion and Li-Pol Battery Charger With Power Path
     """
     package = new BQ25185DLHR_BQ25185DLHR_package
 
     # Parameters
-    charge_current: Current
+    charge_current_limit: A
+    input_current_limit: A # TODO: should be enum: 100mA,500mA or 1100mA
+    battery_voltage_limit: V
 
     # Power Interfaces
     power_vbus = new ElectricPower
     power_sys = new ElectricPower
     power_batt = new ElectricPower
+
+    trait can_bridge_by_name<input_name= "power_batt", output_name= "power_sys">
 
     # Required interfaces
     power_vbus.required = True
@@ -34,6 +38,7 @@ module BQ24185:
     assert power_vbus.voltage within 3V to 18V
     assert power_sys.voltage within 1.8V to 4.5V
     assert power_batt.voltage within 1.8V to 4.4V
+    assert power_batt.voltage within battery_voltage_limit
     # Max VSYS current = 3.125A
 
     # Power package connections
@@ -45,31 +50,83 @@ module BQ24185:
     power_batt.gnd ~ package.GND
     package.GND ~ package.EP
 
+    # Power rail decoupling
+    vbus_decoupling_capacitor = new Capacitor
+    vbus_decoupling_capacitor.package = "C0402"
+    assert vbus_decoupling_capacitor.max_voltage >= power_vbus.voltage * 1.5
+    assert vbus_decoupling_capacitor.capacitance within 1 uF +/- 30%
+    power_vbus.vcc ~> vbus_decoupling_capacitor ~> power_vbus.gnd
+
+    sys_decoupling_capacitor = new Capacitor
+    sys_decoupling_capacitor.package = "C0402"
+    assert sys_decoupling_capacitor.max_voltage >= power_sys.voltage * 1.5
+    assert sys_decoupling_capacitor.capacitance within 10 uF +/- 30%
+    power_sys.vcc ~> sys_decoupling_capacitor ~> power_sys.gnd
+
+    batt_decoupling_capacitor = new Capacitor
+    batt_decoupling_capacitor.package = "C0402"
+    assert batt_decoupling_capacitor.max_voltage >= power_batt.voltage * 1.5
+    assert batt_decoupling_capacitor.capacitance within 1 uF +/- 30%
+    power_batt.vcc ~> batt_decoupling_capacitor ~> power_batt.gnd
+
     # Control/Status
-    stat = new ElectricLogic[2]
-    n_charge_enable = new ElectricLogic
-    ilim_vset = new ElectricLogic
-    temp_sense_manual_reset = new ElectricLogic
+    status = new ElectricLogic[2]
+    # TODO: add push_pull type to status
+    charge_enable = new ElectricLogic
+    input_current_voltage_control = new ElectricSignal
+    charge_current_limit_control = new ElectricSignal
+    temperature_sense_manual_reset_control = new ElectricSignal
 
     # Connect to package
-    n_charge_enable.line ~ package.nCE
-    ilim_vset.line ~ package.ILIM_VSET
-    temp_sense_manual_reset.line ~ package.TS_MR
-    stat[0].line ~ package.STAT1
-    stat[1].line ~ package.STAT2
+    charge_enable.line ~ package.nCE
+    input_current_voltage_control.line ~ package.ILIM_VSET
+    temperature_sense_manual_reset_control.line ~ package.TS_MR
+    charge_current_limit_control.line ~ package.ISET
+    status[0].line ~ package.STAT1
+    status[1].line ~ package.STAT2
 
     # Charge enable is active low - pull high to disable
     charge_enable_resistor = new Resistor
     charge_enable_resistor.resistance = 10kohm +/- 10%
     charge_enable_resistor.package = "R0402"
-    n_charge_enable.line ~> charge_enable_resistor ~> power_sys.gnd
+    charge_enable.line ~> charge_enable_resistor ~> power_sys.gnd
 
     # Input current and battery voltage limit configuration
-    ilim_vset_resistor = new Resistor
-    ilim_vset_resistor.resistance = 10kohm +/- 10%
-    ilim_vset_resistor.package = "R0402"
-    ilim_vset.line ~> ilim_vset_resistor ~> power_sys.gnd
+    input_current_voltage_control_resistor = new ResistorWithMapping
+    input_current_voltage_control_resistor.resistor.package = "R0402"
+    input_current_voltage_control.line ~> input_current_voltage_control_resistor ~> power_sys.gnd
+    input_current_voltage_control_resistor.input_current_limit = input_current_limit
+    input_current_voltage_control_resistor.battery_voltage_limit = battery_voltage_limit
 
-    #
-    k_iset = 300 A*Ω
-    r_iset_nominal = k_iset / charge_current
+    # Charge current control
+    # gain factor
+    k_i: A
+    k_r: ohm
+    k_iset = 300 * k_i * k_r
+    # calculate resistor value for charge current
+    r_iset_nominal = k_iset / charge_current_limit
+    charge_current_limit_control_resistor = new Resistor
+    charge_current_limit_control_resistor.package = "R0402"
+    assert charge_current_limit_control_resistor.resistance within r_iset_nominal * (1 + (-0.01 to 0.01))
+    charge_current_limit_control.line ~> charge_current_limit_control_resistor ~> power_sys.gnd
+
+module BQ25185_example:
+    """
+    Minimal example of how to use the Texas Instruments BQ25185 battery charger.
+    """
+    # from "atopile/ti-bq25185/ti-bq25185.ato" import BQ25185_driver
+
+    battery_charger = new BQ25185_driver
+
+    power_usb = new ElectricPower
+    power_battery = new ElectricPower
+    power_system = new ElectricPower
+
+    power_battery ~> battery_charger ~> power_system
+    power_usb ~ battery_charger.power_vbus
+
+    power_battery.voltage = 3.0V to 4.2V # mimic that a battery is connected
+    battery_charger.battery_voltage_limit = power_battery.voltage
+
+    battery_charger.input_current_limit = 1100mA
+    battery_charger.charge_current_limit = 200mA
