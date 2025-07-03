@@ -23,13 +23,19 @@ module BQ25185_driver:
 
     # Parameters
     charge_current_limit: A
-    input_current_limit: A # TODO: should be enum: 100mA,500mA or 1100mA
-    battery_voltage_limit: V
+    input_current_limit: A # TODO: should be checked if <=100mA or (>= 100mA and <= 500mA) or (>= 500mA and <= 1100mA)
+    battery_voltage_limit_high: V
+    assert battery_voltage_limit_high <= 4.2V
+    assert battery_voltage_limit_high >= 3.6V
+    battery_voltage_limit_low: V
+    assert battery_voltage_limit_low >= 2.0V
+    assert battery_voltage_limit_low <= 3.0V
 
     # Power Interfaces
     power_vbus = new ElectricPower
     power_sys = new ElectricPower
     power_batt = new ElectricPower
+    # TODO: set source/sink for powers
 
     trait can_bridge_by_name<input_name= "power_vbus", output_name= "power_batt">
 
@@ -42,7 +48,8 @@ module BQ25185_driver:
     assert power_vbus.voltage within 3V to 18V
     assert power_sys.voltage within 1.8V to 4.5V
     assert power_batt.voltage within 1.8V to 4.4V
-    assert power_batt.voltage within battery_voltage_limit
+    assert power_batt.voltage >= battery_voltage_limit_low
+    assert power_batt.voltage <= battery_voltage_limit_high
     # Max VSYS current = 3.125A
 
     # Power package connections
@@ -82,6 +89,7 @@ module BQ25185_driver:
     temperature_sense_manual_reset_control = new ElectricSignal
 
     #trait has_single_electric_reference_shared<exclude=["power_vbus","power_batt"], gnd_only=True>
+    # TODO: add support for exclude to trait
 
     # Connect to package
     charge_enable.line ~ package.nCE
@@ -101,8 +109,9 @@ module BQ25185_driver:
     input_current_voltage_control_resistor = new ResistanceMapper
     input_current_voltage_control_resistor.resistor.package = "R0402"
     input_current_voltage_control.line ~> input_current_voltage_control_resistor ~> power_sys.gnd
-    input_current_voltage_control_resistor.input_current_limit = input_current_limit
-    input_current_voltage_control_resistor.battery_voltage_limit = battery_voltage_limit
+    assert input_current_voltage_control_resistor.input_current_limit is input_current_limit
+    assert input_current_voltage_control_resistor.battery_voltage_limit_high is battery_voltage_limit_high
+    assert input_current_voltage_control_resistor.battery_voltage_limit_low is battery_voltage_limit_low
 
     # Charge current control
     # gain factor
@@ -135,10 +144,11 @@ module BQ25185_example:
     power_system ~ battery_charger.power_sys
 
     # mimic that a battery is connected
-    power_battery.voltage = 3.0V to 4.2V
+    assert power_battery.voltage is 3.0V to 4.2V
     battery_capacity = 300mAh
     battery_charger.charge_current_limit = battery_capacity / 1h # 1C charge rate
-    battery_charger.battery_voltage_limit = power_battery.voltage
+    assert battery_charger.battery_voltage_limit_high is 4.2V
+    assert battery_charger.battery_voltage_limit_low is 3.0V
 
     # Charge indicator
     charge_led = new PoweredLED
