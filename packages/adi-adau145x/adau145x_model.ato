@@ -71,19 +71,15 @@ module Analog_Devices_ADAU145x_model:
 
 
     i2c = new I2C
-    i2c_address_bits = new ElectricLogic[2]
+    addressor = new Addressor<address_bits=2>
 
     i2c.scl.line ~ package.SCLK_SCL
     i2c.sda.line ~ package.MISO_SDA
 
-    i2c_address_bits[0].line ~ package.SS_ADDR0
-    i2c_address_bits[1].line ~ package.MOSI_ADDR1
-
-    addressor = new Addressor<address_bits=2>
-    addressor.address_lines[0] ~ i2c_address_bits[0]
-    addressor.address_lines[1] ~ i2c_address_bits[1]
     addressor.base = 0x38
     assert i2c.address is addressor.address
+    addressor.address_lines[0].line ~ package.SS_ADDR0
+    addressor.address_lines[1].line ~ package.MOSI_ADDR1
     # i2c.address.required = True # want required parameters
 
     i2c_master = new I2C
@@ -198,11 +194,10 @@ module Analog_Devices_ADAU145x_model:
         spdif_out,
         reset_disable,
         selfboot_enable,
+        addressor,
     ]:
         logic.reference_shim ~ power_io
 
-    for logic in i2c_address_bits:
-        logic.reference_shim ~ power_io
     for logic in gpios:
         logic.reference_shim ~ power_io
     for logic in aux_adc_inputs:
