@@ -1,5 +1,6 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 import I2C
 import SPI
 import UART_Base
@@ -7,8 +8,12 @@ import USB2_0
 import ElectricPower
 import Resistor
 import Capacitor
+import has_single_electric_reference_shared
 
 from "atopile/buttons/buttons.ato" import ButtonPullup
+from "atopile/buttons/buttons.ato" import VerticalButton
+from "atopile/buttons/buttons.ato" import HorizontalButton
+
 from "atopile/buttons/parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010.ato" import ALPSALPINE_SKTDLDE010_package
 
 from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package
@@ -32,9 +37,6 @@ module RP2040_driver:
     boot_btn = new ButtonPullup
     osc = new _Oscillator
     flash = new _W25Q128JVSIQ
-
-    # reset_btn.btn -> ALPSALPINE_SKTDLDE010_package
-    # boot_btn.btn -> ALPSALPINE_SKTDLDE010_package
 
     # Internal
     signal _gnd
@@ -168,6 +170,7 @@ module RP2040_driver:
     qspi.io2 ~ micro.QSPI_SD2
     qspi.io3 ~ micro.QSPI_SD3
 
+    trait has_single_electric_reference_shared
 
 module _Oscillator:
     # the oscillator itself
@@ -221,3 +224,17 @@ interface QSPI:
     signal io1
     signal io2
     signal io3
+
+module Example:
+    rp2040 = new RP2040_driver
+
+    rp2040.reset_btn.button.button -> HorizontalButton
+    rp2040.boot_btn.button.button -> VerticalButton
+
+    # Power
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+    power_3v3 ~ rp2040.power_3v3
+
+    # I2C
+    i2c = new I2C
