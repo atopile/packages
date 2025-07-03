@@ -6,7 +6,7 @@ from faebryk.core.module import Module
 from faebryk.libs.library import L
 from faebryk.libs.units import P
 from faebryk.core.parameter import And, IsSubset
-from faebryk.libs.util import groupby, indented_container
+from faebryk.libs.util import groupby
 
 
 class ResistanceMapper(Module):
@@ -112,8 +112,3 @@ class ResistanceMapper(Module):
             self.resistor.resistance,
             BatRegLow_R_mapping,
         )
-
-        print(indented_container(TABLE_UNITS, recursive=False))
-        print(indented_container(iLim_R_mapping, recursive=True))
-        print(indented_container(BatRegHigh_R_mapping, recursive=True))
-        print(indented_container(BatRegLow_R_mapping, recursive=True))
