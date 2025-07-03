@@ -1,3 +1,4 @@
+#pragma experiment("TRAITS")
 import SPI
 import ElectricPower
 import ElectricSignal
@@ -18,26 +19,26 @@ module MicroSDSlot from SDSlot:
 module StandardSDSlot from SDSlot:
     mech_receptacle = new SDStandardSlotMechanicalInterface
 
-module SDSlotDriver:
-    """
-    SD Card driver module, provides common implementation shared by SD cards.
-    """
-    sd_card_interface = new SDInterface
-    bypass_cap = new Capacitor
-    bypass_cap.capacitance = 100 nF +/- 20%
-    bypass_cap.package = "C0402"
-    bypass_cap.power ~ sd_card_interface.power
+# module SDSlotDriver:
+#     """
+#     SD Card driver module, provides common implementation shared by SD cards.
+#     """
+#     sd_card_interface = new SDInterface
+#     bypass_cap = new Capacitor
+#     bypass_cap.capacitance = 100 nF +/- 20%
+#     bypass_cap.package = "C0402"
+#     bypass_cap.power ~ sd_card_interface.power
 
-module SDSPI:
-    card = new SDSlot # Replace with sd card driver instance
-
-    spi = new SPI
-    spi_cs = new ElectricSignal
-    card.power ~ spi.sclk.reference
-    spi.miso.line ~ card.sdbus.DAT0
-    spi.mosi.line ~ card.sdbus.CMD
-    spi.sclk.line ~ card.sdbus.CLK
-    spi_cs.line ~ card.sdbus.CD_DAT3
+# module SDSPI:
+#     card = new SDSlot # Replace with sd card driver instance
+#
+#     spi = new SPI
+#     spi_cs = new ElectricSignal
+#     card.power ~ spi.sclk.reference
+#     spi.miso.line ~ card.sdbus.DAT0
+#     spi.mosi.line ~ card.sdbus.CMD
+#     spi.sclk.line ~ card.sdbus.CLK
+#     spi_cs.line ~ card.sdbus.CD_DAT3
 
 module SD:
     """
@@ -60,19 +61,36 @@ module SDTransit:
 
     trait can_bridge_by_name<input_name="low", output_name="high">
 
-module SDTransitSPI from SDTransit:
+# module SDTransitSPI from SDTransit:
+#     spi = new SPI
+#     spi_cs = new ElectricSignal
+#
+#     spi.sclk ~ SDLogical.clock
+#     spi.miso ~ SDLogical.data
+#     spi.mosi ~ SDLogical.command
+#     spi_cs ~ SDLogical.chip_select
+
+
+module MicroSDCardAssemblyWithRemovableSPI:
+    """
+    This module contains a MicroSD card receptacle with a (virtual) removable MicroSD
+    card with SPI interface.
+    """
+    #usdcard
+    receptacle = new SDReceptacle # replace this in your application with a uSD card receptacle package
     spi = new SPI
     spi_cs = new ElectricSignal
+    card_detect = new ElectricLogic
+    power = new ElectricPower
 
-    spi.clk ~ SDLogical.clock
-    spi.miso ~ SDLogical.data
-    spi.mosi ~ SDLogical.command
-    spi_cs ~ SDLogical.chip_select
-
-
-
-
-
+    receptacle.sdbus.DAT0 ~ spi.miso.line
+    receptacle.sdbus.CMD ~ spi.mosi.line
+    receptacle.sdbus.CLK ~ spi.sclk.line
+    receptacle.sdbus.CD_DAT3 ~ spi_cs.line
+    receptacle.sdbus.VSS1 ~ power.lv
+    receptacle.sdbus.VSS2 ~ power.lv
+    receptacle.sdbus.VDD ~ power.hv
+    receptacle.sdbus.CD ~ card_detect.line
 
 interface SDLogical:
     # This is NOW being used as an SD card
@@ -94,7 +112,7 @@ module SDAssembly:
     bypass_cap = new Capacitor # Are these needed on EEMC? Maybe only in socketed version
     bypass_cap.capacitance = 100 nF +/- 20%
     bypass_cap.package = "C0402"
-    bypass_cap.power ~ sd_card_interface.power
+    # bypass_cap.power ~ sd_card_interface.power
 
 module SDAssemblySocketed from SDAssembly:
     """
@@ -104,12 +122,15 @@ module SDAssemblySocketed from SDAssembly:
 module SDReceptacle:
     sdbus = new SDBus
 
-module SDAssemblyMicroSD from SDAssembly:
-    receptacle = new Korean_Hroparts_Elec_TF_01A_model
-    low ~ receptacle.sdbus
+# module SDAssemblyMicroSD from SDAssembly:
+#     receptacle = new Korean_Hroparts_Elec_TF_01A_model
+#     low ~ receptacle.sdbus
 
+module _SD:
+    sdbus = new SDBus
+    power = new ElectricPower
 
-module SD4bit:
+module SD4bit_:
     card = new _SD
 
     sd_4bit = new SD4bit
@@ -147,7 +168,6 @@ interface SDBus:
     signal WP # Write protect
     signal CD # Card detect
 
-
 interface SD4bit:
     signal data0
     signal data1
@@ -181,47 +201,29 @@ interface SDExpress:
 
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-import Resistor, Capacitor
-from "atopile/esp32/esp32_c3.ato" import ESP32_C3_WROOM
-# from "atopile/sd-card-slots/sd-card-slots.ato" import PushPushMicroSDSPI
-from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
-from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+import Resistor
+import Capacitor
+from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A_driver.ato" import Korean_Hroparts_Elec_TF_01A_model
+
+module VirtualMicroController:
+    spi = new SPI
+    gpio = new ElectricLogic
+    power = new ElectricPower
 
 module PushPushMicroSDSPI_Example:
-    esp32 = new ESP32_C3_WROOM
-    sd_card = new PushPullSDSPI
-    micro_sd_card = new PushPushMicroSDSPI
-    usbc = new USBCConn
-    ldo_3v3 = new TLV75901_driver
-
-    # Configure LDO
-    ldo_3v3.v_in = 5V +/- 5%
-    ldo_3v3.v_out = 3.3V +/- 3%
-
-    # Connect USB
-    usbc.usb2 ~ esp32.usb2
-    usbc.usb2.usb_if.buspower ~> ldo_3v3 ~> esp32.power
-
-    # Connect SD Card
-    sd_card.spi ~ esp32.spi[2]
-    sd_card.spi_cs ~ esp32.spi_cs[2]
-    sd_card.power ~ esp32.power
-    pullups = new Resistor[3]
-    for pullup in pullups:
-        pullup.resistance = 10 kohm +/- 5%
-        pullup.package = "R0402"
-    sd_card.spi.miso.line ~> pullups[0] ~> esp32.power.hv
-    sd_card.spi.mosi.line ~> pullups[1] ~> esp32.power.hv
-    sd_card.spi.sclk.line ~> pullups[2] ~> esp32.power.hv
+    microcontroller = new VirtualMicroController
+    micro_sd_card = new MicroSDCardAssemblyWithRemovableSPI
 
     # Connect micro SD Card
-    micro_sd_card.spi ~ esp32.spi[2]
-    micro_sd_card.spi_cs ~ esp32.gpios[3]
-    micro_sd_card.power ~ esp32.power
+    micro_sd_card.spi ~ microcontroller.spi
+    micro_sd_card.spi_cs ~ microcontroller.gpio
+    micro_sd_card.power ~ microcontroller.power
     micro_pullups = new Resistor[3]
     for pullup in micro_pullups:
         pullup.resistance = 10 kohm +/- 5%
         pullup.package = "R0402"
-    micro_sd_card.spi.miso.line ~> micro_pullups[0] ~> esp32.power.hv
-    micro_sd_card.spi.mosi.line ~> micro_pullups[1] ~> esp32.power.hv
-    micro_sd_card.spi.sclk.line ~> micro_pullups[2] ~> esp32.power.hv
+    micro_sd_card.spi.miso.line ~> micro_pullups[0] ~> microcontroller.power.hv
+    micro_sd_card.spi.mosi.line ~> micro_pullups[1] ~> microcontroller.power.hv
+    micro_sd_card.spi.sclk.line ~> micro_pullups[2] ~> microcontroller.power.hv
+
+    micro_sd_card.receptacle -> Korean_Hroparts_Elec_TF_01A_model
