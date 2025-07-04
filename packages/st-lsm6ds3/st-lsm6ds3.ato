@@ -1,0 +1,92 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Addressor
+import Capacitor
+import Resistor
+
+from "parts/STMicroelectronics_LSM6DS3TR_C/STMicroelectronics_LSM6DS3TR_C.ato" import STMicroelectronics_LSM6DS3TR_C_package
+
+module ST_LSM6DS3_driver:
+    """STMicroelectronics LSM6DS3TR-C 6-axis IMU driver (accelerometer + gyroscope)"""
+
+    package = new STMicroelectronics_LSM6DS3TR_C_package
+
+    # --- Power Supplies ---
+    power_core = new ElectricPower      # VDD (core supply)
+    power_io = new ElectricPower        # VDDIO (I/O supply)
+
+    power_core.required = True
+    power_io.required = True
+
+    assert power_core.voltage within 1.71V to 3.6V
+    assert power_io.voltage within 1.71V to 3.6V
+
+    power_core.vcc ~ package.VDD
+    power_io.vcc ~ package.VDDIO
+    power_core.gnd ~ package.GND
+    power_io.gnd ~ package.GND
+
+    # --- Decoupling Capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "C0402"
+
+    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
+    power_io.vcc ~> decoupling_caps[1] ~> power_io.gnd
+
+    # --- I2C Interface ---
+    i2c = new I2C
+    i2c.required = True
+
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # --- Interrupt Pins ---
+    int1 = new ElectricLogic
+    int2 = new ElectricLogic
+
+    int1.line ~ package.INT1
+    int2.line ~ package.INT2
+
+    int1.reference ~ power_io
+    int2.reference ~ power_io
+
+    # --- I2C Address Selection via SDO (SA0) ---
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x6A
+
+    addressor.address_lines[0].line ~ package.SDO_SA0
+    addressor.address_lines[0].reference ~ power_io
+
+    assert addressor.address is i2c.address
+
+
+module Example:
+    """Simple example showing the LSM6DS3 connected to an I2C bus"""
+
+    imu = new ST_LSM6DS3_driver
+
+    # Shared power rail (3V3 for example)
+    power = new ElectricPower
+    power.voltage = 3.3V
+
+    # I2C bus with pull-ups
+    i2c = new I2C
+    pullups = new Resistor[2]
+    for pullup in pullups:
+        pullup.resistance = 10kohm +/- 10%
+        pullup.package = "R0402"
+
+    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.vcc
+    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.vcc
+
+    # Connect everything
+    imu.power_core ~ power
+    imu.power_io ~ power
+    imu.i2c ~ i2c
