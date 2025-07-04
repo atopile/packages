@@ -1,179 +1,199 @@
-#pragma experiment("TRAITS")
-#pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("MODULE_TEMPLATING")
-
-import has_designator_prefix
-import has_part_picked
-import is_atomic_part
-
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 import ElectricPower
-import ElectricSignal
 import Capacitor
 import Resistor
-import MultiSPI
-import SPI
-import I2C
-import I2S
-import USB2_0
-import USB2_0_IF
-import JTAG
-import UART
+import FilterElectricalRC
 import ElectricLogic
+import USB2_0_IF
+import UART
+import I2C
+import has_single_electric_reference_shared
 
-from "atopile/buttons/buttons.ato" import ButtonPulldown, VerticalButton
+from "atopile/buttons/buttons.ato" import ButtonPullup, Button, VerticalButton
+
+from "esp32_c3.ato" import ESP32_C3_base_model
+
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/Espressif_Systems_ESP32_C3_WROOM_02_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_H4/Espressif_Systems_ESP32_C3_WROOM_02_H4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_H4_package
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02U_N4/Espressif_Systems_ESP32_C3_WROOM_02U_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
 
-module ESP32_C3_WROOM_02_N4 from ESP32_C3_WROOM:
-    package -> Espressif_Systems_ESP32_C3_WROOM_02_N4_package
-
-module ESP32_C3_WROOM_02_H4 from ESP32_C3_WROOM:
-    package -> Espressif_Systems_ESP32_C3_WROOM_02_H4_package
-
-module ESP32_C3_WROOM_02U_N4 from ESP32_C3_WROOM:
-    package -> Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
-
-module ESP32_C3_WROOM:
+module ESP32_C3_WROOM_02_base_model:
     """
-    This is an esp32-c3 module.
+    Base module for ESP32-C3-WROOM-02 and ESP32-C3-WROOM-02U, N4 and H4 variants
+    """
+    esp32 = new ESP32_C3_base_model
+    #TODO: model internal components
+
+    # external interfaces
+    #TODO: should be passed through with export *
+    power = new ElectricPower
+    esp32.power_analog ~ power
+    esp32.power_cpu ~ power
+    esp32.power_rtc ~ power
+    esp32.power_radio ~ power
+    gpio = new ElectricLogic[22]
+    esp32.gpio[0] ~ gpio[0]
+    esp32.gpio[1] ~ gpio[1]
+    esp32.gpio[2] ~ gpio[2]
+    esp32.gpio[3] ~ gpio[3]
+    esp32.gpio[4] ~ gpio[4]
+    esp32.gpio[5] ~ gpio[5]
+    esp32.gpio[6] ~ gpio[6]
+    esp32.gpio[7] ~ gpio[7]
+    esp32.gpio[8] ~ gpio[8]
+    esp32.gpio[9] ~ gpio[9]
+    esp32.gpio[10] ~ gpio[10]
+    esp32.gpio[18] ~ gpio[18]
+    esp32.gpio[19] ~ gpio[19]
+    esp32.gpio[20] ~ gpio[20]
+    esp32.gpio[21] ~ gpio[21]
+    enable = new ElectricLogic
+    esp32.enable ~ enable
+    usb_if = new USB2_0_IF
+    esp32.usb_if ~ usb_if
+    uart = new UART
+    esp32.uart[0] ~ uart
+    # TODO: etc...
+
+    trait has_single_electric_reference_shared
+
+module ESP32_C3_WROOM_02_N4_model from ESP32_C3_WROOM_02_base_model:
+    """
+    ESP32-C3-WROOM-02-N4 module with build-in antenna and supporting components
     """
     package = new Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 
-    # Power
+    # connections to package
+    esp32.gpio[0].line ~ package.IO0
+    esp32.gpio[1].line ~ package.IO1
+    esp32.gpio[2].line ~ package.IO2
+    esp32.gpio[3].line ~ package.IO3
+    esp32.gpio[4].line ~ package.IO4
+    esp32.gpio[5].line ~ package.IO5
+    esp32.gpio[6].line ~ package.IO6
+    esp32.gpio[7].line ~ package.IO7
+    esp32.gpio[8].line ~ package.IO8
+    esp32.gpio[9].line ~ package.IO9
+    esp32.gpio[10].line ~ package.IO10
+    esp32.gpio[18].line ~ package.IO18
+    esp32.gpio[19].line ~ package.IO19
+    esp32.gpio[20].line ~ package.RXD
+    esp32.gpio[21].line ~ package.TXD
+    esp32.enable.line ~ package.EN
+    power.hv ~ package.P3V3
+    power.lv ~ package.GND
+
+module ESP32_C3_WROOM_02_H4_model from ESP32_C3_WROOM_02_base_model:
+    """
+    ESP32-C3-WROOM-02-H4 module with build-in antenna and supporting components
+    """
+    package = new Espressif_Systems_ESP32_C3_WROOM_02_H4_package
+
+    # connections to package
+    esp32.gpio[0].line ~ package.IO0
+    esp32.gpio[1].line ~ package.IO1
+    esp32.gpio[2].line ~ package.IO2
+    esp32.gpio[3].line ~ package.IO3
+    esp32.gpio[4].line ~ package.IO4
+    esp32.gpio[5].line ~ package.IO5
+    esp32.gpio[6].line ~ package.IO6
+    esp32.gpio[7].line ~ package.IO7
+    esp32.gpio[8].line ~ package.IO8
+    esp32.gpio[9].line ~ package.IO9
+    esp32.gpio[10].line ~ package.IO10
+    esp32.gpio[18].line ~ package.IO18
+    esp32.gpio[19].line ~ package.IO19
+    esp32.gpio[20].line ~ package.RXD
+    esp32.gpio[21].line ~ package.TXD
+    esp32.enable.line ~ package.EN
+    power.hv ~ package.P3V3
+    power.lv ~ package.GND
+
+module ESP32_C3_WROOM_02U_N4_model from ESP32_C3_WROOM_02_base_model:
+    """
+    ESP32-C3-WROOM-02U-N4 module with external antenna and supporting components
+    """
+    package = new Espressif_Systems_ESP32_C3_WROOM_02U_N4_package
+
+    # connections to package
+    esp32.gpio[0].line ~ package.IO0
+    esp32.gpio[1].line ~ package.IO1
+    esp32.gpio[2].line ~ package.IO2
+    esp32.gpio[3].line ~ package.IO3
+    esp32.gpio[4].line ~ package.IO4
+    esp32.gpio[5].line ~ package.IO5
+    esp32.gpio[6].line ~ package.IO6
+    esp32.gpio[7].line ~ package.IO7
+    esp32.gpio[8].line ~ package.IO8
+    esp32.gpio[9].line ~ package.IO9
+    esp32.gpio[10].line ~ package.IO10
+    esp32.gpio[18].line ~ package.IO18
+    esp32.gpio[19].line ~ package.IO19
+    esp32.gpio[20].line ~ package.RXD
+    esp32.gpio[21].line ~ package.TXD
+    esp32.enable.line ~ package.EN
+    power.hv ~ package.P3V3
+    power.lv ~ package.GND
+
+# unavailable on JLCPCB
+# module ESP32_C3_WROOM_02U_H4 from ESP32_C3_WROOM_02_base_model:
+#     """
+#     ESP32-C3-WROOM-02U-H4 module with external antenna and supporting components
+#     """
+#     package -> Espressif_Systems_ESP32_C3_WROOM_02U_H4_package
+
+module ESP32_C3_WROOM_02_driver:
+    esp32_module = new ESP32_C3_WROOM_02_base_model
+
+    # external interfaces
     power = new ElectricPower
-    power.required = True
-    assert power.voltage within 3V to 3.6V
-    power.vcc ~ package.P3V3
-    power.gnd ~ package.GND
-    # assert power.current > 500mA
-    # assert operating_temperature within -40C to 85C
+    esp32_module.power ~ power
 
-    # Power decoupling
-    decoupling_capacitors = new Capacitor[2]
-    for cap in decoupling_capacitors:
-        cap.power ~ power
-    decoupling_capacitors[0].capacitance = 100nF +/- 20%
-    decoupling_capacitors[1].capacitance = 10uF +/- 20%
-    decoupling_capacitors[0].package = "C0402"
-    decoupling_capacitors[1].package = "C0805"
+    # components
+    boot_switch = new Button
+    reset_switch = new ButtonPullup
+    debounce_capacitors = new Capacitor[2]
+    decoupling_capacitor_bulk = new Capacitor
+    decoupling_capacitor_small = new Capacitor
+    boot_mode_resistors = new Resistor[2]
 
-    # Enable pin
-    enable = new ElectricLogic
-    enable.line ~ package.EN
-    enable.reference ~ power
+    # connections
+    power ~ decoupling_capacitor_bulk.power
+    power ~ decoupling_capacitor_small.power
 
-    # Enable pullup
-    enable_pullup = new Resistor
-    enable.line ~> enable_pullup ~> power.vcc
-    enable_pullup.resistance = 10kohm +/- 20%
-    enable_pullup.package = "R0402"
+    power.lv ~> boot_switch ~> esp32_module.gpio[9].line
+    boot_switch -> VerticalButton
+    boot_switch.input ~> debounce_capacitors[0] ~> boot_switch.output
 
-    # Enable Debounce Capacitor
-    enable_debounce_cap = new Capacitor
-    enable.line ~> enable_debounce_cap ~> power.gnd
-    enable_debounce_cap.capacitance = 1uF +/- 20%
-    enable_debounce_cap.package = "C0402"
+    reset_switch.output ~ esp32_module.esp32.enable
+    reset_switch.button.button -> VerticalButton
+    reset_switch.button.button.input ~> debounce_capacitors[1] ~> reset_switch.button.button.output
 
-    # reset button
-    reset_button = new ButtonPulldown
-    reset_button.button.button -> VerticalButton
-    reset_button.output ~ enable
-    reset_button.pulldown.resistance = 100ohm +/- 20%
-    reset_button.pulldown.package = "R0402"
+    esp32_module.gpio[2].line ~> boot_mode_resistors[0] ~> power.hv
+    esp32_module.gpio[8].line ~> boot_mode_resistors[1] ~> power.hv
 
-    # Boot
-    boot = new ElectricLogic
-    boot.line ~ package.IO9
-    boot.reference ~ power
+    # parameters
+    decoupling_capacitor_bulk.capacitance = 22uF +/- 20%
+    decoupling_capacitor_bulk.package = "C0603"
+    decoupling_capacitor_small.capacitance = 100nF +/- 10%
+    decoupling_capacitor_small.package = "C0402"
+    for cap in debounce_capacitors:
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "C0402"
+    for res in boot_mode_resistors:
+        res.resistance = 10kohm +/- 1%
+        res.package = "R0402"
 
-    # Boot Button
-    boot_button = new ButtonPulldown
-    boot_button.button.button -> VerticalButton
-    boot_button.output ~ boot
-    boot_button.pulldown.resistance = 100ohm +/- 20%
-    boot_button.pulldown.package = "R0402"
+module ESP32_C3_WROOM_02_driver_example:
+    """
+    Example driver for ESP32-C3-WROOM-02 module
+    """
+    mcu = new ESP32_C3_WROOM_02_driver
+    mcu.esp32_module -> ESP32_C3_WROOM_02_H4_model
 
-    # GPIO
-    gpios = new ElectricLogic[22]
-    gpios[0].line ~ package.IO0
-    gpios[1].line ~ package.IO1
-    gpios[2].line ~ package.IO2
-    gpios[3].line ~ package.IO3
-    gpios[4].line ~ package.IO4
-    gpios[5].line ~ package.IO5
-    gpios[6].line ~ package.IO6
-    gpios[7].line ~ package.IO7
-    gpios[8].line ~ package.IO8
-    gpios[9].line ~ package.IO9
-    gpios[10].line ~ package.IO10
-    # gpio[11].no_connect = True
-    # gpio[12].no_connect = True
-    # gpio[13].no_connect = True
-    # gpio[14].no_connect = True
-    # gpio[15].no_connect = True
-    # gpio[16].no_connect = True
-    # gpio[17].no_connect = True
-    gpios[18].line ~ package.IO18
-    gpios[19].line ~ package.IO19
-    gpios[20].line ~ package.IO18
-    gpios[21].line ~ package.IO19
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 10%
 
-    for gpio in gpios:
-        gpio.reference ~ power
-
-    # for gpio in gpios[22:34]:
-    #     gpio.no_connect = True
-    # gpios[43].no_connect = True
-    # gpios[44].no_connect = True
-
-    # UART
-    uart = new UART[2]
-    # UART0
-    uart[0].base_uart.tx ~ gpios[21]
-    uart[0].base_uart.rx ~ gpios[20]
-
-    # UART1
-    uart[1].base_uart.tx ~ gpios[8]
-    uart[1].base_uart.rx ~ gpios[9]
-
-    spi = new SPI[3]
-    # spi[0].no_connect = True
-    # spi[1].no_connect = True
-
-    spi_cs = new ElectricLogic[3]
-    # FSPI high speed pinout (interface 4c)
-    spi_cs[2] ~ gpios[10]
-    spi[2].mosi ~ gpios[4]
-    spi[2].sclk ~ gpios[6]
-    spi[2].miso ~ gpios[2]
-
-    # connect up I2C
-    i2c = new I2C[1]
-    # Any GPIOs can be used for I2C
-    # i2c.scl ~ gpios[*]
-    # i2c.sda ~ gpios[*]
-    i2c[0].scl ~ gpios[0]
-    i2c[0].sda ~ gpios[1]
-
-    # connect up JTAG
-    jtag = new JTAG
-    jtag.tck ~ gpios[6]
-    jtag.tms ~ gpios[4]
-    jtag.tdi ~ gpios[5]
-    jtag.tdo ~ gpios[7]
-    jtag.vtref ~ power
-
-    # I2S
-    i2s = new I2S[1]
-    # Any GPIOs can be used for I2S
-    i2s[0].sck ~ gpios[3]
-    i2s[0].ws ~ gpios[4]
-    i2s[0].sd ~ gpios[5]
-
-
-    # connect up USB
-    usb2 = new USB2_0
-    usb2.usb_if.d.n ~ gpios[18]
-    usb2.usb_if.d.p ~ gpios[19]
+    power_3v3 ~ mcu.power
