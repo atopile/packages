@@ -1,0 +1,65 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/SENSIRION_SGP40_D_R4/SENSIRION_SGP40_D_R4.ato" import SENSIRION_SGP40_D_R4_package
+
+module Sensirion_SGP40_driver:
+    """Sensirion SGP40 VOC sensor driver"""
+    package = new SENSIRION_SGP40_D_R4_package
+
+    # Power rail
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 1.71V to 3.6V
+    power.vcc ~ package.VDD
+    power.vcc ~ package.VDDH
+    power.gnd ~ package.VSS
+    power.gnd ~ package.GND
+
+    # Decoupling capacitors
+    decap_100n = new Capacitor
+    decap_100n.capacitance = 100nF +/- 10%
+    decap_100n.package = "C0402"
+    power.vcc ~> decap_100n ~> power.gnd
+
+    decap_1u = new Capacitor
+    decap_1u.capacitance = 1uF +/- 20%
+    decap_1u.package = "C0603"
+    power.vcc ~> decap_1u ~> power.gnd
+
+    # I2C interface
+    i2c = new I2C
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    assert i2c.address is 0x59
+
+
+module Example:
+    """Basic wiring example for the SGP40 sensor"""
+    sensor = new Sensirion_SGP40_driver
+
+    # 3V3 Power rail
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+    power_3v3.required = True
+
+    # I2C bus with pull-ups
+    i2c_bus = new I2C
+    pullups = new Resistor[2]
+    for p in pullups:
+        p.resistance = 10kohm +/- 10%
+        p.package = "R0402"
+
+    i2c_bus.scl.line ~> pullups[0] ~> i2c_bus.scl.reference.vcc
+    i2c_bus.sda.line ~> pullups[1] ~> i2c_bus.sda.reference.vcc
+
+    # Connect sensor to shared rails
+    sensor.power ~ power_3v3
+    sensor.i2c ~ i2c_bus
