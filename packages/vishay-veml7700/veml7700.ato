@@ -1,0 +1,46 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import Capacitor
+
+from "parts/VISHAY_VEML7700_TR/VISHAY_VEML7700_TR.ato" import VISHAY_VEML7700_TR_package
+
+module Vishay_VEML7700_driver:
+    """Vishay VEML7700 ambient light sensor driver"""
+    package = new VISHAY_VEML7700_TR_package
+
+    # Power rail
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 2.5V to 3.6V
+    # Connect package pins
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+
+    # I²C interface (fixed address 0x10)
+    i2c = new I2C
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    assert i2c.address is 0x10
+
+    # Local decoupling capacitor (100 nF, 0402)
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "C0402"
+    power.vcc ~> decoupling_cap ~> power.gnd
+
+
+module Example:
+    # External rails
+    power_3v3 = new ElectricPower
+    i2c_bus = new I2C
+
+    # Sensor instance
+    sensor = new Vishay_VEML7700_driver
+
+    # Tie high-level interfaces
+    sensor.power ~ power_3v3
+    sensor.i2c ~ i2c_bus
