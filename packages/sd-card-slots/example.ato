@@ -1,0 +1,28 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Resistor
+import Capacitor
+import SPI
+import ElectricLogic
+import ElectricPower
+
+#from "XUNPU_SD_102_model.ato" import XUNPU_SD_102_model
+from "Korean_Hroparts_Elec_TF_01A_model.ato" import Korean_Hroparts_Elec_TF_01A_model
+from "sd-card-slots.ato" import MicroSDCardAssemblyWithRemovableSPI
+
+module VirtualMicroController:
+    spi = new SPI
+    gpio = new ElectricLogic
+    power = new ElectricPower
+
+module PushPushMicroSDSPI_Example:
+    microcontroller = new VirtualMicroController
+    micro_sd_card = new MicroSDCardAssemblyWithRemovableSPI
+
+    # Connect micro SD Card
+    micro_sd_card.spi ~ microcontroller.spi
+    micro_sd_card.spi_cs ~ microcontroller.gpio
+    micro_sd_card.power ~ microcontroller.power
+
+    # TODO broken
+    #micro_sd_card.receptacle.receptacle -> Korean_Hroparts_Elec_TF_01A_model

@@ -1,0 +1,239 @@
+
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import SPI
+import ElectricPower
+import ElectricSignal
+import ElectricLogic
+import Resistor
+import Capacitor
+import can_bridge_by_name
+import has_single_electric_reference_shared
+
+from "XUNPU_SD_102_model.ato" import XUNPU_SD_102_model
+from "Korean_Hroparts_Elec_TF_01A_model.ato" import Korean_Hroparts_Elec_TF_01A_model
+from "SOFNG_SD_006M_model.ato" import SOFNG_SD_006M_model
+
+module SDSlot:
+    sdbus = new SDBus
+
+module MicroSDSlot from SDSlot:
+    mech_receptacle = new SDMicroSlotMechanicalInterface
+
+module StandardSDSlot from SDSlot:
+    mech_receptacle = new SDStandardSlotMechanicalInterface
+
+module SDSlotDriver:
+    """
+    SD Card driver module, provides common implementation shared by SD cards.
+    """
+    sd_card_interface = new SDLogical
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100 nF +/- 20%
+    bypass_cap.package = "C0402"
+    bypass_cap.power ~ sd_card_interface.power
+
+# module SDSPI:
+#     card = new SDSlot # Replace with sd card driver instance
+#
+#     spi = new SPI
+#     spi_cs = new ElectricSignal
+#     card.power ~ spi.sclk.reference
+#     spi.miso.line ~ card.sdbus.DAT0
+#     spi.mosi.line ~ card.sdbus.CMD
+#     spi.sclk.line ~ card.sdbus.CLK
+#     spi_cs.line ~ card.sdbus.CD_DAT3
+
+module SD:
+    """
+    SD Card module, provides common implementation shared by SD cards.
+    """
+    mech_card = new SDMicroSlotMechanicalInterface
+
+interface SDMicroSlotMechanicalInterface:
+    pass
+
+interface SDStandardSlotMechanicalInterface:
+    pass
+
+interface SDProtocol:
+    pass
+
+module SDTransit:
+    low = new SDLogical
+    high = new SDProtocol
+
+    trait can_bridge_by_name<input_name="low", output_name="high">
+
+# module SDTransitSPI from SDTransit:
+#     spi = new SPI
+#     spi_cs = new ElectricSignal
+#
+#     spi.sclk ~ SDLogical.clock
+#     spi.miso ~ SDLogical.data
+#     spi.mosi ~ SDLogical.command
+#     spi_cs ~ SDLogical.chip_select
+
+
+module MicroSDCardAssemblyWithRemovableSPI:
+    """
+    This module contains a MicroSD card receptacle with a (virtual) removable MicroSD
+    card with SPI interface.
+    """
+    # interface
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+    power = new ElectricPower
+
+    #usdcard
+    #receptacle = new SDReceptacle # replace this in your application with a uSD card receptacle package
+    # TODO: self specialization broken
+    receptacle = new Korean_Hroparts_Elec_TF_01A_model # replace this in your application with a uSD card receptacle package
+    slot_driver = new SDSlotDriver
+    sd_logical = new SDLogical
+
+    # external
+    spi.miso ~ sd_logical.data[0]
+    spi.mosi ~ sd_logical.data[1]
+    spi.sclk ~ sd_logical.clock
+    spi_cs ~ sd_logical.chip_select
+    card_detect ~ sd_logical.card_detect
+    power ~ sd_logical.power
+    write_protect ~ sd_logical.write_protect
+
+    # driver
+    slot_driver.sd_card_interface ~ sd_logical
+
+    pullups = new Resistor[3]
+    for pullup in pullups:
+        pullup.resistance = 10 kohm +/- 5%
+        pullup.package = "R0402"
+    spi.miso.line ~> pullups[0] ~> power.hv
+    spi.mosi.line ~> pullups[1] ~> power.hv
+    spi.sclk.line ~> pullups[2] ~> power.hv
+
+    # footprint
+    sd_logical.power.hv ~ receptacle.sdbus.VDD
+    sd_logical.power.lv ~ receptacle.sdbus.VSS1
+    sd_logical.power.lv ~ receptacle.sdbus.VSS2
+    sd_logical.card_detect.line ~ receptacle.sdbus.CD
+    sd_logical.write_protect.line ~ receptacle.sdbus.WP
+    sd_logical.data[0].line ~ receptacle.sdbus.DAT0
+    sd_logical.data[1].line ~ receptacle.sdbus.DAT1
+    sd_logical.data[2].line ~ receptacle.sdbus.DAT2
+    sd_logical.data[3].line ~ receptacle.sdbus.CD_DAT3
+    sd_logical.clock.line ~ receptacle.sdbus.CLK
+    sd_logical.command.line ~ receptacle.sdbus.CMD
+    sd_logical.chip_select.line ~ receptacle.sdbus.CD_DAT3
+
+interface SDLogical:
+    power = new ElectricPower
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+    data = new ElectricLogic[4]
+    clock = new ElectricLogic
+    chip_select = new ElectricLogic
+    command = new ElectricLogic
+
+    assert power.voltage within 3.3 V +/- 5%
+    trait has_single_electric_reference_shared
+
+    power.required = True
+
+
+module SDAssembly:
+    """
+    Assembly has both a receptacle and a theoretical SD card in it and nothing else captured as design intent in the model
+    We allow anything that behaves as an SD card, limited by the set of existing operational SD cards, as long as it behaves like an sd card.
+    """
+    low = new SDBus
+    # DRIVER CIRCUITRY
+    bypass_cap = new Capacitor # Are these needed on EEMC? Maybe only in socketed version
+    bypass_cap.capacitance = 100 nF +/- 20%
+    bypass_cap.package = "C0402"
+    # bypass_cap.power ~ sd_card_interface.power
+
+module SDAssemblySocketed from SDAssembly:
+    """
+
+    """
+
+module SDReceptacle:
+    sdbus = new SDBus
+
+module _SD:
+    sdbus = new SDBus
+    power = new ElectricPower
+
+module SD4bit_:
+    card = new _SD
+
+    sd_4bit = new SD4bit
+    sd_4bit.clk ~ card.sdbus.CLK
+    sd_4bit.cmd ~ card.sdbus.CMD
+    sd_4bit.data0 ~ card.sdbus.DAT0
+    sd_4bit.data1 ~ card.sdbus.DAT1
+    sd_4bit.data2 ~ card.sdbus.DAT2
+    sd_4bit.cd_data3 ~ card.sdbus.CD_DAT3
+    sd_4bit.gnd ~ card.power.gnd
+
+module SDUHS1:
+    card = new _SD
+
+    uhs1 = new UHS1
+    uhs1.clk ~ card.sdbus.CLK
+    uhs1.cmd ~ card.sdbus.CMD
+    uhs1.data0 ~ card.sdbus.DAT0
+    uhs1.data1 ~ card.sdbus.DAT1
+    uhs1.data2 ~ card.sdbus.DAT2
+    uhs1.cd_data3 ~ card.sdbus.CD_DAT3
+    uhs1.gnd ~ card.power.gnd
+
+# SD Card interfaces
+interface SDBus:
+    signal CD_DAT3
+    signal CMD
+    signal VSS1
+    signal VDD
+    signal CLK
+    signal VSS2
+    signal DAT0
+    signal DAT1
+    signal DAT2
+    signal WP # Write protect
+    signal CD # Card detect
+
+interface SD4bit:
+    signal data0
+    signal data1
+    signal data2
+    signal cd_data3
+    signal clk
+    signal cmd
+    signal gnd
+
+# UHS-1 104Mbps
+# UHS-2 312Mbps
+# UHS-3 624Mbps
+interface UHS1:
+    signal data0
+    signal data1
+    signal data2
+    signal cd_data3
+    signal clk
+    signal cmd
+    signal gnd
+
+interface UHS2:
+    pass
+
+interface UHS3:
+    pass
+
+interface SDExpress:
+    pass
+    # PCIe
+
