@@ -1,0 +1,128 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+import SPI
+import Capacitor
+
+from "parts/TRINAMIC_Motion_Control_GmbH_TMC6200_TA_T/TRINAMIC_Motion_Control_GmbH_TMC6200_TA_T.ato" import TRINAMIC_Motion_Control_GmbH_TMC6200_TA_T_package
+
+module Trinamic_TMC6200_driver:
+    """Trinamic TMC6200 3-phase MOSFET gate driver"""
+    package = new TRINAMIC_Motion_Control_GmbH_TMC6200_TA_T_package
+
+    #-----------------------------------------------------------------------
+    # Power rails
+    #-----------------------------------------------------------------------
+    power_vs = new ElectricPower          # Motor supply (VS)
+    power_vs.required = True
+    assert power_vs.voltage within 8V to 60V   # Datasheet absolute range
+    power_vs.vcc ~ package.VS
+    power_vs.gnd ~ package.neg
+    power_vs.gnd ~ package.EP   # Exposed pad to ground
+
+    power_io = new ElectricPower          # Logic supply (VCC_IO)
+    power_io.required = True
+    assert power_io.voltage within 3V to 5.5V  # IO range
+    power_io.vcc ~ package.VCC_IO
+    power_io.gnd ~ package.neg
+
+    # Optional analog supply outputs (5 V & 12 V) – expose but do not require
+    p5v_out = new ElectricPower
+    p5v_out.vcc ~ package.P5VOUT
+    p5v_out.gnd ~ package.neg
+
+    p12v_out = new ElectricPower
+    p12v_out.vcc ~ package.P12VOUT
+    p12v_out.gnd ~ package.neg
+
+    #-----------------------------------------------------------------------
+    # SPI control interface
+    #-----------------------------------------------------------------------
+    spi = new SPI
+    spi.required = True
+    spi.sclk.line ~ package.SCK_IDRV1      # SCK
+    spi.mosi.line ~ package.CPI            # MOSI
+    spi.miso.line ~ package.CPO            # MISO
+
+    # Chip-select (SPE – Serial Port Enable)
+    spi_cs = new ElectricLogic
+    spi_cs.required = True
+    spi_cs.line ~ package.SPE
+    spi_cs.reference ~ power_io
+
+    # Driver enable (DEV_EN) and fault output
+    enable = new ElectricLogic
+    enable.required = True
+    enable.line ~ package.DEV_EN
+    enable.reference ~ power_io
+
+    fault = new ElectricLogic
+    # Fault is output-only; not required from external
+    fault.line ~ package.FAULT
+    fault.reference ~ power_io
+
+    #-----------------------------------------------------------------------
+    # Decoupling – minimum example (datasheet recommends several)
+    # Place two 100 nF caps close to VS & VCC_IO respectively
+    #-----------------------------------------------------------------------
+    # 100 nF + 4.7 µF on VS
+    vs_caps = new Capacitor[2]
+    vs_caps[0].capacitance = 100nF +/- 20%
+    vs_caps[0].package = "C0603"
+    vs_caps[1].capacitance = 4.7uF +/- 20%
+    vs_caps[1].package = "C1206"
+    for cap in vs_caps:
+        power_vs.vcc ~> cap ~> power_vs.gnd
+
+    # 100 nF on VCC_IO
+    io_cap = new Capacitor
+    io_cap.capacitance = 100nF +/- 20%
+    io_cap.package = "C0603"
+    power_io.vcc ~> io_cap ~> power_io.gnd
+
+    #-----------------------------------------------------------------------
+    # Gate driver outputs – expose for external MOSFETs
+    #-----------------------------------------------------------------------
+    gate_hi = new ElectricLogic[3]  # UH, VH, WH
+    gate_lo = new ElectricLogic[3]  # UL, VL, WL
+
+    gate_hi[0].line ~ package.UH
+    gate_hi[1].line ~ package.VH
+    gate_hi[2].line ~ package.WH
+    gate_lo[0].line ~ package.UL
+    gate_lo[1].line ~ package.VL
+    gate_lo[2].line ~ package.WL
+    for g in gate_hi:
+        g.reference ~ power_vs        # referenced to motor supply domain
+    for g in gate_lo:
+        g.reference ~ power_vs
+
+    # Phase sense nodes (U, V, W) exposed as lines for measurement / connection
+    phase_u = new ElectricLogic
+    phase_u.line ~ package.U
+    phase_v = new ElectricLogic
+    phase_v.line ~ package.V
+    phase_w = new ElectricLogic
+    phase_w.line ~ package.W
+
+module Example:
+    motor_supply = new ElectricPower
+    motor_supply.voltage = 24V
+
+    logic_supply = new ElectricPower
+    logic_supply.voltage = 3.3V
+
+    # Signals from microcontroller
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    enable_line = new ElectricLogic
+
+    driver = new Trinamic_TMC6200_driver
+
+    driver.power_vs ~ motor_supply
+    driver.power_io ~ logic_supply
+    driver.spi ~ spi
+    driver.cs ~ cs
+    driver.enable ~ enable_line
