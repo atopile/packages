@@ -1,0 +1,85 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import I2C, ElectricPower, ElectricLogic, Addressor
+import Capacitor
+
+from "parts/STMicroelectronics_LIS3DHTR/STMicroelectronics_LIS3DHTR.ato" import STMicroelectronics_LIS3DHTR_package
+
+"""LIS3DH 3-axis accelerometer driver module"""
+
+module LIS3DH_driver:
+    """Driver for ST LIS3DH MEMS accelerometer (default I2C interface).
+    Exposes two power rails (VDD and VDD_IO), an I2C bus, and two interrupt
+    outputs.
+    """
+    package = new STMicroelectronics_LIS3DHTR_package
+
+    # Core supply (VDD)
+    power_core = new ElectricPower
+    power_core.required = True
+
+    # I/O supply (VDD_IO)
+    power_io = new ElectricPower
+    power_io.required = True
+
+    # Recommended operating voltages from datasheet
+    assert power_core.voltage within 1.71V to 3.6V
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # Decoupling capacitor
+    decoupler_core = new Capacitor
+    decoupler_core.capacitance = 100nF +/- 20%
+    decoupler_core.package = "0402"
+    power_core.hv ~> decoupler_core ~> power_core.lv
+
+    decoupler_io = new Capacitor
+    decoupler_io.capacitance = 100nF +/- 20%
+    decoupler_io.package = "0402"
+    power_io.hv ~> decoupler_io ~> power_io.lv
+
+    # I2C bus
+    i2c = new I2C
+    i2c.required = True
+
+    # Hook up I2C lines to package
+    i2c.scl.line ~ package.SCL_SPC
+    i2c.sda.line ~ package.SDA_SDI_SDO
+
+    # Address selection using SA0 (SDO pin)
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x18  # SA0 low -> 0x18, high -> 0x19
+    addressor.address_lines[0].line ~ package.SDO_SA0
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.address is i2c.address
+
+    # Interrupt outputs
+    int1 = new ElectricLogic
+    int2 = new ElectricLogic
+
+    int1.line ~ package.INT1
+    int2.line ~ package.INT2
+    int1.reference ~ power_io
+    int2.reference ~ power_io
+
+    # Connect power pins to package
+    power_core.vcc ~ package.VDD
+    power_io.vcc ~ package.VDD_IO
+    power_core.gnd ~ package.GND
+    power_io.gnd ~ package.GND
+
+module Example:
+    """Example wiring of LIS3DH with generic I2C and power"""
+    i2c = new I2C
+    power_core = new ElectricPower  # VDD
+    power_io = new ElectricPower    # VDD_IO
+
+    sensor = new LIS3DH_driver
+
+    # Connect power rails
+    power_core ~ sensor.power_core
+    power_io ~ sensor.power_io
+
+    # Connect I2C
+    i2c ~ sensor.i2c
