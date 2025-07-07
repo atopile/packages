@@ -1,3 +1,10 @@
+"""
+Ultra-Low-Power SoC with RISC-V Single-Core CPU
+2.4 GHz Wi-Fi (802.11b/g/n) and Bluetooth® 5 (LE)
+Optional 4 MB flash in the chip's package
+QFN32 (5x5 mm) package
+"""
+
 #pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
@@ -23,9 +30,15 @@ import ElectricLogic
 import XtalIF
 
 module ESP32_C3_base_model:
+    """
+    All ESP32-C3 variants share the same base model.
+    """
     # internal interfaces
     gpio = new ElectricLogic[22]
-    spi = new MultiSPI[3]<data_lane_count=4>
+    # GPIO 2, default floating, used for boot configuration.
+    # GPIO 8, default floating, used for boot configuration.
+    # GPIO 9, default weak pull-up, used for boot configuration.
+    mspi = new MultiSPI[3]<data_lane_count=4>
     uart = new UART[2]
     i2c = new I2C
     i2s = new I2S
@@ -49,8 +62,8 @@ module ESP32_C3_base_model:
     assert power_rtc.voltage within 3.3V +/- 10%
     power_radio = new ElectricPower
     assert power_radio.voltage within 3.3V +/- 10%
-    power_spi = new ElectricPower
-    assert power_spi.voltage within 3.3V +/- 10% # TODO: there is also a 1.1V mode?
+    power_mspi = new ElectricPower
+    assert power_mspi.voltage within 3.3V +/- 10% # TODO: there is also a 1.1V mode?
 
     # non muxable internal connections
     gpio[0] ~ adc1[0]
@@ -74,21 +87,21 @@ module ESP32_C3_base_model:
     gpio[20] ~ uart[0].base_uart.rx
     gpio[21] ~ uart[0].base_uart.tx
 
-    # spi[0] and spi[1] are used for internal/external flash
-    spi[0] ~ spi[1]
-    gpio[12] ~ spi[0].data[3] # SPIHD
-    gpio[13] ~ spi[0].data[2] # SPIWP
-    gpio[14] ~ spi[0].chip_select
-    gpio[15] ~ spi[0].clock
-    gpio[16] ~ spi[0].data[0] # SPID
-    gpio[17] ~ spi[0].data[1] # SPIQ
+    # mspi[0] and mspi[1] are used for internal/external flash
+    mspi[0] ~ mspi[1]
+    gpio[12] ~ mspi[0].data[3] # SPIHD
+    gpio[13] ~ mspi[0].data[2] # SPIWP
+    gpio[14] ~ mspi[0].chip_select
+    gpio[15] ~ mspi[0].clock
+    gpio[16] ~ mspi[0].data[0] # SPID
+    gpio[17] ~ mspi[0].data[1] # SPIQ
 
-    gpio[2] ~ spi[2].data[1] # SPIQ
-    gpio[4] ~ spi[2].data[3] # SPIHD
-    gpio[5] ~ spi[2].data[2] # SPIWP
-    gpio[6] ~ spi[2].clock
-    gpio[7] ~ spi[2].data[0] # SPID
-    gpio[10] ~ spi[2].chip_select
+    gpio[2] ~ mspi[2].data[1] # SPIQ
+    gpio[4] ~ mspi[2].data[3] # SPIHD
+    gpio[5] ~ mspi[2].data[2] # SPIWP
+    gpio[6] ~ mspi[2].clock
+    gpio[7] ~ mspi[2].data[0] # SPID
+    gpio[10] ~ mspi[2].chip_select
 
 
 module ESP32_C3Fx4_base_model from ESP32_C3_base_model:
@@ -99,22 +112,49 @@ module ESP32_C3Fx4_base_model from ESP32_C3_base_model:
     # flash = new Flash
     pass
 
-
 module ESP32_C3_model from ESP32_C3_base_model:
+    """
+    ESP32-C3 without in package flash (external flash required).
+    -40~105°C temperature range.
+    22 GPIOs.
+    Chip/die revision 0.4.
+    """
     pass
 
 module ESP32_C3FN4_model from ESP32_C3Fx4_base_model:
-    # EOL
+    """
+    ESP32-C3 with in package 4MB flash.
+    -40~85°C temperature range.
+    22 GPIOs.
+    Chip/die revision 0.4.
+    End of life, discontinued.
+    """
     pass
 
 module ESP32_C3FH4_model from ESP32_C3Fx4_base_model:
+    """
+    ESP32-C3 with in package 4MB flash.
+    -40~105°C temperature range.
+    22 GPIOs.
+    Chip/die revision 0.4.
+    """
     pass
 
 module ESP32_C3FH4AZ_model from ESP32_C3Fx4_base_model:
-    # NRND
-    # 16 gpio variant
+    """
+    ESP32-C3 with in package 4MB flash.
+    -40~105°C temperature range.
+    16 GPIOs (SPI0/SPI1 pins for flash connection are not bonded).
+    Chip/die revision 0.4.
+    Not recommended for new designs.
+    """
     pass
 
 module ESP32_C3FH4X_model from ESP32_C3Fx4_base_model:
-    # 16 gpio variant
+    """
+    ESP32-C3 with in package 4MB flash.
+    -40~105°C temperature range.
+    16 GPIOs (SPI0/SPI1 pins for flash connection are not bonded).
+    Chip/die revision 1.1.
+    """
     pass

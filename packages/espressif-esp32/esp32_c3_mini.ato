@@ -1,3 +1,12 @@
+"""
+Small-sized 2.4 GHz Wi-Fi (802.11b/g/n) and Bluetooth® 5 module
+Built around ESP32-C3 series of SoCs, RISC-V single-core microprocessor
+4 MB flash in chip package
+15 GPIOs
+On-board PCB antenna or external antenna connector
+"""
+
+#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
@@ -9,20 +18,24 @@ import ElectricLogic
 import USB2_0_IF
 import UART
 import I2C
+import SPI
+import JTAG
+import MultiSPI
 import has_single_electric_reference_shared
 
 from "atopile/buttons/buttons.ato" import ButtonPullup, Button, VerticalButton
 
-from "esp32_c3.ato" import ESP32_C3_base_model
+from "esp32_c3.ato" import ESP32_C3FH4_model
 
 from "parts/Espressif_Systems_ESP32_C3_MINI_1_N4/Espressif_Systems_ESP32_C3_MINI_1_N4.ato" import Espressif_Systems_ESP32_C3_MINI_1_N4_package
 from "parts/Espressif_Systems_ESP32_C3_MINI_1U_H4/Espressif_Systems_ESP32_C3_MINI_1U_H4.ato" import Espressif_Systems_ESP32_C3_MINI_1U_H4_package
 
 module ESP32_C3_MINI_1_base_model:
     """
-    Base module for ESP32-C3-MINI-1 and ESP32-C3-MINI-1U
+    Base module for ESP32-C3-MINI-1 and ESP32-C3-MINI-1U.
+    Internally using the ESP32-C3FH4 chip.
     """
-    esp32 = new ESP32_C3_base_model
+    esp32 = new ESP32_C3FH4_model
     #TODO: model internal components
 
     # external interfaces
@@ -54,6 +67,10 @@ module ESP32_C3_MINI_1_base_model:
     esp32.usb_if ~ usb_if
     uart = new UART
     esp32.uart[0] ~ uart
+    jtag = new JTAG
+    esp32.jtag ~ jtag
+    mspi = new MultiSPI<data_lane_count=4>
+    esp32.mspi[2] ~ mspi
     # TODO: etc...
 
     trait has_single_electric_reference_shared
@@ -112,7 +129,10 @@ module ESP32_C3_MINI_1U_model from ESP32_C3_MINI_1_base_model:
     power.lv ~ package.GNDNC
 
 module ESP32_C3_MINI_1_driver:
-    esp32_module = new ESP32_C3_MINI_1_base_model
+    """
+    Reference driver for ESP32-C3-MINI-1 series of modules
+    """
+    esp32_module = new ESP32_C3_MINI_1_model # defaults to ESP32-C3-MINI-1-N4 package
 
     # external interfaces
     power = new ElectricPower
@@ -155,12 +175,28 @@ module ESP32_C3_MINI_1_driver:
 
 module ESP32_C3_MINI_1_driver_example:
     """
-    Example driver for ESP32-C3-MINI-1 module
+    Example of how to use the driver for ESP32-C3-MINI-1 modules
     """
     mcu = new ESP32_C3_MINI_1_driver
-    mcu.esp32_module -> ESP32_C3_MINI_1_model
+    # mcu.esp32_module -> ESP32_C3_MINI_1_model # choose another variant if you want
 
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 10%
-
     power_3v3 ~ mcu.power
+
+    # below are some sensible defaults. These interfaces can be muxed to any GPIO.
+    i2c = new I2C
+    mcu.esp32_module.gpio[6] ~ i2c.scl
+    mcu.esp32_module.gpio[5] ~ i2c.sda
+    # I2C pull-up resistors
+    pullup_resistors = new Resistor[2]
+    for res in pullup_resistors:
+        res.resistance = 10kohm +/- 1%
+        res.package = "R0402"
+    i2c.sda.reference.hv ~> pullup_resistors[0] ~> i2c.sda.line
+    i2c.scl.reference.hv ~> pullup_resistors[1] ~> i2c.scl.line
+
+    spi = new SPI
+    mcu.esp32_module.gpio[10] ~ spi.sclk
+    mcu.esp32_module.gpio[7] ~ spi.mosi
+    mcu.esp32_module.gpio[8] ~ spi.miso
