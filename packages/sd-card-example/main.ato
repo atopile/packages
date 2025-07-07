@@ -1,0 +1,20 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Resistor
+import Capacitor
+import SPI
+import ElectricLogic
+import ElectricPower
+
+from "atopile/sd-card/sd-card-slots.ato" import MicroSDCardAssemblyWithRemovableSPI
+from "atopile/rp2040/RP2040.ato" import RP2040_driver
+
+module App:
+    mcu = new RP2040_driver
+    sd_card = new MicroSDCardAssemblyWithRemovableSPI
+
+    # Connect micro SD Card
+    sd_card.spi ~ mcu.spi
+    sd_card.spi_cs ~ mcu.gpio17
+    sd_card.power ~ mcu.power
+
