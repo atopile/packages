@@ -18,12 +18,15 @@ import ElectricLogic
 import USB2_0_IF
 import UART
 import I2C
+import I2S
 import SPI
 import JTAG
 import MultiSPI
 import has_single_electric_reference_shared
 
-from "atopile/buttons/buttons.ato" import ButtonPullup, Button, VerticalButton
+from "atopile/buttons/buttons.ato" import Button
+from "atopile/buttons/buttons.ato" import ButtonPullup
+from "atopile/buttons/buttons.ato" import VerticalButton
 
 from "esp32_c3.ato" import ESP32_C3FH4_model
 
@@ -67,6 +70,12 @@ module ESP32_C3_MINI_1_base_model:
     esp32.usb_if ~ usb_if
     uart = new UART
     esp32.uart[0] ~ uart
+    i2c = new I2C
+    esp32.i2c ~ i2c
+    i2s = new I2S
+    esp32.i2s ~ i2s
+    spi = new SPI
+    esp32.spi ~ spi
     jtag = new JTAG
     esp32.jtag ~ jtag
     mspi = new MultiSPI<data_lane_count=4>
@@ -186,8 +195,9 @@ module ESP32_C3_MINI_1_driver_example:
 
     # below are some sensible defaults. These interfaces can be muxed to any GPIO.
     i2c = new I2C
-    mcu.esp32_module.gpio[6] ~ i2c.scl
-    mcu.esp32_module.gpio[5] ~ i2c.sda
+    mcu.esp32_module.i2c ~ i2c
+    mcu.esp32_module.gpio[6] ~ mcu.esp32_module.i2c.scl
+    mcu.esp32_module.gpio[5] ~ mcu.esp32_module.i2c.sda
     # I2C pull-up resistors
     pullup_resistors = new Resistor[2]
     for res in pullup_resistors:
@@ -197,6 +207,13 @@ module ESP32_C3_MINI_1_driver_example:
     i2c.scl.reference.hv ~> pullup_resistors[1] ~> i2c.scl.line
 
     spi = new SPI
-    mcu.esp32_module.gpio[10] ~ spi.sclk
-    mcu.esp32_module.gpio[7] ~ spi.mosi
-    mcu.esp32_module.gpio[8] ~ spi.miso
+    mcu.esp32_module.spi ~ spi
+    mcu.esp32_module.gpio[10] ~ mcu.esp32_module.spi.sclk
+    mcu.esp32_module.gpio[7] ~ mcu.esp32_module.spi.mosi
+    mcu.esp32_module.gpio[8] ~ mcu.esp32_module.spi.miso
+
+    i2s = new I2S
+    mcu.esp32_module.i2s ~ i2s
+    mcu.esp32_module.gpio[18] ~ mcu.esp32_module.i2s.ws
+    mcu.esp32_module.gpio[1] ~ mcu.esp32_module.i2s.sd
+    mcu.esp32_module.gpio[0] ~ mcu.esp32_module.i2s.sck
