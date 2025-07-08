@@ -29,17 +29,17 @@ component Korean_Hroparts_Elec_TF_01A_package:
     signal VSS ~ pin 6
 
 
-from "sd-card-slots.ato" import SDReceptacle
-module Korean_Hroparts_Elec_TF_01A_model from SDReceptacle:
+from "atopile/sd-card/slots.ato" import SDSlotMicroStandardSpeed
+module Korean_Hroparts_Elec_TF_01A_model from SDSlotMicroStandardSpeed:
     package = new Korean_Hroparts_Elec_TF_01A_package
 
-    sdbus.CD_DAT3 ~ package.CDDAT3CS
-    sdbus.CMD ~ package.CMDDI
-    sdbus.VSS1 ~ package.VSS
-    sdbus.VDD ~ package.VDD
-    sdbus.CLK ~ package.CLKSCLK
-    sdbus.VSS2 ~ package.VSS
-    sdbus.DAT0 ~ package.DAT0D0
-    sdbus.DAT1 ~ package.DAT1RSV
-    sdbus.DAT2 ~ package.DAT2RSV
-    sdbus.CD ~ package.CD
+    slot_pins.sdcard.CD_DAT3 ~ package.CDDAT3CS
+    slot_pins.sdcard.CMD ~ package.CMDDI
+    slot_pins.sdcard.VSS1 ~ package.VSS
+    slot_pins.sdcard.VDD ~ package.VDD
+    slot_pins.sdcard.CLK ~ package.CLKSCLK
+    slot_pins.sdcard.VSS2 ~ package.VSS
+    slot_pins.sdcard.DAT0 ~ package.DAT0D0
+    slot_pins.sdcard.DAT1 ~ package.DAT1RSV
+    slot_pins.sdcard.DAT2 ~ package.DAT2RSV
+    slot_pins.sdcard.CD ~ package.CD

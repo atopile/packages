@@ -1,0 +1,21 @@
+"""
+SD Card slots.
+"""
+
+from "atopile/sd-card/slot-pins.ato" import SDSlotPinsSS
+from "atopile/sd-card/mech.ato" import SDMechSlotInterfaceMicro, SDMechSlotInterfaceBig
+
+module SDSlot:
+    #slot_pins = new SDSlotPins
+    pass
+
+module SDSlotMicro from SDSlot:
+    mech_interface = new SDMechSlotInterfaceMicro
+
+
+module SDSlotBig from SDSlot:
+    mech_interface = new SDMechSlotInterfaceBig
+
+
+module SDSlotMicroStandardSpeed from SDSlotMicro:
+    slot_pins = new SDSlotPinsSS

@@ -30,8 +30,8 @@ component XUNPU_SD_102_package:
     signal nCD ~ pin 10
     signal nWP ~ pin 11
 
-from "sd-card-slots.ato" import SDReceptacle
-module XUNPU_SD_102_model from SDReceptacle:
+from "atopile/sd-card/slots.ato" import SDSlotMicroStandardSpeed
+module XUNPU_SD_102_model from SDSlotMicroStandardSpeed:
     """
     Driver for XUNPU_SD_102 microSD card slot with SDBus Interface
 
@@ -39,12 +39,12 @@ module XUNPU_SD_102_model from SDReceptacle:
     """
     package = new XUNPU_SD_102_package
 
-    sdbus.CD_DAT3 ~ package.CD_DAT3
-    sdbus.CMD ~ package.CMD
-    sdbus.VSS1 ~ package.VSS1
-    sdbus.VDD ~ package.VDD
-    sdbus.CLK ~ package.CLK
-    sdbus.VSS2 ~ package.VSS2
-    sdbus.DAT0 ~ package.DAT0
-    sdbus.DAT1 ~ package.DAT1
-    sdbus.DAT2 ~ package.DAT2
+    slot_pins.sdcard.CD_DAT3 ~ package.CD_DAT3
+    slot_pins.sdcard.CMD ~ package.CMD
+    slot_pins.sdcard.VSS1 ~ package.VSS1
+    slot_pins.sdcard.VDD ~ package.VDD
+    slot_pins.sdcard.CLK ~ package.CLK
+    slot_pins.sdcard.VSS2 ~ package.VSS2
+    slot_pins.sdcard.DAT0 ~ package.DAT0
+    slot_pins.sdcard.DAT1 ~ package.DAT1
+    slot_pins.sdcard.DAT2 ~ package.DAT2

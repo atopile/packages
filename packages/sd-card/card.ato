@@ -1,0 +1,14 @@
+from "atopile/sd-card/mech.ato" import SDMechSlotInterfaceMicro, SDMechSlotInterfaceBig
+from "atopile/sd-card/card-pins.ato" import SDCardPinsSS
+
+module SDCard:
+    storage_size: B
+
+module SDCardMicro from SDCard:
+    mech_interface = new SDMechSlotInterfaceMicro
+
+module SDCardBig from SDCard:
+    mech_interface = new SDMechSlotInterfaceBig
+
+module SDCardMicroStandardSpeed from SDCardMicro:
+    pins = new SDCardPinsSS
