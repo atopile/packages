@@ -104,6 +104,18 @@ module ESP32_C3_base_model:
     gpio[7] ~ mspi[2].data[0] # SPID
     gpio[10] ~ mspi[2].chip_select
 
+    # TODO: below are some sensible defaults. These interfaces can be muxed to any GPIO.
+    gpio[6] ~ i2c.scl
+    gpio[5] ~ i2c.sda
+
+    gpio[10] ~ spi.sclk
+    gpio[7] ~ spi.mosi
+    gpio[8] ~ spi.miso
+
+    gpio[18] ~ i2s.ws
+    gpio[1] ~ i2s.sd
+    gpio[0] ~ i2s.sck
+
 
 module ESP32_C3Fx4_base_model from ESP32_C3_base_model:
     """

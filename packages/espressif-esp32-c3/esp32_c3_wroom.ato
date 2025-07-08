@@ -172,11 +172,11 @@ module ESP32_C3_WROOM_02_driver:
     """
     Reference driver for ESP32-C3-WROOM-02 series of modules
     """
-    esp32_module = new ESP32_C3_WROOM_02_H4_model # defaults to ESP32-C3-WROOM-02-H4 package
+    esp32_c3 = new ESP32_C3_WROOM_02_H4_model # defaults to ESP32-C3-WROOM-02-H4 package
 
     # external interfaces
     power = new ElectricPower
-    esp32_module.power ~ power
+    esp32_c3.power ~ power
 
     # components
     boot_switch = new Button
@@ -190,16 +190,16 @@ module ESP32_C3_WROOM_02_driver:
     power ~ decoupling_capacitor_bulk.power
     power ~ decoupling_capacitor_small.power
 
-    power.lv ~> boot_switch ~> esp32_module.gpio[9].line
+    power.lv ~> boot_switch ~> esp32_c3.gpio[9].line
     boot_switch -> VerticalButton
     boot_switch.input ~> debounce_capacitors[0] ~> boot_switch.output
 
-    reset_switch.output ~ esp32_module.esp32.enable
+    reset_switch.output ~ esp32_c3.esp32.enable
     reset_switch.button.button -> VerticalButton
     reset_switch.button.button.input ~> debounce_capacitors[1] ~> reset_switch.button.button.output
 
-    esp32_module.gpio[2].line ~> boot_mode_resistors[0] ~> power.hv
-    esp32_module.gpio[8].line ~> boot_mode_resistors[1] ~> power.hv
+    esp32_c3.gpio[2].line ~> boot_mode_resistors[0] ~> power.hv
+    esp32_c3.gpio[8].line ~> boot_mode_resistors[1] ~> power.hv
 
     # parameters
     decoupling_capacitor_bulk.capacitance = 22uF +/- 20%
@@ -217,18 +217,15 @@ module ESP32_C3_WROOM_02_driver_example:
     """
     Example of how to use the driver for ESP32-C3-WROOM-02 modules
     """
-    mcu = new ESP32_C3_WROOM_02_driver
-    # mcu.esp32_module -> ESP32_C3_WROOM_02_H4_model # choose another variant if you want
+    mcu_module = new ESP32_C3_WROOM_02_driver
+    # mcu_module.esp32_c3 -> ESP32_C3_WROOM_02_H4_model # choose another variant if you want
 
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 10%
-    power_3v3 ~ mcu.power
+    power_3v3 ~ mcu_module.power
 
-    # below are some sensible defaults. These interfaces can be muxed to any GPIO.
     i2c = new I2C
-    mcu.esp32_module.i2c ~ i2c
-    mcu.esp32_module.gpio[6] ~ mcu.esp32_module.i2c.scl
-    mcu.esp32_module.gpio[5] ~ mcu.esp32_module.i2c.sda
+    mcu_module.esp32_c3.i2c ~ i2c
     # I2C pull-up resistors
     pullup_resistors = new Resistor[2]
     for res in pullup_resistors:
@@ -238,13 +235,7 @@ module ESP32_C3_WROOM_02_driver_example:
     i2c.scl.reference.hv ~> pullup_resistors[1] ~> i2c.scl.line
 
     spi = new SPI
-    mcu.esp32_module.spi ~ spi
-    mcu.esp32_module.gpio[10] ~ mcu.esp32_module.spi.sclk
-    mcu.esp32_module.gpio[7] ~ mcu.esp32_module.spi.mosi
-    mcu.esp32_module.gpio[8] ~ mcu.esp32_module.spi.miso
+    mcu_module.esp32_c3.spi ~ spi
 
     i2s = new I2S
-    mcu.esp32_module.i2s ~ i2s
-    mcu.esp32_module.gpio[18] ~ mcu.esp32_module.i2s.ws
-    mcu.esp32_module.gpio[1] ~ mcu.esp32_module.i2s.sd
-    mcu.esp32_module.gpio[0] ~ mcu.esp32_module.i2s.sck
+    mcu_module.esp32_c3.i2s ~ i2s
