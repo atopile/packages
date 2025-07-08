@@ -25,7 +25,6 @@ import MultiSPI
 import has_single_electric_reference_shared
 
 from "atopile/buttons/buttons.ato" import Button
-from "atopile/buttons/buttons.ato" import ButtonPullup
 from "atopile/buttons/buttons.ato" import VerticalButton
 
 from "esp32_c3.ato" import ESP32_C3FH4_model
@@ -149,7 +148,8 @@ module ESP32_C3_MINI_1_driver:
 
     # components
     boot_switch = new Button
-    reset_switch = new ButtonPullup
+    reset_switch = new Button
+    reset_pullup_resistor = new Resistor
     debounce_capacitors = new Capacitor[2]
     decoupling_capacitor_bulk = new Capacitor
     decoupling_capacitor_small = new Capacitor
@@ -163,9 +163,10 @@ module ESP32_C3_MINI_1_driver:
     boot_switch -> VerticalButton
     boot_switch.input ~> debounce_capacitors[0] ~> boot_switch.output
 
-    reset_switch.output ~ esp32_c3.esp32.enable
-    reset_switch.button.button -> VerticalButton
-    reset_switch.button.button.input ~> debounce_capacitors[1] ~> reset_switch.button.button.output
+    power.lv ~> reset_switch ~> esp32_c3.esp32.enable.line
+    power.hv ~> reset_pullup_resistor ~> esp32_c3.esp32.enable.line
+    reset_switch -> VerticalButton
+    reset_switch.input ~> debounce_capacitors[1] ~> reset_switch.output
 
     esp32_c3.gpio[2].line ~> boot_mode_resistors[0] ~> power.hv
     esp32_c3.gpio[8].line ~> boot_mode_resistors[1] ~> power.hv
@@ -181,6 +182,8 @@ module ESP32_C3_MINI_1_driver:
     for res in boot_mode_resistors:
         res.resistance = 10kohm +/- 1%
         res.package = "R0402"
+    reset_pullup_resistor.resistance = 10kohm +/- 1%
+    reset_pullup_resistor.package = "R0402"
 
 module ESP32_C3_MINI_1_driver_example:
     """
