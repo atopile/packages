@@ -1,11 +1,16 @@
 on:
-  # TODO:
   push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
   workflow_dispatch:
 
 jobs:
   define-packages:
     runs-on: ubuntu-latest
+
+    # Skip all jobs if PR is in draft
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
 
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
