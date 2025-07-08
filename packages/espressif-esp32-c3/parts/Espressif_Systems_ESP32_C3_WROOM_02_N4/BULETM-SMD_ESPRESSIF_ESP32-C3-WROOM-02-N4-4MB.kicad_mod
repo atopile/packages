@@ -325,6 +325,17 @@
 		(layer "F.Fab")
 		(uuid "a3c87934-e6d8-4b83-a864-24f5baf0821f")
 	)
+	(fp_rect
+		(start -24 -28)
+		(end 24 -7)
+		(stroke
+			(width 0.2)
+			(type dot)
+		)
+		(fill no)
+		(layer "User.1")
+		(uuid "936cabee-e8a2-43eb-8d9b-c357f79815cc")
+	)
 	(fp_text user "${REFERENCE}"
 		(at 0 -10 0)
 		(layer "F.SilkS")
@@ -356,6 +367,19 @@
 			(font
 				(size 1 1)
 				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "Antenna keepout zone"
+		(at 0 -17.5 0)
+		(unlocked yes)
+		(layer "User.1" knockout)
+		(uuid "c2b9d73e-6d9b-45c4-9e1c-ac3df6e33e46")
+		(effects
+			(font
+				(size 2 2)
+				(thickness 0.4)
+				(bold yes)
 			)
 		)
 	)
@@ -520,39 +544,6 @@
 		(size 0.7 0.7)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(uuid "7bb1efbe-86b9-4b21-9b87-2da144741416")
-	)
-	(zone
-		(net 0)
-		(net_name "")
-		(layers "F.Cu" "B.Cu" "In1.Cu")
-		(uuid "61a0b546-6c60-4245-abef-d6bbe680f83c")
-		(name "Antenna Area")
-		(hatch edge 0.5)
-		(connect_pads
-			(clearance 0)
-		)
-		(min_thickness 0.25)
-		(filled_areas_thickness no)
-		(keepout
-			(tracks not_allowed)
-			(vias not_allowed)
-			(pads not_allowed)
-			(copperpour not_allowed)
-			(footprints not_allowed)
-		)
-		(placement
-			(enabled no)
-			(sheetname "")
-		)
-		(fill
-			(thermal_gap 0.5)
-			(thermal_bridge_width 0.5)
-		)
-		(polygon
-			(pts
-				(xy -24 -7) (xy 24 -7) (xy 24 -28) (xy -24 -28)
-			)
-		)
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/../../parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/BULETM-SMD_ESPRESSIF_ESP32-C3-WROOM-02-N4-4MB.step"
