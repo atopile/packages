@@ -1,0 +1,68 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Addressor
+import ElectricPower
+import ElectricSignal
+import I2C
+import Capacitor
+import Resistor
+import FilterElectricalRC
+
+from "parts/ROHM_Semicon_BH1750FVI_TR/ROHM_Semicon_BH1750FVI_TR.ato" import ROHM_Semicon_BH1750FVI_TR_package
+
+
+module ROHM_BH1750:
+    """
+    Digital ambient light sensor with I²C interface.
+    """
+    package = new ROHM_Semicon_BH1750FVI_TR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+
+    # --- Power supply ---
+    assert power.voltage within 2.4V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c_address_pulldown_resistor = new Resistor
+    i2c_address_pulldown_resistor.value = 10kohm +/- 10%
+    i2c_address_pulldown_resistor.package = "0402"
+    power.lv ~> i2c_address_pulldown_resistor ~> package.ADDR
+    i2c.address = 0x23
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- DVI low-pass filter ---
+    dvi_lowpass = new FilterElectricalRC
+    dvi_lowpass.in_.line ~ power.hv
+    dvi_lowpass.in_.reference ~ power
+    dvi_lowpass.resistor.resistance = 1kohm +/- 10%
+    dvi_lowpass.resistor.package = "0402"
+    dvi_lowpass.capacitor.capacitance = 0.1uF +/- 10%
+    dvi_lowpass.capacitor.package = "0402"
+
+    # --- Package ---
+    package.GND ~ power.lv
+    package.VCC ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.EP ~ power.lv
+    package.DVI ~ dvi_lowpass.out.line
