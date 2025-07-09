@@ -2,6 +2,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
+# --- Imports ---
 import ElectricPower
 import I2C
 import ElectricLogic
@@ -11,9 +12,9 @@ import Addressor
 
 from "parts/Microchip_Tech_MCP23017T_E_ML/Microchip_Tech_MCP23017T_E_ML.ato" import Microchip_Tech_MCP23017T_E_ML_package
 
-
 module Microchip_MCP23017:
-    """Driver for Microchip MCP23017 16-bit I²C GPIO expander.
+    """
+    Driver for Microchip MCP23017 16-bit I²C GPIO expander.
 
     Exposes:
       * power        – Single-rail supply (1.8 V – 5.5 V)
@@ -24,113 +25,118 @@ module Microchip_MCP23017:
       * gpb[0:7]     – Port-B GPIO lines
     """
 
-    # Package (IC)
-    ic = new Microchip_Tech_MCP23017T_E_ML_package
+    # --- Package ---
+    package = new Microchip_Tech_MCP23017T_E_ML_package
 
-    # ---------------------------------------------------------------------
-    # Power rail
+    # --- External interfaces ---
     power = new ElectricPower
-    power.vcc ~ ic.VDD
-    power.gnd ~ ic.VSS
-    power.gnd ~ ic.EP           # Exposed pad to ground
-    assert power.voltage within 1.8V to 5.5V
     power.required = True
 
-    # Decoupling capacitor (100 nF 0402)
-    decoup = new Capacitor
-    decoup.capacitance = 100nF +/- 20%
-    decoup.package = "0402"
-    power.vcc ~> decoup ~> power.gnd
-
-    # Additional bulk decoupling (2 × 10 µF)
-    bulk_caps = new Capacitor[2]
-    for cap in bulk_caps:
-        cap.capacitance = 10uF +/- 20%
-        cap.package = "0805"
-        power.vcc ~> cap ~> power.gnd
-
-    # ---------------------------------------------------------------------
-    # I²C interface
     i2c = new I2C
-    i2c.scl.line ~ ic.SCK   # Datasheet labels the clock pin SCK/SCL
-    i2c.sda.line ~ ic.SDA
-    i2c.scl.reference ~ power
-    i2c.sda.reference ~ power
     i2c.required = True
 
-    # I²C pull-up resistors
+    reset = new ElectricLogic
+    inta  = new ElectricLogic
+    intb  = new ElectricLogic
+
+    gpio_a = new ElectricLogic[8]
+    gpio_b = new ElectricLogic[8]
+
+    # --- I²C bus ---
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 10%
     scl_pullup.package = "0402"
-    i2c.scl.line ~> scl_pullup ~> power.vcc
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 10%
     sda_pullup.package = "0402"
-    i2c.sda.line ~> sda_pullup ~> power.vcc
 
-    # Address selection (A2:A1:A0)
+    i2c.scl.line ~> scl_pullup ~> power.hv
+    i2c.sda.line ~> sda_pullup ~> power.hv
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Address selection (A2:A1:A0) ---
     addressor = new Addressor<address_bits=3>
-    addressor.base = 0x20  # 0b0100_000 → 0x20-0x27
-    addressor.address_lines[0].line ~ ic.A0
-    addressor.address_lines[1].line ~ ic.A1
-    addressor.address_lines[2].line ~ ic.A2
+    addressor.base = 0x20  # 0x20–0x27
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    package.A2 ~ addressor.address_lines[2].line
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
 
-    # ---------------------------------------------------------------------
-    # Reset (active-low, pulled high)
-    reset = new ElectricLogic
-    reset.line ~ ic.nRESET
+    # --- Reset & interrupt lines ---
     reset.reference ~ power
+    inta.reference  ~ power
+    intb.reference  ~ power
+
+    # Reset pull-up
     reset_pullup = new Resistor
     reset_pullup.resistance = 10kohm +/- 10%
     reset_pullup.package = "0402"
-    reset.line ~> reset_pullup ~> power.vcc
+    reset.line ~> reset_pullup ~> power.hv
 
-    # Interrupt outputs
-    inta = new ElectricLogic
-    intb = new ElectricLogic
-    inta.line ~ ic.INTA
-    intb.line ~ ic.INTB
-    inta.reference ~ power
-    intb.reference ~ power
-
-    # Pull-up resistors for interrupt lines
+    # Interrupt pull-ups
     inta_pullup = new Resistor
     inta_pullup.resistance = 10kohm +/- 10%
     inta_pullup.package = "0402"
-    inta.line ~> inta_pullup ~> power.vcc
+    inta.line ~> inta_pullup ~> power.hv
 
     intb_pullup = new Resistor
     intb_pullup.resistance = 10kohm +/- 10%
     intb_pullup.package = "0402"
-    intb.line ~> intb_pullup ~> power.vcc
+    intb.line ~> intb_pullup ~> power.hv
 
-    # ---------------------------------------------------------------------
-    # GPIO ports (A & B)
-    gpio_a = new ElectricLogic[8]
-    gpio_b = new ElectricLogic[8]
+    # --- Decoupling capacitors ---
+    decoup = new Capacitor
+    decoup.capacitance = 100nF +/- 20%
+    decoup.package = "0402"
+    power.hv ~> decoup ~> power.lv
 
-    gpio_a[0].line ~ ic.GPA0
-    gpio_a[1].line ~ ic.GPA1
-    gpio_a[2].line ~ ic.GPA2
-    gpio_a[3].line ~ ic.GPA3
-    gpio_a[4].line ~ ic.GPA4
-    gpio_a[5].line ~ ic.GPA5
-    gpio_a[6].line ~ ic.GPA6
-    gpio_a[7].line ~ ic.GPA7
+    # --- Bulk decoupling (2 × 10 µF) ---
+    bulk_caps = new Capacitor[2]
+    for cap in bulk_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "0805"
+        power.hv ~> cap ~> power.lv
 
-    gpio_b[0].line ~ ic.GPB0
-    gpio_b[1].line ~ ic.GPB1
-    gpio_b[2].line ~ ic.GPB2
-    gpio_b[3].line ~ ic.GPB3
-    gpio_b[4].line ~ ic.GPB4
-    gpio_b[5].line ~ ic.GPB5
-    gpio_b[6].line ~ ic.GPB6
-    gpio_b[7].line ~ ic.GPB7
+    # --- Power ---
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+    package.EP  ~ power.lv
+    assert power.voltage within 1.8V to 5.5V
 
+    # --- I²C ---
+    package.SCK ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # --- Reset & interrupts ---
+    package.nRESET ~ reset.line
+    package.INTA   ~ inta.line
+    package.INTB   ~ intb.line
+
+    # --- GPIO port A ---
+    package.GPA0 ~ gpio_a[0].line
+    package.GPA1 ~ gpio_a[1].line
+    package.GPA2 ~ gpio_a[2].line
+    package.GPA3 ~ gpio_a[3].line
+    package.GPA4 ~ gpio_a[4].line
+    package.GPA5 ~ gpio_a[5].line
+    package.GPA6 ~ gpio_a[6].line
+    package.GPA7 ~ gpio_a[7].line
+
+    # GPIO port B
+    package.GPB0 ~ gpio_b[0].line
+    package.GPB1 ~ gpio_b[1].line
+    package.GPB2 ~ gpio_b[2].line
+    package.GPB3 ~ gpio_b[3].line
+    package.GPB4 ~ gpio_b[4].line
+    package.GPB5 ~ gpio_b[5].line
+    package.GPB6 ~ gpio_b[6].line
+    package.GPB7 ~ gpio_b[7].line
+
+    # Reference each GPIO line to the power rail
     for gpio in gpio_a:
         gpio.reference ~ power
     for gpio in gpio_b:

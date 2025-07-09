@@ -1,40 +1,53 @@
 # Microchip MCP23017 – 16-bit I²C GPIO Expander
 
-This package provides an Atopile driver for the **MCP23017** 16-bit GPIO expander from Microchip Technology (LCSC part **C629439**).
+A declarative Atopile driver for the **Microchip MCP23017** 16-bit general-purpose I/O expander (QFN-28, LCSC part **C629439**).  The device provides two 8-bit GPIO banks over an I²C interface and operates from **1.8 V to 5.5 V**.
 
 ## Usage
 
 ```ato
-import I2C
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
 import ElectricPower
+import I2C
 
-from "atopile/microchip-mcp23017/microchip-mcp23017.ato" import Microchip_MCP23017
+# --- Package import ---
+from "microchip-mcp23017.ato" import Microchip_MCP23017
 
-module MCU:
-    power = new ElectricPower
-    i2c = new I2C
+module Usage:
+    """
+    Minimal usage example for `microchip-mcp23017`.
+    Powers the MCP23017 from a shared 3 V 3 rail and places it on an I²C bus
+    running at the default 7-bit address (0x20).
+    """
 
-module TopLevel:
-    mcu = new MCU
-    expander = new Microchip_MCP23017
-
-    # 3.3 V rail shared between MCU & expander
-    rail = new ElectricPower
-    rail.voltage = 3.3V
-    rail ~ mcu.power
-    rail ~ expander.power
+    # Power rail (3.3 V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
 
     # I²C bus
-    mcu.i2c ~ expander.i2c
+    i2c_bus = new I2C
 
-    # Optional: set desired I²C address (0x20–0x27)
+    # Expander instance
+    expander = new Microchip_MCP23017
+
+    # Connect required interfaces
+    power_3v3 ~ expander.power
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    i2c_bus ~ expander.i2c
+
+    # (Optional) Explicitly set the expander address – defaults to 0x20
     expander.i2c.address = 0x20
 ```
 
 ## Contributing
 
-Pull requests are welcome! Please run `ato build` on the `usage` target and ensure CI passes before opening a PR.
+Contributions are welcome! Feel free to open an issue or pull request—please ensure the `usage` build target passes (`ato build usage`).
 
 ## License
 
-MIT License © 2025 Atopile Contributors
+This package is provided under the [MIT License](https://opensource.org/license/mit/).
