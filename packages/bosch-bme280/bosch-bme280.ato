@@ -2,11 +2,13 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import ElectricPower
-import I2C
-import Capacitor
 import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
 import Resistor
+import SPI
 
 from "parts/Bosch_Sensortec_BME280/Bosch_Sensortec_BME280.ato" import Bosch_Sensortec_BME280_package
 
@@ -22,35 +24,51 @@ module Bosch_BME280:
     # --- Package ---
     package = new Bosch_Sensortec_BME280_package
 
-    # --- Power rails ---
-    power_core = new ElectricPower  # Connects to VDD (sensor core)
+    # --- External interfaces ---
+    i2c = new I2C
+    power_core = new ElectricPower
+    power_core.required = True
+    power_io = new ElectricPower
+    power_io.required = True
+    spi = new SPI
+    spi_cs = new ElectricLogic
+
+    # --- Power supply ---
     power_core.vcc ~ package.VDD
     power_core.gnd ~ package.GND
     assert power_core.voltage within 1.71V to 3.6V
-    power_core.required = True
 
-    power_io = new ElectricPower  # Connects to VDDIO (digital I/O)
     power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ power_core.gnd  # Share grounds
+    power_io.gnd ~ power_core.gnd
     assert power_io.voltage within 1.2V to 3.6V
-    power_io.required = True
 
     # --- I²C bus ---
-    i2c = new I2C
     i2c.scl.line ~ package.SCK
     i2c.sda.line ~ package.SDI
-    i2c.required = True
     i2c.scl.reference ~ power_io
     i2c.sda.reference ~ power_io
 
-    # --- Address selection via SDO pin ---
+
+    # Address selection via SDO pin
     addressor = new Addressor<address_bits=1>
+    addressor.base = 0x76
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
     assert addressor.base is 0x76
     assert addressor.address is i2c.address
+    
+    # --- SPI bus ---
+    spi.sclk.line ~ package.SCK
+    spi.mosi.line ~ package.SDI
+    spi.miso.line ~ package.SDO
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
 
-    # --- Chip-select pin: tie high to enable I²C mode ---
+    spi_cs.line ~ package.CSB
+    spi_cs.reference ~ power_io
+
+    # --- Chip-select pin (enable I²C mode) ---
     csb_pullup = new Resistor
     csb_pullup.resistance = 10kohm +/- 20%
     csb_pullup.package = "0402"
@@ -64,26 +82,3 @@ module Bosch_BME280:
 
     power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
     power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd
-
-
-module Example:
-    """Simple usage example wiring the BME280 to shared power / I²C"""
-    sensor = new Bosch_BME280
-
-    # shared rails
-    power = new ElectricPower
-    i2c = new I2C
-
-    # Pull-ups for the I²C bus (10 kΩ typical)
-    pullups = new Resistor[2]
-    for pu in pullups:
-        pu.resistance = 10kohm +/- 20%
-        pu.package = "0402"
-
-    i2c.scl.line ~> pullups[0] ~> power.vcc
-    i2c.sda.line ~> pullups[1] ~> power.vcc
-
-    # connect sensor
-    sensor.power_core ~ power
-    sensor.power_io ~ power
-    sensor.i2c ~ i2c
