@@ -11,6 +11,11 @@ find_all_packages() {
 find_changed_packages() {
     local base_ref="$1"
     local changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
+
+    if [[ -z "$changed_files" ]]; then
+        return
+    fi
+
     echo "$changed_files" | \
         grep -E '^packages/[^/]+/' | \
         cut -d'/' -f1,2 | \
