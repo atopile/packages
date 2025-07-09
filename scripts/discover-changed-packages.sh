@@ -12,8 +12,6 @@ find_changed_packages() {
     local base_ref="$1"
     local changed_files=$(git diff --name-only "$base_ref"...HEAD -- ':/packages/**' 2>/dev/null || echo "")
 
-    echo "Changed files: $changed_files" >&2
-
     if [[ -z "$changed_files" ]]; then
         return
     fi
@@ -52,8 +50,6 @@ main() {
                 packages_json=$(to_json_array "$packages")
             else
                 changed_packages=$(find_changed_packages "$base_ref")
-
-                echo "$changed_packages" >&2
 
                 packages_json=$(to_json_array "$changed_packages")
             fi
