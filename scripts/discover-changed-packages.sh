@@ -9,10 +9,12 @@ find_all_packages() {
 }
 
 to_json_array() {
-    if [[ -z "$1" ]]; then
+    local input="$1"
+
+    if [[ -z "$input" ]]; then
         echo "[]"
     else
-        jq --raw-input --slurp --compact-output 'split("\n") | map(select(length > 0))' <<< "$1"
+        jq --raw-input --slurp --compact-output 'split("\n") | map(select(length > 0))' <<< "$input"
     fi
 }
 
@@ -31,7 +33,7 @@ main() {
             if [[ "$base_ref" =~ ^0+$ ]]; then  # base_ref is the first commit
                 echo "Initial commit detected, building all packages" >&2
                 packages=$(find_all_packages)
-                packages_json=$(echo -n "$packages" | to_json_array)
+                packages_json=$(to_json_array "$packages")
             else
                 changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
 
@@ -42,14 +44,14 @@ main() {
                     sort -u
                 )
 
-                packages_json=$(echo -n "$changed_packages" | to_json_array)
+                packages_json=$(to_json_array "$changed_packages")
             fi
             ;;
 
         "workflow_dispatch"|*)
             echo "Building all packages (event: ${event_name:-unknown})" >&2
             packages=$(find_all_packages)
-            packages_json=$(echo -n "$packages" | to_json_array)
+            packages_json=$(to_json_array "$packages")
             ;;
     esac
 
