@@ -139,6 +139,7 @@ module <module_name>:
     power_core.vcc ~ package.VDD
     power_core.gnd ~ package.GND
     assert power_core.voltage within 1.71V to 3.6V
+    only if there are multiple power rails, else just the one in external interfaces
 
     # --- Power supply ---
 
@@ -156,6 +157,7 @@ module <module_name>:
     # --- Package ---
     package = new <package_name>
     <package_connections>
+    dont do any package connections above, only here
 ```
 
 Remove empty sections.
@@ -347,7 +349,7 @@ These tips should prevent common "footprint not found", "pin X missing", and bui
 
 ## <package_name>.ato
 
-```ato
+````ato
 <pragmas>
 <stl imports>
 
@@ -377,6 +379,7 @@ module <module_name>:
     power_core = new ElectricPower  # Connects to VDD (sensor core)
     power_core.vcc ~ package.VDD
     power_core.gnd ~ package.GND
+    only define new rails here if there are multiple power rails, else just the one in external interfaces
     assert power_core.voltage within 1.71V to 3.6V
 
     # --- Power supply ---
@@ -394,7 +397,16 @@ module <module_name>:
 
     # --- Package ---
     package = new <package_name>
-    <package_connections>
+    <package_connections> (package always on the left)
+    e.g
+    package.VDD ~ power.hv
+    package.VDDH ~ power.hv
+    package.GND ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    dont make any connections to the package above, only here
+
 ```
 
 Remove empty sections.
@@ -424,13 +436,14 @@ package:
       email: hi@atopile.io
   summary: `<package_summary>`
   license: MIT
-```
+````
 
 `<package_summary>`: Bunch of tags to find the package on the web.
 e.g
-Tags: Bosch; BME280; Temperature; Humidity; Pressure; Sensor; IC; I2C; Adafruit; <adafruit_product_id>; QWIIC, STEMMA
+Tags: Bosch; BME280; Temperature; Humidity; Pressure; Sensor; IC; I2C; Adafruit; <adafruit_product_id>; <jlcpcb_part_number>; QWIIC, STEMMA
 
 `<adafruit_product_id>`: Adafruit product ID, e.g `3660` for BME680 (if available)
+`<jlcpcb_part_number>`: JLCPCB part number, e.g `C125972` for BME680 (if available)
 
 ## usage.ato
 
