@@ -70,19 +70,3 @@ module ICM20948_driver:
         capacitor.capacitance = 100nF +/- 20%
         capacitor.package = "0402"
         power_vddio.hv ~> capacitor ~> power_vddio.lv
-
-module Example:
-    # Power supplies
-    power_3v3 = new ElectricPower
-    power_1v8 = new ElectricPower
-
-    # IMU sensor
-    imu = new ICM20948_driver
-
-    # I2C bus
-    i2c_bus = new I2C
-
-    # Connections
-    power_3v3 ~ imu.power_vdd
-    power_1v8 ~ imu.power_vddio
-    i2c_bus ~ imu.i2c
