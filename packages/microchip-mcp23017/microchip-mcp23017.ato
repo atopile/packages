@@ -12,7 +12,7 @@ import Addressor
 from "parts/Microchip_Tech_MCP23017T_E_ML/Microchip_Tech_MCP23017T_E_ML.ato" import Microchip_Tech_MCP23017T_E_ML_package
 
 
-module MCP23017_driver:
+module Microchip_MCP23017:
     """Driver for Microchip MCP23017 16-bit I²C GPIO expander.
 
     Exposes:
@@ -57,6 +57,17 @@ module MCP23017_driver:
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
     i2c.required = True
+
+    # I²C pull-up resistors
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+    i2c.scl.line ~> scl_pullup ~> power.vcc
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+    i2c.sda.line ~> sda_pullup ~> power.vcc
 
     # Address selection (A2:A1:A0)
     addressor = new Addressor<address_bits=3>
@@ -124,27 +135,3 @@ module MCP23017_driver:
         gpio.reference ~ power
     for gpio in gpio_b:
         gpio.reference ~ power
-
-
-module MCU:
-    """Simple host MCU providing I²C bus and power rail."""
-    power = new ElectricPower
-    i2c = new I2C
-
-
-module Example:
-    """Minimal usage example wiring the MCP23017 to an MCU."""
-    mcu = new MCU
-    expander = new MCP23017_driver
-
-    # Shared 3.3 V supply
-    v3v3 = new ElectricPower
-    v3v3.voltage = 3.3V
-    v3v3 ~ mcu.power
-    v3v3 ~ expander.power
-
-    # I²C bus
-    mcu.i2c ~ expander.i2c
-
-    # Select default address 0x20
-    expander.i2c.address = 0x20 

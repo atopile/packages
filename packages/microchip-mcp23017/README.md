@@ -8,7 +8,7 @@ This package provides an Atopile driver for the **MCP23017** 16-bit GPIO expande
 import I2C
 import ElectricPower
 
-from "atopile/microchip-mcp23017/microchip-mcp23017.ato" import MCP23017_driver
+from "atopile/microchip-mcp23017/microchip-mcp23017.ato" import Microchip_MCP23017
 
 module MCU:
     power = new ElectricPower
@@ -16,7 +16,7 @@ module MCU:
 
 module TopLevel:
     mcu = new MCU
-    expander = new MCP23017_driver
+    expander = new Microchip_MCP23017
 
     # 3.3 V rail shared between MCU & expander
     rail = new ElectricPower
@@ -33,8 +33,8 @@ module TopLevel:
 
 ## Contributing
 
-Pull requests are welcome!  Please run `ato build` on the `example` target and ensure CI passes before opening a PR.
+Pull requests are welcome! Please run `ato build` on the `usage` target and ensure CI passes before opening a PR.
 
 ## License
 
-MIT License © 2025 Atopile Contributors 
+MIT License © 2025 Atopile Contributors
