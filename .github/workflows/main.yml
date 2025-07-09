@@ -18,10 +18,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Discover Packages
+      - name: Discover changed packages
         id: packages
         run: |
-          echo "packages=$(find . -name "ato.yaml" -exec dirname {} \; | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+          case "${{ github.event_name }}" in
+            "push")
+              base_ref="${{ github.event.before }}"
+              ;;
+            "pull_request")
+              base_ref="${{ github.event.pull_request.base.sha }}"
+              ;;
+            *)
+              base_ref=""
+              ;;
+          esac
+
+          packages=$(scripts/discover-changed-packages.sh "${{ github.event_name }}" "$base_ref")
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
 
   test-and-publish:
     permissions:
@@ -30,6 +43,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     needs: define-packages
+    if: needs.define-packages.outputs.packages != '[]'
     strategy:
       matrix:
         package: ${{ fromJSON(needs.define-packages.outputs.packages) }}
