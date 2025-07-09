@@ -4,7 +4,7 @@
 import ElectricPower
 import I2C
 
-from "ti-ina238.ato" import TI_INA238_driver
+from "ti-ina238.ato" import TI_INA238
 
 module Usage:
     """
@@ -21,7 +21,7 @@ module Usage:
     i2c = new I2C
 
     # Device instance
-    sensor = new TI_INA238_driver
+    sensor = new TI_INA238
     sensor.max_current = 5A
     sensor.power ~ supply
 
