@@ -15,7 +15,7 @@ module Usage:
     # Power rails
     supply = new ElectricPower
     load = new ElectricPower
-    supply.voltage = 12V +/- 5%
+    supply.voltage = 5V +/- 5%
 
     # I2C bus
     i2c = new I2C
@@ -23,6 +23,7 @@ module Usage:
     # Device instance
     sensor = new TI_INA238_driver
     sensor.max_current = 5A
+    sensor.power ~ supply
 
     # Wiring
     supply ~> sensor ~> load
