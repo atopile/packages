@@ -1,0 +1,47 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+
+# --- Package import ---
+from "adi-adt7410.ato" import ADI_ADT7410
+
+
+module Usage:
+    """
+    Minimal usage example for `adi-adt7410`.
+    Powers the ADT7410 from a 3.3V rail and connects it to an I²C bus using
+    address **0x4A** via the addressor.
+    """
+
+    # Power rail (3.3V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+
+    # I²C bus
+    i2c_bus = new I2C
+
+    # Sensor instance
+    sensor = new ADI_ADT7410
+
+    # Connect power rail
+    power_3v3 ~ sensor.power
+
+    # Provide logic reference for the bus
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    # Connect I²C bus
+    i2c_bus ~ sensor.i2c
+
+    # Set I²C address using addressor
+    sensor.addressor.address = 0x4A
+
+    # Available addresses:
+    # 0x48: Base address (A1=0, A0=0)
+    # 0x49: A1=0, A0=1
+    # 0x4A: A1=1, A0=0 ← Used in this example
+    # 0x4B: A1=1, A0=1

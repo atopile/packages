@@ -1,0 +1,95 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/Analog_Devices_ADT7410TRZ_REEL7/Analog_Devices_ADT7410TRZ_REEL7.ato" import Analog_Devices_ADT7410TRZ_REEL7_package
+
+
+module ADI_ADT7410:
+    """
+    Driver for Analog Devices ADT7410 high-precision temperature sensor (I²C).
+
+    Exposes:
+      * power – Single-rail supply (2.7 V – 5.5 V)
+      * i2c   – I²C bus interface (7-bit addr 0x48-0x4B configurable)
+      * interrupt – Interrupt output (optional)
+      * ct    – Critical temperature alert output (optional)
+    """
+
+    # --- Package ---
+    package = new Analog_Devices_ADT7410TRZ_REEL7_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+
+    i2c = new I2C
+    i2c.required = True
+
+    # Optional interrupt outputs
+    interrupt = new ElectricLogic
+    ct = new ElectricLogic
+
+    # --- I²C bus pull-ups (10 kΩ, 0402) ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+
+    i2c.scl.line ~> scl_pullup ~> power.hv
+    i2c.sda.line ~> sda_pullup ~> power.hv
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Address selection (A0, A1 pins) ---
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x48  # Base address: 0x48 (A1=0, A0=0) to 0x4B (A1=1, A0=1)
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+
+    # --- Interrupt output pull-ups (10 kΩ, 0402) ---
+    int_pullup = new Resistor
+    int_pullup.resistance = 10kohm +/- 10%
+    int_pullup.package = "0402"
+
+    ct_pullup = new Resistor
+    ct_pullup.resistance = 10kohm +/- 10%
+    ct_pullup.package = "0402"
+
+    power.hv ~> int_pullup ~> package.INT
+    power.hv ~> ct_pullup ~> package.CT
+
+    # --- Decoupling capacitor (100 nF, 0402) ---
+    decoupling = new Capacitor
+    decoupling.capacitance = 100nF +/- 20%
+    decoupling.package = "0402"
+    power.hv ~> decoupling ~> power.lv
+
+    # --- Power connections ---
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    assert power.voltage within 2.7V to 5.5V
+
+    # --- I²C connections ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # --- Interrupt connections ---
+    package.INT ~ interrupt.line
+    package.CT ~ ct.line
+    interrupt.reference ~ power
+    ct.reference ~ power
