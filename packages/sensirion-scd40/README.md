@@ -1,24 +1,46 @@
 # Sensirion SCD40 CO₂ Sensor
 
-This package provides an Atopile driver for the **Sensirion SCD40-D-R2** photoacoustic CO₂ sensor (LCSC C3659421). The sensor communicates over I²C and operates from a single 1.65 V – 3.6 V supply.
+The SCD4x is Sensirion’s next generation miniature CO2
+sensor. This sensor builds on the photoacoustic sensing
+principle and Sensirion’s patented PAsens® and
+CMOSens® technology to offer high accuracy at an
+unmatched price and smallest form factor. SMD assembly
+allows cost- and space-effective integration of the sensor
+combined with maximal freedom of design. On-chip signal
+compensation is realized with the build-in SHT4x humidity
+and temperature sensor.
 
 ## Usage
 
 ```ato
-import I2C, ElectricPower
-from "packages/sensirion-scd40/scd40.ato" import Sensirion_SCD40, Example
+import ElectricPower
+import I2C
 
-# Minimal wiring example
-module Top:
-    bus = new I2C
-    pwr = new ElectricPower
-    sensor = new Sensirion_SCD40
+from "atopile/sensirion-scd40/sensirion-scd40.ato" import Sensirion_SCD40
 
-    bus ~ sensor.i2c
-    pwr ~ sensor.power
+module MCU:
+    """Host MCU providing I²C bus and power rail."""
+
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Usage:
+    """Minimal example for the Sensirion_SCD40 CO₂ sensor."""
+
+    # MCU & sensor
+    mcu = new MCU
+    co2_sensor = new Sensirion_SCD40
+
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ mcu.power
+    power ~ co2_sensor.power
+
+    # I²C connection
+    mcu.i2c ~ co2_sensor.i2c
 ```
-
-See the `Example` module in `scd40.ato` for a complete, runnable demo.
 
 ## Contributing
 
@@ -26,4 +48,4 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This package is provided under the [MIT License](https://opensource.org/license/mit/).
+This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).

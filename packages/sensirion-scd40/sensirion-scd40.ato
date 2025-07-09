@@ -1,66 +1,54 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("MODULE_TEMPLATING")
-import I2C, ElectricPower, Capacitor
+import I2C
+import ElectricPower
+import Capacitor
+import Resistor
+
 from "parts/Sensirion_SCD40_D_R2/Sensirion_SCD40_D_R2.ato" import Sensirion_SCD40_D_R2_package
 
 module Sensirion_SCD40:
-    """Driver for Sensirion SCD40 CO₂ sensor (I²C).
-
-    Exposes:
-      * i2c – I²C bus interface
-      * power – Single-rail power supply (1.65 V to 3.6 V)
+    """Sensirion SCD40 CO₂ sensor with I²C interface.
     """
-
-    # --- Interfaces ---
-    i2c = new I2C
-    power = new ElectricPower
-
-    # I²C default 7-bit address per datasheet (0x62)
-    i2c.address = 0x62
-
-    # --- Part instance ---
     package = new Sensirion_SCD40_D_R2_package
 
-    # --- Connections ---
-    # Power: connect both VDD and VDDH to the same rail, GND to return
-    power.hv ~ package.VDD
-    power.hv ~ package.VDDH
-    power.lv ~ package.GND
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
 
-    # I²C lines
-    i2c.scl.line ~ package.SCL
-    i2c.sda.line ~ package.SDA
-    # Reference (pull-ups) connect to sensor supply
-    # Tie I²C reference to the same power interface
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 5%
+
+    # --- I²C bus ---
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
+    i2c.address = 0x62
 
-    # --- Electrical constraints ---
-    assert power.voltage within 1.65V to 3.6V
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
 
-    # --- Decoupling ---
-    decoupling = new Capacitor[2]
-    for cap in decoupling:
-        cap.capacitance = 100nF +/- 20%
-        cap.package = "0402"
-        power.hv ~> cap ~> power.lv
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
 
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
 
-module Example:
-    """Minimal example wiring the SCD40 sensor."""
-
-    # Local rails & bus
-    pwr = new ElectricPower
-    bus = new I2C
-
-    sensor = new Sensirion_SCD40
-
-    # Tie together
-    pwr ~ sensor.power
-    bus ~ sensor.i2c
-
-# Compatibility alias for legacy name
-module SCD40_driver from Sensirion_SCD40:
-    """Alias for backward compatibility: use Sensirion_SCD40 instead."""
-    pass
+    # --- Package ---
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.VDDH ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
