@@ -725,5 +725,5 @@ module App:
 
 # IMPORTANT!
 
-Look at .cursor/rules/vibe_electronics.mdc for more details.
-Look at .cursor/rules/how_to_build_packages.mdc for more instructions on how to build packages.
+Look at @.cursor/rules/vibe_electronics.mdc for more details.
+Look at @.cursor/rules/how_to_build_packages.mdc for more instructions on how to build packages.
