@@ -8,6 +8,15 @@ find_all_packages() {
         sort
 }
 
+find_changed_packages() {
+    local base_ref="$1"
+    local changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
+    echo "$changed_files" | \
+        grep -E '^packages/[^/]+/' | \
+        cut -d'/' -f1,2 | \
+        sort -u
+}
+
 to_json_array() {
     local input="$1"
 
@@ -30,14 +39,16 @@ main() {
                 exit 1
             fi
 
-            if [[ "$base_ref" =~ ^0+$ ]]; then  # base_ref is the first commit
+            if [[ "$base_ref" =~ ^0+$ ]]; then
                 echo "Initial commit detected, building all packages" >&2
                 packages=$(find_all_packages)
                 packages_json=$(to_json_array "$packages")
             else
-                changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
+                changed_packages=$(find_changed_packages "$base_ref")
 
-                if [[ -z "$changed_files" ]]; then
+                echo "$changed_packages" >&2
+
+                if [[ -z "$changed_packages" ]]; then
                     packages_json="[]"
                 else
                     changed_packages=$(
@@ -46,8 +57,6 @@ main() {
                         cut -d'/' -f1,2 | \
                         sort -u
                     )
-                    echo "$changed_packages"
-
                     packages_json=$(to_json_array "$changed_packages")
                 fi
             fi
