@@ -1,0 +1,150 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/Microchip_Tech_MCP23017T_E_ML/Microchip_Tech_MCP23017T_E_ML.ato" import Microchip_Tech_MCP23017T_E_ML_package
+
+
+module MCP23017_driver:
+    """Driver for Microchip MCP23017 16-bit I²C GPIO expander.
+
+    Exposes:
+      * power        – Single-rail supply (1.8 V – 5.5 V)
+      * i2c          – I²C bus interface (base address 0x20)
+      * reset        – Active-low reset (pulled high internally)
+      * inta/intb    – Interrupt outputs for port A / port B
+      * gpa[0:7]     – Port-A GPIO lines
+      * gpb[0:7]     – Port-B GPIO lines
+    """
+
+    # Package (IC)
+    ic = new Microchip_Tech_MCP23017T_E_ML_package
+
+    # ---------------------------------------------------------------------
+    # Power rail
+    power = new ElectricPower
+    power.vcc ~ ic.VDD
+    power.gnd ~ ic.VSS
+    power.gnd ~ ic.EP           # Exposed pad to ground
+    assert power.voltage within 1.8V to 5.5V
+    power.required = True
+
+    # Decoupling capacitor (100 nF 0402)
+    decoup = new Capacitor
+    decoup.capacitance = 100nF +/- 20%
+    decoup.package = "0402"
+    power.vcc ~> decoup ~> power.gnd
+
+    # Additional bulk decoupling (2 × 10 µF)
+    bulk_caps = new Capacitor[2]
+    for cap in bulk_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.package = "0805"
+        power.vcc ~> cap ~> power.gnd
+
+    # ---------------------------------------------------------------------
+    # I²C interface
+    i2c = new I2C
+    i2c.scl.line ~ ic.SCK   # Datasheet labels the clock pin SCK/SCL
+    i2c.sda.line ~ ic.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.required = True
+
+    # Address selection (A2:A1:A0)
+    addressor = new Addressor<address_bits=3>
+    addressor.base = 0x20  # 0b0100_000 → 0x20-0x27
+    addressor.address_lines[0].line ~ ic.A0
+    addressor.address_lines[1].line ~ ic.A1
+    addressor.address_lines[2].line ~ ic.A2
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+
+    # ---------------------------------------------------------------------
+    # Reset (active-low, pulled high)
+    reset = new ElectricLogic
+    reset.line ~ ic.nRESET
+    reset.reference ~ power
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 10%
+    reset_pullup.package = "0402"
+    reset.line ~> reset_pullup ~> power.vcc
+
+    # Interrupt outputs
+    inta = new ElectricLogic
+    intb = new ElectricLogic
+    inta.line ~ ic.INTA
+    intb.line ~ ic.INTB
+    inta.reference ~ power
+    intb.reference ~ power
+
+    # Pull-up resistors for interrupt lines
+    inta_pullup = new Resistor
+    inta_pullup.resistance = 10kohm +/- 10%
+    inta_pullup.package = "0402"
+    inta.line ~> inta_pullup ~> power.vcc
+
+    intb_pullup = new Resistor
+    intb_pullup.resistance = 10kohm +/- 10%
+    intb_pullup.package = "0402"
+    intb.line ~> intb_pullup ~> power.vcc
+
+    # ---------------------------------------------------------------------
+    # GPIO ports (A & B)
+    gpio_a = new ElectricLogic[8]
+    gpio_b = new ElectricLogic[8]
+
+    gpio_a[0].line ~ ic.GPA0
+    gpio_a[1].line ~ ic.GPA1
+    gpio_a[2].line ~ ic.GPA2
+    gpio_a[3].line ~ ic.GPA3
+    gpio_a[4].line ~ ic.GPA4
+    gpio_a[5].line ~ ic.GPA5
+    gpio_a[6].line ~ ic.GPA6
+    gpio_a[7].line ~ ic.GPA7
+
+    gpio_b[0].line ~ ic.GPB0
+    gpio_b[1].line ~ ic.GPB1
+    gpio_b[2].line ~ ic.GPB2
+    gpio_b[3].line ~ ic.GPB3
+    gpio_b[4].line ~ ic.GPB4
+    gpio_b[5].line ~ ic.GPB5
+    gpio_b[6].line ~ ic.GPB6
+    gpio_b[7].line ~ ic.GPB7
+
+    for gpio in gpio_a:
+        gpio.reference ~ power
+    for gpio in gpio_b:
+        gpio.reference ~ power
+
+
+module MCU:
+    """Simple host MCU providing I²C bus and power rail."""
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Example:
+    """Minimal usage example wiring the MCP23017 to an MCU."""
+    mcu = new MCU
+    expander = new MCP23017_driver
+
+    # Shared 3.3 V supply
+    v3v3 = new ElectricPower
+    v3v3.voltage = 3.3V
+    v3v3 ~ mcu.power
+    v3v3 ~ expander.power
+
+    # I²C bus
+    mcu.i2c ~ expander.i2c
+
+    # Select default address 0x20
+    expander.i2c.address = 0x20 
