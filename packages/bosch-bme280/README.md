@@ -1,28 +1,56 @@
-# Bosch BME280 Temperature, Humidity & Pressure Sensor
+# Bosch BME280 – Temperature, Humidity & Pressure Sensor
 
-This package provides an Atopile driver for the **Bosch BME280** digital environmental sensor (LCSC C92489). The device measures temperature, relative humidity, and barometric pressure, communicates via I²C, offers two selectable addresses (0x76 / 0x77), and requires separate core and I/O supplies.
+Atopile driver for the **Bosch Sensortec BME280** digital environmental sensor (LCSC part **C92489**).  The device measures temperature, relative humidity, and barometric pressure and supports both I²C (default) and SPI interfaces.  Two separate supplies are required: **VDD** (sensor core, 1.71 V – 3.6 V) and **VDDIO** (digital I/O, 1.2 V – 3.6 V).  I²C addresses **0x76** or **0x77** are selected via the SDO pin.
 
 ## Usage
 
 ```ato
-import I2C, ElectricPower
-from "atopile/bosch-bme280/bosch-bme280.ato" import Bosch_BME280
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 
-module Top:
-    bus = new I2C
-    pwr = new ElectricPower
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+
+# --- Package import ---
+from "bosch-bme280.ato" import Bosch_BME280
+
+module Usage:
+    """
+    Minimal usage example for `bosch-bme280`.
+    Powers the BME280 from a 3 V 3 rail and places it on an I²C bus at the
+    default 7-bit address (0x76).
+    """
+
+    # Power rail (3.3 V) – shared by core & I/O
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+
+    # I²C bus
+    i2c_bus = new I2C
+
+    # Sensor instance
     sensor = new Bosch_BME280
 
-    bus ~ sensor.i2c
-    pwr ~ sensor.power_core
-    pwr ~ sensor.power_io
-```
+    # Connect power rails
+    power_3v3 ~ sensor.power_core
+    power_3v3 ~ sensor.power_io
 
-See the `Usage` module in `usage.ato` for a complete, runnable demo.
+    # Provide logic reference for the bus
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    # Connect I²C bus
+    i2c_bus ~ sensor.i2c
+
+    # (Optional) Select address – defaults to 0x76 (SDO=0)
+    sensor.i2c.address = 0x76
+```
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or pull requests.
+Contributions are welcome! Please open an issue or pull request and ensure the `usage` build target passes (`ato build usage`).
 
 ## License
 
