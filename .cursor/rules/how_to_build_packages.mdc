@@ -1,4 +1,64 @@
-# Notes
+# Building a new package
+
+## File Structure
+
+```
+/packages/packages/
+    <package_name>/
+        layouts/
+        parts/
+        ato.yaml
+        <package_name>.ato
+        README.md
+        usage.ato
+```
+
+## Steps
+
+1. Create a new directory `<package_name>` as stated in the file structure.
+2. Create ato.yaml, `<package_name>.ato`, README.md, usage.ato
+3. Create part using tool call 'search_and_install_jlcpcb_part'
+4. Import the part into the main ato file
+5. Read the datasheet for the device
+6. Populate the files with the correct information (see below)
+   6.1 Create interfaces and connect them
+   6.2 Add decoupling caps where needed
+   6.3 Add i2c addressor if device has configurable address
+   If format is: <n x fixed address bits><m x pin configured address bits>
+   use addressor module:
+
+- Use `Addressor<address_bits=N>` where **N = number of address pins**.
+- Connect each `address_lines[i].line` to the corresponding pin, and its `.reference` to a local power rail.
+- Set `addressor.base` to the lowest possible address and `assert addressor.address is i2c.address`.
+
+  6.4 Other configuration etc
+
+7. Review the content wholistically again
+8. Build the main build target with your MCP
+9. Make sure to make use of the LSP and build errors
+
+## Additional Notes & Gotchas (generic)
+
+- Multi-rail devices (VDD / VDDIO, AVDD / DVDD, etc.)
+
+  - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
+  - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
+
+- Optional interfaces (SPI vs I²C)
+
+  - If the device supports multiple buses, pick one for the initial driver. Leave unused bus pins as `ElectricLogic` lines or expose a second interface module later.
+
+- Decoupling guidance
+
+  - If the datasheet shows multiple caps, model the **minimum required** set so the build passes; you can refine values/packages later.
+
+- File / directory layout recap
+  - `<vendor>-<device>/` – package root
+  - `ato.yaml` – build manifest (include `default` **and** `example` targets)
+  - `<device>.ato` – driver + optional example module
+  - `parts/<MANUFACTURER_PARTNO>/` – atomic part + footprint/symbol/step files
+
+These tips should prevent common "footprint not found", "pin X missing", and build-time path errors when you add new devices.
 
 ## Legend
 
@@ -41,19 +101,6 @@
 `<package_name>`: `<manufacturer>`-`<part_number>`
 
 `<module_name>`: `<Manufacturer>`\_`<Part_Number>`
-
-## File Structure
-
-```
-/packages/packages/
-    <package_name>/
-        layouts/
-        parts/
-        ato.yaml
-        <package_name>.ato
-        README.md
-        usage.ato
-```
 
 ## <package_name>.ato
 
