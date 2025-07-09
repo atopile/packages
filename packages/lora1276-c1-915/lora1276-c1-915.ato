@@ -1,0 +1,68 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Resistor
+import SPI
+
+from "parts/G_NiceRF_lora1276_C1_915MHz/G_NiceRF_lora1276_C1_915MHz.ato" import G_NiceRF_lora1276_C1_915MHz_package
+
+
+module LoRa1276C1915:
+    package = new G_NiceRF_lora1276_C1_915MHz_package
+
+    # Interfaces
+    power = new ElectricPower
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    nreset = new ElectricLogic
+    gpios = new ElectricLogic[6]
+    antenna = new ElectricSignal
+
+    # Connect the power to the package
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+
+    # Expose relevant pins as interfaces (example: SPI, reset, DIOs, ANT, VCC, GND)
+    spi.miso.line ~ package.MISO
+    spi.mosi.line ~ package.MOSI
+    spi.sclk.line ~ package.SCK
+    spi.sclk.reference ~ power
+
+    spi_cs.line ~ package.NSS
+    spi_cs.reference ~ power
+    # Reset
+    nreset.line ~ package.NRESET
+    nreset.reference ~ power
+
+    gpios[0].line ~ package.DIO0
+    gpios[1].line ~ package.DIO1
+    gpios[2].line ~ package.DIO2
+    gpios[3].line ~ package.DIO3
+    gpios[4].line ~ package.DIO4
+    gpios[5].line ~ package.DIO5
+    for gpio in gpios:
+        gpio.reference ~ power
+
+    # Expose the antenna pin
+    antenna.line ~ package.ANT
+    antenna.reference ~ power
+
+    # Decoupling Caps
+    decoupling_caps = new Capacitor[2]
+    decoupling_caps[0].capacitance = 100nF +/- 20%
+    decoupling_caps[0].package = "C0402"
+    decoupling_caps[1].capacitance = 10uF +/- 20%
+    decoupling_caps[1].package = "C0603"
+    for cap in decoupling_caps:
+        power.hv ~> cap ~> power.lv
+
+    pullup_resistors = new Resistor[2]
+    for pullup in pullup_resistors:
+        pullup.resistance = 100kohm +/- 5%
+    spi_cs.line ~> pullup_resistors[0] ~> power.hv
+    nreset.line ~> pullup_resistors[1] ~> power.hv

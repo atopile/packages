@@ -1,0 +1,73 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Resistor
+import SPI
+
+from "parts/DreamLNK_DL_RFM95_915M/DreamLNK_DL_RFM95_915M.ato" import DreamLNK_DL_RFM95_915M_package
+
+
+module DL_RFM95_915M:
+    package = new DreamLNK_DL_RFM95_915M_package
+
+    # Interfaces
+    power = new ElectricPower
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    nreset = new ElectricLogic
+    gpios = new ElectricLogic[6]
+    antenna = new ElectricSignal
+
+    # Power connections
+    power.hv ~ package.P3_3V
+    power.lv ~ package.GND
+
+    # SPI connections
+    spi.miso.line ~ package.MISO
+    spi.mosi.line ~ package.MOSI
+    spi.sclk.line ~ package.SCK
+    spi.sclk.reference ~ power
+
+    # Chip-select
+    spi_cs.line ~ package.NSS
+    spi_cs.reference ~ power
+
+    # Reset pin
+    nreset.line ~ package.RESET
+    nreset.reference ~ power
+
+    # GPIOs (DIO0-DIO5)
+    gpios[0].line ~ package.DIO0
+    gpios[1].line ~ package.DIO1
+    gpios[2].line ~ package.DIO2
+    gpios[3].line ~ package.DIO3
+    gpios[4].line ~ package.DIO4
+    gpios[5].line ~ package.DIO5
+    for gpio in gpios:
+        gpio.reference ~ power
+
+    # Antenna RF pin
+    antenna.line ~ package.ANT
+    antenna.reference ~ power
+
+    # Decoupling capacitors (100 nF + 10 µF) close to VCC
+    decoupling_caps = new Capacitor[2]
+    decoupling_caps[0].capacitance = 100nF +/- 20%
+    decoupling_caps[0].package = "C0402"
+    decoupling_caps[1].capacitance = 10uF +/- 20%
+    decoupling_caps[1].package = "C0603"
+    for cap in decoupling_caps:
+        power.hv ~> cap ~> power.lv
+
+    # Pull-ups on CS and NRESET
+    pullups = new Resistor[2]
+    for pull in pullups:
+        pull.resistance = 100kohm +/- 5%
+        pull.package = "R0402"
+    spi_cs.line ~> pullups[0] ~> power.hv
+    nreset.line ~> pullups[1] ~> power.hv
