@@ -12,6 +12,8 @@ find_changed_packages() {
     local base_ref="$1"
     local changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
 
+    echo "Changed files: $changed_files" >&2
+
     if [[ -z "$changed_files" ]]; then
         return
     fi
