@@ -37,14 +37,19 @@ main() {
             else
                 changed_files=$(git diff --name-only "$base_ref"...HEAD -- packages/ 2>/dev/null || echo "")
 
-                changed_packages=$(
-                    echo "$changed_files" | \
-                    grep -E '^packages/[^/]+/' | \
-                    cut -d'/' -f1,2 | \
-                    sort -u
-                )
+                if [[ -z "$changed_files" ]]; then
+                    packages_json="[]"
+                else
+                    changed_packages=$(
+                        echo "$changed_files" | \
+                        grep -E '^packages/[^/]+/' | \
+                        cut -d'/' -f1,2 | \
+                        sort -u
+                    )
+                    echo "$changed_packages"
 
-                packages_json=$(to_json_array "$changed_packages")
+                    packages_json=$(to_json_array "$changed_packages")
+                fi
             fi
             ;;
 
