@@ -26,6 +26,7 @@ module Invensense_MPU6050:
     power_core = new ElectricPower  # VDD – internal core supply
     power_core.vcc ~ package.VDD
     power_core.gnd ~ package.GND
+    power_core.gnd ~ package.EP
     assert power_core.voltage within 2.375V to 3.46V
     power_core.required = True
 
@@ -40,6 +41,17 @@ module Invensense_MPU6050:
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
     i2c.required = True
+
+    # I²C pull-up resistors
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+    i2c.scl.line ~> scl_pullup ~> power_io.vcc
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+    i2c.sda.line ~> sda_pullup ~> power_io.vcc
 
     # --- I²C address selection (AD0 pin) ---
     addressor = new Addressor<address_bits=1>
