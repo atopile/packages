@@ -1,3 +1,12 @@
+# Analog Devices ADXL375
+
+The ADXL375 is a small, thin, 3-axis accelerometer that provides
+low power consumption and high resolution measurement up
+to ±200 g. The digital output data is formatted as 16-bit, with I²C digital interface.
+
+## Usage
+
+```ato
 import ElectricPower
 import I2C
 
@@ -26,3 +35,12 @@ module Usage:
     # I²C connection
     mcu.i2c ~ accelerometer.i2c
     accelerometer.i2c.address = 0x53
+```
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or pull requests.
+
+## License
+
+This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).

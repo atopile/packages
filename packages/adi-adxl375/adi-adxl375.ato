@@ -5,65 +5,70 @@ import ElectricPower
 import I2C
 import ElectricLogic
 import Capacitor
+import Addressor
+import Resistor
 
 from "parts/Analog_Devices_ADXL375BCCZ_RL7/Analog_Devices_ADXL375BCCZ_RL7.ato" import Analog_Devices_ADXL375BCCZ_RL7_package
 
 
-module ADXL375_driver:
-    """Driver for Analog Devices ADXL375 ±200 g 3-axis accelerometer (I²C).
-
-    Exposes:
-      * i2c           – I²C bus interface (default address 0x53)
-      * power_vs      – Analog supply (VS)
-      * power_vddio   – Digital I/O supply (VDDIO)
-      * int1, int2    – Interrupt outputs (active high)
+module ADI_ADXL375:
     """
-    # Power rails
-    power_vs = new ElectricPower  # Analog supply (VS)
-    power_vddio = new ElectricPower  # Digital IO supply (VDD I/O)
+    Analog Devices ADXL375 ±200G 3-axis accelerometer with I²C interface.
+    """
 
-    # Digital interfaces
+    package = new Analog_Devices_ADXL375BCCZ_RL7_package
+
+    # --- External interfaces ---
     i2c = new I2C
-    # ALTADDRESS pin is hard-wired low → I²C default address 0x53
-    int1 = new ElectricLogic
-    int2 = new ElectricLogic
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+    interrupt = new ElectricLogic[2]
 
-    # The accelerometer IC
-    ic = new Analog_Devices_ADXL375BCCZ_RL7_package
+    # --- Internal power rails ---
+    power_analog = new ElectricPower
+    power_digital = new ElectricPower
 
-    # Power connections
-    power_vs.hv ~ ic.VS
-    power_vs.lv ~ ic.GND
-    power_vs.required = True
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 5%
+    power_analog ~ power
+    power_digital ~ power
 
-    power_vddio.hv ~ ic.VDDI_O
-    power_vddio.lv ~ power_vs.lv
-    power_vddio.required = True
+    # --- I²C bus ---
+    i2c.sda.reference ~ power_digital
+    i2c.scl.reference ~ power_digital
+    addressor = new Addressor<address_bits=1>
+    addressor.address_lines[0].line ~ package.SDO_ALTADDRESS
+    assert addressor.base is 0x53
+    assert addressor.address is i2c.address
 
-    # I2C connections
-    i2c.scl.line ~ ic.SCL_SCLK
-    i2c.sda.line ~ ic.SDA_SDI_SDIO
-    i2c.scl.reference ~ power_vddio
-    i2c.sda.reference ~ power_vddio
+    # --- Decoupling capacitors ---
+    decoupling_capacitors = new Capacitor[2]
+    for capacitor in decoupling_capacitors:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+    power_analog.hv ~> decoupling_capacitors[0] ~> power_analog.lv
+    power_digital.hv ~> decoupling_capacitors[1] ~> power_digital.lv
 
-    # Chip select must be high in I²C mode
-    ic.nCS ~ power_vddio.hv
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
 
-    ic.SDO_ALTADDRESS ~ power_vddio.lv
+    # --- Chip select ---
+    chip_select_pullup_resistor = new Resistor
+    chip_select_pullup_resistor.value = 10k +/- 1%
+    chip_select_pullup_resistor.package = "0402"
+    package.nCS ~> chip_select_pullup_resistor ~> power_digital.hv
 
-    # Interrupt outputs
-    int1.line ~ ic.INT1
-    int2.line ~ ic.INT2
-    int1.reference ~ power_vddio
-    int2.reference ~ power_vddio
-
-    # Decoupling capacitors
-    vs_cap = new Capacitor
-    vs_cap.capacitance = 100nF +/- 20%
-    vs_cap.package = "0402"
-    power_vs.hv ~> vs_cap ~> power_vs.lv
-
-    vddio_cap = new Capacitor
-    vddio_cap.capacitance = 100nF +/- 20%
-    vddio_cap.package = "0402"
-    power_vddio.hv ~> vddio_cap ~> power_vddio.lv
+    # --- Package ---
+    package.GND ~ power_digital.lv
+    package.VS ~ power_analog.hv
+    package.VDDI_O ~ power_digital.hv
+    package.SDA_SDI_SDIO ~ i2c.sda.line
+    package.SCL_SCLK ~ i2c.scl.line
+    package.INT1 ~ interrupt[0].line
+    package.INT2 ~ interrupt[1].line
