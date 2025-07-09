@@ -1,0 +1,83 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+
+from "parts/Analog_Devices_ADXL375BCCZ_RL7/Analog_Devices_ADXL375BCCZ_RL7.ato" import Analog_Devices_ADXL375BCCZ_RL7_package
+
+
+module ADXL375_driver:
+    """Driver for the Analog Devices ADXL375 3-axis ±200 g digital accelerometer (I²C variant)."""
+    # Power rails
+    power_vs = new ElectricPower  # Analog supply (VS)
+    power_vddio = new ElectricPower  # Digital IO supply (VDD I/O)
+
+    # Digital interfaces
+    i2c = new I2C
+    # ALTADDRESS pin is hard-wired low → I²C default address 0x53
+    int1 = new ElectricLogic
+    int2 = new ElectricLogic
+
+    # The accelerometer IC
+    ic = new Analog_Devices_ADXL375BCCZ_RL7_package
+
+    # --- Power connections ---
+    power_vs.hv ~ ic.VS
+    power_vs.gnd ~ ic.GND
+    power_vs.required = True
+
+    power_vddio.hv ~ ic.VDDI_O
+    power_vddio.gnd ~ power_vs.gnd
+    power_vddio.required = True
+
+    # --- I2C connections ---
+    i2c.scl.line ~ ic.SCL_SCLK
+    i2c.sda.line ~ ic.SDA_SDI_SDIO
+    i2c.scl.reference.gnd ~ power_vs.gnd
+    i2c.sda.reference.gnd ~ power_vs.gnd
+
+    # Chip select must be high in I²C mode
+    ic.nCS ~ power_vddio.hv
+
+    ic.SDO_ALTADDRESS ~ power_vddio.gnd
+
+    # --- Interrupt outputs ---
+    int1.line ~ ic.INT1
+    int2.line ~ ic.INT2
+    int1.reference ~ power_vddio
+    int2.reference ~ power_vddio
+
+    # --- Decoupling capacitors ---
+    vs_cap = new Capacitor
+    vs_cap.capacitance = 100nF +/- 20%
+    vs_cap.package = "C0402"
+    power_vs.hv ~> vs_cap ~> power_vs.gnd
+
+    vddio_cap = new Capacitor
+    vddio_cap.capacitance = 100nF +/- 20%
+    vddio_cap.package = "C0402"
+    power_vddio.hv ~> vddio_cap ~> power_vddio.gnd
+
+
+module Example:
+    """Minimal hookup showcasing the ADXL375 driver."""
+    # System power rail (3.3 V typical)
+    power = new ElectricPower
+    power.voltage = 3.3V
+
+    # Shared I²C bus
+    i2c = new I2C
+    # ALTADDRESS tied low (default address)
+
+    accel = new ADXL375_driver
+
+    # Connect power rails (both VS and VDDIO tied to the same 3.3 V rail)
+    power ~ accel.power_vs
+    power ~ accel.power_vddio
+
+    # Digital communications
+    i2c ~ accel.i2c
+
+    # (no chip-select required in I²C mode)

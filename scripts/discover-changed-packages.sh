@@ -10,7 +10,15 @@ find_all_packages() {
 
 find_changed_packages() {
     local base_ref="$1"
-    local changed_files=$(git diff --name-only "$base_ref"...HEAD -- ':/packages/**' 2>/dev/null || echo "")
+    local changed_files=$(
+        git diff \
+            --name-only \
+            "$base_ref"...HEAD \
+            -- \
+            ':/packages/**' \
+            ':(exclude)packages/archive/**' \
+            2>/dev/null || echo ""
+    )
 
     if [[ -z "$changed_files" ]]; then
         return
@@ -19,7 +27,12 @@ find_changed_packages() {
     echo "$changed_files" | \
         grep -E '^packages/[^/]+/' | \
         cut -d'/' -f1,2 | \
-        sort -u
+        sort -u | \
+        while read -r package_dir; do
+            if [[ -d "$package_dir" ]]; then
+                echo "$package_dir"
+            fi
+        done
 }
 
 to_json_array() {

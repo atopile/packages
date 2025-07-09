@@ -1,0 +1,87 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/Sensirion_SHT31_DIS_B2_5kS/Sensirion_SHT31_DIS_B2_5kS.ato" import Sensirion_SHT31_DIS_B2_5kS_package
+
+
+module Sensirion_SHT31:
+    """
+    Driver for Sensirion SHT31-DIS temperature & humidity sensor (I²C).
+
+    Exposes:
+      * power – Single-rail supply (2.4 V – 5.5 V)
+      * i2c   – I²C bus interface (7-bit addr 0x44 / 0x45)
+    """
+
+    # --- Package ---
+    package = new Sensirion_SHT31_DIS_B2_5kS_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+
+    i2c = new I2C
+    i2c.required = True
+
+    # --- I²C bus ---
+    # Pull-up resistors (10 kΩ, 0402)
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+
+    i2c.scl.line ~> scl_pullup ~> power.hv
+    i2c.sda.line ~> sda_pullup ~> power.hv
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Address selection (ADDR pin) ---
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x44  # 0x44 (ADDR=0) / 0x45 (ADDR=1)
+    package.ADDR ~ addressor.address_lines[0].line
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+
+    # --- Decoupling capacitors ---
+    decoupling = new Capacitor[2]
+    # 100 nF
+    decoupling[0].capacitance = 100nF +/- 20%
+    decoupling[0].package = "0402"
+    # 10 µF bulk
+    decoupling[1].capacitance = 10uF +/- 20%
+    decoupling[1].package = "0805"
+
+    for cap in decoupling:
+        power.hv ~> cap ~> power.lv
+
+    # --- Power ---
+    package.VDD  ~ power.hv
+    package.VSS  ~ power.lv
+    package.EPAD ~ power.lv
+    assert power.voltage within 2.4V to 5.5V
+
+    # --- I²C ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # --- Reset pin ---
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 10%
+    reset_pullup.package = "0402"
+    power.hv ~> reset_pullup ~> package.NRESET
+
+    # --- R pin ---
+    package.R ~ power.lv
