@@ -9,9 +9,6 @@ jobs:
   define-packages:
     runs-on: ubuntu-latest
 
-    # Skip all jobs if PR is in draft
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
 
@@ -67,8 +64,9 @@ jobs:
       - run: ato build
         working-directory: ${{ matrix.package }}
 
-      # Publish package
       - uses: atopile/publish-package@v1
+        name: Publish package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           package-entrypoint: ${{ matrix.package }}
           skip-duplicate-versions: true
