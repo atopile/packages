@@ -48,17 +48,7 @@ main() {
 
                 echo "$changed_packages" >&2
 
-                if [[ -z "$changed_packages" ]]; then
-                    packages_json="[]"
-                else
-                    changed_packages=$(
-                        echo "$changed_files" | \
-                        grep -E '^packages/[^/]+/' | \
-                        cut -d'/' -f1,2 | \
-                        sort -u
-                    )
-                    packages_json=$(to_json_array "$changed_packages")
-                fi
+                packages_json=$(to_json_array "$changed_packages")
             fi
             ;;
 
