@@ -1,0 +1,64 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import Capacitor
+import Resistor
+
+from "parts/Sensirion_SHTC3_TR_2_5KS/Sensirion_SHTC3_TR_2_5KS.ato" import Sensirion_SHTC3_TR_2_5KS_package
+
+
+module Sensirion_SHTC3:
+    """
+    Driver for Sensirion SHTC3 temperature & humidity sensor (I²C).
+
+    Exposes:
+      * power – Single-rail supply (1.62 V – 3.6 V)
+      * i2c   – I²C bus interface (fixed 7-bit addr 0x70)
+    """
+
+    # --- Package ---
+    package = new Sensirion_SHTC3_TR_2_5KS_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+
+    i2c = new I2C
+    i2c.required = True
+
+    # Ensure the fixed I²C address is respected
+    assert i2c.address is 0x70
+
+    # --- I²C bus pull-ups (10 kΩ, 0402) ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+
+    i2c.scl.line ~> scl_pullup ~> power.hv
+    i2c.sda.line ~> sda_pullup ~> power.hv
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Decoupling capacitor (100 nF, 0402) ---
+    decoupling = new Capacitor
+    decoupling.capacitance = 100nF +/- 20%
+    decoupling.package = "0402"
+    power.hv ~> decoupling ~> power.lv
+
+    # --- Power connections ---
+    package.VCC ~ power.hv
+    package.VSS ~ power.lv
+    package.ep  ~ power.lv
+    assert power.voltage within 1.62V to 3.6V
+
+    # --- I²C connections ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
