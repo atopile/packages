@@ -1,8 +1,22 @@
----
-description: ato is a declarative DSL to design electronics (PCBs) with.
-globs: *.ato, ato.yaml
-alwaysApply: true
----
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Core System Architecture
+
+This is a monorepo of atopile hardware packages for electronic design automation. The project uses the **atopile language** (.ato files) for describing electronic circuits and components.
+
+### Key Directory Structure
+
+- `packages/` - Main package directory containing all individual component packages
+  - `archive/` - Legacy/archived packages
+  - Active packages (e.g., `bosch-bme280/`, `sensirion-scd40/`, etc.)
+- Each package contains:
+  - `*.ato` - Circuit description files in atopile language
+  - `ato.yaml` - Package configuration and metadata
+  - `parts/` - Component definitions with KiCad symbols/footprints
+  - `layouts/` - PCB layout files
+  - `README.md` - Package documentation
 
 ato is a declarative DSL to design electronics (PCBs) with.
 It is part of the atopile project.
@@ -18,7 +32,6 @@ The CLI (which is invoked by the extension) actually builds the project.
 - objects
 - exceptions
 - generators
-
 
 # Ato Syntax
 
@@ -449,6 +462,7 @@ interface ElectricLogic:
 ```
 
 For the rest use the atopile MCP server
+
 - `get_library_interfaces` to list interfaces
 - `get_library_modules` to list modules
 - `inspect_library_module_or_interface` to inspect the code
@@ -520,7 +534,6 @@ Passive modules (Resistors, Capacitors) are picked automatically by the constrai
 To constrain the package do e.g `package = "0402"`.
 To explictly pick a part for a module use `lcsc = "<LCSC_PART_NUMBER>"`.
 
-
 # Creating a package
 
 Package generation process:
@@ -531,17 +544,17 @@ Review structure of other pacakges.
 2. create an ato.yaml file in the new directory with the following content:
 
 ```yaml
-requires-atopile: '^0.9.0'
+requires-atopile: "^0.9.0"
 
 paths:
-    src: '.'
-    layout: ./layouts
+  src: "."
+  layout: ./layouts
 
 builds:
-    default:
-        entry: <device>.ato:<device>_driver
-    example:
-        entry: <device>.ato:Example
+  default:
+    entry: <device>.ato:<device>_driver
+  example:
+    entry: <device>.ato:Example
 ```
 
 3. Create part using tool call 'search_and_install_jlcpcb_part'
@@ -628,25 +641,24 @@ power ~ sensor.power_3v3
 
 - Multi-rail devices (VDD / VDDIO, AVDD / DVDD, etc.)
 
-    - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
-    - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
+  - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
+  - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
 
 - Optional interfaces (SPI vs I²C)
 
-    - If the device supports multiple buses, pick one for the initial driver. Leave unused bus pins as `ElectricLogic` lines or expose a second interface module later.
+  - If the device supports multiple buses, pick one for the initial driver. Leave unused bus pins as `ElectricLogic` lines or expose a second interface module later.
 
 - Decoupling guidance
 
-    - If the datasheet shows multiple caps, model the **minimum required** set so the build passes; you can refine values/packages later.
+  - If the datasheet shows multiple caps, model the **minimum required** set so the build passes; you can refine values/packages later.
 
 - File / directory layout recap
-    - `<vendor>-<device>/` – package root
-    - `ato.yaml` – build manifest (include `default` **and** `example` targets)
-    - `<device>.ato` – driver + optional example module
-    - `parts/<MANUFACTURER_PARTNO>/` – atomic part + footprint/symbol/step files
+  - `<vendor>-<device>/` – package root
+  - `ato.yaml` – build manifest (include `default` **and** `example` targets)
+  - `<device>.ato` – driver + optional example module
+  - `parts/<MANUFACTURER_PARTNO>/` – atomic part + footprint/symbol/step files
 
 These tips should prevent common "footprint not found", "pin X missing", and build-time path errors when you add new devices.
-
 
 # Vibe coding a project
 
@@ -710,3 +722,8 @@ module App:
 - After making changes, be sure to use 'build_project' to update the PCB
 - Builds will often generate errors/warnings, these should be reviewed and fixed
 - Prioritize pacakges from 'atopile' over other packages
+
+# IMPORTANT!
+
+Look at .cursor/rules/vibe_electronics.mdc for more details.
+Look at .cursor/rules/how_to_build_packages.mdc for more instructions on how to build packages.
