@@ -1,0 +1,25 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+from "invensense-mpu6050.ato" import Invensense_MPU6050
+
+module Usage:
+    """Minimal usage example for `invensense-mpu6050`.
+    Shows how to wire the IMU to a shared 3V3 power rail and I²C bus.
+    """
+
+    # Shared rails / busses
+    power_3v3 = new ElectricPower
+    i2c_bus = new I2C
+
+    # IMU instance
+    imu = new Invensense_MPU6050
+
+    # Connections
+    imu.power_core ~ power_3v3
+    imu.power_io ~ power_3v3
+    imu.i2c ~ i2c_bus
+
+    # Configure I²C address (AD0 pulled low => 0x68)
+    i2c_bus.address = 0x68

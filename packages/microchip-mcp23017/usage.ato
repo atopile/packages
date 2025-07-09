@@ -1,0 +1,37 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "microchip-mcp23017.ato" import Microchip_MCP23017
+
+module MCU:
+    """Simple host MCU providing I²C bus and power rail."""
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Usage:
+    """
+    Minimal usage example for `microchip-mcp23017`.
+    Demonstrates powering the expander from a shared 3 V 3 rail and connecting
+    it to the MCU's I²C bus at the default address (0x20).
+    """
+
+    # Instances
+    mcu = new MCU
+    expander = new Microchip_MCP23017
+
+    # Shared 3 V 3 supply
+    v3v3 = new ElectricPower
+    v3v3.voltage = 3.3V
+    v3v3 ~ mcu.power
+    v3v3 ~ expander.power
+
+    # I²C bus connection
+    mcu.i2c ~ expander.i2c
+
+    # Select default address 0x20 (A2:A1:A0 = 0)
+    expander.i2c.address = 0x20
