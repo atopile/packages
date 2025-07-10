@@ -1,0 +1,125 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import Capacitor
+import Addressor
+
+from "parts/Maxim_Integrated_DS2484R_T/Maxim_Integrated_DS2484R_T.ato" import Maxim_Integrated_DS2484R_T_package
+
+interface OneWire from ElectricLogic:
+    """
+    1-Wire bus interface for Dallas/Maxim 1-Wire devices
+    """
+    pass
+
+module Maxim_DS2484:
+    """
+    Maxim DS2484 single-channel 1-Wire master with I2C interface
+
+    Features:
+    - Operating voltage: 2.97V to 5.25V
+    - I2C interface with fixed address 0x18
+    - Single 1-Wire channel
+    - Integrated 1-Wire timing and protocol
+    - Sleep mode for low power operation
+    - Operating temperature: -40°C to +85°C
+    - Supply current: 3mA active, 1µA sleep
+    - Supports all 1-Wire device families
+    - Automatic 1-Wire bus recovery
+    - Built-in strong pullup for parasite power
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (fixed 7-bit address 0x18)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply for the bridge (2.97V to 5.25V)
+    """
+    power.required = True
+
+    onewire = new OneWire
+    """
+    1-Wire bus interface
+    """
+    onewire.required = True
+
+    sleep_control = new ElectricLogic
+    """
+    Sleep control pin (active low - pull low to enter sleep mode)
+    """
+    sleep_control.required = False
+
+    # --- Power rail constraints ---
+    assert power.voltage within 2.97V to 5.25V
+
+    # --- I2C configuration ---
+    # DS2484R+T in SOT-23-6 package has fixed I2C address 0x18
+    assert i2c.address is 0x18
+
+    # --- I2C pull-up resistors ---
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_sda = new Resistor
+
+    for pullup in [i2c_pullup_scl, i2c_pullup_sda]:
+        pullup.resistance = 10kohm +/- 20%
+        pullup.package = "0402"
+
+    power.hv ~> i2c_pullup_scl ~> i2c.scl.line
+    power.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- 1-Wire pull-up resistor ---
+    onewire_pullup = new Resistor
+    onewire_pullup.resistance = 2.2kohm +/- 20%
+    onewire_pullup.package = "0402"
+
+    power.hv ~> onewire_pullup ~> onewire.line
+
+    # --- Sleep control pull-up resistor ---
+    sleep_pullup = new Resistor
+    sleep_pullup.resistance = 10kohm +/- 20%
+    sleep_pullup.package = "0402"
+
+    power.hv ~> sleep_pullup ~> sleep_control.line
+
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+
+    for cap in power_caps:
+        cap.package = "0402"
+
+    power_caps[0].capacitance = 1uF +/- 20%     # Bulk capacitor
+    power_caps[1].capacitance = 100nF +/- 20%   # High frequency decoupling
+
+    for cap in power_caps:
+        power.hv ~> cap ~> power.lv
+
+    # --- Package connections ---
+    package = new Maxim_Integrated_DS2484R_T_package
+
+    # Power connections
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # 1-Wire connection
+    package.IO ~ onewire.line
+    onewire.reference ~ power
+
+    # Sleep control connection
+    package.SLPZ ~ sleep_control.line
+    sleep_control.reference ~ power
