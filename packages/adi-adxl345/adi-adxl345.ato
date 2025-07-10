@@ -1,0 +1,110 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+
+from "parts/Analog_Devices_ADXL345BCCZ_RL7/Analog_Devices_ADXL345BCCZ_RL7.ato" import Analog_Devices_ADXL345BCCZ_RL7_package
+
+module ADI_ADXL345:
+    """
+    ADI ADXL345 3-axis digital accelerometer with I2C and SPI interfaces.
+
+    Features:
+    - 3-axis accelerometer with selectable measurement ranges: ±2g, ±4g, ±8g, ±16g
+    - 13-bit resolution up to ±16g
+    - I2C and SPI digital output
+    - Two interrupt pins for motion detection, free-fall, etc.
+    - Ultra-low power: 23μA in measurement mode, 0.1μA in standby
+    """
+
+    # --- Package ---
+    package = new Analog_Devices_ADXL345BCCZ_RL7_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface for device communication (7-bit address 0x53)
+    """
+    i2c.required = True
+
+    power_vs = new ElectricPower
+    """
+    Sensor core power supply (2.0V to 3.6V)
+    """
+    power_vs.required = True
+
+    power_io = new ElectricPower
+    """
+    I/O interface power supply (1.7V to 3.6V)
+    """
+    power_io.required = True
+
+    # --- Interrupt outputs ---
+    int1 = new ElectricLogic
+    """
+    Interrupt 1 output for motion detection, free-fall, etc.
+    """
+    int1.required = False
+
+    int2 = new ElectricLogic
+    """
+    Interrupt 2 output for motion detection, free-fall, etc.
+    """
+    int2.required = False
+
+    # --- Power supply ---
+    power_vs.vcc ~ package.VS
+    power_vs.gnd ~ package.GND
+    assert power_vs.voltage within 2.0V to 3.6V
+
+    power_io.vcc ~ package.VDDIO
+    power_io.gnd ~ power_vs.gnd
+    assert power_io.voltage within 1.7V to 3.6V
+
+    # --- I2C interface ---
+    # Fixed I2C address 0x53 (SDO/ALT ADDRESS pin tied to GND)
+    assert i2c.address is 0x53
+
+    # SDO/ALT ADDRESS pin tied to GND for 0x53 address
+    package.SDO_ALTADDRESS ~ power_vs.gnd
+
+    i2c.scl.line ~ package.SCL_SCLK
+    i2c.sda.line ~ package.SDA_SDI_SDIO
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power_io.vcc ~> scl_pullup ~> i2c.scl.line
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power_io.vcc ~> sda_pullup ~> i2c.sda.line
+
+    # --- Chip select for I2C mode ---
+    # CS pin tied high for I2C operation
+    package.nCS ~ power_io.vcc
+
+    # --- Interrupt connections ---
+    int1.line ~ package.INT1
+    int1.reference ~ power_io
+
+    int2.line ~ package.INT2
+    int2.reference ~ power_io
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    power_vs.vcc ~> decoupling_caps[0] ~> power_vs.gnd
+    power_io.vcc ~> decoupling_caps[1] ~> power_vs.gnd
