@@ -26,6 +26,7 @@ packages/
 2. Create ato.yaml, `<package_name>.ato`, README.md, usage.ato
 3. Look through other packages for inspiration
 4. Create part using tool call 'search_and_install_jlcpcb_part'
+   4.1 Inspect the part ato file in the parts/ directory
 5. Import the part into the main ato file
 6. Read the datasheet for the device
 7. Populate the files with the correct information (see below)
@@ -127,17 +128,19 @@ module <module_name>:
 
     # --- External interfaces ---
     example:
+    power = new ElectricPower
+    """
+    Central power supply for the module feeding the power rails
+    """
+
+    power.required = True
     i2c = new I2C
     """
     I²C bus interface (7-bit addr 0x76 / 0x77)
     """
     i2c.required = True
+    i2c.reference_shim ~ power
 
-    power = new ElectricPower
-    """
-    Central power supply for the module feeding the power rails
-    """
-    power.required = True
 
     # --- Internal power rails ---
     example:
@@ -170,6 +173,9 @@ module <module_name>:
 
 
     # --- <Other configuration> ---
+    eg: int line pullups
+
+
 
     # --- Package ---
     package = new <package_name>
