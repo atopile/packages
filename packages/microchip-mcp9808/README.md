@@ -76,24 +76,6 @@ The MCP9808 supports 8 different I2C addresses (0x18 to 0x1F) configured using t
 
 Connect address pins to GND for logic 0 or VDD for logic 1.
 
-## Applications
-
-- Industrial temperature monitoring
-- HVAC systems
-- Data centers and server thermal management
-- Automotive temperature sensing
-- Consumer electronics thermal protection
-- Food processing and storage
-- Medical equipment temperature monitoring
-
-## Part Information
-
-- **Manufacturer**: Microchip Technology
-- **Part Number**: MCP9808-E/MS
-- **Package**: MSOP-8
-- **Adafruit Product**: 5027
-- **JLCPCB Part**: C94847
-
 ## Contributing
 
 Contributions to this package are welcome via pull requests on the GitHub repository.
