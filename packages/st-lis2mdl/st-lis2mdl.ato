@@ -1,0 +1,155 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+
+from "parts/STMicroelectronics_LIS2MDLTR/STMicroelectronics_LIS2MDLTR.ato" import STMicroelectronics_LIS2MDLTR_package
+
+module ST_LIS2MDL:
+    """Driver for STMicroelectronics LIS2MDL 3-axis magnetometer (I²C/SPI).
+
+    Features:
+      * Built-in I2C pull-up resistors (10kΩ)
+      * Proper decoupling capacitors (VDD: 100nF+10uF, VDDIO: 100nF, C1: 220nF)
+      * Dual power rail support (VDD/VDDIO)
+      * Fixed I2C address (0x1E)
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_LIS2MDLTR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Core power supply rail (1.71 V – 3.6 V)
+    """
+    power.required = True
+
+    power_io = new ElectricPower
+    """
+    I/O power supply rail (1.71 V – 3.6 V)
+    """
+    power_io.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x1E - fixed) with built-in pull-ups
+    """
+
+    int_drdy = new ElectricLogic
+    """
+    Combined interrupt/data ready output pin
+    """
+
+    spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select pin
+    """
+
+    # --- Power supply ---
+    assert power.voltage within 1.71V to 3.6V
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # --- I2C address ---
+    """
+    Fixed I2C address (0x1E)
+    """
+    assert i2c.address is 0x1E
+
+    # --- I2C pull-up resistors ---
+    """
+    I²C pull-up resistors (10kΩ)
+    """
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_scl.resistance = 10kohm +/- 5%
+    i2c_pullup_scl.package = "0402"
+    power_io.hv ~> i2c_pullup_scl ~> i2c.scl.line
+
+    i2c_pullup_sda = new Resistor
+    i2c_pullup_sda.resistance = 10kohm +/- 5%
+    i2c_pullup_sda.package = "0402"
+    power_io.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling: 1x 100nF + 1x 10uF
+    vdd_cap_100nf = new Capacitor
+    vdd_cap_100nf.capacitance = 100nF +/- 20%
+    vdd_cap_100nf.package = "0402"
+
+    vdd_cap_10uf = new Capacitor
+    vdd_cap_10uf.capacitance = 10uF +/- 20%
+    vdd_cap_10uf.package = "0603"
+
+    # VDDIO decoupling: 1x 100nF
+    vddio_cap_100nf = new Capacitor
+    vddio_cap_100nf.capacitance = 100nF +/- 20%
+    vddio_cap_100nf.package = "0402"
+
+    # C1 pin decoupling: 220nF
+    c1_cap_220nf = new Capacitor
+    c1_cap_220nf.capacitance = 220nF +/- 20%
+    c1_cap_220nf.package = "0402"
+
+    # VDD decoupling connections
+    power.hv ~> vdd_cap_100nf ~> power.lv
+    power.hv ~> vdd_cap_10uf ~> power.lv
+
+    # VDDIO decoupling connection
+    power_io.hv ~> vddio_cap_100nf ~> power_io.lv
+
+    # C1 pin decoupling
+    package.C1 ~> c1_cap_220nf ~> power.lv
+
+    # --- Power connections ---
+    """
+    Core and I/O power supply for the module
+    """
+    package.Vdd ~ power.hv
+    package.Vdd_IO ~ power_io.hv
+    package.GND ~ power.lv
+    package.GND ~ power_io.lv
+
+    # --- Reference connections ---
+    """
+    Power reference connections for digital interfaces
+    """
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+    spi_cs.reference ~ power_io
+    int_drdy.reference ~ power_io
+
+    # --- I²C connections ---
+    """
+    I²C bus interface (7-bit addr 0x1E - fixed)
+    """
+    package.SCL_SPC ~ i2c.scl.line
+    package.SDA_SDI_SDO ~ i2c.sda.line
+
+    # --- SPI connections ---
+    """
+    SPI bus interface (alternative to I2C)
+    """
+    package.SCL_SPC ~ spi.sclk.line
+    package.SDA_SDI_SDO ~ spi.mosi.line
+    package.INT_DRDY_SDO ~ spi.miso.line
+    package.CS ~ spi_cs.line
+
+    # --- Interrupt/data ready connection ---
+    """
+    Combined interrupt/data ready output pin
+    """
+    package.INT_DRDY_SDO ~ int_drdy.line
