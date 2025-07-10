@@ -264,13 +264,14 @@ This package is provided under the [MIT License](mdc:packages/https:/opensource.
 
 1. Create a new directory `<package_name>` as stated in the file structure.
 2. Create ato.yaml, `<package_name>.ato`, README.md, usage.ato
-3. Create part using tool call 'search_and_install_jlcpcb_part'
-4. Import the part into the main ato file
-5. Read the datasheet for the device
-6. Populate the files with the correct information (see below)
-   6.1 Create interfaces and connect them
-   6.2 Add decoupling caps where needed
-   6.3 Add i2c addressor if device has configurable address
+3. Look through other packages for inspiration
+4. Create part using tool call 'search_and_install_jlcpcb_part'
+5. Import the part into the main ato file
+6. Read the datasheet for the device
+7. Populate the files with the correct information (see below)
+   7.1 Create interfaces and connect them
+   7.2 Add decoupling caps where needed
+   7.3 Add i2c addressor if device has configurable address
    If format is: <n x fixed address bits><m x pin configured address bits>
    use addressor module:
 
@@ -278,11 +279,11 @@ This package is provided under the [MIT License](mdc:packages/https:/opensource.
 - Connect each `address_lines[i].line` to the corresponding pin, and its `.reference` to a local power rail.
 - Set `addressor.base` to the lowest possible address and `assert addressor.address is i2c.address`.
 
-  6.4 Other configuration etc
+  7.4 Other configuration etc
 
-7. Review the content wholistically again
-8. Build the main build target with your MCP
-9. Make sure to make use of the LSP and build errors
+8. Review the content wholistically again
+9. Build the main build target with your MCP
+10. Make sure to make use of the LSP and build errors
 
 ## Additional Notes & Gotchas (generic)
 
@@ -290,6 +291,8 @@ This package is provided under the [MIT License](mdc:packages/https:/opensource.
 
   - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
   - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
+
+- Using the right type of signal: Eletrical, ElectricLogic, ElectricSignal, DifferentialPair, I2C, SPI, ... (consult the library for more)
 
 - Optional interfaces (SPI vs I²C)
 
@@ -388,12 +391,23 @@ module <module_name>:
 
     # --- I²C bus ---
     <addressor>
-    <pullups>
+    e.g
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x40
+    assert i2c.address is addressor.address
+    (no need to constrain i2c.address, done automatically via addressor)
+    # using soft pullups, just in case
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
     ...
 
     # --- Decoupling capacitors ---
 
-    # --- I²C pull-ups ---
 
     # --- <Other configuration> ---
 
