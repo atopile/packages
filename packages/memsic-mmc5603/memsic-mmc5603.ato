@@ -1,0 +1,75 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import I2C
+import Resistor
+import Capacitor
+
+from "parts/MEMSIC_MMC5603NJ/MEMSIC_MMC5603NJ.ato" import MEMSIC_MMC5603NJ_package
+
+module MEMSIC_MMC5603:
+    """
+    MEMSIC MMC5603 3-axis anisotropic magnetoresistive (AMR) magnetic sensor
+
+    Features:
+    - Operating voltage: 1.62V to 3.6V (typical 1.8V)
+    - I2C interface with 7-bit address 0x30
+    - 3-axis magnetic field sensing
+    - ±30G full-scale range
+    - Temperature range: -40°C to +85°C
+    - Ultra-small package: 0.8mm x 0.8mm x 0.4mm
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (7-bit addr 0x30)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply for the sensor (1.62V to 3.6V, typical 1.8V)
+    """
+    power.required = True
+
+    # --- Power rail ---
+    assert power.voltage within 1.62V to 3.6V
+
+    # --- I2C configuration ---
+    i2c.address = 0x30
+    assert i2c.address is 0x30
+
+    # --- I2C pull-up resistors ---
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_sda = new Resistor
+
+    for pullup in [i2c_pullup_scl, i2c_pullup_sda]:
+        pullup.resistance = 10kohm +/- 20%
+        pullup.max_power = 0.1W
+        pullup.package = "0402"
+
+    power.hv ~> i2c_pullup_scl ~> i2c.scl.line
+    power.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Decoupling capacitors ---
+    power_cap = new Capacitor
+    power_cap.capacitance = 100nF +/- 20%
+    power_cap.max_voltage = 10V
+    power_cap.package = "0402"
+
+    power.hv ~> power_cap ~> power.lv
+
+    # --- Package connections ---
+    package = new MEMSIC_MMC5603NJ_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.VSA ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
