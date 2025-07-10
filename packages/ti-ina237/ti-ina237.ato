@@ -25,11 +25,6 @@ module TI_INA237:
     """
 
     # --- External interfaces ---
-    i2c = new I2C
-    """
-    I2C bus interface with 16 selectable addresses (0x40-0x4F)
-    """
-    i2c.required = True
 
     power = new ElectricPower
     """
@@ -37,6 +32,13 @@ module TI_INA237:
     """
     power.required = True
     assert power.voltage within 2.7V to 5.5V
+
+    i2c = new I2C
+    """
+    I2C bus interface with 16 selectable addresses (0x40-0x4F)
+    """
+    i2c.required = True
+    i2c.reference_shim ~ power
 
     vbus = new ElectricLogic
     """
