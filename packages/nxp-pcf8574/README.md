@@ -11,25 +11,6 @@ A comprehensive driver for the NXP PCF8574 remote 8-bit I/O expander for I2C-bus
 - **Wide Supply Range**: Operates from 2.5V to 6.0V
 - **Low Power**: 10µA maximum standby current
 
-## Pin Configuration (TSSOP-16)
-
-1. **A0** - Address select bit 0
-2. **A1** - Address select bit 1
-3. **A2** - Address select bit 2
-4. **P0** - I/O pin 0
-5. **P1** - I/O pin 1
-6. **P2** - I/O pin 2
-7. **P3** - I/O pin 3
-8. **VSS** - Ground
-9. **P4** - I/O pin 4
-10. **P5** - I/O pin 5
-11. **P6** - I/O pin 6
-12. **P7** - I/O pin 7
-13. **INT** - Interrupt output (active low, open-drain)
-14. **SCL** - I2C clock line
-15. **SDA** - I2C data line
-16. **VDD** - Power supply (2.5V to 6.0V)
-
 ## Usage
 
 ```ato
