@@ -1,0 +1,205 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+import ElectricPower
+import ElectricLogic
+import I2C
+import SPI
+import Addressor
+import Capacitor
+import Resistor
+
+from "parts/STMicroelectronics_LSM9DS1TR/STMicroelectronics_LSM9DS1TR.ato" import STMicroelectronics_LSM9DS1TR_package
+
+module ST_LSM9DS1:
+    """
+    STMicroelectronics LSM9DS1 9-DOF IMU module
+    - 3-axis linear accelerometer (±2/±4/±8/±16 g)
+    - 3-axis angular rate sensor (±245/±500/±2000 dps)
+    - 3-axis magnetic sensor (±4/±8/±12/±16 gauss)
+    - I2C and SPI interfaces
+    - Dual I2C addresses: AG unit (0x6A/0x6B) and M unit (0x1C/0x1E)
+    - Configurable communication mode (I2C default, SPI optional)
+
+    Note: This module exposes the accelerometer/gyroscope I2C address.
+    The magnetometer uses a separate internal I2C address (0x1C/0x1E based on SDO_M).
+    Both units share the same I2C bus but have different slave addresses.
+    """
+    # --- Package ---
+    package = new STMicroelectronics_LSM9DS1TR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface for accelerometer/gyroscope unit
+    Note: Magnetometer uses same I2C bus but different address (0x1C/0x1E)
+    Default AG address: 0x6B (when SDO_A_G high), 0x6A (when SDO_A_G low)
+    """
+    i2c.required = True
+
+    spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+    spi.required = False
+
+    # Chip select pins for SPI mode
+    spi_cs_ag = new ElectricLogic
+    """
+    SPI chip select for accelerometer/gyroscope (active low)
+    """
+    spi_cs_ag.required = False
+
+    spi_cs_m = new ElectricLogic
+    """
+    SPI chip select for magnetometer (active low)
+    """
+    spi_cs_m.required = False
+
+    power_core = new ElectricPower
+    """
+    Core sensor power supply (VDD: 2.16V to 3.6V)
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    I/O interface power supply (VDDIO: 1.71V to 3.6V)
+    Can be same as or different from core power for level shifting
+    """
+    power_io.required = True
+
+    # --- Interrupt pins ---
+    int1_ag = new ElectricLogic
+    """
+    Interrupt 1 pin for accelerometer/gyroscope
+    """
+    int1_ag.required = False
+
+    int2_ag = new ElectricLogic
+    """
+    Interrupt 2 pin for accelerometer/gyroscope
+    """
+    int2_ag.required = False
+
+    int_m = new ElectricLogic
+    """
+    Interrupt pin for magnetometer
+    """
+    int_m.required = False
+
+    drdy_m = new ElectricLogic
+    """
+    Data ready pin for magnetometer
+    """
+    drdy_m.required = False
+
+    # --- Internal power rail connections ---
+    # Connect external power supplies to package pins
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    assert power_core.voltage within 2.16V to 3.6V
+
+    power_io.vcc ~ package.VDDIO
+    power_io.gnd ~ package.GND
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # --- I2C bus ---
+    i2c.scl.line ~ package.SCL_SPC
+    i2c.sda.line ~ package.SDA_SDI_SDO
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # --- I2C addresses ---
+    # Accelerometer/Gyroscope address (0x6A or 0x6B based on SDO_A/G pin)
+    addressor = new Addressor<address_bits=1>
+    addressor.address_lines[0].line ~ package.SDO_A_G
+    addressor.address_lines[0].reference ~ power_io
+    addressor.base = 0x6A  # Base address, +1 when SDO_A_G is high (0x6B)
+    assert addressor.address is i2c.address
+
+    # Note: Magnetometer uses separate internal address (0x1C or 0x1E based on SDO_M pin)
+    # Both units share the same I2C bus but are accessed with different slave addresses
+    # SDO_M pin state: High=0x1E, Low=0x1C (controlled by external connection)
+
+    # --- SPI bus (optional) ---
+    spi.sclk.line ~ package.SCL_SPC
+    spi.mosi.line ~ package.SDA_SDI_SDO
+    spi.miso.line ~ package.SDO_A_G  # SDO_A_G becomes MISO in SPI mode
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    # SPI chip select connections
+    spi_cs_ag.line ~ package.CS_A_G
+    spi_cs_ag.reference ~ power_io
+    spi_cs_m.line ~ package.CS_M
+    spi_cs_m.reference ~ power_io
+
+    # --- I2C pull-up resistors ---
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_scl.resistance = 4.7kohm +/- 5%
+    i2c_pullup_scl.package = "0402"
+    power_io.vcc ~> i2c_pullup_scl ~> i2c.scl.line
+
+    i2c_pullup_sda = new Resistor
+    i2c_pullup_sda.resistance = 4.7kohm +/- 5%
+    i2c_pullup_sda.package = "0402"
+    power_io.vcc ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Interrupt connections ---
+    int1_ag.line ~ package.NT1_A_G
+    int1_ag.reference ~ power_io
+    int2_ag.line ~ package.INT2_A_G
+    int2_ag.reference ~ power_io
+    int_m.line ~ package.INT_M
+    int_m.reference ~ power_io
+    drdy_m.line ~ package.DRDY_M
+    drdy_m.reference ~ power_io
+
+    # --- Communication mode selection ---
+    # For I2C mode: CS pins should be tied high (handled by pull-up resistors)
+    # For SPI mode: CS pins controlled by spi_cs_ag and spi_cs_m interfaces
+
+    # I2C mode pull-ups for CS pins (enables I2C, disables SPI when CS high)
+    cs_ag_pullup = new Resistor
+    cs_ag_pullup.resistance = 10kohm +/- 5%
+    cs_ag_pullup.package = "0402"
+    power_io.vcc ~> cs_ag_pullup ~> package.CS_A_G
+
+    cs_m_pullup = new Resistor
+    cs_m_pullup.resistance = 10kohm +/- 5%
+    cs_m_pullup.package = "0402"
+    power_io.vcc ~> cs_m_pullup ~> package.CS_M
+
+    # --- Enable/Control pins ---
+    package.DEN_A_G ~ power_io.gnd  # Data enable for accelerometer/gyroscope (active low)
+
+    # --- Reserved pins ---
+    # package.RES (pins 14-18) are reserved and must be left unconnected
+    # These pins are handled automatically by the package definition
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling capacitor
+    power_core_cap = new Capacitor
+    power_core_cap.capacitance = 100nF +/- 20%
+    power_core_cap.package = "0402"
+    power_core.vcc ~> power_core_cap ~> power_core.gnd
+
+    # VDDIO decoupling capacitor
+    power_io_cap = new Capacitor
+    power_io_cap.capacitance = 100nF +/- 20%
+    power_io_cap.package = "0402"
+    power_io.vcc ~> power_io_cap ~> power_io.gnd
+
+    # C1 capacitor (internal charge pump)
+    charge_pump_cap = new Capacitor
+    charge_pump_cap.capacitance = 10nF +/- 20%
+    charge_pump_cap.package = "0402"
+    package.C1 ~> charge_pump_cap ~> power_core.gnd
+
+    # CAP capacitor (internal LDO)
+    ldo_cap = new Capacitor
+    ldo_cap.capacitance = 100nF +/- 20%
+    ldo_cap.package = "0402"
+    package.CAP ~> ldo_cap ~> power_core.gnd
