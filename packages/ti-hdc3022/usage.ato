@@ -1,0 +1,31 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+
+from "ti-hdc3022.ato" import TI_HDC3022
+
+module Usage:
+    """
+    Minimal usage example for TI HDC3022 temperature and humidity sensor.
+    Shows how to connect power supply and I2C bus to the sensor.
+    """
+
+    # Create sensor instance
+    temp_humidity_sensor = new TI_HDC3022
+
+    # External power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # External I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # Connect interfaces
+    power_3v3 ~ temp_humidity_sensor.power
+    i2c_bus ~ temp_humidity_sensor.i2c
+
+    # Set I2C address (default 0x44 with both address pins low)
+    temp_humidity_sensor.i2c.address = 0x44
