@@ -47,13 +47,17 @@ module Vishay_VCNL4040:
 
     # --- Decoupling capacitors ---
     power_cap = new Capacitor
-    power_cap.capacitance = 100nF +/- 20%
+    power_cap.capacitance = 1uF +/- 20%
     power_cap.package = "0402"
     power.vcc ~> power_cap ~> power.gnd
 
+    power_resistor = new Resistor
+    power_resistor.resistance = 22ohm +/- 5%
+    power_resistor.package = "0402"
+
     # Large decoupling for IR LED current spikes
     ir_led_cap = new Capacitor
-    ir_led_cap.capacitance = 10uF +/- 20%
+    ir_led_cap.capacitance = 2.2uF +/- 20%
     ir_led_cap.package = "0603"
     power.vcc ~> ir_led_cap ~> power.gnd
 
@@ -65,7 +69,7 @@ module Vishay_VCNL4040:
 
     # --- Package ---
     package = new Vishay_Intertech_VCNL4040M3OE_package
-    package.VDD ~ power.vcc
+    package.VDD ~> power_resistor ~> power.vcc
     package.GND ~ power.gnd
     package.SCLK ~ i2c.scl.line
     package.SDAT ~ i2c.sda.line
