@@ -1,0 +1,26 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: adi-adxl345.ato:ADI_ADXL345
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/adi-adxl345
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/adi-adxl345/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "ADI; ADXL345; Accelerometer; 3-Axis; Digital; I2C; SPI; MEMS; Motion; Sensor; IC; C9667"
+  license: MIT
