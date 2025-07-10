@@ -1,0 +1,79 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import Capacitor
+import Resistor
+import ElectricSignal
+import ElectricLogic
+
+from "parts/Texas_Instruments_DAC6578SPWR/Texas_Instruments_DAC6578SPWR.ato" import Texas_Instruments_DAC6578SPWR_package
+
+module TI_DAC6578:
+    """
+    TI DAC6578 8 channel 10-bit DAC with I²C interface.
+    """
+    package = new Texas_Instruments_DAC6578SPWR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+    out = new ElectricSignal[8]
+    clear = new ElectricLogic # clear all registers and buffers of the DAC to default values
+    load = new ElectricLogic # load buffer to output
+
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 5%
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x4C
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Logic signal pull-ups ---
+    logic_pullups = new Resistor[2]
+    for resistor in logic_pullups:
+        resistor.value = 10k +/- 1%
+        resistor.package = "0402"
+    clear.line ~> logic_pullups[0] ~> power.lv
+    load.line ~> logic_pullups[1] ~> power.lv
+
+    # --- Package ---
+    package.VREFIN ~ power.hv
+    package.GND ~ power.lv
+    package.AVDD ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.VOUTA ~ out[0].line
+    package.VOUTB ~ out[1].line
+    package.VOUTC ~ out[2].line
+    package.VOUTD ~ out[3].line
+    package.VOUTE ~ out[4].line
+    package.VOUTF ~ out[5].line
+    package.VOUTG ~ out[6].line
+    package.VOUTH ~ out[7].line
+    package.nLDAC ~ load.line
+    package.nCLR ~ clear.line
+    # package.ADDR0 ~ addressor.address_line.line # floating for address 0x4C

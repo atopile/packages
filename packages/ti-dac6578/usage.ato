@@ -1,0 +1,39 @@
+import ElectricPower
+import I2C
+import ElectricSignal
+
+from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
+
+module MCU:
+    """Host MCU providing I²C bus and power rail."""
+
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Usage:
+    """Minimal example for the TI_DAC6578 DAC."""
+
+    # MCU & sensor
+    mcu = new MCU
+    dac = new TI_DAC6578
+    output_signals = new ElectricSignal[8]
+
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ mcu.power
+    power ~ dac.power
+
+    # I²C connection
+    mcu.i2c ~ dac.i2c
+
+    # dac output signals
+    dac.out[0] ~ output_signals[0]
+    dac.out[1] ~ output_signals[1]
+    dac.out[2] ~ output_signals[2]
+    dac.out[3] ~ output_signals[3]
+    dac.out[4] ~ output_signals[4]
+    dac.out[5] ~ output_signals[5]
+    dac.out[6] ~ output_signals[6]
+    dac.out[7] ~ output_signals[7]
