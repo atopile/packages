@@ -22,27 +22,40 @@ module Invensense_MPU6050:
     # --- Package ---
     package = new TDK_InvenSense_MPU_6050_package
 
-    # --- Power rails ---
-    power_core = new ElectricPower  # VDD – internal core supply
+    # --- External interfaces ---
+    power_core = new ElectricPower
+    """
+    Core power supply (2.375V to 3.46V)
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    Digital I/O power supply (1.71V to 3.6V)
+    """
+    power_io.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x68/0x69)
+    """
+    i2c.required = True
+
+    # --- Power connections ---
     power_core.vcc ~ package.VDD
     power_core.gnd ~ package.GND
     power_core.gnd ~ package.EP
     assert power_core.voltage within 2.375V to 3.46V
-    power_core.required = True
 
-    power_io = new ElectricPower  # VLOGIC – digital I/O supply
     power_io.vcc ~ package.VLOGIC
     power_io.gnd ~ power_core.gnd
     assert power_io.voltage within 1.71V to 3.6V
-    power_io.required = True
 
     # --- I²C bus ---
-    i2c = new I2C
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
-    i2c.required = True
 
-    # I²C pull-up resistors
+    # --- I²C pull-up resistors ---
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 10%
     scl_pullup.package = "0402"
