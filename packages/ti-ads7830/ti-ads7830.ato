@@ -6,7 +6,7 @@
 # --- Imports ---
 import ElectricPower
 import I2C
-import ElectricLogic
+import ElectricSignal
 import Capacitor
 import Resistor
 import Addressor
@@ -45,20 +45,20 @@ module TI_ADS7830:
     i2c.sda.reference ~ power
 
     # --- Analog inputs ---
-    analog_inputs = new ElectricLogic[8]
+    analog_inputs = new ElectricSignal[8]
     """
     8 single-ended analog input channels (CH0-CH7)
     """
     for ch in analog_inputs:
         ch.reference ~ power
 
-    common = new ElectricLogic
+    common = new ElectricSignal
     """
     Common reference for single-ended measurements
     """
     common.reference ~ power
 
-    ref_inout = new ElectricLogic
+    ref_inout = new ElectricSignal
     """
     Internal reference input/output (2.5V)
     """
