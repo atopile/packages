@@ -1,0 +1,38 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+
+from "adi-ad5693r.ato" import ADI_AD5693R
+
+module Usage:
+    """
+    Minimal usage example for `adi-ad5693r`.
+    Demonstrates basic connections for the AD5693R 16-bit DAC.
+    """
+
+    # Power supply
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # DAC instance
+    dac = new ADI_AD5693R
+
+    # Connections
+    power_3v3 ~ dac.power
+    i2c_bus ~ dac.i2c
+
+    # Connect VLOGIC to same rail as VDD for 3.3V logic
+    dac.vlogic.line ~ power_3v3.hv
+
+    # Configure address (tie A0 to GND for 0x0C address)
+    dac.addressor.address_lines[0].line ~ power_3v3.lv
+
+    # Note: Built-in pull resistors handle default states:
+    # - LDAC has pulldown resistor for immediate DAC updates
+    # - RESET has weak pullup resistor to keep device out of reset
+    # No external connections needed unless you want manual control

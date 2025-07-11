@@ -1,0 +1,133 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import Capacitor
+import ElectricLogic
+import ElectricSignal
+import Addressor
+import Resistor
+
+from "parts/Analog_Devices_AD5693RBRMZ_RL7/Analog_Devices_AD5693RBRMZ_RL7.ato" import Analog_Devices_AD5693RBRMZ_RL7_package
+
+module ADI_AD5693R:
+    """
+    16-bit DAC with I2C interface
+
+    The AD5693R is a single-channel 16-bit DAC with I2C interface
+    offering rail-to-rail output and internal reference.
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Central power supply for the module (2.7V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 2.7V to 5.5V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x0C / 0x0D)
+    """
+    i2c.required = True
+    i2c.reference_shim ~ power
+
+    dac_out = new ElectricSignal
+    """
+    DAC analog output
+    """
+    dac_out.required = True
+
+    vref = new ElectricPower
+    """
+    Reference voltage input (internal 2.5V or external)
+    """
+    vref.required = True
+
+    reset = new ElectricLogic
+    """
+    Reset pin (active low)
+    """
+
+    ldac = new ElectricLogic
+    """
+    Load DAC pin (active low)
+    """
+
+    # --- I²C bus ---
+    # Address configuration via A0 pin
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x0C
+    assert i2c.address is addressor.address
+
+    # I2C pull-up resistors (soft pullups in case external ones aren't present)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    decoupling_caps[0].capacitance = 100nF +/- 20%
+    decoupling_caps[0].package = "0402"
+    decoupling_caps[1].capacitance = 10uF +/- 20%
+    decoupling_caps[1].package = "0402"
+    for cap in decoupling_caps:
+        power.hv ~> cap ~> power.lv
+
+    # VREF filtering capacitor
+    vref_cap = new Capacitor
+    vref_cap.capacitance = 100nF +/- 20%
+    vref_cap.package = "0402"
+    vref.hv ~> vref_cap ~> vref.lv
+
+    # --- Control pin pull resistors ---
+    # LDAC pulldown for immediate DAC updates
+    ldac_pulldown = new Resistor
+    ldac_pulldown.resistance = 10kohm +/- 1%
+    ldac_pulldown.package = "0402"
+    ldac.line ~> ldac_pulldown ~> power.lv
+
+    # Reset weak pullup to keep device out of reset
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 100kohm +/- 1%
+    reset_pullup.package = "0402"
+    reset.line ~> reset_pullup ~> power.hv
+
+    # --- Package ---
+    package = new Analog_Devices_AD5693RBRMZ_RL7_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    package.VLOGIC ~ i2c.reference_shim.hv
+
+    # Address pin
+    package.A0 ~ addressor.address_lines[0].line
+
+    # DAC output
+    package.VOUT ~ dac_out.line
+
+    # Reference voltage
+    package.VREF ~ vref.hv
+
+    # Control pins
+    package.nRESET ~ reset.line
+    package.nLDAC ~ ldac.line
+
+
+    # Reference assignments for logic pins
+    dac_out.reference ~ power
+    vref.lv ~ power.lv
+    reset.reference ~ power
+    ldac.reference ~ power
+    addressor.address_lines[0].reference ~ power
