@@ -1,0 +1,26 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: awinic-aw9523.ato:Awinic_AW9523
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/awinic-aw9523
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/awinic-aw9523/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: AWINIC; AW9523; GPIO; Expander; IC; I2C; LED; Driver; PWM; 16-bit"
+  license: MIT
