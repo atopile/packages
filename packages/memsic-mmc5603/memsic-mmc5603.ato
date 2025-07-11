@@ -49,7 +49,6 @@ module MEMSIC_MMC5603:
 
     for pullup in [i2c_pullup_scl, i2c_pullup_sda]:
         pullup.resistance = 10kohm +/- 20%
-        pullup.max_power = 0.1W
         pullup.package = "0402"
 
     power.hv ~> i2c_pullup_scl ~> i2c.scl.line
