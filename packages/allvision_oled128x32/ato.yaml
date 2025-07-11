@@ -1,0 +1,30 @@
+requires-atopile: ^0.10.8
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: allvision_oled128x32.ato:OLED12832
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/allvision-oled128x32
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/allvision-oled128x32/README.md
+  version: 0.1.0
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Allvision; OLED; 128x32; I²C
+  license: MIT
+dependencies:
+  - type: registry
+    identifier: atopile/st-ldk220
+    release: 0.1.4

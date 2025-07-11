@@ -1,0 +1,116 @@
+import ElectricPower, I2C
+import Capacitor, Resistor, MOSFET
+
+from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+from "parts/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14.ato" import Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14_package
+
+module OLED12832:
+    """OLED 128x32 module with I²C interface"""
+    package = new Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14_package
+
+    # --- External interfaces ---
+    power_5v = new ElectricPower
+    power_5v.required = True
+    power_3v3 = new ElectricPower
+    power_3v3.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # --- Power supply ---
+    assert power_5v.voltage within 5V +/- 5%
+    assert power_3v3.voltage within 3.3V +/- 5%
+
+    _power_vdd = new ElectricPower
+    _power_vbat = new ElectricPower
+    _power_vcomh = new ElectricPower
+    _power_vbat_ref = new ElectricPower
+    _power_vcc = new ElectricPower
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power_3v3
+    i2c.sda.reference ~ power_3v3
+    i2c.address = 0x3C
+
+    # Internal rail - charge pump requires 3.5V to 4.2V input
+    regulator_4v = new LDK220M_R
+    power_5v ~ regulator_4v.power_in
+    # regulator_4v.v_out = 4.2V +/- 3%
+    regulator_4v.feedback_div.r_top.package = "R0402"
+    regulator_4v.feedback_div.r_bottom.package = "R0402"
+    regulator_4v.feedback_div.r_top.resistance = 25.5kohm +/- 1%
+    regulator_4v.feedback_div.r_bottom.resistance = 10kohm +/- 1%
+
+    _power_4v = new ElectricPower
+    _power_4v ~ regulator_4v.power_out
+
+    power_3v3 ~ _power_vdd
+    power_3v3 ~ _power_vcc
+    _power_4v ~ _power_vbat
+
+
+    # Charge pump
+    charge_pump_cap_1 = new Capacitor
+    charge_pump_cap_1.capacitance = 1uF +/- 20%
+    charge_pump_cap_1.package = "C0402"
+
+    charge_pump_cap_2 = new Capacitor
+    charge_pump_cap_2.capacitance = 1uF +/- 20%
+    charge_pump_cap_2.package = "C0402"
+
+    # VDD
+    vdd_cap_1 = new Capacitor
+    vdd_cap_1.capacitance = 100nF +/- 20%
+    vdd_cap_1.package = "C0402"
+    _power_vdd ~ vdd_cap_1.power
+
+    vdd_cap_2 = new Capacitor
+    vdd_cap_2.capacitance = 100nF +/- 20%
+    vdd_cap_2.package = "C0402"
+    _power_vdd ~ vdd_cap_2.power
+
+    # VCC
+    vcc_cap_1 = new Capacitor
+    vcc_cap_1.capacitance = 100nF +/- 20%
+    vcc_cap_1.package = "C0402"
+    _power_vcc ~ vcc_cap_1.power
+
+    vcc_cap_2 = new Capacitor
+    vcc_cap_2.capacitance = 4.7uF +/- 20%
+    vcc_cap_2.package = "C0402"
+    _power_vcc ~ vcc_cap_2.power
+
+    # VCOMH
+    vcomh_cap_1 = new Capacitor
+    vcomh_cap_1.capacitance = 100nF +/- 20%
+    vcomh_cap_1.package = "C0402"
+    _power_vcomh ~ vcomh_cap_1.power
+    power_3v3 ~ _power_vcomh
+
+    # IREF
+    iref_resistor = new Resistor
+    iref_resistor.resistance = 560kohm +/- 10%
+    iref_resistor.package = "R0402"
+    iref_resistor.p2 ~ power_3v3.gnd
+
+    # Reset pullup
+    # Reset pullup resistor
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 10%
+    reset_pullup.package = "R0402"
+    reset_pullup.p2 ~ power_3v3.vcc
+
+    # --- Package ---
+    package.VDD ~ _power_vdd.vcc
+    package.VSS ~ _power_vdd.gnd
+    package.VBAT ~ _power_vbat.vcc
+    package.VCOMH ~ _power_vcomh.vcc
+    package.VBREF ~ _power_vbat_ref.vcc
+    package.VCC ~ _power_vcc.vcc
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.nRES ~ reset_pullup.p1
+    package.IREF ~ iref_resistor.p1
+    package.C1N ~ charge_pump_cap_1.p1
+    package.C1P ~ charge_pump_cap_1.p2
+    package.C2N ~ charge_pump_cap_2.p1
+    package.C2P ~ charge_pump_cap_2.p2
