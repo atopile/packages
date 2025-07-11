@@ -1,0 +1,89 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+import Electrical
+import Resistor
+import Capacitor
+import Addressor
+import ElectricSignal
+
+# --- Part import ---
+from "parts/Maxim_Integrated_DS3502U_T_R/Maxim_Integrated_DS3502U_T_R.ato" import Maxim_Integrated_DS3502U_T_R_package
+
+module Maxim_DS3502:
+    """
+    Maxim Integrated DS3502 – 128-step non-volatile 10 kΩ digital potentiometer with I²C interface.
+
+    External interfaces:
+      • power  – Digital supply rail VCC (2.7 V … 5.5 V)
+      • i2c    – I²C bus interface (7-bit addr 0x28-0x2B, set via A1:A0)
+      • potentiometer_high     – High terminal of the potentiometer (RH)
+      • potentiometer_low     – Low terminal of the potentiometer (RL)
+      • potentiometer_wiper     – Wiper terminal of the potentiometer (RW)
+    """
+
+    # --- Package ---
+    package = new Maxim_Integrated_DS3502U_T_R_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+
+    i2c = new I2C
+    i2c.required = True
+
+    potentiometer_high = new ElectricSignal
+    potentiometer_low = new ElectricSignal
+    potentiometer_wiper = new ElectricSignal
+
+    # --- Internal signals ---
+    _wiper_bias = new ElectricPower
+
+    # --- Power supply ---
+    assert power.voltage within 2.7V to 5.5V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C pull-up resistors (4.7 kΩ, 0402)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 4.7kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # Address selection via A1:A0 (pull low/high as needed)
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x28  # 0x28–0x2B
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+
+    # --- Potentiometer reference ---
+    potentiometer_high.reference ~ _wiper_bias
+    potentiometer_low.reference ~ _wiper_bias
+    potentiometer_wiper.reference ~ _wiper_bias
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # --- Package ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+    package.RH ~ potentiometer_high.line
+    package.RL ~ potentiometer_low.line
+    package.RW ~ potentiometer_wiper.line
+    package.Vpos ~ _wiper_bias.hv
