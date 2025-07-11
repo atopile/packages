@@ -1,14 +1,6 @@
-# Sensirion SCD40 CO₂ Sensor
+# Shenzhen Allvision Tech N087 2832TSWYG02 H14 128x32 OLED Display
 
-The SCD4x is Sensirion’s next generation miniature CO2
-sensor. This sensor builds on the photoacoustic sensing
-principle and Sensirion’s patented PAsens® and
-CMOSens® technology to offer high accuracy at an
-unmatched price and smallest form factor. SMD assembly
-allows cost- and space-effective integration of the sensor
-combined with maximal freedom of design. On-chip signal
-compensation is realized with the build-in SHT4x humidity
-and temperature sensor.
+A 0.91" 128x32 OLED display with I²C interface.
 
 ## Usage
 
@@ -16,7 +8,7 @@ and temperature sensor.
 import ElectricPower
 import I2C
 
-from "atopile/sensirion-scd40/sensirion-scd40.ato" import Sensirion_SCD40
+from "atopile/allvision-oled128x32/allvision_oled128x32.ato" import OLED12832
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
@@ -26,20 +18,24 @@ module MCU:
 
 
 module Usage:
-    """Minimal example for the Sensirion_SCD40 CO₂ sensor."""
+    """Minimal example for the OLED12832."""
 
     # MCU & sensor
     mcu = new MCU
-    co2_sensor = new Sensirion_SCD40
+    display = new OLED12832
 
     # Shared 3V3 rail
-    power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
-    power ~ co2_sensor.power
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V
+    power_3v3 ~ mcu.power
+    power_5v ~ display.power_5v
+    power_3v3 ~ display.power_3v3
 
     # I²C connection
-    mcu.i2c ~ co2_sensor.i2c
+    mcu.i2c ~ display.i2c
+
 ```
 
 ## Contributing
