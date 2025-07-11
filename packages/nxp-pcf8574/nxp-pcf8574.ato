@@ -10,7 +10,7 @@ import Capacitor
 import Resistor
 import Addressor
 
-from "parts/UMW_PCF8574DWR_UMW/UMW_PCF8574DWR_UMW.ato" import UMW_PCF8574DWR_UMW_package
+from "parts/NXP_Semicon_PCF8574AT_3_518/NXP_Semicon_PCF8574AT_3_518.ato" import NXP_Semicon_PCF8574AT_3_518_package
 
 module NXP_PCF8574:
     """
@@ -24,7 +24,7 @@ module NXP_PCF8574:
     """
 
     # --- Package ---
-    package = new UMW_PCF8574DWR_UMW_package
+    package = new NXP_Semicon_PCF8574AT_3_518_package
 
     # --- External interfaces ---
     power = new ElectricPower
@@ -79,8 +79,8 @@ module NXP_PCF8574:
         gpio_pin.reference ~ power
 
     # --- Package connections ---
-    package.VCC ~ power.hv
-    package.GND ~ power.lv
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
     package.SCL ~ i2c.scl.line
     package.SDA ~ i2c.sda.line
     package.nINT ~ interrupt.line
