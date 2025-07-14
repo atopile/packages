@@ -1,0 +1,66 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import Capacitor
+import Resistor
+
+from "parts/Sensirion_SHT40_AD1B_R2/Sensirion_SHT40_AD1B_R2.ato" import Sensirion_SHT40_AD1B_R2_package
+
+
+module Sensirion_SHT40:
+    """
+    Driver for Sensirion SHT40 temperature & humidity sensor (I²C).
+
+    Exposes:
+      * power – Single-rail supply (1.08 V – 3.6 V)
+      * i2c   – I²C bus interface (7-bit addr 0x44, fixed)
+    """
+
+    # --- Package ---
+    package = new Sensirion_SHT40_AD1B_R2_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Single-rail power supply (1.08V to 3.6V)
+    Powers both digital and analog circuits
+    """
+    power.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x44 fixed)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+    assert i2c.address is 0x44
+
+    # --- Power ---
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+    package.EP ~ power.lv  # Exposed pad for thermal performance
+    assert power.voltage within 1.08V to 3.6V
+
+    # --- I²C ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitor ---
+    decoupling = new Capacitor
+    decoupling.capacitance = 100nF +/- 20%
+    decoupling.package = "0402"
+    power.hv ~> decoupling ~> power.lv
