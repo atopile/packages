@@ -1,0 +1,38 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "ti-drv2605l.ato" import TI_DRV2605L
+
+module Usage:
+    """
+    Minimal usage example for TI DRV2605L haptic driver.
+    Shows basic I2C connection and power supply for haptic feedback applications.
+    """
+
+    # Create haptic driver instance
+    haptic_driver = new TI_DRV2605L
+
+    # External power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # External I2C bus (from microcontroller)
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz  # Standard I2C speed
+    i2c_bus.address = 0x5A      # DRV2605L fixed address
+
+    # External haptic motor connection
+    haptic_motor = new ElectricPower
+
+    # Connect power supply
+    power_3v3 ~ haptic_driver.power
+
+    # Connect I2C bus
+    i2c_bus ~ haptic_driver.i2c
+
+    # Connect haptic motor/actuator
+    haptic_motor ~ haptic_driver.haptic_output
