@@ -40,7 +40,10 @@ module ADI_DS2482S_800:
     onewire_channels = new ElectricLogic[8]
     """
     Eight 1-Wire channel outputs for connecting DS18B20 sensors or other 1-Wire devices
+    At least one channel should be used for the device to be useful
     """
+    for channel in onewire_channels:
+        channel.required = False
 
     # --- Internal power rail ---
     power.vcc ~ package.VCC
@@ -87,11 +90,11 @@ module ADI_DS2482S_800:
 
     # --- I2C pull-up resistors ---
     scl_pullup = new Resistor
-    scl_pullup.resistance = 4.7kohm +/- 5%
+    scl_pullup.resistance = 10kohm +/- 5%
     scl_pullup.package = "0402"
     power.vcc ~> scl_pullup ~> i2c.scl.line
 
     sda_pullup = new Resistor
-    sda_pullup.resistance = 4.7kohm +/- 5%
+    sda_pullup.resistance = 10kohm +/- 5%
     sda_pullup.package = "0402"
     power.vcc ~> sda_pullup ~> i2c.sda.line

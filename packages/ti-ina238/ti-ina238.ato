@@ -51,13 +51,31 @@ module TI_INA238:
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
+    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+
     # --- ALERT output ---
     alert = new ElectricLogic
+    """
+    Open-drain ALERT pin (active low)
+    Configurable interrupt for over-limit conditions
+    """
+    alert.required = False
     alert.line ~ package.ALERT
     alert.reference ~ power
 
     # --- Shunt measurement path ---
     shunt_input = new DifferentialPair
+    """
+    Differential shunt measurement inputs
+    Connect across current sense resistor for bidirectional measurement
+    """
+    shunt_input.required = False
     shunt_input.p.line ~ package.INpos
     shunt_input.n.line ~ package.INneg
 

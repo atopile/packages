@@ -1,0 +1,143 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+# --- Standard library imports ---
+import I2C
+import ElectricPower
+import ElectricLogic
+import DifferentialPair
+import Resistor
+import Capacitor
+import Addressor
+import can_bridge_by_name
+
+# --- Part import ---
+from "parts/TEXAS_INSTRUMENTS_INA232AIDDFR/TEXAS_INSTRUMENTS_INA232AIDDFR.ato" import TEXAS_INSTRUMENTS_INA232AIDDFR_package
+
+module TI_INA232:
+    """
+    Texas Instruments INA232 high-side/low-side bidirectional current and power monitor.
+
+    Features:
+    - I2C interface with 16 programmable addresses
+    - High-side or low-side sensing capability
+    - 0V to 48V common-mode input voltage range
+    - ±75mV full-scale shunt voltage range
+    - 16-bit ADC resolution
+    - Programmable alerts and overlimit detection
+    - SOT-23-8 package
+    """
+
+    # --- Package ---
+    package = new TEXAS_INSTRUMENTS_INA232AIDDFR_package
+
+    # --- Supply ---
+    power = new ElectricPower
+    """
+    Device power supply (1.7V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 1.7V to 5.5V
+    power.vcc ~ package.VS
+    power.gnd ~ package.GND
+
+    # --- I²C bus ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x40-0x4F based on A0 pin)
+    """
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
+    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+
+    # --- Alert pin ---
+    alert = new ElectricLogic
+    """
+    Programmable alert output (open-drain, active low)
+    """
+    alert.required = False
+    alert.line ~ package.ALERT
+    alert.reference ~ power
+
+    # --- Shunt differential input ---
+    shunt_input = new DifferentialPair
+    """
+    Differential shunt voltage input (±75mV full scale)
+    """
+    shunt_input.required = False
+    shunt_input.p.line ~ package.INpos
+    shunt_input.n.line ~ package.INneg
+
+    # --- User-defined maximum current parameter ---
+    max_current: current
+    """
+    Maximum expected current for shunt resistor sizing
+    """
+    # Default to 1A to provide initial constraint
+    max_current = 1A
+
+    # INA232 full-scale shunt voltage range
+    shunt_voltage_range = 75mV
+
+    # --- External shunt resistor (designer selects value & package) ---
+    shunt = new Resistor
+    shunt.package = "1206"  # adequate power rating for most designs
+    shunt_input.p.line ~> shunt ~> shunt_input.n.line
+
+    # Recommended shunt value bounds given desired max current
+    # Target resistance: shunt_voltage_range / max_current = 75mV / max_current
+    assert shunt.resistance <= shunt_voltage_range / max_current * 1.1
+    assert shunt.resistance >= shunt_voltage_range / max_current * 0.9
+
+    # --- High-side bridge so designers can insert the monitor inline ---
+    power_in = new ElectricPower
+    """
+    Input power for current sensing (high-side sensing)
+    """
+    power_in.required = True
+
+    power_out = new ElectricPower
+    """
+    Output power for current sensing (high-side sensing)
+    """
+    power_out.required = True
+
+    # Voltage range for high-side sensing
+    assert power_in.voltage within 0V to 48V
+
+    # Common ground ties to device ground
+    power_in.gnd ~ power.gnd
+    power_out.gnd ~ power.gnd
+
+    # Bridge VCC path through shunt
+    power_in.vcc ~> shunt ~> power_out.vcc
+
+    # Mark module as a bridge so it can be inserted inline in power path
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+    # --- I²C address selection (A0 pin) ---
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x40
+
+    # Connect address line to A0 pin
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[0].reference ~ power
+
+    # Ensure bus uses selected address
+    assert addressor.address is i2c.address
+
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv

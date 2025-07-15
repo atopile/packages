@@ -1,0 +1,37 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+
+from "ti-ina232.ato" import TI_INA232
+
+module Usage:
+    """
+    Minimal usage example for ti-ina232 current monitor.
+    Measures load current/power on a 12V rail.
+    """
+
+    # Power rails
+    supply = new ElectricPower
+    load = new ElectricPower
+    supply.voltage = 12V +/- 5%
+
+    # Device power supply (3.3V)
+    device_power = new ElectricPower
+    device_power.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c = new I2C
+
+    # Device instance
+    sensor = new TI_INA232
+    sensor.max_current = 2A
+    sensor.power ~ device_power
+
+    # Wiring - using bridge functionality
+    supply ~> sensor ~> load
+    sensor.i2c ~ i2c
+
+    # Address automatically set by addressor (0x40 base address when A0=0)
+    # Pull-up resistors are built into the module
