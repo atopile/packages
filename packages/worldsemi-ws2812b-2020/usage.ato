@@ -1,0 +1,60 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import ElectricLogic
+
+from "worldsemi-ws2812b-2020.ato" import Worldsemi_WS2812B_2020
+from "worldsemi-ws2812b-2020.ato" import WS2812B_2020_HighDensity_Strip
+from "worldsemi-ws2812b-2020.ato" import WS2812B_2020_Matrix
+
+module Usage:
+    """
+    Usage examples for Worldsemi WS2812B-2020 ultra-compact addressable RGB LEDs.
+
+    This example demonstrates:
+    - Single compact LED configuration
+    - High-density LED strip (5 LEDs)
+    - 5×5 LED matrix for displays
+    - Wearable electronics applications
+    - Power management for compact designs
+    """
+
+    # --- Single LED Example ---
+    single_led = new Worldsemi_WS2812B_2020
+
+    # Power supply for compact LED (5V or 3.3V)
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V +/- 5%
+    power_5v ~ single_led.power
+
+    # Data input from microcontroller
+    mcu_data = new ElectricLogic
+    """Data signal from microcontroller GPIO"""
+    mcu_data ~ single_led.data_in
+    power_5v ~ mcu_data.reference
+
+    # --- High-Density Strip Example ---
+    hd_strip = new WS2812B_2020_HighDensity_Strip
+
+    # Connect power supply to high-density strip
+    power_5v ~ hd_strip.power
+
+    # Separate data line for strip
+    strip_data = new ElectricLogic
+    """Data signal for high-density LED strip"""
+    strip_data ~ hd_strip.data_in
+    power_5v ~ strip_data.reference
+
+    # --- 5×5 Matrix Example ---
+    led_matrix = new WS2812B_2020_Matrix
+
+    # Connect power to matrix
+    power_5v ~ led_matrix.power
+
+    # Matrix data control
+    matrix_data = new ElectricLogic
+    """Data signal for 5×5 LED matrix"""
+    matrix_data ~ led_matrix.data_in
+    power_5v ~ matrix_data.reference
