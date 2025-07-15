@@ -1,0 +1,26 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: st-lps22.ato:ST_LPS22
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/st-lps22
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/st-lps22/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: STMicroelectronics; LPS22; Pressure; Barometric; MEMS; I2C; SPI; Nano; Digital; C2827824"
+  license: MIT
