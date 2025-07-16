@@ -2,6 +2,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
@@ -24,6 +25,9 @@ module Trinamic_TMC5160:
     # --- Package ---
     package = new TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T_package
 
+    # --- External interfaces ---
+    gnd = new Electrical
+
     power_motor = new ElectricPower
     """
     Motor power supply (VS, high voltage supply for motor drivers)
@@ -34,18 +38,21 @@ module Trinamic_TMC5160:
     power_vsa = new ElectricPower
     """
     Analog power supply for internal analog circuits (VSA)
+
+    power_vsa powers the internal 12V and 5V regulators
+    power_vsa is commonly connected to power_motor, but can also be directly supplied with external 12V supply and shorted to 12Vout
     """
     power_vsa.required = True
     assert power_vsa.voltage within 10V to 50V
 
-    # --- External interfaces ---
-    power_io = new ElectricPower
+    power_vccio = new ElectricPower
     """
     I/O power supply for the TMC5160 driver (VCC_IO, typically 3.3V)
     """
-    power_io.required = True
-    assert power_io.voltage within 3.0V to 5.25V
+    power_vccio.required = True
+    assert power_vccio.voltage within 3.0V to 5.25V
 
+    # Internally generated power rails
     power_12v_out = new ElectricPower
     """
     12V output power supply (V12OUT)
@@ -106,61 +113,183 @@ module Trinamic_TMC5160:
     # Configuration and control pins
     drive_enable = new ElectricLogic
     """
-    Driver enable input (active low)
+    Driver enable input (DRV_ENN, active low).
+
+    The power stage becomes switched off (all motor outputs floating)
+    when this pin becomes driven to a high level.
     """
 
     diag0 = new ElectricLogic
     """
-    Diagnostic output 0 / Step input (configurable)
+    Diagnostic output 0 (DIAG0_SWN).
+
+    Interrupt or STEP output for motion controller (SD_MODE=0, SPI_MODE=1).
+    Use external pullup resistor with 47k or less in open drain mode.
+    Single wire I/O (negative) (only with SD_MODE=0 and SPI_MODE=0).
     """
 
     diag1 = new ElectricLogic
     """
-    Diagnostic output 1 / Direction input (configurable)
+    Diagnostic output 1 (DIAG1_SWP).
+
+    Position-compare or DIR output for motion controller (SD_MODE=0, SPI_MODE=1).
+    Use external pullup resistor with 47k or less in open drain mode.
+    Single wire I/O (positive) (only with SD_MODE=0 and SPI_MODE=0).
     """
 
     # Configuration pins
     clk = new ElectricLogic
     """
-    Clock input for microstepping, 12MHz to 16MHz
+    Clock input (CLK).
+
+    Tie to GND using short wire for internal clock or supply external clock.
+    Internal clock-fail over circuit protects against loss of external clock signal.
     """
 
     sd_mode = new ElectricLogic
     """
-    SD mode configuration pin. High for SPI mode, low for STEP/DIR mode
+    SD mode configuration pin (SD_MODE).
+
+    high: STEP/DIR inputs control driver
+    low: Internal ramp generator generates step pulse
+    SD_MODE=0 and SPI_MODE=0 enable UART operation.
     """
+    sd_mode.required = True
 
     spi_mode = new ElectricLogic
     """
-    SPI mode configuration pin. High for SPI mode, low for UART mode
+    SPI mode configuration pin (SPI_MODE, with integrated pull-down).
+
+    high: SPI interface enabled
+    low: With SD_MODE=1, chip is in standalone mode and pins have CFG functions
     """
+    spi_mode.required = True
+
+    test_mode = new ElectricLogic
+    """
+    Test mode configuration pin (TST_MODE).
+
+    High for test mode, low for normal operation.
+    Tie to GND using short wire.
+    """
+    test_mode.required = True
 
     dcin = new ElectricLogic
     """
-    DC motor input control pin for dcStep operation
+    DcStep gating input (ENCA_DCIN_CFG5, with integrated pull-down).
+
+    Encoder A-channel input (when using internal ramp generator) or
+    DcStep gating input for axis synchronization (SD_MODE=1, SPI_MODE=1) or
+    Configuration input (SPI_MODE=0).
     """
 
     dcen = new ElectricLogic
     """
-    DC motor enable control pin for dcStep operation
+    DcStep enable input (ENCB_DCEN_CFG4, with integrated pull-down).
+
+    Encoder B-channel input (when using internal ramp generator) or
+    DcStep enable input (SD_MODE=1, SPI_MODE=1) – leave open or tie to GND
+    for normal operation in this mode (no DcStep) or
+    Configuration input (SPI_MODE=0).
     """
 
     dco = new ElectricLogic
     """
-    DC motor output control pin for dcStep operation
+    DcStep ready output (ENCN_DCO_CFG6).
+
+    Encoder N-channel input (SD_MODE=0) or
+    DcStep ready output (SD_MODE=1).
+    With SD_MODE=0, pull to GND or VCC_IO if the pin is not used for an encoder.
     """
 
+    refl_step = new ElectricLogic
+    """
+    Left reference input or STEP input (REFL_STEP).
 
+    Left reference input (for internal ramp generator) or
+    STEP input when (SD_MODE=1).
+    """
+    refl_step.required = True
+
+    refr_dir = new ElectricLogic
+    """
+    Right reference input or DIR input (REFR_DIR).
+
+    Right reference input (for internal ramp generator) or
+    DIR input (SD_MODE=1).
+    """
+    refr_dir.required = True
+
+    # --- Power supply decoupling ---
+    power_motor_100nf_caps = new Capacitor[2]
+    for cap in power_motor_100nf_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0603"
+        assert cap.max_voltage within 50V to 100V
+        power_motor.hv ~> cap ~> power_motor.lv
+
+    power_motor_10uf_caps = new Capacitor[2]
+    for cap in power_motor_10uf_caps:
+        cap.capacitance = 10uF +/- 20%
+        assert cap.max_voltage within 50V to 100V
+        power_motor.hv ~> cap ~> power_motor.lv
+
+    cap_12v = new Capacitor
+    cap_12v.capacitance = 4.7uF +/- 20%
+    cap_12v.package = "0603"
+    power_12v_out.hv ~> cap_12v ~> power_12v_out.lv
+
+    cap_5v = new Capacitor
+    cap_5v.capacitance = 4.7uF +/- 20%
+    cap_5v.package = "0603"
+    power_5v_out.hv ~> cap_5v ~> power_5v_out.lv
+
+    cap_vcc = new Capacitor
+    cap_vcc.capacitance = 1uF +/- 20%
+    cap_vcc.package = "0603"
+    power_vcc.hv ~> cap_vcc ~> power_vcc.lv
+
+    cap_vccio = new Capacitor
+    cap_vccio.capacitance = 100nF +/- 20%
+    cap_vccio.package = "0603"
+    power_vccio.hv ~> cap_vccio ~> power_vccio.lv
+
+    cap_cp = new Capacitor
+    cap_cp.capacitance = 22nF +/- 20%
+    cap_cp.voltage_rating = 100
+    cap_cp.package = "0603"
+    package.CPI ~> cap_cp ~> package.CPO
+
+    cap_vcp = new Capacitor
+    cap_vcp.capacitance = 100nF +/- 20%
+    cap_vcp.voltage_rating = 16
+    cap_vcp.package = "0603"
+    package.VCP ~> cap_vcp ~> package.VS
+
+    # 5Vout connection to vcc rail
+    r_5v_vcc = new Resistor
+    r_5v_vcc.resistance = 2.2ohm +/- 5%
+    r_5v_vcc.package = "0603"
+    power_5v_out.hv ~> r_5v_vcc ~> power_vcc.hv
 
     # --- Power connections ---
     power_motor.hv ~ package.VS
-    power_motor.lv ~ package.GNDD
-
     power_vsa.hv ~ package.VSA
-    power_vsa.lv ~ package.GNDA
+    power_vccio.hv ~ package.VCC_IO
+    power_12v_out.hv ~ package.P12VOUT
+    power_5v_out.hv ~ package.P5VOUT
+    power_vcc.hv ~ package.VCC
 
-    power_io.hv ~ package.VCC_IO
-    power_io.lv ~ package.GNDD
+    power_motor.lv ~ gnd
+    power_vsa.lv ~ gnd
+    power_vccio.lv ~ gnd
+    power_12v_out.lv ~ gnd
+    power_5v_out.lv ~ gnd
+    power_vcc.lv ~ gnd
+
+    package.GNDD ~ gnd
+    package.GNDA ~ gnd
+    package.EP ~ gnd
 
     # --- SPI interface ---
     spi.sclk.line ~ package.SCK_CFG2
@@ -168,68 +297,101 @@ module Trinamic_TMC5160:
     spi.miso.line ~ package.SDO_CFG0
     chip_select.line ~ package.CSN_CFG3
 
-    spi.reference_shim ~ power_io
-    chip_select.reference ~ power_io
+    spi.reference_shim ~ power_vccio
+    chip_select.reference ~ power_vccio
 
     # --- Motor driver connections ---
     motor_a_high1.line ~ package.HA1
     motor_a_high2.line ~ package.HA2
     motor_a_low1.line ~ package.LA1
     motor_a_low2.line ~ package.LA2
+    motor_a_cap1.line ~ package.CA1
+    motor_a_cap2.line ~ package.CA2
+    motor_a_bm1.line ~ package.BMA1
+    motor_a_bm2.line ~ package.BMA2
 
-    motor_b_high.line ~ package.HB1
-    motor_b_low.line ~ package.LB1
+    motor_b_high1.line ~ package.HB1
+    motor_b_high2.line ~ package.HB2
+    motor_b_low1.line ~ package.LB1
+    motor_b_low2.line ~ package.LB2
+    motor_b_cap1.line ~ package.CB1
+    motor_b_cap2.line ~ package.CB2
+    motor_b_bm1.line ~ package.BMB2
+    motor_b_bm2.line ~ package.BMB2
 
-    motor_b_high.line ~ package.HB2
-    motor_b_low.line ~ package.LB2
+    motor_a_high1.reference ~ power_12v_out
+    motor_a_high2.reference ~ power_12v_out
+    motor_a_low1.reference ~ power_12v_out
+    motor_a_low2.reference ~ power_12v_out
+    motor_a_cap1.reference ~ power_motor
+    motor_a_cap2.reference ~ power_motor
+    motor_a_bm1.reference ~ power_motor
+    motor_a_bm2.reference ~ power_motor
 
-    motor_a_high.reference ~ power_motor
-    motor_a_low.reference ~ power_motor
-    motor_b_high.reference ~ power_motor
-    motor_b_low.reference ~ power_motor
+    motor_b_high1.reference ~ power_12v_out
+    motor_b_high2.reference ~ power_12v_out
+    motor_b_low1.reference ~ power_12v_out
+    motor_b_low2.reference ~ power_12v_out
+    motor_b_cap1.reference ~ power_motor
+    motor_b_cap2.reference ~ power_motor
+    motor_b_bm1.reference ~ power_motor
+    motor_b_bm2.reference ~ power_motor
 
     # --- Control and diagnostic connections ---
-    enable.line ~ package.DRV_ENN
-    enable.reference ~ power_io
+    drive_enable.line ~ package.DRV_ENN
+    drive_enable.reference ~ power_vcc
 
     diag0.line ~ package.DIAG0_SWN
-    diag0.reference ~ power_io
+    diag0.reference ~ power_vcc
 
     diag1.line ~ package.DIAG1_SWP
-    diag1.reference ~ power_io
+    diag1.reference ~ power_vcc
 
     # Current sense connections
-    sense_a.line ~ package.SRAH
-    sense_a.reference ~ power_analog
+    motor_a_current_sense.p ~ package.SRAH
+    motor_a_current_sense.n ~ package.SRAL
+    motor_a_current_sense.reference_shim ~ power_vccio
 
-    sense_b.line ~ package.SRBH
-    sense_b.reference ~ power_analog
+    motor_b_current_sense.p ~ package.SRBH
+    motor_b_current_sense.n ~ package.SRBL
+    motor_b_current_sense.reference_shim ~ power_vccio
 
     # Clock input
     clk.line ~ package.CLK
-    clk.reference ~ power_io
+    clk.reference ~ power_vccio
 
-    # --- Configuration defaults ---
+    # --- Configuration connections ---
     # Connect configuration pins for SPI mode
-    package.SPI_MODE ~ power_io.hv  # Enable SPI mode
-    package.SD_MODE ~ power_io.lv   # Normal operation mode
-    package.TST_MODE ~ power_io.lv  # Normal operation mode
+    spi_mode.line ~ package.SPI_MODE
+    spi_mode.reference ~ power_vccio
 
-    # Connect unused encoder pins to ground
-    package.ENCA_DCIN_CFG5 ~ power_io.lv
-    package.ENCB_DCEN_CFG4 ~ power_io.lv
-    package.ENCN_DCO_CFG6 ~ power_io.lv
+    sd_mode.line ~ package.SD_MODE
+    sd_mode.reference ~ power_vccio
 
-    # Connect step/dir pins (can be overridden by user)
-    package.REFL_STEP ~ power_io.lv
-    package.REFR_DIR ~ power_io.lv
+    test_mode.line ~ package.TST_MODE
+    test_mode.reference ~ power_vccio
 
-    # Connect voltage outputs
-    package.P5VOUT ~ power_io.lv    # 5V output (not used)
-    package.P12VOUT ~ power_io.lv   # 12V output (not used)
+    # Connect encoder/dcStep pins
+    dcin.line ~ package.ENCA_DCIN_CFG5
+    dcin.reference ~ power_vccio
 
-    # Connect charge pump voltage
-    package.VCP ~ power_motor.hv
+    dcen.line ~ package.ENCB_DCEN_CFG4
+    dcen.reference ~ power_vccio
 
-    # Connect thermal pad
-    package.EP ~ power.lv
+    dco.line ~ package.ENCN_DCO_CFG6
+    dco.reference ~ power_vccio
+
+    # Connect step/dir pins
+    refl_step.line ~ package.REFL_STEP
+    refl_step.reference ~ power_vccio
+
+    refr_dir.line ~ package.REFR_DIR
+    refr_dir.reference ~ power_vccio
+
+    power_motor.vcc.override_net_name = "power-motor"
+    power_vsa.vcc.override_net_name = "power-vsa"
+    power_vccio.vcc.override_net_name = "power-vccio"
+    power_12v_out.vcc.override_net_name = "power-12v-out"
+    power_5v_out.vcc.override_net_name = "power-5v-out"
+    power_vcc.vcc.override_net_name = "power-vcc"
+    power_vccio.vcc.override_net_name = "power-vccio"
