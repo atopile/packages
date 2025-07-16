@@ -10,8 +10,8 @@ import ElectricLogic
 import DifferentialPair
 import Resistor
 import Capacitor
-import Addressor
 import can_bridge_by_name
+from "ti_addressor.py" import TIAddressor
 
 # --- Part import ---
 from "parts/TEXAS_INSTRUMENTS_INA232AIDDFR/TEXAS_INSTRUMENTS_INA232AIDDFR.ato" import TEXAS_INSTRUMENTS_INA232AIDDFR_package
@@ -132,14 +132,11 @@ module TI_INA232:
     trait can_bridge_by_name<input_name="power_in", output_name="power_out">
 
     # --- I²C address selection (A0 pin) ---
-    addressor = new Addressor<address_bits=1>
+    addressor = new TIAddressor
     addressor.base = 0x40
-
-    # Connect address line to A0 pin
-    addressor.address_lines[0].line ~ package.A0
-    addressor.address_lines[0].reference ~ power
-
-    # Ensure bus uses selected address
+    addressor.address_line.line ~ package.A0
+    addressor.i2c ~ i2c
+    addressor.address_line.reference ~ power
     assert addressor.address is i2c.address
 
     # --- Decoupling capacitor ---
