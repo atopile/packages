@@ -1,0 +1,40 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+from "ti-ina228.ato" import TI_INA228
+
+module Usage:
+    """
+    Minimal usage example for TI INA228 power monitor.
+
+    This example shows how to connect the INA228 to monitor current through
+    a shunt resistor with 3.3V supply and I2C interface.
+    """
+
+    # Power rails
+    supply = new ElectricPower
+    load = new ElectricPower
+    supply.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c = new I2C
+
+    # Current monitor
+    current_monitor = new TI_INA228
+    current_monitor.max_current = 2A
+    current_monitor.power ~ supply
+
+    # Wiring - bridge the current monitor in the power path
+    supply ~> current_monitor ~> load
+    current_monitor.i2c ~ i2c
+
+    # I2C address configuration
+    # INA228 supports 16 addresses (0x40-0x4F) based on A0/A1 connections:
+    # A0, A1 can each connect to: GND=0, VS=1, SDA=2, SCL=3
+    # Address = 0x40 + (A1_config << 2) + (A0_config << 1)
+    # Examples:
+    # - A0=GND, A1=GND: 0x40 (both pins to ground)
+    # - A0=VS,  A1=GND: 0x42 (A0 to supply, A1 to ground)
+    # - A0=SDA, A1=SCL: 0x4E (A0 to SDA, A1 to SCL)
+    current_monitor.i2c.address = 0x40  # A0=GND, A1=GND configuration

@@ -1,0 +1,170 @@
+#pragma experiment("TRAITS")
+import ElectricPower
+import ElectricLogic
+import I2C
+import SPI
+import Resistor
+import Capacitor
+from "parts/STMicroelectronics_LSM6DSO32TR/STMicroelectronics_LSM6DSO32TR.ato" import STMicroelectronics_LSM6DSO32TR_package
+
+module ST_LSM6DSO32:
+    """
+    STMicroelectronics LSM6DSO32 6-DoF Accelerometer and Gyroscope
+
+    Features:
+    - 3-axis accelerometer (±4/±8/±16/±32g)
+    - 3-axis gyroscope (±125/±250/±500/±1000/±2000 dps)
+    - I2C interface (mandatory) with configurable address
+    - SPI interface (optional) - mutually exclusive with I2C
+    - Two configurable interrupt pins
+    - Built-in tap detection and activity detection
+    - Pedometer/step counter functionality
+
+    Interface Selection:
+    - I2C Mode (default): CS pin held HIGH, SDO_SA0 pin used for address selection
+    - SPI Mode: CS pin used for chip select, SDO_SA0 pin used for data output
+
+    Power Supply Options:
+    - Single supply: Connect both power_vdd and power_vddio to same rail
+    - Dual supply: Use separate supplies for core (VDD) and I/O (VDDIO)
+    """
+
+    # --- External interfaces ---
+    power_vdd = new ElectricPower
+    """
+    Core power supply (VDD) - Sensor analog circuitry
+    Voltage range: 1.71V to 3.6V
+    """
+    power_vdd.required = True
+    assert power_vdd.voltage within 1.71V to 3.6V
+
+    power_vddio = new ElectricPower
+    """
+    I/O power supply (VDDIO) - Digital interface
+    Voltage range: 1.62V to 3.6V
+    Can be connected to same rail as VDD for single-supply operation
+    """
+    power_vddio.required = True
+    assert power_vddio.voltage within 1.62V to 3.6V
+
+    i2c = new I2C
+    """
+    I²C bus interface (mandatory)
+    7-bit addresses: 0x6A (SDO_SA0=GND) / 0x6B (SDO_SA0=VDD)
+    """
+    i2c.required = True
+    i2c.reference_shim ~ power_vddio
+
+    # Optional SPI interface (alternative to I2C)
+    spi = new SPI
+    """
+    SPI interface (optional, mutually exclusive with I2C)
+    When used, CS pin must be actively controlled
+    """
+    spi.required = False
+    spi.reference_shim ~ power_vddio
+
+    # Chip select for SPI
+    cs = new ElectricLogic
+    """
+    Chip select for SPI communication
+    Must be HIGH for I2C mode operation
+    """
+    cs.required = False
+    cs.reference ~ power_vddio
+
+    # SDO/SA0 pin - dual function
+    sdo_sa0 = new ElectricLogic
+    """
+    Dual function pin:
+    - I2C Mode: Address selection (SA0) - connect to GND/VDD for address config
+    - SPI Mode: Serial Data Out (SDO/MISO) - connect to microcontroller MISO
+    """
+    sdo_sa0.required = False
+    sdo_sa0.reference ~ power_vddio
+
+    # Interrupt pins
+    int1 = new ElectricLogic
+    """
+    Configurable interrupt pin 1
+    """
+    int1.required = False
+    int1.reference ~ power_vddio
+
+    int2 = new ElectricLogic
+    """
+    Configurable interrupt pin 2
+    """
+    int2.required = False
+    int2.reference ~ power_vddio
+
+    # --- I²C address configuration ---
+    # LSM6DSO32 has configurable address via SA0 pin
+    # SA0 to GND: 0x6A, SA0 to VDD: 0x6B
+    # Default to 0x6A (SA0 connected to GND)
+    assert i2c.address within 0x6A to 0x6B
+
+    # --- CS pull-up for I2C mode ---
+    # CS pin must be HIGH for I2C mode to be enabled
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 10%
+    cs_pullup.package = "0402"
+    cs_pullup.unnamed[0] ~ cs.line
+    cs_pullup.unnamed[1] ~ power_vddio.hv
+
+    # --- I²C pull-up resistors ---
+    # Values chosen to be compatible with I2C interface constraints (0.9kΩ - 11kΩ)
+    # 4.7kΩ is optimal for standard/fast mode I2C (up to 400kHz)
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 4.7kohm +/- 5%
+    scl_pullup.package = "0402"
+    scl_pullup.unnamed[0] ~ i2c.scl.line
+    scl_pullup.unnamed[1] ~ i2c.scl.reference.hv
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 4.7kohm +/- 5%
+    sda_pullup.package = "0402"
+    sda_pullup.unnamed[0] ~ i2c.sda.line
+    sda_pullup.unnamed[1] ~ i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling
+    vdd_cap = new Capacitor
+    vdd_cap.capacitance = 100nF +/- 20%
+    vdd_cap.package = "0402"
+    vdd_cap.unnamed[0] ~ power_vdd.hv
+    vdd_cap.unnamed[1] ~ power_vdd.lv
+
+    # VDDIO decoupling
+    vddio_cap = new Capacitor
+    vddio_cap.capacitance = 100nF +/- 20%
+    vddio_cap.package = "0402"
+    vddio_cap.unnamed[0] ~ power_vddio.hv
+    vddio_cap.unnamed[1] ~ power_vddio.lv
+
+    # --- Package connections ---
+    package = new STMicroelectronics_LSM6DSO32TR_package
+
+    # Power connections
+    package.VDD ~ power_vdd.hv
+    package.VDDIO ~ power_vddio.hv
+    package.GND ~ power_vdd.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Dual-function SDO_SA0 pin
+    package.SDO_SA0 ~ sdo_sa0.line
+
+    # SPI connections (when used)
+    package.SCx ~ spi.sclk.line
+    package.SDx ~ spi.mosi.line
+    # Note: SDO_SA0 serves as SPI MISO when in SPI mode
+
+    # CS pin connection
+    package.CS ~ cs.line
+
+    # Interrupt connections
+    package.INT1 ~ int1.line
+    package.INT2 ~ int2.line
