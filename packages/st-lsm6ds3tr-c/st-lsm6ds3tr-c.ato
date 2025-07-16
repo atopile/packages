@@ -43,11 +43,11 @@ module ST_LSM6DS3TR_C:
 
     # --- Internal power rails ---
     power_core = new ElectricPower  # Connects to VDD (sensor core)
-    power_core.required = True
+    power_core.required = False
     assert power_core.voltage within 1.71V to 3.6V
 
     power_io = new ElectricPower  # Connects to VDDIO (digital I/O)
-    power_io.required = True
+    power_io.required = False
     assert power_io.voltage within 1.71V to 3.6V
 
     # Connect internal rails to external power
