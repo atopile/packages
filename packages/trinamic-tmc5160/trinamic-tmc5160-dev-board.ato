@@ -1,0 +1,31 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import SPI
+import Capacitor
+import Resistor
+import DifferentialPair
+
+from "trinamic-tmc5160.ato" import Trinamic_TMC5160s
+
+module Trinamic_TMC5160_Dev_Board:
+
+    tmc5160 = new Trinamic_TMC5160
+
+    # --- Power supplies ---
+    power_motor = new ElectricPower
+    assert power_motor.voltage within 9V to 36V # Based on FET selection
+
+    power_vccio = new ElectricPower
+    assert power_vccio.voltage within 3.0V to 5.25V
+
+
+    # --- Communication ---
+    spi = new SPI
+    chip_select = new ElectricLogic
+    clk - new ElectricLogic
