@@ -27,6 +27,10 @@ import Resistor, Capacitor
 
 from "ti-max3243.ato" import TI_MAX3243
 
+from "parts/Ckmtw_D_DMR009PF_D002/Ckmtw_D_DMR009PF_D002.ato" import Ckmtw_D_DMR009PF_D002_package
+from "parts/Ckmtw_D_DMR009PM_D002/Ckmtw_D_DMR009PM_D002.ato" import Ckmtw_D_DMR009PM_D002_package
+from "parts/Hanbo_Electronic_HB_PH3_254112PB2GOP/Hanbo_Electronic_HB_PH3_254112PB2GOP.ato" import Hanbo_Electronic_HB_PH3_254112PB2GOP_package
+
 module Usage:
     """
     Minimal usage example for ti-max3243.
@@ -56,15 +60,7 @@ module Usage:
 
     # External RS-232 connector
     external_rs232 = new RS232
-    external_rs232.tx.reference ~ power_3v3
-    external_rs232.rx.reference ~ power_3v3
-    external_rs232.rts.reference ~ power_3v3
-    external_rs232.cts.reference ~ power_3v3
-    external_rs232.dtr.reference ~ power_3v3
-    external_rs232.dsr.reference ~ power_3v3
-    external_rs232.dcd.reference ~ power_3v3
-    external_rs232.ri.reference ~ power_3v3
-    external_rs232 ~ rs232_transceiver.rs232
+    external_rs232.reference_shim ~ power_3v3
 
     # Optional: Control signals (can be left floating for auto-powerdown)
     # Force ON signal (normally low for auto-powerdown)
@@ -81,6 +77,54 @@ module Usage:
     invalid_indicator = new ElectricLogic
     invalid_indicator.reference ~ power_3v3
     invalid_indicator ~ rs232_transceiver.ninvalid
+
+    # DE-9 RS-232 Male connector
+    de9_rs232_male = new DE9RS232Male
+    de9_rs232_male.rs232 ~ rs232_transceiver.rs232
+
+    # Override net names for cleaner schematic
+    power_3v3.hv.override_net_name = "Vin"
+    power_3v3.lv.override_net_name = "VGND"
+
+module DE9RS232Female:
+    """
+    DE-9 Female RS-232 connector module
+    """
+    package = new Ckmtw_D_DMR009PF_D002_package
+    rs232 = new RS232
+
+    package.1 ~ rs232.dcd.line
+    package.2 ~ rs232.rx.line
+    package.3 ~ rs232.tx.line
+    package.4 ~ rs232.dtr.line
+    package.5 ~ rs232.reference_shim.lv
+    package.6 ~ rs232.dsr.line
+    package.7 ~ rs232.rts.line
+    package.8 ~ rs232.cts.line
+    package.9 ~ rs232.ri.line
+
+    package.MH1 ~ rs232.reference_shim.lv
+    package.MH2 ~ rs232.reference_shim.lv
+
+module DE9RS232Male:
+    """
+    DE-9 Male RS-232 connector module
+    """
+    package = new Ckmtw_D_DMR009PM_D002_package
+    rs232 = new RS232
+
+    package.1 ~ rs232.dcd.line
+    package.2 ~ rs232.rx.line
+    package.3 ~ rs232.tx.line
+    package.4 ~ rs232.dtr.line
+    package.5 ~ rs232.reference_shim.lv
+    package.6 ~ rs232.dsr.line
+    package.7 ~ rs232.rts.line
+    package.8 ~ rs232.cts.line
+    package.9 ~ rs232.ri.line
+
+    package.MH1 ~ rs232.reference_shim.lv
+    package.MH2 ~ rs232.reference_shim.lv
 ```
 
 ## Interfaces
@@ -91,36 +135,6 @@ module Usage:
 - **forceon** - Force ON control signal (active high)
 - **nforceoff** - Force OFF control signal (active low)
 - **ninvalid** - Invalid signal indicator (active low)
-
-## Pin Mapping
-
-### UART Side (Logic Levels)
-- **DIN1** → DTR (Data Terminal Ready)
-- **DIN2** → TXD (Transmit Data)
-- **DIN3** → RTS (Request To Send)
-- **ROUT1** → CTS (Clear To Send)
-- **ROUT2** → RI (Ring Indicator)
-- **ROUT3** → DSR (Data Set Ready)
-- **ROUT4** → RXD (Receive Data)
-- **ROUT5** → DCD (Data Carrier Detect) - Always active
-
-### RS-232 Side (±12V Levels)
-- **RIN1** → CTS (Clear To Send)
-- **RIN2** → RI (Ring Indicator)
-- **RIN3** → DSR (Data Set Ready)
-- **RIN4** → RXD (Receive Data)
-- **RIN5** → DCD (Data Carrier Detect)
-- **DOUT1** → DTR (Data Terminal Ready)
-- **DOUT2** → TXD (Transmit Data)
-- **DOUT3** → RTS (Request To Send)
-
-## External Components
-
-The package automatically includes:
-- 4 × 1µF capacitors for charge pump operation
-- Pullup resistors on UART inputs (DTR, TXD, RTS) for proper logic levels
-- Pull-up resistor on FORCEON for always-on operation
-- Pull-up resistor on nFORCEOFF for normal operation
 
 ## Contributing
 

@@ -54,14 +54,7 @@ module TI_MAX3243:
     RS-232 interface for external connection
     """
     rs232.required = True
-    rs232.tx.reference ~ power
-    rs232.rx.reference ~ power
-    rs232.rts.reference ~ power
-    rs232.cts.reference ~ power
-    rs232.dtr.reference ~ power
-    rs232.dsr.reference ~ power
-    rs232.dcd.reference ~ power
-    rs232.ri.reference ~ power
+    rs232.reference_shim ~ power
 
     # Control signals
     forceon = new ElectricLogic
