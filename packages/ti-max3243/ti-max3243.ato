@@ -1,0 +1,171 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Resistor, Capacitor
+import ElectricPower, ElectricLogic
+import RS232, UART
+
+from "parts/Texas_Instruments_MAX3243CDBR/Texas_Instruments_MAX3243CDBR.ato" import Texas_Instruments_MAX3243CDBR_package
+
+module TI_MAX3243:
+    """
+    Texas Instruments MAX3243 3V to 5.5V Multichannel RS-232 Line Driver/Receiver
+
+    Features:
+    - 3 drivers and 5 receivers
+    - Operates with 3V to 5.5V VCC supply
+    - 250kbps data rate
+    - ±15kV ESD protection
+    - Auto-powerdown feature
+    - Low power consumption (300µA active, 1µA standby)
+    - Requires 4 × 1µF external capacitors
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_MAX3243CDBR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Central power supply for the MAX3243 (3V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 3.0V to 5.5V
+
+    # UART/Logic side (3.3V/5V tolerant)
+    uart = new UART
+    """
+    UART interface for microcontroller connection
+    """
+    uart.required = True
+    uart.base_uart.tx.reference ~ power
+    uart.base_uart.rx.reference ~ power
+    uart.rts.reference ~ power
+    uart.cts.reference ~ power
+    uart.dtr.reference ~ power
+    uart.dsr.reference ~ power
+    uart.dcd.reference ~ power
+    uart.ri.reference ~ power
+
+    # RS-232 side
+    rs232 = new RS232
+    """
+    RS-232 interface for external connection
+    """
+    rs232.required = True
+    rs232.tx.reference ~ power
+    rs232.rx.reference ~ power
+    rs232.rts.reference ~ power
+    rs232.cts.reference ~ power
+    rs232.dtr.reference ~ power
+    rs232.dsr.reference ~ power
+    rs232.dcd.reference ~ power
+    rs232.ri.reference ~ power
+
+    # Control signals
+    forceon = new ElectricLogic
+    """
+    Force ON control signal (active high)
+    """
+    forceon.reference ~ power
+
+    nforceoff = new ElectricLogic
+    """
+    Force OFF control signal (active low)
+    """
+    nforceoff.reference ~ power
+
+    ninvalid = new ElectricLogic
+    """
+    Invalid signal indicator (active low)
+    """
+    ninvalid.reference ~ power
+
+    # --- Power supply decoupling ---
+    # 1µF decoupling capacitor for power supply filtering
+    power_decoupling = new Capacitor
+    power_decoupling.capacitance = 1uF +/- 20%
+    power_decoupling.max_voltage = 16V  # Account for voltage margin
+    power_decoupling.package = "0603"  # Larger package for higher capacitance
+    power.hv ~> power_decoupling ~> power.lv
+
+    # --- Charge pump capacitors ---
+    # 4 × 1µF capacitors for charge pump operation
+    charge_pump_caps = new Capacitor[4]
+    for cap in charge_pump_caps:
+        cap.capacitance = 1uF +/- 20%
+        cap.max_voltage = 16V  # Account for charge pump voltage
+        cap.package = "0402"
+
+    # C1+ to C1-
+    package.C1pos ~> charge_pump_caps[0] ~> package.C1_
+
+    # C2+ to C2-
+    package.C2pos ~> charge_pump_caps[1] ~> package.C2_
+
+    # V+ to GND
+    package.Vpos ~> charge_pump_caps[2] ~> package.GND
+
+    # V- to GND
+    package.V_ ~> charge_pump_caps[3] ~> package.GND
+
+    # --- Package connections ---
+    # Power connections
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+
+    # UART/Logic side connections (3 drivers, 5 receivers)
+    # Driver inputs (DIN) - Logic to RS-232
+    package.DIN1 ~ uart.dtr.line
+    package.DIN2 ~ uart.base_uart.tx.line
+    package.DIN3 ~ uart.rts.line
+
+    # Receiver outputs (ROUT) - RS-232 to Logic
+    package.ROUT1 ~ uart.cts.line
+    package.ROUT2 ~ uart.ri.line
+    package.ROUT3 ~ uart.dsr.line
+    package.ROUT4 ~ uart.base_uart.rx.line
+    package.ROUT5 ~ uart.dcd.line
+
+    # RS-232 side connections
+    # Receiver inputs (RIN) - from RS-232 lines
+    package.RIN1 ~ rs232.cts.line
+    package.RIN2 ~ rs232.ri.line
+    package.RIN3 ~ rs232.dsr.line
+    package.RIN4 ~ rs232.rx.line
+    package.RIN5 ~ rs232.dcd.line
+
+    # Driver outputs (DOUT) - to RS-232 lines
+    package.DOUT1 ~ rs232.dtr.line
+    package.DOUT2 ~ rs232.tx.line
+    package.DOUT3 ~ rs232.rts.line
+
+    # Control signals
+    package.FORCEON ~ forceon.line
+    package.nFORCEOFF ~ nforceoff.line
+    package.nINVALID ~ ninvalid.line
+
+    # --- UART Input Pullup Resistors ---
+    # Pull-up resistors on UART driver inputs for proper logic levels
+    uart_pullups = new Resistor[3]
+    for r in uart_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+
+    uart.dtr.line ~> uart_pullups[0] ~> power.hv
+    uart.base_uart.tx.line ~> uart_pullups[1] ~> power.hv
+    uart.rts.line ~> uart_pullups[2] ~> power.hv
+
+    # --- Default control signal states ---
+    # FORCEON pulled high by default for always on
+    forceon_pullup = new Resistor
+    forceon_pullup.resistance = 10kohm +/- 5%
+    forceon_pullup.package = "0402"
+    forceon.line ~> forceon_pullup ~> power.hv
+
+    # Pull nFORCEOFF high for normal operation
+    nforceoff_pullup = new Resistor
+    nforceoff_pullup.resistance = 10kohm +/- 5%
+    nforceoff_pullup.package = "0402"
+    nforceoff.line ~> nforceoff_pullup ~> power.hv
