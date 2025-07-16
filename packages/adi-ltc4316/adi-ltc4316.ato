@@ -1,5 +1,6 @@
 #pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 import Resistor
 import Capacitor
 import I2C
@@ -44,22 +45,12 @@ module ADI_LTC4316:
     """
     i2c_out.required = True
 
-    # Set I2C reference connections
-    i2c_in.scl.reference ~ power
-    i2c_in.sda.reference ~ power
-    i2c_out.scl.reference ~ power
-    i2c_out.sda.reference ~ power
-
     power = new ElectricPower
     """
     Power supply interface (2.25V to 5.5V)
     """
     power.required = True
     assert power.voltage within 2.25V to 5.5V
-
-    # Current consumption constraints
-    assert power.current within 2mA  # Max when enabled
-    # Note: ~800μA max when disabled (ENABLE = 0V)
 
     enable = new ElectricLogic
     """
@@ -103,26 +94,26 @@ module ADI_LTC4316:
 
     # Input side I2C pull-ups
     i2c_in_scl_pullup = new Resistor
-    i2c_in_scl_pullup.resistance = 4.7kohm +/- 5%
+    i2c_in_scl_pullup.resistance = 10kohm +/- 5%
     i2c_in_scl_pullup.package = "0402"
     i2c_in.scl.line ~ i2c_in_scl_pullup.unnamed[0]
     power.hv ~ i2c_in_scl_pullup.unnamed[1]
 
     i2c_in_sda_pullup = new Resistor
-    i2c_in_sda_pullup.resistance = 4.7kohm +/- 5%
+    i2c_in_sda_pullup.resistance = 10kohm +/- 5%
     i2c_in_sda_pullup.package = "0402"
     i2c_in.sda.line ~ i2c_in_sda_pullup.unnamed[0]
     power.hv ~ i2c_in_sda_pullup.unnamed[1]
 
     # Output side I2C pull-ups
     i2c_out_scl_pullup = new Resistor
-    i2c_out_scl_pullup.resistance = 4.7kohm +/- 5%
+    i2c_out_scl_pullup.resistance = 10kohm +/- 5%
     i2c_out_scl_pullup.package = "0402"
     i2c_out.scl.line ~ i2c_out_scl_pullup.unnamed[0]
     power.hv ~ i2c_out_scl_pullup.unnamed[1]
 
     i2c_out_sda_pullup = new Resistor
-    i2c_out_sda_pullup.resistance = 4.7kohm +/- 5%
+    i2c_out_sda_pullup.resistance = 10kohm +/- 5%
     i2c_out_sda_pullup.package = "0402"
     i2c_out.sda.line ~ i2c_out_sda_pullup.unnamed[0]
     power.hv ~ i2c_out_sda_pullup.unnamed[1]
@@ -141,6 +132,12 @@ module ADI_LTC4316:
     decoupling_cap.package = "0402"
     power.hv ~ decoupling_cap.unnamed[0]
     power.lv ~ decoupling_cap.unnamed[1]
+
+    # --- Enable pin pull-up ---
+    enable_pullup = new Resistor
+    enable_pullup.resistance = 10kohm +/- 5%
+    enable_pullup.package = "0402"
+    enable.line ~> enable_pullup ~> power.hv
 
     # --- Package ---
     package = new Analog_Devices_LTC4316IDD_PBF_package

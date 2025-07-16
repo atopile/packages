@@ -37,18 +37,10 @@ module Usage:
     i2c_input ~ translator.i2c_in
     i2c_output ~ translator.i2c_out
 
-    # Enable the translator - permanently enable with pull-up
-    enable_pullup = new Resistor
-    enable_pullup.resistance = 10kohm +/- 5%
-    enable_pullup.package = "0402"
-    translator.enable.line ~ enable_pullup.unnamed[0]
-    power_3v3.hv ~ enable_pullup.unnamed[1]
-
     # Optional: Monitor READY pin status
     # READY pin has built-in pull-up resistor in translator module
     ready_status = new ElectricLogic
-    ready_status.reference ~ power_3v3
-    ready_status.line ~ translator.ready.line
+    ready_status ~ translator.ready
 
     # Configure address translation with pull-up/down resistors
     # XOR configuration resistors determine address translation
