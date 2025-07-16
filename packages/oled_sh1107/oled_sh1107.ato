@@ -65,6 +65,17 @@ module _DCDCBoostConverter:
     _switch_control.reference ~ power_in
 
     # --- components ---
+    # decoupling capacitors
+    power_in_decoupling_capacitor_bulk = new Capacitor
+    power_in_decoupling_capacitor_bulk.capacitance = 10uF +/- 20%
+    power_in_decoupling_capacitor_bulk.package = "0402"
+    power_in.hv ~> power_in_decoupling_capacitor_bulk ~> power_in.lv
+
+    power_out_decoupling_capacitor = new Capacitor
+    power_out_decoupling_capacitor.capacitance = 100nF +/- 20%
+    power_out_decoupling_capacitor.package = "0402"
+    power_out.hv ~> power_out_decoupling_capacitor ~> power_out.lv
+
     inductor = new Inductor
     assert inductor.inductance within 4.7uH to 22uH
     assert inductor.max_current within 0.5A to 3A
@@ -101,7 +112,12 @@ module _DCDCBoostConverter:
     #trait has_single_electric_reference_shared<gnd_only=True>
 
 module SH1107_128x128:
-    """SH1107 128x128 OLED module with I²C interface"""
+    """
+    SH1107 128x128 OLED module with I²C interface
+    Based on:
+    - https://www.adafruit.com/product/5297
+    - https://www.displayfuture.com/Display/datasheet/controller/SH1107.pdf
+    """
     package = new Newvisio_X150_2828KSWKG01_H25_package
 
     # --- External interfaces ---
