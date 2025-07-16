@@ -1,0 +1,235 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import SPI
+import Capacitor
+import Resistor
+import DifferentialPair
+
+from "parts/TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T/TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T.ato" import TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T_package
+
+module Trinamic_TMC5160:
+    """
+    Trinamic TMC5160 high-performance stepper motor driver with SPI interface.
+
+    The TMC5160 is a high-performance motion controller IC for stepper motors
+    with integrated MOSFET drivers, advanced motion control features, and
+    comprehensive protection mechanisms.
+    """
+
+    # --- Package ---
+    package = new TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T_package
+
+    power_motor = new ElectricPower
+    """
+    Motor power supply (VS, high voltage supply for motor drivers)
+    """
+    power_motor.required = True
+    assert power_motor.voltage within 10V to 55V
+
+    power_vsa = new ElectricPower
+    """
+    Analog power supply for internal analog circuits (VSA)
+    """
+    power_vsa.required = True
+    assert power_vsa.voltage within 10V to 50V
+
+    # --- External interfaces ---
+    power_io = new ElectricPower
+    """
+    I/O power supply for the TMC5160 driver (VCC_IO, typically 3.3V)
+    """
+    power_io.required = True
+    assert power_io.voltage within 3.0V to 5.25V
+
+    power_12v_out = new ElectricPower
+    """
+    12V output power supply (V12OUT)
+    """
+    assert power_12v_out.voltage within 10.8V to 13V # Internal LDO will stay below 12.2V
+
+    power_5v_out = new ElectricPower
+    """
+    5V output power supply (V5OUT)
+    """
+    assert power_5v_out.voltage within 4.8V to 5.2V
+
+    power_vcc = new ElectricPower
+    """
+    VCC power supply for internal operation
+    """
+    assert power_vcc.voltage within 4.8V to 5.2V
+
+    spi = new SPI
+    chip_select = new ElectricLogic
+    """
+    SPI interface for communication and configuration
+    """
+    spi.required = True
+
+
+    # Motor driver outputs
+    """
+    TMC5160 supports one full bridge per phase for one bipolar motor.
+
+    motor_a_high1: high side gate drive output of first half bridge for phase A
+    motor_a_low1: low side gate drive output of first half bridge for phase A
+    motor_a_cap1: bootstrap capacitor of first half bridge for phase A
+    motor_a_bm1: bridge midpoint sense of first half bridge for phase A
+    """
+    motor_a_high1 = new ElectricLogic
+    motor_a_high2 = new ElectricLogic
+    motor_a_low1 = new ElectricLogic
+    motor_a_low2 = new ElectricLogic
+    motor_a_cap1 = new ElectricSignal
+    motor_a_cap2 = new ElectricSignal
+    motor_a_bm1 = new ElectricSignal
+    motor_a_bm2 = new ElectricSignal
+
+    motor_b_high1 = new ElectricLogic
+    motor_b_high2 = new ElectricLogic
+    motor_b_low1 = new ElectricLogic
+    motor_b_low2 = new ElectricLogic
+    motor_b_cap1 = new ElectricSignal
+    motor_b_cap2 = new ElectricSignal
+    motor_b_bm1 = new ElectricSignal
+    motor_b_bm2 = new ElectricSignal
+
+    # Curent sensing resistors
+    motor_a_current_sense = new DifferentialPair
+    motor_b_current_sense = new DifferentialPair
+
+    # Configuration and control pins
+    drive_enable = new ElectricLogic
+    """
+    Driver enable input (active low)
+    """
+
+    diag0 = new ElectricLogic
+    """
+    Diagnostic output 0 / Step input (configurable)
+    """
+
+    diag1 = new ElectricLogic
+    """
+    Diagnostic output 1 / Direction input (configurable)
+    """
+
+    # Configuration pins
+    clk = new ElectricLogic
+    """
+    Clock input for microstepping, 12MHz to 16MHz
+    """
+
+    sd_mode = new ElectricLogic
+    """
+    SD mode configuration pin. High for SPI mode, low for STEP/DIR mode
+    """
+
+    spi_mode = new ElectricLogic
+    """
+    SPI mode configuration pin. High for SPI mode, low for UART mode
+    """
+
+    dcin = new ElectricLogic
+    """
+    DC motor input control pin for dcStep operation
+    """
+
+    dcen = new ElectricLogic
+    """
+    DC motor enable control pin for dcStep operation
+    """
+
+    dco = new ElectricLogic
+    """
+    DC motor output control pin for dcStep operation
+    """
+
+
+
+    # --- Power connections ---
+    power_motor.hv ~ package.VS
+    power_motor.lv ~ package.GNDD
+
+    power_vsa.hv ~ package.VSA
+    power_vsa.lv ~ package.GNDA
+
+    power_io.hv ~ package.VCC_IO
+    power_io.lv ~ package.GNDD
+
+    # --- SPI interface ---
+    spi.sclk.line ~ package.SCK_CFG2
+    spi.mosi.line ~ package.SDI_CFG1
+    spi.miso.line ~ package.SDO_CFG0
+    chip_select.line ~ package.CSN_CFG3
+
+    spi.reference_shim ~ power_io
+    chip_select.reference ~ power_io
+
+    # --- Motor driver connections ---
+    motor_a_high1.line ~ package.HA1
+    motor_a_high2.line ~ package.HA2
+    motor_a_low1.line ~ package.LA1
+    motor_a_low2.line ~ package.LA2
+
+    motor_b_high.line ~ package.HB1
+    motor_b_low.line ~ package.LB1
+
+    motor_b_high.line ~ package.HB2
+    motor_b_low.line ~ package.LB2
+
+    motor_a_high.reference ~ power_motor
+    motor_a_low.reference ~ power_motor
+    motor_b_high.reference ~ power_motor
+    motor_b_low.reference ~ power_motor
+
+    # --- Control and diagnostic connections ---
+    enable.line ~ package.DRV_ENN
+    enable.reference ~ power_io
+
+    diag0.line ~ package.DIAG0_SWN
+    diag0.reference ~ power_io
+
+    diag1.line ~ package.DIAG1_SWP
+    diag1.reference ~ power_io
+
+    # Current sense connections
+    sense_a.line ~ package.SRAH
+    sense_a.reference ~ power_analog
+
+    sense_b.line ~ package.SRBH
+    sense_b.reference ~ power_analog
+
+    # Clock input
+    clk.line ~ package.CLK
+    clk.reference ~ power_io
+
+    # --- Configuration defaults ---
+    # Connect configuration pins for SPI mode
+    package.SPI_MODE ~ power_io.hv  # Enable SPI mode
+    package.SD_MODE ~ power_io.lv   # Normal operation mode
+    package.TST_MODE ~ power_io.lv  # Normal operation mode
+
+    # Connect unused encoder pins to ground
+    package.ENCA_DCIN_CFG5 ~ power_io.lv
+    package.ENCB_DCEN_CFG4 ~ power_io.lv
+    package.ENCN_DCO_CFG6 ~ power_io.lv
+
+    # Connect step/dir pins (can be overridden by user)
+    package.REFL_STEP ~ power_io.lv
+    package.REFR_DIR ~ power_io.lv
+
+    # Connect voltage outputs
+    package.P5VOUT ~ power_io.lv    # 5V output (not used)
+    package.P12VOUT ~ power_io.lv   # 12V output (not used)
+
+    # Connect charge pump voltage
+    package.VCP ~ power_motor.hv
+
+    # Connect thermal pad
+    package.EP ~ power.lv
