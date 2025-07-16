@@ -1,0 +1,25 @@
+requires-atopile: ^0.10.0
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ad1938.ato:Analog_Devices_AD1938_driver
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  example:
+    entry: example.ato:Example
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/adi-ad1938
+  repository: https://github.com/atopile/packages
+  version: 0.1.0
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Analog Devices AD1938 24-bit, 192 kHz Stereo ADC/DAC
+  license: MIT

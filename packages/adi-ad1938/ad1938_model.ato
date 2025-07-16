@@ -1,0 +1,133 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+import ElectricPower
+import ElectricSignal
+import ElectricLogic
+import Electrical
+import I2S
+import Capacitor
+import MultiCapacitor
+import Resistor
+import SPI
+import DifferentialPair
+import has_single_electric_reference_shared
+
+from "ad1938_family.ato" import Analog_Devices_AD1938_package_family
+
+module _DAC_channel:
+    analog_left = new ElectricSignal
+    analog_right = new ElectricSignal
+
+module _ADC_channel:
+    analog_left = new DifferentialPair
+    analog_right = new DifferentialPair
+
+module Analog_Devices_AD1938_model:
+    package = new Analog_Devices_AD1938_package_family
+
+    # power
+    power_io = new ElectricPower
+    power_io.required = True
+    power_analog = new ElectricPower
+    power_analog.required = True
+
+    assert power_io.voltage within 3.3V +/- 10%
+    assert power_analog.voltage within 3.3V +/- 10%
+
+    power_io.hv ~ package.N_DVDD
+    power_io.lv ~ package.N_DGND
+    power_analog.hv ~ package.N_AVDD
+    power_analog.lv ~ package.N_AGND
+
+    # peripherals
+    dac_channels = new _DAC_channel[4]
+    adc_channels = new _ADC_channel[2]
+
+    dac_channels[0].analog_left.line ~ package.OL1
+    dac_channels[0].analog_right.line ~ package.OR1
+
+    dac_channels[1].analog_left.line ~ package.OL2
+    dac_channels[1].analog_right.line ~ package.OR2
+
+    dac_channels[2].analog_left.line ~ package.OL3
+    dac_channels[2].analog_right.line ~ package.OR3
+
+    dac_channels[3].analog_left.line ~ package.OL4
+    dac_channels[3].analog_right.line ~ package.OR4
+
+
+    adc_channels[0].analog_left.p.line ~ package.ADC1LN
+    adc_channels[0].analog_left.n.line ~ package.ADC1LP
+    adc_channels[0].analog_right.p.line ~ package.ADC1RN
+    adc_channels[0].analog_right.n.line ~ package.ADC1RP
+
+    adc_channels[1].analog_left.p.line ~ package.ADC2LN
+    adc_channels[1].analog_left.n.line ~ package.ADC2LP
+    adc_channels[1].analog_right.p.line ~ package.ADC2RN
+    adc_channels[1].analog_right.n.line ~ package.ADC2RP
+
+    i2s_ins = new I2S[4]
+    i2s_outs = new I2S[2]
+
+    i2s_ins[0].sd.line ~ package.DSDATA1
+    i2s_ins[1].sd.line ~ package.DSDATA2
+    i2s_ins[2].sd.line ~ package.DSDATA3
+    i2s_ins[3].sd.line ~ package.DSDATA4
+    i2s_ins[0].ws.line ~ package.DLRCLK
+    i2s_ins[0].sck.line ~ package.DBCLK
+
+    i2s_outs[0].sd.line ~ package.ASDATA1
+    i2s_outs[1].sd.line ~ package.ASDATA2
+    i2s_outs[0].ws.line ~ package.ALRCLK
+    i2s_outs[0].sck.line ~ package.ABCLK
+
+    spi = new SPI
+    spi_cs = new ElectricLogic
+
+    spi.sclk.line ~ package.CCLK
+    spi.miso.line ~ package.CIN
+    spi.mosi.line ~ package.COUT
+    spi_cs.line ~ package.nCLATCH
+
+    xtal_in = new Electrical
+    xtal_out = new Electrical
+
+    xtal_in ~ package.MCLKI_XI
+    xtal_out ~ package.MCLKO_XO
+
+    pll_clock_in = new Electrical
+    pll_clock_in.required = True
+    pll_filter = new Electrical
+    pll_filter.required = True
+    pll_clock_out = new Electrical
+
+    pll_clock_in ~ package.MCLKI_XI
+    pll_filter ~ package.LF
+    pll_clock_out ~ package.MCLKO_XO
+
+    # voltage reference
+    common_mode_reference = new Electrical
+    common_mode_reference ~ package.CM
+
+    voltage_reference = new Electrical
+    voltage_reference ~ package.FILTR
+
+    # configure
+    reset_disable = new ElectricLogic
+    selfboot_enable = new ElectricLogic
+
+    reset_disable.line ~ package.nPD_nRST
+    reset_disable.required = True
+
+    # logic references
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    for logic in [
+        spi,
+        spi_cs
+    ]:
+        logic.reference_shim ~ power_io
+    for logic in i2s_ins:
+        logic.reference_shim ~ power_io
+    for logic in i2s_outs:
+        logic.reference_shim ~ power_io
