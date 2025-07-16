@@ -9,6 +9,8 @@ import Capacitor
 import DifferentialPair
 import Addressor
 import can_bridge_by_name
+from "ti_addressor2.py" import TIAddressor2
+
 from "parts/Texas_Instruments_INA228AQDGSRQ1/Texas_Instruments_INA228AQDGSRQ1.ato" import Texas_Instruments_INA228AQDGSRQ1_package
 
 module TI_INA228:
@@ -50,6 +52,9 @@ module TI_INA228:
 
     # --- Supply ---
     power = new ElectricPower
+    """
+    Device power supply (2.7V to 5.5V)
+    """
     power.required = True
     assert power.voltage within 2.7V to 5.5V
     power.hv ~ package.VS
@@ -57,15 +62,39 @@ module TI_INA228:
 
     # --- I²C bus ---
     i2c = new I2C
+    """
+    I²C bus interface (16 selectable addresses: 0x40-0x4F)
+    Supports up to 2.94 MHz high-speed mode
+    """
     i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
     i2c.single_electric_reference.reference ~ power
 
+    # --- I2C pullup resistors ---
+    pullup_scl = new Resistor
+    pullup_sda = new Resistor
+    pullup_scl.resistance = 10kohm +/- 20%
+    pullup_sda.resistance = 10kohm +/- 20%
+    pullup_scl.package = "0402"
+    pullup_sda.package = "0402"
+    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.vcc
+    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.vcc
+
     # --- ALERT output ---
     alert = new ElectricLogic
+    """
+    Programmable alert output (open-drain, active low)
+    Triggers on user-defined over/under limit conditions
+    """
     alert.line ~ package.ALERT
     alert.reference ~ power
+
+    # Alert pullup resistor (required for open-drain output)
+    alert_pullup = new Resistor
+    alert_pullup.resistance = 10kohm +/- 20%
+    alert_pullup.package = "0402"
+    alert.line ~> alert_pullup ~> alert.reference.vcc
 
     # --- Shunt measurement path ---
     # PCB Layout Guidelines:
@@ -75,11 +104,18 @@ module TI_INA228:
     # 4. Use solid ground plane underneath the INA228 and shunt resistor
     # 5. Keep decoupling capacitor within 5mm of VS pin
     shunt_input = new DifferentialPair
+    """
+    Differential shunt voltage input (±163.84mV full scale)
+    Connect directly to shunt resistor with Kelvin connections
+    """
     shunt_input.p.line ~ package.INpos
     shunt_input.n.line ~ package.INneg
 
     # User-defined maximum current parameter
     max_current: current
+    """
+    Maximum expected current for automatic shunt resistor sizing
+    """
     # Default to 1 A to provide initial constraint (can be overridden by instantiations)
     max_current = 1A
 
@@ -97,9 +133,17 @@ module TI_INA228:
 
     # --- High-side bridge so designers can insert the monitor inline ---
     power_in = new ElectricPower
+    """
+    High-side power input (before shunt, -0.3V to 85V)
+    Connect to power source being monitored
+    """
     power_in.required = True
 
     power_out = new ElectricPower
+    """
+    High-side power output (after shunt)
+    Connect to load being powered
+    """
     power_out.required = True
 
     # Common ground ties to device ground
@@ -132,14 +176,15 @@ module TI_INA228:
     # Address = 0x40 + (A1_config << 2) + (A0_config << 1)
     # This gives addresses from 0x40 to 0x4F (16 total)
 
-    # Address configuration pins
-    a0_config = new ElectricLogic
-    a0_config.line ~ package.A0
-    a0_config.reference ~ power
-
-    a1_config = new ElectricLogic
-    a1_config.line ~ package.A1
-    a1_config.reference ~ power
+    # --- I2C address selection (A1, A0) ---
+    addressor = new TIAddressor2
+    addressor.i2c ~ i2c
+    addressor.base = 0x40
+    assert addressor.address is i2c.address
+    addressor.address_line_a0.line ~ package.A0
+    addressor.address_line_a0.reference ~ power
+    addressor.address_line_a1.line ~ package.A1
+    addressor.address_line_a1.reference ~ power
 
     # I2C address constraint - supports all 16 possible addresses
     assert i2c.address within 0x40 to 0x4F
