@@ -1,14 +1,22 @@
-# Sensirion SCD40 CO₂ Sensor
+# Texas Instruments DAC6578 8-Channel 10-Bit DAC
 
-The SCD4x is Sensirion’s next generation miniature CO2
-sensor. This sensor builds on the photoacoustic sensing
-principle and Sensirion’s patented PAsens® and
-CMOSens® technology to offer high accuracy at an
-unmatched price and smallest form factor. SMD assembly
-allows cost- and space-effective integration of the sensor
-combined with maximal freedom of design. On-chip signal
-compensation is realized with the build-in SHT4x humidity
-and temperature sensor.
+Texas Instruments DAC6578 8-Channel 10-Bit Digital-to-Analog Converter with I2C Interface.
+
+## Features
+
+- 8 x 10-bit DAC channels accessible via outputs[0-7]
+- I²C interface (address 0x4C, up to 3.4MHz)
+- Supply voltage: 2.7V to 5.5V (3.3V typical)
+- Resolution: 10-bit (0-1023 range)
+- Reference voltage input for full-scale output control
+- Low power consumption: 0.12mA per channel at 5V
+- Power consumption: 2.9mW typical
+- Operating temperature: -40°C to +125°C
+- Ultra-low glitch energy: 0.15nV-s
+- Clock rates up to 3.4MHz
+- Simultaneous update capability via LDAC pin
+- Clear function via CLR pin
+- Built-in 4.7kΩ I²C pull-up resistors
 
 ## Usage
 
@@ -16,31 +24,60 @@ and temperature sensor.
 import ElectricPower
 import I2C
 
-from "atopile/sensirion-scd40/sensirion-scd40.ato" import Sensirion_SCD40
-
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
+from "ti-dac6578.ato" import TI_DAC6578
 
 module Usage:
-    """Minimal example for the Sensirion_SCD40 CO₂ sensor."""
+    """Complete usage example for TI_DAC6578 DAC."""
 
-    # MCU & sensor
-    mcu = new MCU
-    co2_sensor = new Sensirion_SCD40
+    dac = new TI_DAC6578
 
-    # Shared 3V3 rail
-    power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
-    power ~ co2_sensor.power
+    # Connect power supply (3.3V example)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ dac.power
 
-    # I²C connection
-    mcu.i2c ~ co2_sensor.i2c
+    # Connect I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ dac.i2c
+
+    # Note: DAC module includes 4.7k I2C pull-ups internally
+
+    # Reference voltage (using power supply)
+    dac.vref ~ power_3v3.hv
+
+    # DAC outputs can be connected to external circuits
+    # dac.outputs[0] ~ analog_circuit_input_a  # Channel A
+    # dac.outputs[1] ~ analog_circuit_input_b  # Channel B
+    # ... etc for channels 2-7 (C through H)
+
+    # Control signals can be connected to microcontroller pins:
+    # dac.clear_n ~ microcontroller.gpio_clear
+    # dac.ldac_n ~ microcontroller.gpio_ldac
 ```
+
+## Pin Configuration
+
+- **ADDR0**: Address selection pin (fixed at 0x4C in this implementation)
+- **SCL/SDA**: I²C clock and data lines
+- **VOUTA-VOUTH**: 8 DAC output channels
+- **VREFIN**: Reference voltage input (configurable via vref interface)
+- **nCLR**: Clear signal (active low)
+- **nLDAC**: Load DAC signal (active low)
+- **AVDD**: Analog supply voltage (2.7V to 5.5V)
+- **GND**: Ground
+
+## I²C Addressing
+
+The DAC6578 I²C address is fixed at **0x4C** in this implementation.
+
+## Design Philosophy
+
+This package follows these design principles:
+- **Integrated I²C pull-ups**: 4.7kΩ pull-up resistors are included in the module for convenience.
+- **External reference voltage**: The `vref` interface allows connection to external precision voltage references for better accuracy.
+- **Array-based outputs**: All 8 DAC channels are accessible via a single `outputs[8]` array for cleaner code.
+- **Minimal dependencies**: Only essential components are included.
 
 ## Contributing
 
@@ -48,4 +85,4 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).
+This package is provided under the [MIT License](https://opensource.org/license/mit).
