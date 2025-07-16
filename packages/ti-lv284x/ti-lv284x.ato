@@ -54,7 +54,7 @@ module _TI_LV284XX from Regulator:
     diode = new Diode_1N5819WS
     # inductor = new Sunlord_SWPA4030S100MT_package
     inductor = new Inductor
-    # inductor.package = "SMD6x6mm"
+    inductor.package = "SMD5x5mm"
 
     # --- Bootstrap Capacitor ---
     bootstrap_capacitor = new Capacitor
@@ -102,7 +102,7 @@ module _TI_LV284XX from Regulator:
     K_IND = 0.3 # Ripple factor, 30% of Io
     current_ripple = K_IND * power_out.max_current
     switching_frequency = 325kHz to 1500kHz
-    power_out.max_current = 0mA to 600mA # to be specialized by exact IC
+    power_out.max_current = 10mA to 600mA # to be specialized by exact IC
     assert power_in.voltage within 4.5V to 42V
     assert power_out.voltage within 0.8V to 40V
 
@@ -110,6 +110,7 @@ module _TI_LV284XX from Regulator:
     assert feedback_div.r_top.resistance is feedback_div.r_bottom.resistance * ((power_out.voltage / v_ref) - 1)
     assert inductor.inductance within (power_in.voltage - power_out.voltage) * power_out.voltage / (power_in.voltage * current_ripple * switching_frequency)
     assert inductor.saturation_current >= power_out.max_current * 1.10
+    assert inductor.max_current >= power_out.max_current
     duty = power_out.voltage / power_in.voltage
     assert duty <= 0.81 # 81% duty cycle is the maximum for the LV2842
     # voltage_ripple = current_ripple * (ESR + (1/(8*switching_frequency*output_capacitance)))
