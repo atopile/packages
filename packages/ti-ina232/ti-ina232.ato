@@ -69,6 +69,12 @@ module TI_INA232:
     alert.line ~ package.ALERT
     alert.reference ~ power
 
+    # Alert pin pull-up resistor (10kohm 0402)
+    alert_pullup = new Resistor
+    alert_pullup.resistance = 10kohm +/- 5%
+    alert_pullup.package = "0402"
+    alert.line ~> alert_pullup ~> power.vcc
+
     # --- Shunt differential input ---
     shunt_input = new DifferentialPair
     """

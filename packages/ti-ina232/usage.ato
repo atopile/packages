@@ -29,9 +29,9 @@ module Usage:
     sensor.max_current = 2A
     sensor.power ~ device_power
 
+    # Set address - possible addresses are 0x40 to 0x4F
+    sensor.i2c.address = 0x40
+
     # Wiring - using bridge functionality
     supply ~> sensor ~> load
     sensor.i2c ~ i2c
-
-    # Address automatically set by addressor (0x40 base address when A0=0)
-    # Pull-up resistors are built into the module
