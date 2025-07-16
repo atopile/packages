@@ -33,7 +33,6 @@ module ADI_AD5693R:
     I²C bus interface (7-bit addr 0x0C / 0x0D)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
 
     dac_out = new ElectricSignal
     """
@@ -45,7 +44,7 @@ module ADI_AD5693R:
     """
     Reference voltage input (internal 2.5V or external)
     """
-    vref.required = True
+    vref.required = False
 
     reset = new ElectricLogic
     """
