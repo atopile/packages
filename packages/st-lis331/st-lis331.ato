@@ -41,6 +41,7 @@ module ST_LIS331:
     I²C bus interface (7-bit addr 0x19 / 0x18)
     Note: 0x19 when SDO/SA0 is high (default with internal pull-up)
           0x18 when SDO/SA0 is low (connected to GND)
+          configured by addressor: eg: i2c.address = 0x19
     """
     i2c.required = True
 
@@ -95,6 +96,7 @@ module ST_LIS331:
     # Power connections
     package.VDD ~ power.hv
     package.Vdd_IO ~ power_io.hv
+    package.GND ~ power_io.lv
     package.GND ~ power.lv
 
     # I2C connections
