@@ -1,0 +1,222 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Electrical
+import I2C
+import Capacitor
+import Resistor
+import Diode
+import Inductor
+import ResistorVoltageDivider
+import Addressor
+import has_single_electric_reference_shared
+import can_bridge_by_name
+
+from "parts/Newvisio_X150_2828KSWKG01_H25/Newvisio_X150_2828KSWKG01_H25.ato" import Newvisio_X150_2828KSWKG01_H25_package
+from "parts/Diodes_Incorporated_APX803S_31SA_7/Diodes_Incorporated_APX803S_31SA_7.ato" import Diodes_Incorporated_APX803S_31SA_7_package
+from "parts/XI_AN_Aerosemi_Tech_MT3608L/XI_AN_Aerosemi_Tech_MT3608L.ato" import XI_AN_Aerosemi_Tech_MT3608L_package
+
+module _ResetSupervisor:
+    """
+    Power rail monitor with reset output
+    """
+    package = new Diodes_Incorporated_APX803S_31SA_7_package
+    # resets with 240ms timout (typical)
+    # resets at 3.04V (min) ~ 3.08V (typical) ~ 3.13V (max)
+
+    # --- external interfaces ---
+    power_3v3 = new ElectricPower
+    power_3v3.required = True
+    reset = new ElectricLogic
+
+    assert power_3v3.voltage within 3.3V +/- 10%
+    reset.reference ~ power_3v3
+
+    power_3v3.hv ~ package.VCC
+    power_3v3.lv ~ package.GND
+    reset.line ~ package.nRESET
+
+module _DCDCBoostConverter:
+    """
+    Boost converter for OLED display
+    3v3 in -> 12v out
+    """
+    package = new XI_AN_Aerosemi_Tech_MT3608L_package
+
+    # --- external interfaces ---
+    power_in = new ElectricPower
+    power_in.required = True
+    power_out = new ElectricPower
+    power_out.required = True
+    enable = new ElectricLogic
+    enable.required = True
+    assert power_in.voltage within 2.2V to 16V
+
+    # --- parameters ---
+    _output_voltage = 12V +/- 4%
+    _output_current_limit = 0.5A +/- 10%
+
+    # --- internal interfaces ---
+    _switch_control = new ElectricSignal
+    _switch_control.reference ~ power_in
+
+    # --- components ---
+    inductor = new Inductor
+    assert inductor.inductance within 4.7uH to 22uH
+    assert inductor.max_current within 0.5A to 3A
+    assert inductor.dc_resistance within 1mΩ to 100mΩ
+    inductor.package = "SMD4x4mm"
+
+    feedback_diode = new Diode
+    feedback_diode.lcsc_id = "C2837271" #TODO autopick
+
+    # output voltage
+    feedback_voltage_divider = new ResistorVoltageDivider
+    feedback_voltage_divider.r_top.package = "0402"
+    feedback_voltage_divider.r_bottom.package = "0402"
+    assert feedback_voltage_divider.v_out within 0.588V to 0.612V
+
+    # current limit
+    current_set_resistor = new Resistor
+    assert current_set_resistor.resistance within (48000V/_output_current_limit)* (1 + (-0.01 to 0.01))
+    current_set_resistor.package = "0402"
+    package.OC ~> current_set_resistor ~> power_in.lv
+
+    # --- package ---
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    _switch_control.line ~ package.SW
+    feedback_voltage_divider.output.line ~ package.FB
+
+    # --- other connections ---
+    power_in.hv ~> inductor ~> feedback_diode ~> power_out.hv
+    power_in.hv ~> inductor ~> _switch_control.line
+    feedback_voltage_divider.power ~ power_out
+
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    #trait has_single_electric_reference_shared<gnd_only=True>
+
+module SH1107_128x128:
+    """SH1107 128x128 OLED module with I²C interface"""
+    package = new Newvisio_X150_2828KSWKG01_H25_package
+
+    # --- External interfaces ---
+    power_3v3 = new ElectricPower
+    power_3v3.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # --- internal interfaces ---
+    _reset = new ElectricLogic
+    _reset.reference ~ power_3v3
+
+    # --- Power supply ---
+    _power_logic = new ElectricPower # vdd
+    _power_positive = new ElectricPower # vpp
+    _power_signal = new ElectricPower # vcomh
+
+    assert power_3v3.voltage within 3.3V +/- 10%
+    assert _power_positive.voltage within 12V +/- 4%
+
+    power_3v3 ~ _power_logic
+
+    # boost converter OLED requires 12V input
+    boost_converter = new _DCDCBoostConverter
+    power_3v3 ~> boost_converter ~> _power_positive
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power_3v3
+    i2c.sda.reference ~ power_3v3
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x3D
+    addressor.address_lines[0].line ~ package.D_C
+    addressor.address_lines[0].reference ~ _power_logic
+    assert addressor.address is i2c.address
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 10kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+
+    # --- Decoupling for internal power rails ---
+    # vcomh
+    signal_decoupling_capacitor = new Capacitor
+    signal_decoupling_capacitor.capacitance = 2.2uF +/- 20%
+    signal_decoupling_capacitor.max_voltage = 16V
+    signal_decoupling_capacitor.package = "0402"
+    _power_signal.hv ~> signal_decoupling_capacitor ~> _power_signal.lv
+
+    # vpp
+    positive_decoupling_capacitor_bulk = new Capacitor
+    positive_decoupling_capacitor_bulk.capacitance = 4.7uF +/- 20%
+    positive_decoupling_capacitor_bulk.max_voltage = 16V
+    positive_decoupling_capacitor_bulk.package = "0402"
+    _power_positive.hv ~> positive_decoupling_capacitor_bulk ~> _power_positive.lv
+
+    positive_decoupling_capacitor = new Capacitor
+    positive_decoupling_capacitor.capacitance = 100nF +/- 20%
+    positive_decoupling_capacitor.max_voltage = 16V
+    positive_decoupling_capacitor.package = "0402"
+    _power_positive.hv ~> positive_decoupling_capacitor ~> _power_positive.lv
+
+    # vdd
+    logic_decoupling_capacitor_bulk = new Capacitor
+    logic_decoupling_capacitor_bulk.capacitance = 4.7uF +/- 20%
+    logic_decoupling_capacitor_bulk.max_voltage = 16V
+    logic_decoupling_capacitor_bulk.package = "0402"
+    _power_logic.hv ~> logic_decoupling_capacitor_bulk ~> _power_logic.lv
+
+    logic_decoupling_capacitor = new Capacitor
+    logic_decoupling_capacitor.capacitance = 100nF +/- 20%
+    logic_decoupling_capacitor.max_voltage = 16V
+    logic_decoupling_capacitor.package = "0402"
+    _power_logic.hv ~> logic_decoupling_capacitor ~> _power_logic.lv
+
+    # segment current reference (various datasheets have different values, using
+    # the default value from lcsc part [C5123566])
+    iref_resistor = new Resistor
+    iref_resistor.resistance = 910kohm +/- 1% # R = (Voltage at IREF - VSS) / IREF
+    iref_resistor.package = "0402"
+    package.IREF ~> iref_resistor ~> _power_positive.lv
+
+    # --- reset supervisor ---
+    # oled
+    reset_supervisor = new _ResetSupervisor
+    reset_supervisor.power_3v3 ~> power_3v3
+    reset_supervisor.reset ~ _reset
+    # dcdc boost converter
+    boost_converter.enable ~> _reset
+    # reset pull-up
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 10%
+    reset_pullup.package = "0402"
+    _power_logic.hv ~> reset_pullup ~> _reset.line
+
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    # --- Package ---
+    _power_logic.hv ~ package.VDD
+    _power_logic.lv ~ package.VSS
+    _power_positive.hv ~ package.VCC
+    _power_signal.hv ~ package.VCOMH
+    i2c.sda.line ~ package.D1
+    i2c.scl.line ~ package.D0
+    _power_logic.lv ~ package.D2
+    _power_logic.lv ~ package.D3
+    _power_logic.lv ~ package.D4
+    _power_logic.lv ~ package.D5
+    _power_logic.lv ~ package.D6
+    _power_logic.lv ~ package.D7
+    _power_logic.hv ~ package.BS1 # set i2c mode
+    _power_logic.lv ~ package.BS2 # set i2c mode
+    # _power_logic.lv ~ package.nCS
+    _power_logic.lv ~ package.nWR
+    _power_logic.lv ~ package.nRD
