@@ -1,15 +1,20 @@
-requires-atopile: "^0.9.0"
+requires-atopile: "^0.10.8"
 
 paths:
   src: "."
   layout: ./layouts
 
 builds:
-  ref:
-    entry: lv284x.ato:LV2842x
+  default:
+    entry: ti-lv284x.ato:TI_LV2842X
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
-  test:
-    entry: lv284x.ato:Test
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
 
 package:
   identifier: atopile/ti-lv284x
