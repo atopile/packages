@@ -1,0 +1,55 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import Capacitor
+import Resistor
+
+from "parts/Sensirion_SCD40_D_R2/Sensirion_SCD40_D_R2.ato" import Sensirion_SCD40_D_R2_package
+
+module Sensirion_SCD40:
+    """
+    Sensirion SCD40 CO₂ sensor with I²C interface.
+    """
+    package = new Sensirion_SCD40_D_R2_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 5%
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x62
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Package ---
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.VDDH ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line

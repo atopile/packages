@@ -1,0 +1,72 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+from "parts/TDK_INVENSENSE_ICM_20948/TDK_INVENSENSE_ICM_20948.ato" import TDK_INVENSENSE_ICM_20948_package
+import Electrical, ElectricPower, I2C, ElectricLogic, Capacitor, Addressor
+
+module ICM20948_driver:
+    # Main IC
+    ic = new TDK_INVENSENSE_ICM_20948_package
+
+    # Power interfaces
+    power_vdd = new ElectricPower
+    power_vddio = new ElectricPower
+
+    # Power requirements from datasheet
+    power_vdd.required = True
+    power_vddio.required = True
+    assert power_vdd.voltage within 1.71V to 3.6V
+    assert power_vddio.voltage within 1.71V to 1.95V
+
+    # Power connections
+    power_vdd.hv ~ ic.VDD
+    power_vdd.lv ~ ic.GND
+    power_vddio.hv ~ ic.VDDIO
+    power_vddio.lv ~ ic.GND
+    power_vdd.lv ~ ic.EP
+
+    # I2C interface
+    i2c = new I2C
+    i2c.scl.line ~ ic.SCL_SCLK
+    i2c.sda.line ~ ic.SDA_SDI
+    i2c.scl.reference ~ power_vddio
+    i2c.sda.reference ~ power_vddio
+
+    # I2C address configuration using Addressor
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x68
+    addressor.address_lines[0].line ~ ic.SDO_AD0
+    addressor.address_lines[0].reference ~ power_vddio
+    assert addressor.address is i2c.address
+
+    # Additional control pins
+    interrupt = new ElectricLogic
+    interrupt.line ~ ic.INT1
+    interrupt.reference ~ power_vddio
+
+    # Auxiliary I2C for magnetometer
+    aux_i2c = new I2C
+    aux_i2c.scl.line ~ ic.AUX_CL
+    aux_i2c.sda.line ~ ic.AUX_DA
+    aux_i2c.scl.reference ~ power_vddio
+    aux_i2c.sda.reference ~ power_vddio
+
+    # Frame sync pin
+    fsync = new ElectricLogic
+    fsync.line ~ ic.FSYNC
+    fsync.reference ~ power_vddio
+
+    # Decoupling capacitors for VDD
+    vdd_caps = new Capacitor[2]
+    for capacitor in vdd_caps:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+        power_vdd.hv ~> capacitor ~> power_vdd.lv
+
+    # Decoupling capacitors for VDDIO
+    vddio_caps = new Capacitor[2]
+    for capacitor in vddio_caps:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+        power_vddio.hv ~> capacitor ~> power_vddio.lv

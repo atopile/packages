@@ -1,0 +1,26 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  default:
+    entry: rohm-bh1750.ato:ROHM_BH1750
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/rohm-bh1750
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/rohm-bh1750/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: ROHM; BH1750; Ambient; Light; Sensor; I²C; Adafruit; 4681; QWIIC; STEMMA
+  license: MIT

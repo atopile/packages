@@ -1,19 +1,15 @@
 ---
-description:
-globs: *.ato
-alwaysApply: false
+description: ato is a declarative DSL to design electronics (PCBs) with.
+globs: *.ato, ato.yaml
+alwaysApply: true
 ---
+
 ato is a declarative DSL to design electronics (PCBs) with.
 It is part of the atopile project.
 Atopile is run by the vscode/cursor/windsurf extension.
 The CLI (which is invoked by the extension) actually builds the project.
 
-# Ato Syntax
-
-ato sytax is heavily inspired by Python, but fully declarative.
-ato thus has no procedural code, and no side effects.
-
-## Not available in ato
+# Not available in ato
 
 - if statements
 - while loops
@@ -23,10 +19,15 @@ ato thus has no procedural code, and no side effects.
 - exceptions
 - generators
 
+
+# Ato Syntax
+
+ato sytax is heavily inspired by Python, but fully declarative.
+ato thus has no procedural code, and no side effects.
+
 ## Examples of syntax
 
 ```ato
-# pragma calls to compiler:
 #pragma text
 #pragma func("X")
 # enable for loop syntax feature:
@@ -226,371 +227,196 @@ complex_assignment = (
 ## G4 Grammar
 
 ```g4
-
 parser grammar AtoParser;
 
 options {
-    superClass = AtoParserBase;
-    tokenVocab = AtoLexer;
+	superClass = AtoParserBase;
+	tokenVocab = AtoLexer;
 }
 
-file_input
-    : (NEWLINE | stmt)* EOF
-    ;
+file_input: (NEWLINE | stmt)* EOF;
 
-pragma_stmt
-    : PRAGMA
-    ;
+pragma_stmt: PRAGMA;
 
-stmt
-    : simple_stmts
-    | compound_stmt
-    | pragma_stmt
-    ;
-simple_stmts
-    : simple_stmt (SEMI_COLON simple_stmt)* SEMI_COLON? NEWLINE
-    ;
-simple_stmt
-    : import_stmt
-    | dep_import_stmt
-    | assign_stmt
-    | cum_assign_stmt
-    | set_assign_stmt
-    | connect_stmt
-    | directed_connect_stmt
-    | retype_stmt
-    | pin_declaration
-    | signaldef_stmt
-    | assert_stmt
-    | declaration_stmt
-    | string_stmt
-    | pass_stmt
-    | trait_stmt
-    ;
+stmt: simple_stmts | compound_stmt | pragma_stmt;
+simple_stmts:
+	simple_stmt (SEMI_COLON simple_stmt)* SEMI_COLON? NEWLINE;
+simple_stmt:
+	import_stmt
+	| dep_import_stmt
+	| assign_stmt
+	| cum_assign_stmt
+	| set_assign_stmt
+	| connect_stmt
+	| directed_connect_stmt
+	| retype_stmt
+	| pin_declaration
+	| signaldef_stmt
+	| assert_stmt
+	| declaration_stmt
+	| string_stmt
+	| pass_stmt
+	| trait_stmt;
 
-compound_stmt
-    : blockdef
-    | for_stmt
-    ;
+compound_stmt: blockdef | for_stmt;
 
-blockdef
-    : blocktype name blockdef_super? COLON block
-    ;
+blockdef: blocktype name blockdef_super? COLON block;
 // TODO @v0.4 consider ()
-blockdef_super
-    : FROM type_reference
-    ;
+blockdef_super: FROM type_reference;
 // TODO @v0.4 consider removing component (or more explicit code-as-data)
-blocktype
-    : (COMPONENT | MODULE | INTERFACE)
-    ;
-block
-    : simple_stmts
-    | NEWLINE INDENT stmt+ DEDENT
-    ;
+blocktype: (COMPONENT | MODULE | INTERFACE);
+block: simple_stmts | NEWLINE INDENT stmt+ DEDENT;
 
 // TODO: @v0.4 remove the deprecated import form
-dep_import_stmt
-    : IMPORT type_reference FROM string
-    ;
-import_stmt
-    : (FROM string)? IMPORT type_reference (
-        COMMA type_reference
-    )*
-    ;
+dep_import_stmt: IMPORT type_reference FROM string;
+import_stmt: (FROM string)? IMPORT type_reference (
+		COMMA type_reference
+	)*;
 
-declaration_stmt
-    : field_reference type_info
-    ;
-field_reference_or_declaration
-    : field_reference
-    | declaration_stmt
-    ;
-assign_stmt
-    : field_reference_or_declaration '=' assignable
-    ;
-cum_assign_stmt
-    : field_reference_or_declaration cum_operator cum_assignable
-    ;
+declaration_stmt: field_reference type_info;
+field_reference_or_declaration:
+	field_reference
+	| declaration_stmt;
+assign_stmt: field_reference_or_declaration '=' assignable;
+cum_assign_stmt:
+	field_reference_or_declaration cum_operator cum_assignable;
 // TODO: consider sets cum operator
-set_assign_stmt
-    : field_reference_or_declaration (
-        OR_ASSIGN
-        | AND_ASSIGN
-    ) cum_assignable
-    ;
-cum_operator
-    : ADD_ASSIGN
-    | SUB_ASSIGN
-    ;
-cum_assignable
-    : literal_physical
-    | arithmetic_expression
-    ;
+set_assign_stmt:
+	field_reference_or_declaration (OR_ASSIGN | AND_ASSIGN) cum_assignable;
+cum_operator: ADD_ASSIGN | SUB_ASSIGN;
+cum_assignable: literal_physical | arithmetic_expression;
 
-assignable
-    : string
-    | new_stmt
-    | literal_physical
-    | arithmetic_expression
-    | boolean_
-    ;
+assignable:
+	string
+	| new_stmt
+	| literal_physical
+	| arithmetic_expression
+	| boolean_;
 
-retype_stmt
-    : field_reference ARROW type_reference
-    ;
+retype_stmt: field_reference ARROW type_reference;
 
 directed_connect_stmt
-    // only one type of SPERM per stmt allowed. both here for better error messages
-    : bridgeable ((SPERM | LSPERM) bridgeable)+
-    ;
-connect_stmt
-    : mif WIRE mif
-    ;
-bridgeable
-    : connectable
-    ;
-mif
-    : connectable
-    ;
-connectable
-    : field_reference
-    | signaldef_stmt
-    | pindef_stmt
-    ;
+	: bridgeable ((SPERM | LSPERM) bridgeable)+; // only one type of SPERM per stmt allowed. both here for better error messages
+connect_stmt: mif WIRE mif;
+bridgeable: connectable;
+mif: connectable;
+connectable: field_reference | signaldef_stmt | pindef_stmt;
 
-signaldef_stmt
-    : SIGNAL name
-    ;
-pindef_stmt
-    : pin_stmt
-    ;
-pin_declaration
-    : pin_stmt
-    ;
-pin_stmt
-    : PIN (name | number_hint_natural | string)
-    ;
+signaldef_stmt: SIGNAL name;
+pindef_stmt: pin_stmt;
+pin_declaration: pin_stmt;
+pin_stmt: PIN (name | number_hint_natural | string);
 
-new_stmt
-    : NEW type_reference ('[' new_count ']')? template?
-    ;
-new_count
-    : number_hint_natural
-    ;
+new_stmt: NEW type_reference ('[' new_count ']')? template?;
+new_count: number_hint_natural;
 
-string_stmt
-    : string
-    ; // the unbound string is a statement used to add doc-strings
+string_stmt:
+	string; // the unbound string is a statement used to add doc-strings
 
-pass_stmt
-    : PASS
-    ; // the unbound string is a statement used to add doc-strings
+pass_stmt:
+	PASS; // the unbound string is a statement used to add doc-strings
 
-list_literal_of_field_references
-    : '[' (
-        field_reference (COMMA field_reference)* COMMA?
-    )? ']'
-    ;
+list_literal_of_field_references:
+	'[' (field_reference (COMMA field_reference)* COMMA?)? ']';
 
-iterable_references
-    : field_reference slice?
-    | list_literal_of_field_references
-    ;
+iterable_references:
+	field_reference slice?
+	| list_literal_of_field_references;
 
-for_stmt
-    : FOR name IN iterable_references COLON block
-    ;
+for_stmt: FOR name IN iterable_references COLON block;
 
-assert_stmt
-    : ASSERT comparison
-    ;
+assert_stmt: ASSERT comparison;
 
 trait_stmt
-    // TODO: move namespacing to type_reference
-    : TRAIT type_reference (DOUBLE_COLON constructor)? template?
-    ;
-constructor
-    : name
-    ;
-template
-    : '<' (template_arg (COMMA template_arg)* COMMA?)? '>'
-    ;
-template_arg
-    : name ASSIGN literal
-    ;
+	: TRAIT type_reference (DOUBLE_COLON constructor)? template?; // TODO: move namespacing to type_reference
+constructor: name;
+template: '<' (template_arg (COMMA template_arg)* COMMA?)? '>';
+template_arg: name ASSIGN literal;
 
 // Comparison operators --------------------
-comparison
-    : arithmetic_expression compare_op_pair+
-    ;
+comparison: arithmetic_expression compare_op_pair+;
 
-compare_op_pair
-    : lt_arithmetic_or
-    | gt_arithmetic_or
-    | lt_eq_arithmetic_or
-    | gt_eq_arithmetic_or
-    | in_arithmetic_or
-    | is_arithmetic_or
-    ;
+compare_op_pair:
+	lt_arithmetic_or
+	| gt_arithmetic_or
+	| lt_eq_arithmetic_or
+	| gt_eq_arithmetic_or
+	| in_arithmetic_or
+	| is_arithmetic_or;
 
-lt_arithmetic_or
-    : LESS_THAN arithmetic_expression
-    ;
-gt_arithmetic_or
-    : GREATER_THAN arithmetic_expression
-    ;
-lt_eq_arithmetic_or
-    : LT_EQ arithmetic_expression
-    ;
-gt_eq_arithmetic_or
-    : GT_EQ arithmetic_expression
-    ;
-in_arithmetic_or
-    : WITHIN arithmetic_expression
-    ;
-is_arithmetic_or
-    : IS arithmetic_expression
-    ;
+lt_arithmetic_or: LESS_THAN arithmetic_expression;
+gt_arithmetic_or: GREATER_THAN arithmetic_expression;
+lt_eq_arithmetic_or: LT_EQ arithmetic_expression;
+gt_eq_arithmetic_or: GT_EQ arithmetic_expression;
+in_arithmetic_or: WITHIN arithmetic_expression;
+is_arithmetic_or: IS arithmetic_expression;
 
 // Arithmetic operators --------------------
 
-arithmetic_expression
-    : arithmetic_expression (OR_OP | AND_OP) sum
-    | sum
-    ;
+arithmetic_expression:
+	arithmetic_expression (OR_OP | AND_OP) sum
+	| sum;
 
-sum
-    : sum (PLUS | MINUS) term
-    | term
-    ;
+sum: sum (PLUS | MINUS) term | term;
 
-term
-    : term (STAR | DIV) power
-    | power
-    ;
+term: term (STAR | DIV) power | power;
 
-power
-    : functional (POWER functional)?
-    ;
+power: functional (POWER functional)?;
 
-functional
-    : bound
-    | name '(' bound+ ')'
-    ;
+functional: bound | name '(' bound+ ')';
 
-bound
-    : atom
-    ;
+bound: atom;
 
 // Primary elements ----------------
 
-slice
-    : '[' (
-        slice_start? COLON slice_stop? (COLON slice_step?)?
-    )? ']'
-    // else [::step] wouldn't match
-    | '[' ( DOUBLE_COLON slice_step?) ']'
-    ;
-slice_start
-    : number_hint_integer
-    ;
-slice_stop
-    : number_hint_integer
-    ;
-slice_step
-    : number_hint_integer
-    ;
+slice:
+	'[' (slice_start? COLON slice_stop? (COLON slice_step?)?)? ']'
+	// else [::step] wouldn't match
+	| '[' ( DOUBLE_COLON slice_step?) ']';
+slice_start: number_hint_integer;
+slice_stop: number_hint_integer;
+slice_step: number_hint_integer;
 
-atom
-    : field_reference
-    | literal_physical
-    | arithmetic_group
-    ;
+atom: field_reference | literal_physical | arithmetic_group;
 
-arithmetic_group
-    : '(' arithmetic_expression ')'
-    ;
+arithmetic_group: '(' arithmetic_expression ')';
 
-literal_physical
-    : bound_quantity
-    | bilateral_quantity
-    | quantity
-    ;
+literal_physical:
+	bound_quantity
+	| bilateral_quantity
+	| quantity;
 
-bound_quantity
-    : quantity TO quantity
-    ;
-bilateral_quantity
-    : quantity PLUS_OR_MINUS bilateral_tolerance
-    ;
-quantity
-    : number name?
-    ;
-bilateral_tolerance
-    : number_signless (PERCENT | name)?
-    ;
+bound_quantity: quantity TO quantity;
+bilateral_quantity: quantity PLUS_OR_MINUS bilateral_tolerance;
+quantity: number name?;
+bilateral_tolerance: number_signless (PERCENT | name)?;
 
-key
-    : number_hint_integer
-    ;
-array_index
-    : '[' key ']'
-    ;
+key: number_hint_integer;
+array_index: '[' key ']';
 
 // backwards compatibility for A.1
-pin_reference_end
-    : DOT number_hint_natural
-    ;
-field_reference_part
-    : name array_index?
-    ;
-field_reference
-    : field_reference_part (DOT field_reference_part)* pin_reference_end?
-    ;
-type_reference
-    : name (DOT name)*
-    ;
+pin_reference_end: DOT number_hint_natural;
+field_reference_part: name array_index?;
+field_reference:
+	field_reference_part (DOT field_reference_part)* pin_reference_end?;
+type_reference: name (DOT name)*;
 // TODO better unit
-unit
-    : name
-    ;
-type_info
-    : COLON unit
-    ;
-name
-    : NAME
-    ;
+unit: name;
+type_info: COLON unit;
+name: NAME;
 
 // Literals
-literal
-    : string
-    | boolean_
-    | number
-    ;
+literal: string | boolean_ | number;
 
-string
-    : STRING
-    ;
-boolean_
-    : TRUE
-    | FALSE
-    ;
-number_hint_natural
-    : number_signless
-    ;
-number_hint_integer
-    : number
-    ;
-number
-    : (PLUS | MINUS)? number_signless
-    ;
-number_signless
-    : NUMBER
-    ;
+string: STRING;
+boolean_: TRUE | FALSE;
+number_hint_natural: number_signless;
+number_hint_integer: number;
+number: (PLUS | MINUS)? number_signless;
+number_signless: NUMBER;
 ```
 
-# Most used library modules (api of them)
+# Most used library modules/interfaces (api of them)
 
 ```ato
 interface Electrical:
@@ -601,20 +427,20 @@ interface ElectricPower:
     lv = new Electrical
 
 module Resistor:
-    resistance : ohm
-    max_power : W
-    max_voltage : V
+    resistance: ohm
+    max_power: W
+    max_voltage: V
     unnamed = new Electrical[2]
 
 module Capacitor:
-    capacitance : F
-    max_voltage : V
+    capacitance: F
+    max_voltage: V
     unnamed = new Electrical[2]
 
 interface I2C:
     scl = new ElectricLogic
     sda = new ElectricLogic
-    frequency : Hz
+    frequency: Hz
     address: dimensionless
 
 interface ElectricLogic:
@@ -622,123 +448,10 @@ interface ElectricLogic:
     reference = new ElectricPower
 ```
 
-# All standard library modules
-
-```ato
-Addressor1.py
-Addressor2.py
-Addressor3.py
-Addressor.py
-Battery.py
-BJT.py
-ButtonCell.py
-Button.py
-CapacitorElectrolytic.py
-Capacitor.py
-Common_Mode_Filter.py
-Comparator.py
-Crystal_Oscillator.py
-Crystal.py
-DifferentialPair.py
-Diode.py
-DIP.py
-EEPROM.py
-Electrical.py
-ElectricLogicGate.py
-ElectricLogicGates.py
-ElectricLogic.py
-ElectricPower.py
-ElectricSignal.py
-EnablePin.py
-Ethernet.py
-Fan.py
-FilterElectricalLC.py
-FilterElectricalRC.py
-Filter.py
-Footprint.py
-Fuse.py
-GDT.py
-GenericBusProtection.py
-HDMI.py
-Header.py
-I2C.py
-I2S.py
-Inductor.py
-JTAG.py
-KicadFootprint.py
-LDO.py
-LEDIndicator.py
-LED.py
-Logic74xx.py
-LogicGate.py
-LogicGates.py
-LogicOps.py
-Logic.py
-Mechanical.py
-MOSFET.py
-Mounting_Hole.py
-MultiCapacitor.py
-MultiSPI.py
-Net.py
-NetTie.py
-NFET.py
-OLED_Module.py
-OpAmp.py
-Pad.py
-PCB.py
-PFET.py
-Pinmux.py
-Potentiometer.py
-PoweredLED.py
-Powered_Relay.py
-PowerMux.py
-Power.py
-PowerSwitchMOSFET.py
-PowerSwitch.py
-PowerSwitchStatic.py
-QFN.py
-QWIIC_Connector.py
-Regulator.py
-Relay.py
-ResistorArray.py
-Resistor.py
-ResistorVoltageDivider.py
-RJ45_Receptacle.py
-RS232.py
-RS485_Bus_Protection.py
-RS485HalfDuplex.py
-Sercom.py
-Signal.py
-SMDTwoPin.py
-SOIC.py
-SPIFlash.py
-SPI.py
-SurgeProtection.py
-SWDConnector.py
-SWD.py
-Switch.py
-Symbol.py
-TestPoint.py
-TVS.py
-UART_Base.py
-UART.py
-UART_RS485.py
-USB2_0_ESD_Protection.py
-USB2_0_IF.py
-USB2_0.py
-USB3_connector.py
-USB3_IF.py
-USB3.py
-USB_C_5V_PSU.py
-USB_C_PowerOnly.py
-USB_C_PSU_Vertical.py
-USB_C.py
-USB_RS485.py
-USB_Type_C_Receptacle_14_pin_Vertical.py
-USB_Type_C_Receptacle_16_pin.py
-USB_Type_C_Receptacle_24_pin.py
-XtalIF.py
-```
+For the rest use the atopile MCP server
+- `get_library_interfaces` to list interfaces
+- `get_library_modules` to list modules
+- `inspect_library_module_or_interface` to inspect the code
 
 # Ato language features
 
@@ -780,74 +493,12 @@ If a module has the `can_bridge` trait you can use the sperm operator `~>` to br
 # Ato CLI
 
 ## How to run
-Before running ato, first run
-`alias ato="'~/.cursor-server/data/User/globalStorage/atopile.atopile/uv-b
-in/uv' 'tool' 'run' '-p' '3.13' '--from' 'atopile' 'ato'"` in the terminal.
 
-## Commands
-```bash
-❯ ato --help
-
- Usage: ato [OPTIONS] COMMAND [ARGS]...
-
-╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --non-interactive                      [env var: ATO_NON_INTERACTIVE, NONINTERACTIVE]                                                                                                                                   │
-│ --debug                                Wait to attach debugger on start                                                                                                                                                 │
-│ --verbose             -v      INTEGER  Increase verbosity [default: 0]                                                                                                                                                  │
-│ --version                                                                                                                                                                                                               │
-│ --semver                                                                                                                                                                                                                │
-│ --install-completion                   Install completion for the current shell.                                                                                                                                        │
-│ --show-completion                      Show completion for the current shell, to copy it or customize the installation.                                                                                                 │
-│ --help                                 Show this message and exit.                                                                                                                                                      │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ build          Build the specified --target(s) or the targets specified by the build config.                                                                                                                            │
-│                Optionally specify a different entrypoint with the argument ENTRY.                                                                                                                                       │
-│                eg. `ato build --target my_target path/to/source.ato:module.path`                                                                                                                                        │
-│ configure      Configure the user's system for atopile development.                                                                                                                                                     │
-│ inspect        Utility to inspect what is connected to a component.                                                                                                                                                     │
-│                The context sets the boundary where something is considered connected.                                                                                                                                   │
-│                For example: `--inspect rp2040_micro --context rp2040_micro_ki`                                                                                                                                          │
-│ view           View a block diagram or schematic of your project.                                                                                                                                                       │
-│ validate       Check file for syntax errors and internal consistency                                                                                                                                                    │
-│ create         Create projects / build targets / components                                                                                                                                                             │
-│ dependencies   Manage dependencies                                                                                                                                                                                      │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Shortcuts ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ sync           Update the project's environment                                                                                                                                                                         │
-│ add            Add dependencies to the project                                                                                                                                                                          │
-│ remove         Remove dependencies from the project                                                                                                                                                                     │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-```
-
-
-## Parts
-
-To add a part to the project you need to run `ato create part -s <LCSC_PART_NUMBER> --accept-single`.
-This will create a new directory in the `parts` directory for that part.
-
-```
-❯ ato create part --search C2040 --accept-single
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┓
-┃ Part Number  ┃ Manufacturer ┃ Description                                             ┃ Supplier ID ┃ Stock ┃
-┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━┩
-│ Raspberry Pi │ RP2040       │ 133MHz LQFN-56(7x7) Microcontrollers (MCU/MPU/SOC) ROHS │ C2040       │ 63484 │
-└──────────────┴──────────────┴─────────────────────────────────────────────────────────┴─────────────┴───────┘
-[15:09:33] ALERT    pcbnew restart required (updated fp-lib-table)
-✨ Created Raspberry_Pi_RP2040 at /tmp/bla/parts/Raspberry_Pi_RP2040 !
-```
-
-It can be then imported with `from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package`.
-And then used like this:
-
-```ato
-module MyModule:
-    mcu = new Raspberry_Pi_RP2040_package
-```
+You run ato commands through the MCP tool.
 
 ## Packages
 
-Packages can be found on the [ato registry](https://packages.atopile.io).
+Packages can be found on the ato registry.
 To install a package you need to run `ato add <PACKAGE_NAME>`.
 e.g `ato install atopile/addressable-leds`
 And then can be imported with `from "atopile/addressable-leds/sk6805-ec20.ato" import SK6805_EC20_driver`.
@@ -868,3 +519,194 @@ A lot of times it's actually `ElectricLogic` for things like GPIOs etc or `Elect
 Passive modules (Resistors, Capacitors) are picked automatically by the constraints on their parameters.
 To constrain the package do e.g `package = "0402"`.
 To explictly pick a part for a module use `lcsc = "<LCSC_PART_NUMBER>"`.
+
+
+# Creating a package
+
+Package generation process:
+
+Review structure of other pacakges.
+
+1. Create new Directory in 'packages/packages' with naming convention '<vendor>-<device>' eg 'adi-adau145x'
+2. create an ato.yaml file in the new directory with the following content:
+
+```yaml
+requires-atopile: '^0.9.0'
+
+paths:
+    src: '.'
+    layout: ./layouts
+
+builds:
+    default:
+        entry: <device>.ato:<device>_driver
+    example:
+        entry: <device>.ato:Example
+```
+
+3. Create part using tool call 'search_and_install_jlcpcb_part'
+4. Import the part into the <device>.ato file
+5. Read the datasheet for the device
+6. Find common interfaces in the part eg I2C, I2S, SPI, Power
+
+7. Create interfaces and connect them
+
+power interfaces:
+power*<name> = new ElectricPower
+power*<name>.required = True # If critical to the device
+assert power\*<name>.voltage within <minimum*operating_voltage>V to <maximum_operating_voltage>V
+power*<name>.vcc ~ <device>.<vcc pin>
+power\_<name>.gnd ~ <device>.<gnd pin>
+
+i2c interfaces:
+i2c = new I2C
+i2c.scl.line ~ <device>.<i2c scl pin>
+i2c.sda.line ~ <device>.<i2c sda pin>
+
+spi interfaces:
+spi = new SPI
+spi.sclk.line ~ <device>.<spi sclk pin>
+spi.mosi.line ~ <device>.<spi mosi pin>
+spi.miso.line ~ <device>.<spi miso pin>
+
+8. Add decoupling capacitors
+
+looking at the datasheet, determine the required decoupling capacitors
+
+eg: 2x 100nF 0402:
+
+power_3v3 = new ElectricPower
+
+# Decoupling power_3v3
+
+power_3v3_caps = new Capacitor[2]
+for capacitor in power_3v3_caps:
+capacitor.capacitance = 100nF +/- 20%
+capacitor.package = "0402"
+power_3v3.hv ~> capacitor ~> power_3v3.lv
+
+9. If device has pin configurable i2c addresses
+
+If format is: <n x fixed address bits><m x pin configured address bits>
+use addressor module:
+
+- Use `Addressor<address_bits=N>` where **N = number of address pins**.
+- Connect each `address_lines[i].line` to the corresponding pin, and its `.reference` to a local power rail.
+- Set `addressor.base` to the lowest possible address and `assert addressor.address is i2c.address`.
+
+10. Create a README.md
+
+# <Manufacturer> <Manufacturer part number> <Short description>
+
+## Usage
+
+```ato
+<copy in example>
+
+```
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
+
+11. Connect high level interfaces directly in example:
+
+eg:
+
+i2c = new I2C
+power = new ElectricPower
+sensor = new Sensor
+
+i2c ~ sensor.i2c
+power ~ sensor.power_3v3
+
+# Additional Notes & Gotchas (generic)
+
+- Multi-rail devices (VDD / VDDIO, AVDD / DVDD, etc.)
+
+    - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
+    - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
+
+- Optional interfaces (SPI vs I²C)
+
+    - If the device supports multiple buses, pick one for the initial driver. Leave unused bus pins as `ElectricLogic` lines or expose a second interface module later.
+
+- Decoupling guidance
+
+    - If the datasheet shows multiple caps, model the **minimum required** set so the build passes; you can refine values/packages later.
+
+- File / directory layout recap
+    - `<vendor>-<device>/` – package root
+    - `ato.yaml` – build manifest (include `default` **and** `example` targets)
+    - `<device>.ato` – driver + optional example module
+    - `parts/<MANUFACTURER_PARTNO>/` – atomic part + footprint/symbol/step files
+
+These tips should prevent common "footprint not found", "pin X missing", and build-time path errors when you add new devices.
+
+
+# Vibe coding a project
+
+If the user gives you high level description of the project, use the following guide:
+
+# How LLMs can design electronics:
+
+#1 Rule: USE THE TOOLS. If the tools dont work, dont freak out, you are probably using them wrong. Ask for help if you get stuck.
+
+Top level design
+
+1. Research available packages relevant to the user requests using 'find_packages'
+2. Inspect promising packages using 'inspect_package'
+3. Propose packages to use for project and architucture to user, revise if needed
+4. Install needed packages using 'install_package'
+5. Import packages into main file
+6. Create instances of packages in main module
+
+## Power
+
+1. Review for each package the required voltage and current (current may not be provided, use judement if nessesary)
+2. Determine the power rails that need to be generated and a suitable tollerance (typically ~3-5% is acceptable)
+3. Determine the input power source, typically a battery, USB connector or other power connector (eg XT30) and install relevant package
+4. Find suitable regulators:
+   a) if input voltage > required voltage and current is low, use an LDO package
+   b) if input voltage > required voltage and current is high, use buck converter
+   c) if input votlage < required voltage, use a boost converter
+   d) if input voltage can be both less than or greater than input voltage, use buck boost (eg battery powered device that needs 3v3)
+5. If battery powered, add charger package
+
+Typical power architucture example with LDO:
+
+- USB input power
+- Low current output (eg microcontroller)
+
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+
+module App:
+
+    # Rails
+    power_5v = new Power
+    power_3v3 = new Power
+
+    # Components
+    ldo = new TLV75901_driver
+    usb_connector = new USBCConn
+
+    # Connections
+    usb_connector.power ~ power_vbus
+    power_vbus ~> ldo ~> power_3v3
+
+## Communicaions
+
+1. Review packages required interfaces, typically i2c, spi or ElectricLogics
+2. Find suitable pins on the controller, typically a microcontroller or Linux SOC
+3. Connect interfaces eg micro.i2c[0] ~ sensor.i2c
+
+## Development process notes
+
+- After making changes, be sure to use 'build_project' to update the PCB
+- Builds will often generate errors/warnings, these should be reviewed and fixed
+- Prioritize pacakges from 'atopile' over other packages
