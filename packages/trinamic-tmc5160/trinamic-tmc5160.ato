@@ -324,7 +324,6 @@ module Trinamic_TMC5160:
 
     spi.reference_shim ~ power_vccio
     chip_select.reference ~ power_vccio
-
     # --- Motor driver connections ---
     motor_a_high1.line ~ package.HA1
     motor_a_high2.line ~ package.HA2
@@ -341,7 +340,7 @@ module Trinamic_TMC5160:
     motor_b_low2.line ~ package.LB2
     motor_b_cap1.line ~ package.CB1
     motor_b_cap2.line ~ package.CB2
-    motor_b_bm1.line ~ package.BMB2
+    motor_b_bm1.line ~ package.BMB1
     motor_b_bm2.line ~ package.BMB2
 
     motor_a_high1.reference ~ power_12v_out
@@ -373,12 +372,12 @@ module Trinamic_TMC5160:
     diag1_swp.reference ~ power_vcc
 
     # Current sense connections
-    motor_a_current_sense.p ~ package.SRAH
-    motor_a_current_sense.n ~ package.SRAL
+    motor_a_current_sense.p.line ~ package.SRAH
+    motor_a_current_sense.n.line ~ package.SRAL
     motor_a_current_sense.reference_shim ~ power_vccio
 
-    motor_b_current_sense.p ~ package.SRBH
-    motor_b_current_sense.n ~ package.SRBL
+    motor_b_current_sense.p.line ~ package.SRBH
+    motor_b_current_sense.n.line ~ package.SRBL
     motor_b_current_sense.reference_shim ~ power_vccio
 
     # Clock input
@@ -414,8 +413,9 @@ module Trinamic_TMC5160:
     refr_dir.reference ~ power_vccio
 
     power_motor.vcc.override_net_name = "power-motor"
-    power_vsa.vcc.override_net_name = "power-vsa"
+    # power_vsa.vcc.override_net_name = "power-vsa"
     power_vccio.vcc.override_net_name = "power-vccio"
     power_12v_out.vcc.override_net_name = "power-12v-out"
     power_5v_out.vcc.override_net_name = "power-5v-out"
     power_vcc.vcc.override_net_name = "power-vcc"
+    gnd.override_net_name = "gnd"
