@@ -20,6 +20,7 @@ from "parts/Newvisio_X150_2828KSWKG01_H25/Newvisio_X150_2828KSWKG01_H25.ato" imp
 from "parts/Diodes_Incorporated_APX803S_31SA_7/Diodes_Incorporated_APX803S_31SA_7.ato" import Diodes_Incorporated_APX803S_31SA_7_package
 from "parts/XI_AN_Aerosemi_Tech_MT3608L/XI_AN_Aerosemi_Tech_MT3608L.ato" import XI_AN_Aerosemi_Tech_MT3608L_package
 
+# --- Helper modules ---
 module _ResetSupervisor:
     """
     Power rail monitor with reset output
@@ -111,6 +112,7 @@ module _DCDCBoostConverter:
     trait can_bridge_by_name<input_name="power_in", output_name="power_out">
     #trait has_single_electric_reference_shared<gnd_only=True>
 
+# --- Main module ---
 module SH1107_128x128:
     """
     SH1107 128x128 OLED module with I²C interface
@@ -122,8 +124,16 @@ module SH1107_128x128:
 
     # --- External interfaces ---
     power_3v3 = new ElectricPower
+    """
+    This power is the main power input for this module.
+    """
     power_3v3.required = True
+    assert power_3v3.voltage within 3.3V +/- 10%
+
     i2c = new I2C
+    """
+    I²C interface for communication with the OLED display.
+    """
     i2c.required = True
 
     # --- internal interfaces ---
