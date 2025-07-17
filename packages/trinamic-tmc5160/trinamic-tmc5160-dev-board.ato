@@ -11,7 +11,8 @@ import Capacitor
 import Resistor
 import DifferentialPair
 
-from "trinamic-tmc5160.ato" import Trinamic_TMC5160s
+from "trinamic-tmc5160.ato" import Trinamic_TMC5160
+from "pparts/TECH_PUBLIC_AO4882/TECH_PUBLIC_AO4882.ato" import TECH_PUBLIC_AO4882_package
 
 module Trinamic_TMC5160_Dev_Board:
 
@@ -24,8 +25,143 @@ module Trinamic_TMC5160_Dev_Board:
     power_vccio = new ElectricPower
     assert power_vccio.voltage within 3.0V to 5.25V
 
+    # --- Power Connections ---
+    power_motor ~ tmc5160.power_motor
+    power_motor ~ tmc5160.power_vsa
+    power_vccio ~ tmc5160.power_vccio
+
+    # --- Stepper Connections ---
+    motor_a1 = new ElectricSignal
+    motor_a2 = new ElectricSignal
+    motor_b1 = new ElectricSignal
+    motor_b2 = new ElectricSignal
 
     # --- Communication ---
     spi = new SPI
     chip_select = new ElectricLogic
-    clk - new ElectricLogic
+    clk = new ElectricLogic
+    refl_step = new ElectricLogic
+    refr_dir = new ElectricLogic
+    enca_dcin_cfg5 = new ElectricLogic
+    encb_dcen_cfg4 = new ElectricLogic
+    encn_dco_cfg6 = new ElectricLogic
+    diag0_swn = new ElectricLogic
+    drive_enable = new ElectricLogic
+
+    spi ~ tmc5160.spi
+    chip_select ~ tmc5160.chip_select
+    clk ~ tmc5160.clk
+    refl_step ~ tmc5160.refl_step
+    refr_dir ~ tmc5160.refr_dir
+    enca_dcin_cfg5 ~ tmc5160.enca_dcin_cfg5
+    encb_dcen_cfg4 ~ tmc5160.encb_dcen_cfg4
+    encn_dco_cfg6 ~ tmc5160.encn_dco_cfg6
+    diag0_swn ~ tmc5160.diag0_swn
+    drive_enable ~ tmc5160.drive_enable
+
+    # --- External Interfaces ---
+    power_vccio.vcc.override_net_name = "power-vccio"
+    power_vccio.lv.override_net_name = "gnd"
+    chip_select.override_net_name = "chip-select"
+    spi.sclk.override_net_name = "spi-sclk"
+    spi.mosi.override_net_name = "spi-mosi"
+    spi.miso.override_net_name = "spi-miso"
+    clk.override_net_name = "clk"
+    drive_enable.override_net_name = "n-drive-enable"
+    refl_step.override_net_name = "refl_step"
+    refr_dir.override_net_name = "refr_dir"
+
+    power_motor.override_net_name = "power-motor"
+    power_motor.lv.override_net_name = "gnd"
+    motor_a1.override_net_name = "motor-a1"
+    motor_a2.override_net_name = "motor-a2"
+    motor_b1.override_net_name = "motor-b1"
+    motor_b2.override_net_name = "motor-b2"
+    diag0_swn.override_net_name = "diag0_swn"
+    enca_dcin_cfg5.override_net_name = "enca_dcin_cfg5"
+    encb_dcen_cfg4.override_net_name = "encb_dcen_cfg4"
+    encn_dco_cfg6.override_net_name = "encn_dco_cfg6"
+
+    # --- Configuration pins ---
+    # SPI Mode Configuration - Enable SPI interface
+    spi_mode_pullup = new Resistor
+    spi_mode_pullup.resistance = 10kohm +/- 5%
+    spi_mode_pullup.package = "0603"
+    tmc5160.spi_mode.line ~> spi_mode_pullup ~> power_vccio.hv
+
+    # SD Mode Configuration - Use internal ramp generator (low)
+    sd_mode_pulldown = new Resistor
+    sd_mode_pulldown.resistance = 10kohm +/- 5%
+    sd_mode_pulldown.package = "0603"
+    tmc5160.sd_mode.line ~> sd_mode_pulldown ~> power_vccio.lv
+
+    # Test Mode Configuration - Normal operation (low)
+    test_mode_pulldown = new Resistor
+    test_mode_pulldown.resistance = 0ohm +/- 0.1ohm
+    test_mode_pulldown.package = "0402"
+    tmc5160.test_mode.line ~> test_mode_pulldown ~> power_vccio.lv
+
+module FullBridge:
+"""
+      bridge_power.hv
+             |
+         +---+---+
+         |       |
+   high_fet1  high_fet2
+         |       |
+         |       |
+bridge_middle1 bridge_middle2
+         |       |
+         |       |
+    low_fet1   low_fet2
+         |       |
+         +---+---+
+             |
+        bridge_power.lv
+"""
+
+    bridge_power = new ElectricPower
+
+    high_gate_1 = new ElectricLogic
+    high_gate_2 = new ElectricLogic
+    low_gate_1 = new ElectricLogic
+    low_gate_2 = new ElectricLogic
+    bridge_middle_1 = new Electrical
+    bridge_middle_2 = new Electrical
+
+    high_gate_1.reference.lv ~ bridge_middle_1
+    high_gate_2.reference.lv ~ bridge_middle_2
+    low_gate_1.reference.lv ~ bridge_middle_2
+    low_gate_2.reference.lv ~ bridge_middle_1
+
+    high_gate_1.line ~ bridge_middle_1
+    high_gate_2.line ~ bridge_middle_2
+    low_gate_1.line ~ bridge_middle_2
+    low_gate_2.line ~ bridge_middle_1
+
+    high_fets = new TECH_PUBLIC_AO4882
+    high_fets.mosfets[0].drain ~ bridge_power.hv
+    high_fets.mosfets[0].gate ~ high_gate_1
+    high_fets.mosfets[0].source ~ bridge_middle_1
+    high_fets.mosfets[1].drain ~ bridge_power.hv
+    high_fets.mosfets[1].gate ~ high_gate_2
+    high_fets.mosfets[1].source ~ bridge_middle_2
+
+    low_fets = new TECH_PUBLIC_AO4882
+    low_fets.mosfets[0].drain ~ bridge_middle_1
+    low_fets.mosfets[0].gate ~ low_gate_1
+    low_fets.mosfets[0].source ~ bridge_power.lv
+    low_fets.mosfets[1].drain ~ bridge_middle_2
+    low_fets.mosfets[1].gate ~ low_gate_2
+    low_fets.mosfets[1].source ~ bridge_power.lv
+
+module TECH_PUBLIC_AO4882:
+    package = new TECH_PUBLIC_AO4882_package
+    mosfets = new MOSFET[2]
+    for mosfet in mosfets:
+        mosfet.channel_type = MOSFET.ChannelType.N_CHANNEL
+        mosfet.gate ~ package.G1
+        mosfet.drain ~ package.D1
+        mosfet.source ~ package.S1
+        mosfet.max_drain_source_voltage = 40V
+        mosfet.on_resistance = 25mOhm
