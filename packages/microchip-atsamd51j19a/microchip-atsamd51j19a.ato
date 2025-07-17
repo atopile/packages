@@ -1,0 +1,389 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Electrical
+import Capacitor
+import SWD
+import USB2_0
+import I2C
+import I2S
+import UART_Base
+import SPI
+import SPIFlash
+import MultiSPI
+import FilterElectricalRC
+import XtalIF
+import Crystal
+import Inductor
+import Resistor
+import has_part_removed
+import can_bridge_by_name
+import has_single_electric_reference_shared
+
+from "parts/Microchip_Tech_ATSAMD51J19A_MFT/Microchip_Tech_ATSAMD51J19A_MFT.ato" import Microchip_Tech_ATSAMD51J19A_MFT_package
+from "parts/Seiko_Epson_Q13FC13500004/Seiko_Epson_Q13FC13500004.ato" import Seiko_Epson_Q13FC13500004_package
+from "parts/Winbond_W25Q16JVUXIQ/Winbond_W25Q16JVUXIQ.ato" import Winbond_W25Q16JVUXIQ_package
+from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_package
+from "atopile/addressable-leds/sk6805-ec20.ato" import SK6805EC20_driver
+from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+from "atopile/buttons/buttons.ato" import VerticalButton
+
+module _QSPIFlash from SPIFlash:
+    """
+    16MB QSPI Flash memory.
+    """
+    package = new Winbond_W25Q16JVUXIQ_package
+
+    assert power.voltage within 3.3V +/- 10%
+    assert memory_size is 16MB
+
+    # --- package ---
+    qspi.chip_select.line ~ package.nCS
+    qspi.clock.line ~ package.CLK
+    qspi.data[0].line ~ package.DIIO0
+    qspi.data[1].line ~ package.DOIO1
+    qspi.data[2].line ~ package.WPhIO2
+    qspi.data[3].line ~ package.HOLDhorRESEThIO3
+    power.lv ~ package.EP
+    power.lv ~ package.GND
+    power.hv ~ package.VCC
+
+module _SwitchWithLowPassFilter:
+    """
+    A switch (push = low, release = high), with a low-pass filter.
+    """
+    output = new ElectricLogic
+
+    switch = new VerticalButton
+    filter = new FilterElectricalRC
+
+    filter.resistor.resistance = 10kohm +/- 10%
+    filter.resistor.package = "0402"
+    filter.capacitor.capacitance = 1uF +/- 20%
+    filter.capacitor.package = "0402"
+    output.reference.lv ~> switch ~> output.line
+    filter.in_.line ~ output.reference.hv
+    filter.in_.reference ~ output.reference
+    filter.out ~ output
+
+module _Crystal:
+    """
+    A 32.768KHz crystal
+    """
+    package = new Seiko_Epson_Q13FC13500004_package
+
+    input = new Electrical
+    output = new Electrical
+
+    trait can_bridge_by_name<input_name="input", output_name="output">
+
+    input ~ package.1
+    output ~ package.2
+
+module _CrystalOscillator:
+    """
+    32.768KHz crystal oscillator with compensation capacitors
+    """
+    crystal_interface = new XtalIF
+
+    crystal = new _Crystal
+    compensation_capacitors = new Capacitor[2]
+    for cap in compensation_capacitors:
+        cap.capacitance = 22pF +/- 10%
+        cap.package = "0402"
+
+    crystal_interface.xin ~> crystal ~> crystal_interface.xout
+    crystal_interface.xin ~> compensation_capacitors[0] ~> crystal_interface.gnd
+    crystal_interface.xout ~> compensation_capacitors[1] ~> crystal_interface.gnd
+
+module _RedIndicatorLED:
+    """
+    Red indicator LED
+    """
+    led_package = new Hubei_KENTO_Elec_KT_0603R_package
+    current_limiting_resistor = new Resistor
+    current_limiting_resistor.resistance = 100ohm +/- 10%
+    current_limiting_resistor.package = "0402"
+
+    input = new ElectricLogic
+
+    input.line ~ led_package.A
+    input.reference.lv ~> current_limiting_resistor ~> led_package.K
+
+module Microchip_ATSAMD51J19A:
+    """
+    Microchip ATSAMD51J19A 32-bit Cortex-M4F microcontroller (64-pin QFN).
+    Exposes two 3 V power rails (digital & analogue) and all GPIOs on PORTA/PORTB
+    as `ElectricLogic` lines.  The module purposefully stays close to the
+    datasheet - it only handles power distribution & decoupling, leaving all
+    peripheral configuration to the parent design.
+    """
+
+    # --- Package ---
+    package = new Microchip_Tech_ATSAMD51J19A_MFT_package
+
+    # --- External interfaces ---
+    # Power Rails
+    power_3v3 = new ElectricPower  # VDDIO   1.71 V – 3.63 V (typ. 3 V3)
+    power_3v3.required = True
+    assert power_3v3.voltage within 3.3V +/- 10%
+    power_5v = new ElectricPower
+    assert power_5v.voltage within 5V +/- 10%
+
+    # peripherals
+    port_a = new ElectricLogic[32]
+    port_b = new ElectricLogic[32]
+    swd = new SWD
+    spi = new SPI
+    i2c = new I2C
+    i2s = new I2S
+    uart = new UART_Base
+    usb = new USB2_0
+    qspi = new MultiSPI<data_lane_count=4>
+    analog = new ElectricSignal[6]
+    reset = new ElectricLogic
+    D = new ElectricLogic[26] # Arduino naming/mapping
+
+    # --- Components ---
+    qspi_flash = new _QSPIFlash
+    ldo_3v3 = new LDK220M_R
+    noepixel = new SK6805EC20_driver
+    reset_switch = new _SwitchWithLowPassFilter
+    crystal_oscillator = new _CrystalOscillator
+    red_led = new _RedIndicatorLED
+
+    # --- Internal interfaces
+    _crystal_interface = new XtalIF
+    _crystal_interface.gnd ~ power_3v3.lv
+    _crystal_interface.xin ~ port_a[0].line
+    _crystal_interface.xout ~ port_a[1].line
+
+    # Core Rail (generated by the MCU) ---
+    # VDDCORE is an internal LDO output (~1 V1)
+    _power_core = new ElectricPower
+    power_core_decoupling_capacitor_bulk = new Capacitor
+    power_core_decoupling_capacitor_bulk.capacitance = 10uF +/- 20%
+    power_core_decoupling_capacitor_bulk.package = "0402"
+    _power_core.hv ~> power_core_decoupling_capacitor_bulk ~> _power_core.lv
+
+    power_core_decoupling_capacitor = new Capacitor
+    power_core_decoupling_capacitor.capacitance = 1uF +/- 20%
+    power_core_decoupling_capacitor.package = "0402"
+    _power_core.hv ~> power_core_decoupling_capacitor ~> _power_core.lv
+
+    vsw_filter = new Inductor
+    vsw_filter.inductance = 10uH +/- 20%
+    vsw_filter.dc_resistance = 1ohm +/- 20%
+    vsw_filter.package = "0603"
+
+    # power connections
+    usb.usb_if.buspower ~ power_5v
+    power_5v ~> ldo_3v3 ~> power_3v3
+    power_3v3 ~ qspi_flash.power
+    power_3v3 ~ noepixel.power
+
+    # --- Peripherals default sensible (adafruit M4) connections ---
+    # qspi
+    qspi.clock ~ port_b[10]
+    qspi.chip_select ~ port_b[11]
+    qspi.data[0] ~ port_a[8]
+    qspi.data[1] ~ port_a[9]
+    qspi.data[2] ~ port_a[10]
+    qspi.data[3] ~ port_a[11]
+
+    # i2c
+    i2c.sda ~ port_b[12]
+    i2c.scl ~ port_b[13]
+
+    # uart
+    uart.tx ~ port_b[16]
+    uart.rx ~ port_b[17]
+
+    # spi
+    spi.mosi ~ port_b[23]
+    spi.miso ~ port_b[22]
+    spi.sclk ~ port_a[17]
+
+    # analog
+    analog[0] ~ port_a[2]
+    analog[1] ~ port_a[5]
+    analog[2] ~ port_b[8]
+    analog[3] ~ port_b[9]
+    analog[4] ~ port_a[4]
+    analog[5] ~ port_a[6]
+
+    # usb
+    usb.usb_if.d.p ~ port_a[25]
+    usb.usb_if.d.n ~ port_a[24]
+
+    # swd
+    swd.clk ~ port_a[30]
+    swd.dio ~ port_a[31]
+    swd.reset ~ reset
+    swd_clk_pullup_resistor = new Resistor
+    swd_clk_pullup_resistor.resistance = 10kohm +/- 10%
+    swd_clk_pullup_resistor.package = "0402"
+    swd.clk.line ~> swd_clk_pullup_resistor ~> swd.clk.reference.hv
+
+    # arduino/circuitpython pin mapping
+    D[0] ~ port_b[17]
+    D[1] ~ port_b[16]
+    # D[2] not mapped
+    # D[3] not mapped
+    D[4] ~ port_a[14]
+    D[5] ~ port_a[16]
+    D[6] ~ port_a[18]
+    # D[7] not mapped
+    D[8] ~ port_b[3]
+    D[9] ~ port_a[19]
+    D[10] ~ port_a[20]
+    D[11] ~ port_a[21]
+    D[12] ~ port_a[22]
+    D[13] ~ port_a[23]
+    D[14] ~ port_a[2]
+    D[15] ~ port_a[5]
+    D[16] ~ port_b[8]
+    D[17] ~ port_b[9]
+    D[18] ~ port_a[4]
+    D[19] ~ port_a[6]
+    # D[20] not mapped
+    D[21] ~ port_a[12]
+    D[22] ~ port_a[13]
+    D[23] ~ port_b[22]
+    D[24] ~ port_b[24]
+    D[25] ~ port_a[17]
+
+    # --- Component connections ---
+    noepixel.data_in ~ port_b[3]
+
+    qspi_flash.qspi ~ qspi
+    qspi_cs_pullup_resistor = new Resistor
+    qspi_cs_pullup_resistor.resistance = 10kohm +/- 10%
+    qspi_cs_pullup_resistor.package = "0402"
+    qspi.chip_select.line ~> qspi_cs_pullup_resistor ~> qspi.chip_select.reference.hv
+
+    reset_switch.output ~ reset
+    reset.reference ~ power_3v3
+
+    _crystal_interface ~ crystal_oscillator.crystal_interface
+
+    port_a[23] ~ red_led.input
+
+    # Reference each GPIO to the I/O supply so that downstream logic knows
+    # the signalling level.
+    for gpio in port_a:
+        gpio.reference ~ power_3v3
+    for gpio in port_b:
+        gpio.reference ~ power_3v3
+
+    # connect all grounds together
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    # --- Decoupling (recommendation: one 100 nF per supply pin group) ---
+    decoupling = new Capacitor[4]
+    for cap in decoupling:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+        power_3v3.hv ~> cap ~> power_3v3.lv
+
+    # --- Package ↔ Interface Mapping ---
+    # Power pins
+    package.VDDIO ~ power_3v3.hv
+    package.VDDANA ~ power_3v3.hv
+    package.VSW ~> vsw_filter ~> _power_core.hv
+    package.VDDCORE ~ _power_core.hv
+    package.EP ~ power_3v3.lv
+    package.GND ~ power_3v3.lv
+    package.GNDANA ~ power_3v3.lv
+    package.VDDIOB ~ power_3v3.hv
+
+    # GPIO – PORTA
+    package.PA00 ~ port_a[0].line
+    package.PA01 ~ port_a[1].line
+    package.PA02 ~ port_a[2].line
+    package.PA03 ~ port_a[3].line
+    package.PA04 ~ port_a[4].line
+    package.PA05 ~ port_a[5].line
+    package.PA06 ~ port_a[6].line
+    package.PA07 ~ port_a[7].line
+    package.PA08 ~ port_a[8].line
+    package.PA09 ~ port_a[9].line
+    package.PA10 ~ port_a[10].line
+    package.PA11 ~ port_a[11].line
+    package.PA12 ~ port_a[12].line
+    package.PA13 ~ port_a[13].line
+    package.PA14 ~ port_a[14].line
+    package.PA15 ~ port_a[15].line
+    package.PA16 ~ port_a[16].line
+    package.PA17 ~ port_a[17].line
+    package.PA18 ~ port_a[18].line
+    package.PA19 ~ port_a[19].line
+    package.PA20 ~ port_a[20].line
+    package.PA21 ~ port_a[21].line
+    package.PA22 ~ port_a[22].line
+    package.PA23 ~ port_a[23].line
+    package.PA24 ~ port_a[24].line
+    package.PA25 ~ port_a[25].line
+    package.PA27 ~ port_a[27].line
+    package.PA30 ~ port_a[30].line
+    package.PA31 ~ port_a[31].line
+
+    # GPIO – PORTB
+    package.PB00 ~ port_b[0].line
+    package.PB01 ~ port_b[1].line
+    package.PB02 ~ port_b[2].line
+    package.PB03 ~ port_b[3].line
+    package.PB04 ~ port_b[4].line
+    package.PB05 ~ port_b[5].line
+    package.PB06 ~ port_b[6].line
+    package.PB07 ~ port_b[7].line
+    package.PB08 ~ port_b[8].line
+    package.PB09 ~ port_b[9].line
+    package.PB10 ~ port_b[10].line
+    package.PB11 ~ port_b[11].line
+    package.PB12 ~ port_b[12].line
+    package.PB13 ~ port_b[13].line
+    package.PB14 ~ port_b[14].line
+    package.PB15 ~ port_b[15].line
+    package.PB16 ~ port_b[16].line
+    package.PB17 ~ port_b[17].line
+    package.PB22 ~ port_b[22].line
+    package.PB23 ~ port_b[23].line
+    package.PB30 ~ port_b[30].line
+    package.PB31 ~ port_b[31].line
+
+    # --- Miscellaneous pins ---
+    package.RESETN ~ reset.line
+
+    # --- Custom net names ---
+    usb.usb_if.d.p.line.override_net_name = "USB_P"
+    usb.usb_if.d.n.line.override_net_name = "USB_N"
+    power_3v3.hv.override_net_name = "3V3"
+    power_5v.hv.override_net_name = "5V"
+    # arduino/circuitpython names
+    D[4].line.override_net_name = "D4"
+    D[5].line.override_net_name = "D5"
+    D[6].line.override_net_name = "D6"
+    D[8].line.override_net_name = "NEOPIXEL"
+    D[9].line.override_net_name = "D9"
+    D[10].line.override_net_name = "D10"
+    D[11].line.override_net_name = "D11"
+    D[12].line.override_net_name = "D12"
+    D[13].line.override_net_name = "D13"
+    analog[0].line.override_net_name = "A0"
+    analog[1].line.override_net_name = "A1"
+    analog[2].line.override_net_name = "A2"
+    analog[3].line.override_net_name = "A3"
+    analog[4].line.override_net_name = "A4"
+    analog[5].line.override_net_name = "A5"
+    spi.mosi.line.override_net_name = "MOSI"
+    spi.miso.line.override_net_name = "MISO"
+    spi.sclk.line.override_net_name = "SCLK"
+    i2c.sda.line.override_net_name = "SDA"
+    i2c.scl.line.override_net_name = "SCL"
+    uart.tx.line.override_net_name = "TX"
+    uart.rx.line.override_net_name = "RX"
