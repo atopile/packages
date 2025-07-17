@@ -32,90 +32,6 @@ from "atopile/addressable-leds/sk6805-ec20.ato" import SK6805EC20_driver
 from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
 from "atopile/buttons/buttons.ato" import VerticalButton
 
-# --- Helper modules ---
-module _QSPIFlash from SPIFlash:
-    """
-    16MB QSPI Flash memory.
-    """
-    package = new Winbond_W25Q16JVUXIQ_package
-
-    assert power.voltage within 3.3V +/- 10%
-    assert memory_size is 16MB
-
-    # --- package ---
-    qspi.chip_select.line ~ package.nCS
-    qspi.clock.line ~ package.CLK
-    qspi.data[0].line ~ package.DIIO0
-    qspi.data[1].line ~ package.DOIO1
-    qspi.data[2].line ~ package.WPhIO2
-    qspi.data[3].line ~ package.HOLDhorRESEThIO3
-    power.lv ~ package.EP
-    power.lv ~ package.GND
-    power.hv ~ package.VCC
-
-module _SwitchWithLowPassFilter:
-    """
-    A switch (push = low, release = high), with a low-pass filter.
-    """
-    output = new ElectricLogic
-
-    switch = new VerticalButton
-    filter = new FilterElectricalRC
-
-    filter.resistor.resistance = 10kohm +/- 10%
-    filter.resistor.package = "0402"
-    filter.capacitor.capacitance = 1uF +/- 20%
-    filter.capacitor.package = "0402"
-    output.reference.lv ~> switch ~> output.line
-    filter.in_.line ~ output.reference.hv
-    filter.in_.reference ~ output.reference
-    filter.out ~ output
-
-module _Crystal:
-    """
-    A 32.768KHz crystal
-    """
-    package = new Seiko_Epson_Q13FC13500004_package
-
-    input = new Electrical
-    output = new Electrical
-
-    trait can_bridge_by_name<input_name="input", output_name="output">
-
-    input ~ package.1
-    output ~ package.2
-
-module _CrystalOscillator:
-    """
-    32.768KHz crystal oscillator with compensation capacitors
-    """
-    crystal_interface = new XtalIF
-
-    crystal = new _Crystal
-    compensation_capacitors = new Capacitor[2]
-    for cap in compensation_capacitors:
-        cap.capacitance = 22pF +/- 10%
-        cap.package = "0402"
-
-    crystal_interface.xin ~> crystal ~> crystal_interface.xout
-    crystal_interface.xin ~> compensation_capacitors[0] ~> crystal_interface.gnd
-    crystal_interface.xout ~> compensation_capacitors[1] ~> crystal_interface.gnd
-
-module _RedIndicatorLED:
-    """
-    Red indicator LED
-    """
-    led_package = new Hubei_KENTO_Elec_KT_0603R_package
-    current_limiting_resistor = new Resistor
-    current_limiting_resistor.resistance = 100ohm +/- 10%
-    current_limiting_resistor.package = "0402"
-
-    input = new ElectricLogic
-
-    input.line ~ led_package.A
-    input.reference.lv ~> current_limiting_resistor ~> led_package.K
-
-# --- Main module ---
 module Microchip_ATSAMD51J19A:
     """
     Microchip ATSAMD51J19A 32-bit Cortex-M4F microcontroller
@@ -430,3 +346,86 @@ module Microchip_ATSAMD51J19A:
     i2c.scl.line.override_net_name = "SCL"
     uart.tx.line.override_net_name = "TX"
     uart.rx.line.override_net_name = "RX"
+
+# --- Helper modules ---
+module _QSPIFlash from SPIFlash:
+    """
+    16MB QSPI Flash memory.
+    """
+    package = new Winbond_W25Q16JVUXIQ_package
+
+    assert power.voltage within 3.3V +/- 10%
+    assert memory_size is 16MB
+
+    # --- package ---
+    qspi.chip_select.line ~ package.nCS
+    qspi.clock.line ~ package.CLK
+    qspi.data[0].line ~ package.DIIO0
+    qspi.data[1].line ~ package.DOIO1
+    qspi.data[2].line ~ package.WPhIO2
+    qspi.data[3].line ~ package.HOLDhorRESEThIO3
+    power.lv ~ package.EP
+    power.lv ~ package.GND
+    power.hv ~ package.VCC
+
+module _SwitchWithLowPassFilter:
+    """
+    A switch (push = low, release = high), with a low-pass filter.
+    """
+    output = new ElectricLogic
+
+    switch = new VerticalButton
+    filter = new FilterElectricalRC
+
+    filter.resistor.resistance = 10kohm +/- 10%
+    filter.resistor.package = "0402"
+    filter.capacitor.capacitance = 1uF +/- 20%
+    filter.capacitor.package = "0402"
+    output.reference.lv ~> switch ~> output.line
+    filter.in_.line ~ output.reference.hv
+    filter.in_.reference ~ output.reference
+    filter.out ~ output
+
+module _Crystal:
+    """
+    A 32.768KHz crystal
+    """
+    package = new Seiko_Epson_Q13FC13500004_package
+
+    input = new Electrical
+    output = new Electrical
+
+    trait can_bridge_by_name<input_name="input", output_name="output">
+
+    input ~ package.1
+    output ~ package.2
+
+module _CrystalOscillator:
+    """
+    32.768KHz crystal oscillator with compensation capacitors
+    """
+    crystal_interface = new XtalIF
+
+    crystal = new _Crystal
+    compensation_capacitors = new Capacitor[2]
+    for cap in compensation_capacitors:
+        cap.capacitance = 22pF +/- 10%
+        cap.package = "0402"
+
+    crystal_interface.xin ~> crystal ~> crystal_interface.xout
+    crystal_interface.xin ~> compensation_capacitors[0] ~> crystal_interface.gnd
+    crystal_interface.xout ~> compensation_capacitors[1] ~> crystal_interface.gnd
+
+module _RedIndicatorLED:
+    """
+    Red indicator LED
+    """
+    led_package = new Hubei_KENTO_Elec_KT_0603R_package
+    current_limiting_resistor = new Resistor
+    current_limiting_resistor.resistance = 100ohm +/- 10%
+    current_limiting_resistor.package = "0402"
+
+    input = new ElectricLogic
+
+    input.line ~ led_package.A
+    input.reference.lv ~> current_limiting_resistor ~> led_package.K

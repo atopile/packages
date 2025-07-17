@@ -20,99 +20,6 @@ from "parts/Newvisio_X150_2828KSWKG01_H25/Newvisio_X150_2828KSWKG01_H25.ato" imp
 from "parts/Diodes_Incorporated_APX803S_31SA_7/Diodes_Incorporated_APX803S_31SA_7.ato" import Diodes_Incorporated_APX803S_31SA_7_package
 from "parts/XI_AN_Aerosemi_Tech_MT3608L/XI_AN_Aerosemi_Tech_MT3608L.ato" import XI_AN_Aerosemi_Tech_MT3608L_package
 
-# --- Helper modules ---
-module _ResetSupervisor:
-    """
-    Power rail monitor with reset output
-    """
-    package = new Diodes_Incorporated_APX803S_31SA_7_package
-    # resets with 240ms timout (typical)
-    # resets at 3.04V (min) ~ 3.08V (typical) ~ 3.13V (max)
-
-    # --- external interfaces ---
-    power_3v3 = new ElectricPower
-    power_3v3.required = True
-    reset = new ElectricLogic
-
-    assert power_3v3.voltage within 3.3V +/- 10%
-    reset.reference ~ power_3v3
-
-    power_3v3.hv ~ package.VCC
-    power_3v3.lv ~ package.GND
-    reset.line ~ package.nRESET
-
-module _DCDCBoostConverter:
-    """
-    Boost converter for OLED display
-    3v3 in -> 12v out
-    """
-    package = new XI_AN_Aerosemi_Tech_MT3608L_package
-
-    # --- external interfaces ---
-    power_in = new ElectricPower
-    power_in.required = True
-    power_out = new ElectricPower
-    power_out.required = True
-    enable = new ElectricLogic
-    enable.required = True
-    assert power_in.voltage within 2.2V to 16V
-
-    # --- parameters ---
-    _output_voltage = 12V +/- 4%
-    _output_current_limit = 0.5A +/- 10%
-
-    # --- internal interfaces ---
-    _switch_control = new ElectricSignal
-    _switch_control.reference ~ power_in
-
-    # --- components ---
-    # decoupling capacitors
-    power_in_decoupling_capacitor_bulk = new Capacitor
-    power_in_decoupling_capacitor_bulk.capacitance = 10uF +/- 20%
-    power_in_decoupling_capacitor_bulk.package = "0402"
-    power_in.hv ~> power_in_decoupling_capacitor_bulk ~> power_in.lv
-
-    power_out_decoupling_capacitor = new Capacitor
-    power_out_decoupling_capacitor.capacitance = 100nF +/- 20%
-    power_out_decoupling_capacitor.package = "0402"
-    power_out.hv ~> power_out_decoupling_capacitor ~> power_out.lv
-
-    inductor = new Inductor
-    assert inductor.inductance within 4.7uH to 22uH
-    assert inductor.max_current within 0.5A to 3A
-    assert inductor.dc_resistance within 1mΩ to 100mΩ
-    inductor.package = "SMD4x4mm"
-
-    feedback_diode = new Diode
-    feedback_diode.lcsc_id = "C2837271" #TODO autopick
-
-    # output voltage
-    feedback_voltage_divider = new ResistorVoltageDivider
-    feedback_voltage_divider.r_top.package = "0402"
-    feedback_voltage_divider.r_bottom.package = "0402"
-    assert feedback_voltage_divider.v_out within 0.588V to 0.612V
-
-    # current limit
-    current_set_resistor = new Resistor
-    assert current_set_resistor.resistance within (48000V/_output_current_limit)* (1 + (-0.01 to 0.01))
-    current_set_resistor.package = "0402"
-    package.OC ~> current_set_resistor ~> power_in.lv
-
-    # --- package ---
-    power_in.hv ~ package.VIN
-    power_in.lv ~ package.GND
-    _switch_control.line ~ package.SW
-    feedback_voltage_divider.output.line ~ package.FB
-
-    # --- other connections ---
-    power_in.hv ~> inductor ~> feedback_diode ~> power_out.hv
-    power_in.hv ~> inductor ~> _switch_control.line
-    feedback_voltage_divider.power ~ power_out
-
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
-    #trait has_single_electric_reference_shared<gnd_only=True>
-
-# --- Main module ---
 module SH1107_128x128:
     """
     SH1107 128x128 OLED module with I²C interface
@@ -246,3 +153,95 @@ module SH1107_128x128:
     # _power_logic.lv ~ package.nCS
     _power_logic.lv ~ package.nWR
     _power_logic.lv ~ package.nRD
+
+# --- Helper modules ---
+module _ResetSupervisor:
+    """
+    Power rail monitor with reset output
+    """
+    package = new Diodes_Incorporated_APX803S_31SA_7_package
+    # resets with 240ms timout (typical)
+    # resets at 3.04V (min) ~ 3.08V (typical) ~ 3.13V (max)
+
+    # --- external interfaces ---
+    power_3v3 = new ElectricPower
+    power_3v3.required = True
+    reset = new ElectricLogic
+
+    assert power_3v3.voltage within 3.3V +/- 10%
+    reset.reference ~ power_3v3
+
+    power_3v3.hv ~ package.VCC
+    power_3v3.lv ~ package.GND
+    reset.line ~ package.nRESET
+
+module _DCDCBoostConverter:
+    """
+    Boost converter for OLED display
+    3v3 in -> 12v out
+    """
+    package = new XI_AN_Aerosemi_Tech_MT3608L_package
+
+    # --- external interfaces ---
+    power_in = new ElectricPower
+    power_in.required = True
+    power_out = new ElectricPower
+    power_out.required = True
+    enable = new ElectricLogic
+    enable.required = True
+    assert power_in.voltage within 2.2V to 16V
+
+    # --- parameters ---
+    _output_voltage = 12V +/- 4%
+    _output_current_limit = 0.5A +/- 10%
+
+    # --- internal interfaces ---
+    _switch_control = new ElectricSignal
+    _switch_control.reference ~ power_in
+
+    # --- components ---
+    # decoupling capacitors
+    power_in_decoupling_capacitor_bulk = new Capacitor
+    power_in_decoupling_capacitor_bulk.capacitance = 10uF +/- 20%
+    power_in_decoupling_capacitor_bulk.package = "0402"
+    power_in.hv ~> power_in_decoupling_capacitor_bulk ~> power_in.lv
+
+    power_out_decoupling_capacitor = new Capacitor
+    power_out_decoupling_capacitor.capacitance = 100nF +/- 20%
+    power_out_decoupling_capacitor.package = "0402"
+    power_out.hv ~> power_out_decoupling_capacitor ~> power_out.lv
+
+    inductor = new Inductor
+    assert inductor.inductance within 4.7uH to 22uH
+    assert inductor.max_current within 0.5A to 3A
+    assert inductor.dc_resistance within 1mΩ to 100mΩ
+    inductor.package = "SMD4x4mm"
+
+    feedback_diode = new Diode
+    feedback_diode.lcsc_id = "C2837271" #TODO autopick
+
+    # output voltage
+    feedback_voltage_divider = new ResistorVoltageDivider
+    feedback_voltage_divider.r_top.package = "0402"
+    feedback_voltage_divider.r_bottom.package = "0402"
+    assert feedback_voltage_divider.v_out within 0.588V to 0.612V
+
+    # current limit
+    current_set_resistor = new Resistor
+    assert current_set_resistor.resistance within (48000V/_output_current_limit)* (1 + (-0.01 to 0.01))
+    current_set_resistor.package = "0402"
+    package.OC ~> current_set_resistor ~> power_in.lv
+
+    # --- package ---
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    _switch_control.line ~ package.SW
+    feedback_voltage_divider.output.line ~ package.FB
+
+    # --- other connections ---
+    power_in.hv ~> inductor ~> feedback_diode ~> power_out.hv
+    power_in.hv ~> inductor ~> _switch_control.line
+    feedback_voltage_divider.power ~ power_out
+
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    #trait has_single_electric_reference_shared<gnd_only=True>
