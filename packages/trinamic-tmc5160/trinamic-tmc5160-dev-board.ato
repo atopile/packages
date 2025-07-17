@@ -12,7 +12,7 @@ import Resistor
 import DifferentialPair
 import MOSFET
 
-from "packages/trinamic-tmc5160/trinamic-tmc5160.ato" import Trinamic_TMC5160
+from "trinamic-tmc5160.ato" import Trinamic_TMC5160
 from "parts/TECH_PUBLIC_AO4882/TECH_PUBLIC_AO4882.ato" import TECH_PUBLIC_AO4882_package
 
 module Trinamic_TMC5160_Dev_Board:
@@ -59,29 +59,33 @@ module Trinamic_TMC5160_Dev_Board:
     encn_dco_cfg6 ~ tmc5160.encn_dco_cfg6
     diag0_swn ~ tmc5160.diag0_swn
     drive_enable ~ tmc5160.drive_enable
+    motor_a1 ~ tmc5160.motor_a_bm1
+    motor_a2 ~ tmc5160.motor_a_bm2
+    motor_b1 ~ tmc5160.motor_b_bm1
+    motor_b2 ~ tmc5160.motor_b_bm2
 
     # --- External Interfaces ---
     power_vccio.vcc.override_net_name = "power-vccio"
     power_vccio.lv.override_net_name = "gnd"
-    chip_select.override_net_name = "chip-select"
-    spi.sclk.override_net_name = "spi-sclk"
-    spi.mosi.override_net_name = "spi-mosi"
-    spi.miso.override_net_name = "spi-miso"
-    clk.override_net_name = "clk"
-    drive_enable.override_net_name = "n-drive-enable"
-    refl_step.override_net_name = "refl_step"
-    refr_dir.override_net_name = "refr_dir"
+    chip_select.line.override_net_name = "chip-select"
+    spi.sclk.line.override_net_name = "spi-sclk"
+    spi.mosi.line.override_net_name = "spi-mosi"
+    spi.miso.line.override_net_name = "spi-miso"
+    clk.line.override_net_name = "clk"
+    drive_enable.line.override_net_name = "n-drive-enable"
+    refl_step.line.override_net_name = "refl_step"
+    refr_dir.line.override_net_name = "refr_dir"
 
-    power_motor.override_net_name = "power-motor"
+    power_motor.hv.override_net_name = "power-motor"
     power_motor.lv.override_net_name = "gnd"
-    motor_a1.override_net_name = "motor-a1"
-    motor_a2.override_net_name = "motor-a2"
-    motor_b1.override_net_name = "motor-b1"
-    motor_b2.override_net_name = "motor-b2"
-    diag0_swn.override_net_name = "diag0_swn"
-    enca_dcin_cfg5.override_net_name = "enca_dcin_cfg5"
-    encb_dcen_cfg4.override_net_name = "encb_dcen_cfg4"
-    encn_dco_cfg6.override_net_name = "encn_dco_cfg6"
+    motor_a1.line.override_net_name = "motor-a1"
+    motor_a2.line.override_net_name = "motor-a2"
+    motor_b1.line.override_net_name = "motor-b1"
+    motor_b2.line.override_net_name = "motor-b2"
+    diag0_swn.line.override_net_name = "diag0_swn"
+    enca_dcin_cfg5.line.override_net_name = "enca_dcin_cfg5"
+    encb_dcen_cfg4.line.override_net_name = "encb_dcen_cfg4"
+    encn_dco_cfg6.line.override_net_name = "encn_dco_cfg6"
 
     # --- Bulk Decoupling Capacitors ---
     bulk_decoupling_capacitor_1 = new Capacitor
