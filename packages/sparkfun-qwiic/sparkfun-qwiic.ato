@@ -1,0 +1,59 @@
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import ElectricPower
+
+from "parts/JST_Sales_America_BM04B_SRSS_TB_LF__SN/JST_Sales_America_BM04B_SRSS_TB_LF__SN.ato" import JST_Sales_America_BM04B_SRSS_TB_LF__SN_package
+from "parts/JST_Sales_America_SM04B_SRSS_TB_LF__SN/JST_Sales_America_SM04B_SRSS_TB_LF__SN.ato" import JST_Sales_America_SM04B_SRSS_TB_LF__SN_package
+
+module QwiicVertical:
+    """
+    SparkFun Qwiic vertical connector (JST BM04B-SRSS-TB, LCSC C160390).
+    Exposes a 3 V3 I²C bus and power rail.
+    """
+    # --- Package ---
+    package = new JST_Sales_America_BM04B_SRSS_TB_LF__SN_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # Reference planes for I²C
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Pin mapping ---
+    package.1 ~ power.lv     # GND
+    package.2 ~ power.hv     # 3V3
+    package.3 ~ i2c.sda.line # SDA
+    package.4 ~ i2c.scl.line # SCL
+
+    package.0 ~ power.lv     # mounting points
+
+module QwiicHorizontal:
+    """
+    SparkFun Qwiic horizontal connector (JST SM04B-SRSS-TB, LCSC C160404).
+    Exposes a 3 V3 I²C bus and power rail.
+    """
+    # --- Package ---
+    package = new JST_Sales_America_SM04B_SRSS_TB_LF__SN_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # Reference planes for I²C
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Pin mapping ---
+    package.1 ~ power.lv     # GND
+    package.2 ~ power.hv     # 3V3
+    package.3 ~ i2c.sda.line # SDA
+    package.4 ~ i2c.scl.line # SCL
+
+    package.5 ~ power.lv     # mounting points
+    package.6 ~ power.lv     # mounting points

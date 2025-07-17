@@ -1,0 +1,120 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+
+from "parts/Bosch_Sensortec_BMP280/Bosch_Sensortec_BMP280.ato" import Bosch_Sensortec_BMP280_package
+
+module Bosch_BMP280:
+    """Driver for Bosch BMP280 temperature & pressure sensor (I²C).
+
+    Exposes:
+      * i2c        – I²C bus interface (7-bit addr 0x76 / 0x77)
+      * power_core – Core supply rail (1.71 V – 3.6 V)
+      * power_io   – Digital I/O supply rail (1.2 V – 3.6 V)
+    """
+
+    # --- Package ---
+    package = new Bosch_Sensortec_BMP280_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x76/0x77 based on SDO pin)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = False
+
+    power_core = new ElectricPower
+    """
+    Core supply rail (1.71 V – 3.6 V)
+    Powers the analog and digital core of the sensor
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    Digital I/O supply rail (1.2 V – 3.6 V)
+    Powers the digital I/O interface (I²C/SPI)
+    """
+    power_io.required = True
+
+    spi = new SPI
+    """
+    SPI bus interface for high-speed communication
+    Supports both 3-wire and 4-wire SPI modes
+    """
+    spi.required = False
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select pin (active low)
+    Required when using SPI interface
+    """
+    spi_cs.required = False
+
+    # --- Power supply ---
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io.vcc ~ package.VDDIO
+    power_io.gnd ~ power_core.gnd
+    assert power_io.voltage within 1.2V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.line ~ package.SCK
+    i2c.sda.line ~ package.SDI
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power_io.vcc ~> scl_pullup ~> i2c.scl.line
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power_io.vcc ~> sda_pullup ~> i2c.sda.line
+
+    # Address selection via SDO pin
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x76
+    addressor.address_lines[0].line ~ package.SDO
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.base is 0x76
+    assert addressor.address is i2c.address
+
+    # --- SPI bus ---
+    spi.sclk.line ~ package.SCK
+    spi.mosi.line ~ package.SDI
+    spi.miso.line ~ package.SDO
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    spi_cs.line ~ package.CSB
+    spi_cs.reference ~ power_io
+
+    # --- Chip-select pin (enable I²C mode) ---
+    csb_pullup = new Resistor
+    csb_pullup.resistance = 10kohm +/- 20%
+    csb_pullup.package = "0402"
+    power_io.vcc ~> csb_pullup ~> package.CSB
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
+    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd

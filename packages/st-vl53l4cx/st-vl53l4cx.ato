@@ -1,0 +1,73 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/STMicroelectronics_VL53L4CXV0DH_1/STMicroelectronics_VL53L4CXV0DH_1.ato" import STMicroelectronics_VL53L4CXV0DH_1_package
+
+module ST_VL53L4CX:
+    """
+    ST VL53L4CX Time-of-Flight proximity sensor (~1 mm - 1.3 m range) with I²C interface.
+    """
+    package = new STMicroelectronics_VL53L4CXV0DH_1_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+    shutdown = new ElectricLogic
+    gpio = new ElectricLogic
+
+    # --- Power supply ---
+    assert power.voltage within 2.6V to 3.5V # TODO: nominal voltage is 2.8V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x29
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    decoupling_caps[0].capacitance = 100nF +/- 20%
+    decoupling_caps[1].capacitance = 4.7uF +/- 20%
+    for cap in decoupling_caps:
+        cap.package = "0402"
+        power.hv ~> cap ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullups = new Resistor[2]
+    for resistor in pullups:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Logic pull-ups ---
+    logic_pullups = new Resistor[2]
+    for resistor in logic_pullups:
+        resistor.value = 10kohm +/- 20%
+        resistor.package = "0402"
+    power.hv ~> logic_pullups[0] ~> gpio.line
+    power.hv ~> logic_pullups[1] ~> shutdown.line
+    gpio.reference ~ power
+    shutdown.reference ~ power
+
+    # --- Package connections ---
+    package.AVDD ~ power.hv
+    package.AVDDVCSEL ~ power.hv
+
+    package.GND ~ power.lv
+    package.GND2 ~ power.lv
+    package.GND3 ~ power.lv
+    package.GND4 ~ power.lv
+
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    package.XSHUT ~ shutdown.line
+    package.GPIO1 ~ gpio.line

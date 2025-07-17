@@ -1,45 +1,42 @@
-#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 
-# --- Standard library imports ---
-import ElectricPower
 import I2C
+import ElectricPower
+import ElectricLogic
 
-# --- Package import ---
-from "icm20948.ato" import ICM20948_driver
+from "invensense-icm20948.ato" import Invensense_ICM20948
 
 
 module Usage:
     """
-    Minimal usage example for `invensense-icm20948`.
-    Supplies the ICM-20948 with separate 3 V 3 (core) and 1 V 8 (I/O) rails and
-    attaches it to an I²C bus at the default address **0x68**.
+    Usage example for the InvenSense ICM-20948 9-axis motion sensor.
+    Demonstrates basic I²C connections with dual power supplies.
     """
 
-    # Power rails
-    power_3v3 = new ElectricPower  # VDD
-    power_3v3.voltage = 3.3V
+    # --- IMU sensor ---
+    imu = new Invensense_ICM20948
 
-    power_1v8 = new ElectricPower  # VDDIO
-    power_1v8.voltage = 1.8V
+    # --- Power supplies ---
+    power_3v3 = new ElectricPower  # Core power (VDD)
+    assert power_3v3.voltage within 3.2V to 3.4V
 
-    # System I²C bus
+    power_1v8 = new ElectricPower  # I/O power (VDDIO)
+    assert power_1v8.voltage within 1.7V to 1.9V
+
+    # --- I²C bus ---
     i2c_bus = new I2C
+    assert i2c_bus.frequency <= 400kHz
+    # I2C address is automatically configured by the sensor (0x68 by default)
 
-    # IMU instance
-    imu = new ICM20948_driver
+    # --- Optional control signals ---
+    interrupt_pin = new ElectricLogic
+    frame_sync = new ElectricLogic
 
-    # Connect power rails
-    power_3v3 ~ imu.power_vdd
-    power_1v8 ~ imu.power_vddio
-
-    # Provide logic reference for the bus
-    power_1v8 ~ i2c_bus.scl.reference
-    power_1v8 ~ i2c_bus.sda.reference
-
-    # Connect I²C bus
+    # --- Connections ---
+    power_3v3 ~ imu.power_core
+    power_1v8 ~ imu.power_io
     i2c_bus ~ imu.i2c
-
-    # (Optional) Set I²C address – defaults to 0x68 (SDO low)
-    imu.i2c.address = 0x68
+    interrupt_pin ~ imu.interrupt
+    frame_sync ~ imu.fsync

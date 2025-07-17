@@ -1,0 +1,164 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricLogic
+import Resistor
+import Capacitor
+
+from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
+
+module TI_BQ25185:
+    """
+    Texas Instruments BQ25185 1A single-input, single-cell Li-Ion/Li-Pol battery charger.
+
+    Features:
+    - 1A programmable charge current
+    - Wide input voltage range: 3V to 18V
+    - Integrated power path management
+    - Programmable battery regulation voltage (3.6V to 4.4V)
+    - Input current limiting with DPM (Dynamic Power Management)
+    - Battery pack, system load, and thermal protection
+    - Temperature sensing with NTC thermistor
+    - Charge status indication
+    - Factory mode for production testing
+    - WSON-10 package (2.2×2.0 mm)
+    """
+
+    # --- Package ---
+    package = new BQ25185DLHR_BQ25185DLHR_package
+
+    # --- External power interfaces ---
+    power_input = new ElectricPower
+    """
+    Input power supply (VBUS) - typically USB or DC adapter (3V to 18V)
+    """
+    power_input.required = True
+
+    power_system = new ElectricPower
+    """
+    System power output (SYS) - regulated power for system load (1.8V to 4.5V)
+    """
+    power_system.required = True
+
+    power_battery = new ElectricPower
+    """
+    Battery power connection (BAT) - Li-Ion/Li-Pol battery (1.8V to 4.4V)
+    """
+    power_battery.required = True
+
+    # --- Control and status pins ---
+    charge_enable = new ElectricLogic
+    """
+    Charge enable (nCE) - active low, pull high to disable charging
+    """
+
+    status_1 = new ElectricLogic
+    """
+    Status pin 1 (STAT1) - charge status indicator
+    """
+
+    status_2 = new ElectricLogic
+    """
+    Status pin 2 (STAT2) - charge status indicator
+    """
+
+    temp_sense = new ElectricLogic
+    """
+    Temperature sense/Manual reset (TS_MR) - NTC thermistor connection
+    """
+
+    # --- Configuration parameters ---
+    charge_current_limit: current
+    """
+    Target charge current limit (programmable via ISET resistor)
+    """
+
+    input_current_limit: current
+    """
+    Input current limit (100mA, 500mA, or 1100mA via ILIM_VSET resistor)
+    """
+
+    battery_regulation_voltage: voltage
+    """
+    Battery regulation voltage (3.6V to 4.4V via ILIM_VSET resistor)
+    """
+
+    # --- Power connections ---
+    power_input.vcc ~ package.IN
+    power_system.vcc ~ package.SYS
+    power_battery.vcc ~ package.BAT
+
+    # Common ground connections
+    power_input.gnd ~ package.GND
+    power_system.gnd ~ package.GND
+    power_battery.gnd ~ package.GND
+    # Connect exposed pad to GND for thermal performance
+    package.EP ~ package.GND
+
+    # Power supply constraints
+    assert power_input.voltage within 3V to 18V
+    assert power_system.voltage within 1.8V to 4.5V
+    assert power_battery.voltage within 1.8V to 4.4V
+
+    # --- Control pin connections ---
+    charge_enable.line ~ package.nCE
+    charge_enable.reference ~ power_system
+
+    status_1.line ~ package.STAT1
+    status_1.reference ~ power_system
+
+    status_2.line ~ package.STAT2
+    status_2.reference ~ power_system
+
+    temp_sense.line ~ package.TS_MR
+    temp_sense.reference ~ power_system
+
+    # --- Charge enable configuration (default: enabled) ---
+    # nCE is active low - tie to GND to enable charging
+    charge_enable_resistor = new Resistor
+    charge_enable_resistor.resistance = 10kohm +/- 10%
+    charge_enable_resistor.package = "0402"
+    charge_enable.line ~> charge_enable_resistor ~> power_system.gnd
+
+    # --- Charge current setting ---
+    # ISET resistor calculation: R_ISET = (300 * k_I * k_R) / I_CHG
+    # where k_I = 1A, k_R = 1000Ω for this device
+    k_factor = 300000  # 300 * 1A * 1000Ω
+
+    charge_current_resistor = new Resistor
+    charge_current_resistor.package = "0402"
+    # Calculate resistance based on desired current
+    # R = 300kΩ-A / I_charge
+    # For 1A: R = 300kΩ / 1A = 300kΩ (not practical, use lower values)
+    # For 500mA: R = 300kΩ / 0.5A = 600kΩ
+    # For 100mA: R = 300kΩ / 0.1A = 3MΩ
+    package.ISET ~> charge_current_resistor ~> power_system.gnd
+
+    # --- Input current and voltage limit setting ---
+    # This resistor sets both input current limit and battery regulation voltage
+    # Values from BQ25185 datasheet lookup table
+    ilim_vset_resistor = new Resistor
+    ilim_vset_resistor.package = "0402"
+    # Default: 18kΩ for 500mA input current limit and 4.2V battery regulation
+    ilim_vset_resistor.resistance = 18kohm +/- 5%
+    package.ILIM_VSET ~> ilim_vset_resistor ~> power_system.gnd
+
+    # --- Decoupling capacitors ---
+    # Input decoupling
+    input_cap = new Capacitor
+    input_cap.capacitance = 1uF +/- 20%
+    input_cap.package = "0402"
+    power_input.hv ~> input_cap ~> power_input.lv
+
+    # System decoupling
+    system_cap = new Capacitor
+    system_cap.capacitance = 10uF +/- 20%
+    system_cap.package = "0402"
+    power_system.hv ~> system_cap ~> power_system.lv
+
+    # Battery decoupling
+    battery_cap = new Capacitor
+    battery_cap.capacitance = 1uF +/- 20%
+    battery_cap.package = "0402"
+    power_battery.hv ~> battery_cap ~> power_battery.lv

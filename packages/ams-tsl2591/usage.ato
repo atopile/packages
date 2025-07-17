@@ -1,0 +1,26 @@
+#pragma experiment("TRAITS")
+import I2C
+import ElectricPower
+
+from "ams-tsl2591.ato" import AMS_TSL2591
+
+module Usage:
+    """
+    Minimal usage example for AMS TSL2591 High Dynamic Range Digital Light Sensor.
+    Shows how to connect the sensor to power and I2C bus.
+    """
+
+    # Light sensor instance
+    light_sensor = new AMS_TSL2591
+
+    # Power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # Connect sensor to power and I2C
+    power_3v3 ~ light_sensor.power
+    i2c_bus ~ light_sensor.i2c

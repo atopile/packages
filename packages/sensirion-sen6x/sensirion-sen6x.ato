@@ -1,0 +1,67 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+import Resistor
+import Capacitor
+
+# --- Part import ---
+from "parts/JST_Sales_America_SM06B_GHS_TB_LF__SN/JST_Sales_America_SM06B_GHS_TB_LF__SN.ato" import JST_Sales_America_SM06B_GHS_TB_LF__SN_package
+
+module Sensirion_SEN6X:
+    """
+    Sensirion SEN6X environmental sensor series
+    (particulate matter, relative humidity, temperature, VOC, NOx, HCHO) with 6-pin
+    JST-GH connector.
+
+    External interfaces:
+      • power – 3.3 V supply rail (3.0 V … 3.6 V)
+      • i2c   – I²C bus interface (fixed address 0x69)
+    """
+
+    # --- Package (connector) ---
+    package = new JST_Sales_America_SM06B_GHS_TB_LF__SN_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+    i2c = new I2C
+    i2c.required = True
+
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 0.15V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x69
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- Package ---
+    package.1 ~ power.hv
+    package.2 ~ power.lv
+    package.3 ~ i2c.sda.line
+    package.4 ~ i2c.scl.line
+    package.5 ~ power.lv
+    package.6 ~ power.hv

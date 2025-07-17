@@ -1,0 +1,172 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+
+from "parts/STMicroelectronics_LIS3DHTR/STMicroelectronics_LIS3DHTR.ato" import STMicroelectronics_LIS3DHTR_package
+
+module ST_LIS3DH:
+    """Driver for STMicroelectronics LIS3DH 3-axis MEMS accelerometer.
+
+    The LIS3DH is a low-power 3-axis linear accelerometer with digital output
+    for consumer applications. It includes a sensing element and an IC interface
+    able to provide the measured acceleration to the external world through I²C/SPI serial interface.
+
+    Exposes:
+      * i2c           – I²C bus interface (7-bit addr 0x18 / 0x19)
+      * spi           – SPI bus interface
+      * power_core    – Core power supply (1.71V - 3.6V)
+      * power_io      – I/O power supply (1.71V - 3.6V)
+      * interrupt1    – Interrupt 1 output pin
+      * interrupt2    – Interrupt 2 output pin
+      * adc1, adc2, adc3 – Auxiliary ADC inputs
+    """
+
+
+    # --- Package ---
+    package = new STMicroelectronics_LIS3DHTR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x18/0x19)
+    """
+    i2c.required = True
+
+    spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+    spi.required = False
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select signal
+    """
+    spi_cs.required = False
+
+    power_core = new ElectricPower
+    """
+    Core power supply (1.71V to 3.6V)
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    I/O interface power supply (1.71V to 3.6V)
+    """
+    power_io.required = True
+
+    interrupt1 = new ElectricLogic
+    """
+    Interrupt 1 output for motion detection, free-fall, etc.
+    """
+    interrupt1.required = False
+
+    interrupt2 = new ElectricLogic
+    """
+    Interrupt 2 output for motion detection, free-fall, etc.
+    """
+    interrupt2.required = False
+
+    # Auxiliary ADC inputs
+    adc1 = new ElectricLogic
+    """
+    Auxiliary ADC input 1
+    """
+    adc1.required = False
+
+    adc2 = new ElectricLogic
+    """
+    Auxiliary ADC input 2
+    """
+    adc2.required = False
+
+    adc3 = new ElectricLogic
+    """
+    Auxiliary ADC input 3
+    """
+    adc3.required = False
+
+    # --- Power connections ---
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io.vcc ~ package.VDD_IO
+    power_io.gnd ~ power_core.gnd
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # --- I²C interface ---
+    i2c.scl.line ~ package.SCL_SPC
+    i2c.sda.line ~ package.SDA_SDI_SDO
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # I²C address selection via SA0 pin
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x18
+    addressor.address_lines[0].line ~ package.SDO_SA0
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.address is i2c.address
+
+    # --- SPI interface ---
+    spi.sclk.line ~ package.SCL_SPC
+    spi.mosi.line ~ package.SDA_SDI_SDO
+    spi.miso.line ~ package.SDO_SA0
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    spi_cs.line ~ package.CS
+    spi_cs.reference ~ power_io
+
+    # --- Interrupt pins ---
+    interrupt1.line ~ package.INT1
+    interrupt1.reference ~ power_io
+
+    interrupt2.line ~ package.INT2
+    interrupt2.reference ~ power_io
+
+    # --- Auxiliary ADC inputs ---
+    adc1.line ~ package.ADC1
+    adc1.reference ~ power_io
+
+    adc2.line ~ package.ADC2
+    adc2.reference ~ power_io
+
+    adc3.line ~ package.ADC3
+    adc3.reference ~ power_io
+
+    # --- Reserved pin ---
+    # RES pin should be left unconnected according to datasheet
+
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 20%
+        r.package = "0402"
+    power_io.vcc ~> i2c_pullups[0] ~> i2c.scl.line
+    power_io.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Chip select pullup (for I²C mode) ---
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 20%
+    cs_pullup.package = "0402"
+    power_io.vcc ~> cs_pullup ~> package.CS
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
+    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd

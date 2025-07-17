@@ -1,0 +1,118 @@
+# Updated: Added 10µF VDD decoupling and 100nF reference decoupling caps
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import ElectricSignal
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/Texas_Instruments_ADS7830IPWR/Texas_Instruments_ADS7830IPWR.ato" import Texas_Instruments_ADS7830IPWR_package
+
+module TI_ADS7830:
+    """
+    Driver for TI ADS7830 8-bit, 8-channel I²C ADC.
+
+    Exposes:
+      * power         – Single-rail supply (2.7V – 5.0V)
+      * i2c           – I²C bus interface (base address 0x48)
+      * analog_inputs – 8 single-ended analog input channels (CH0-CH7)
+      * common        – Common reference for single-ended measurements
+      * ref_inout     – Internal reference input/output
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_ADS7830IPWR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Central power supply for the module (2.7V - 5.0V)
+    """
+    power.required = True
+    assert power.voltage within 2.7V to 5.0V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x48-0x4B)
+    """
+    i2c.required = True
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Analog inputs ---
+    analog_inputs = new ElectricSignal[8]
+    """
+    8 single-ended analog input channels (CH0-CH7)
+    """
+    for ch in analog_inputs:
+        ch.reference ~ power
+
+    common = new ElectricSignal
+    """
+    Common reference for single-ended measurements
+    """
+    common.reference ~ power
+
+    ref_inout = new ElectricSignal
+    """
+    Internal reference input/output (2.5V)
+    """
+    ref_inout.reference ~ power
+
+    # --- I²C bus ---
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 10%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
+
+    # --- Address selection (A1:A0) ---
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x48  # 0x48–0x4B for ADS7830
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+
+    # --- Decoupling capacitors ---
+    # Main power supply decoupling - 100nF
+    decoup_main = new Capacitor
+    decoup_main.capacitance = 100nF +/- 20%
+    decoup_main.package = "0402"
+    power.hv ~> decoup_main ~> power.lv
+
+    # Additional VDD decoupling - 10µF
+    decoup_vdd = new Capacitor
+    decoup_vdd.capacitance = 10uF +/- 20%
+    decoup_vdd.package = "0805"
+    power.hv ~> decoup_vdd ~> power.lv
+
+    # Reference pin decoupling - 100nF
+    decoup_ref = new Capacitor
+    decoup_ref.capacitance = 100nF +/- 20%
+    decoup_ref.package = "0402"
+    ref_inout.line ~> decoup_ref ~> power.lv
+
+    # --- Package connections ---
+    package.VDDpos ~ power.hv
+    package.GND ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    package.CH0 ~ analog_inputs[0].line
+    package.CH1 ~ analog_inputs[1].line
+    package.CH2 ~ analog_inputs[2].line
+    package.CH3 ~ analog_inputs[3].line
+    package.CH4 ~ analog_inputs[4].line
+    package.CH5 ~ analog_inputs[5].line
+    package.CH6 ~ analog_inputs[6].line
+    package.CH7 ~ analog_inputs[7].line
+    package.COM ~ common.line
+    package.REFIN_REFOUT ~ ref_inout.line
