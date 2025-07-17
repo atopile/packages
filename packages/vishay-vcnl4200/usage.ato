@@ -1,0 +1,34 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+
+from "vishay-vcnl4200.ato" import Vishay_VCNL4200
+
+module Usage:
+    """
+    Minimal usage example for Vishay VCNL4200 proximity and ambient light sensor.
+    Shows how to connect power supply and I2C bus.
+    """
+
+    # Create sensor instance
+    sensor = new Vishay_VCNL4200
+
+    # Main power supply for the sensor (3.3V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # External I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # Connect interfaces
+    power_3v3 ~ sensor.power
+    i2c_bus ~ sensor.i2c
+
+    # Set I2C address (fixed for VCNL4200)
+    sensor.i2c.address = 0x51
+
+    # LED control is optional - leave unconnected for always-on LED
+    # Connect to microcontroller GPIO to control LED programmatically

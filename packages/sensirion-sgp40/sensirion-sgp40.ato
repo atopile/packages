@@ -1,0 +1,82 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import I2C
+import Resistor
+
+from "parts/SENSIRION_SGP40_D_R4/SENSIRION_SGP40_D_R4.ato" import SENSIRION_SGP40_D_R4_package
+
+module Sensirion_SGP40:
+    """
+    Sensirion SGP40 VOC (Volatile Organic Compounds) gas sensor with I2C interface.
+
+    Features:
+    - VOC index output for indoor air quality
+    - Humidity compensation input for improved accuracy
+    - I2C digital output (fixed address 0x59)
+    - Low power consumption: 2.8mA average during measurement
+    - Fast response time: <1s (τ63%)
+    - Long-term stability: <10% signal drift over 10 years
+    - Operating range: -10°C to +50°C, 10% to 95% RH
+    """
+
+    # --- Package ---
+    package = new SENSIRION_SGP40_D_R4_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+
+    power_core = new ElectricPower
+    power_core.required = True
+
+    power_heater = new ElectricPower
+    power_heater.required = True
+
+    # --- Power supply ---
+    # VDD - Core logic power supply
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.VSS
+    power_core.gnd ~ package.GND
+    assert power_core.voltage within 1.7V to 3.6V
+
+    # VDDH - Heater power supply (can be same as VDD or separate)
+    power_heater.vcc ~ package.VDDH
+    power_heater.gnd ~ package.GND
+    power_heater.gnd ~ package.VSS
+    assert power_heater.voltage within 1.7V to 3.6V
+
+    # --- I2C interface ---
+    # SGP40 has fixed I2C address 0x59
+    i2c.address = 0x59
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power_core
+    i2c.sda.reference ~ power_core
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power_core.vcc ~> scl_pullup ~> i2c.scl.line
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power_core.vcc ~> sda_pullup ~> i2c.sda.line
+
+    # --- Decoupling capacitors ---
+    # Core supply decoupling
+    decoupling_cap_core = new Capacitor
+    decoupling_cap_core.capacitance = 100nF +/- 20%
+    decoupling_cap_core.package = "0402"
+    power_core.vcc ~> decoupling_cap_core ~> power_core.gnd
+
+    # Heater supply decoupling (if separate from core)
+    decoupling_cap_heater = new Capacitor
+    decoupling_cap_heater.capacitance = 100nF +/- 20%
+    decoupling_cap_heater.package = "0402"
+    power_heater.vcc ~> decoupling_cap_heater ~> power_heater.gnd

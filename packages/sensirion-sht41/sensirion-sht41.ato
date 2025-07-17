@@ -1,0 +1,78 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import I2C
+import Resistor
+
+from "parts/Sensirion_SHT41A_FD1B_R2/Sensirion_SHT41A_FD1B_R2.ato" import Sensirion_SHT41A_FD1B_R2_package
+
+module Sensirion_SHT41:
+    """
+    Sensirion SHT41 digital temperature and humidity sensor with I2C interface.
+
+    Features:
+    - Temperature measurement range: -40°C to +125°C
+    - Humidity measurement range: 0% to 100% RH
+    - High accuracy: ±0.2°C (temperature), ±1.8% RH (humidity)
+    - I2C digital output with selectable addresses
+    - Low power consumption: 0.4μA in sleep mode
+    - Fast response time: 8s (humidity), 30s (temperature)
+    - Excellent long-term stability
+    - Ultra-small DFN package: 1.5mm × 1.5mm × 0.5mm
+    """
+
+    # --- Package ---
+    package = new Sensirion_SHT41A_FD1B_R2_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x44 default)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Single-rail power supply (1.08V to 3.6V)
+    Powers both digital and analog circuits
+    """
+    power.required = True
+
+    # --- Power supply ---
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
+    # Connect exposed pad to ground for thermal performance
+    power.gnd ~ package.EP
+    assert power.voltage within 1.08V to 3.6V
+
+    # --- I2C interface ---
+    # SHT41 has two possible I2C addresses based on ADDR pin
+    # Default addresses: 0x44 (ADDR low) or 0x45 (ADDR high)
+    # Since SHT41A-FD1B has ADDR pin internally tied, use default 0x44
+    i2c.address = 0x44
+    i2c.scl.line ~ package.SCL_T
+    i2c.sda.line ~ package.SDA_RH
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0201"
+    power.vcc ~> scl_pullup ~> i2c.scl.line
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0201"
+    power.vcc ~> sda_pullup ~> i2c.sda.line
+
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0201"
+    power.vcc ~> decoupling_cap ~> power.gnd

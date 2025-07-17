@@ -1,0 +1,50 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import ElectricPower
+import Resistor
+
+from "ti-dac7578.ato" import TI_DAC7578
+
+module Usage:
+    """
+    Complete usage example for TI DAC7578.
+    Demonstrates proper connections including I2C bus setup.
+    """
+
+    dac = new TI_DAC7578
+
+    # Connect power supply (3.3V example)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ dac.power
+
+    # Connect I2C bus with pull-ups (bus level)
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ dac.i2c
+
+    # I2C pull-up resistors (at bus level)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 4.7kohm +/- 1%
+        r.package = "0402"
+    power_3v3.hv ~> i2c_pullups[0] ~> i2c_bus.scl.line
+    power_3v3.hv ~> i2c_pullups[1] ~> i2c_bus.sda.line
+
+    # Reference voltage (using power supply)
+    dac.vref ~ power_3v3.hv
+
+    # I2C address configuration (default 0x48)
+    # To use 0x49 instead, uncomment: dac.i2c.address = 0x49
+
+    # DAC outputs can be connected to external circuits
+    # Example: connecting to test points or other analog circuits
+    # dac.dac_out_a ~ analog_circuit_input_a
+    # dac.dac_out_b ~ analog_circuit_input_b
+    # ... etc for channels C through H
+
+    # Control signals can be connected to microcontroller pins:
+    # dac.clear_n ~ microcontroller.gpio_clear
+    # dac.ldac_n ~ microcontroller.gpio_ldac

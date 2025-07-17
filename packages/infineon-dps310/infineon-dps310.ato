@@ -1,0 +1,61 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/Infineon_Technologies_DPS310XTSA1/Infineon_Technologies_DPS310XTSA1.ato" import Infineon_Technologies_DPS310XTSA1_package
+
+module Infineon_DPS310:
+    """
+    Infineon DPS310 barometric pressure and altitude sensor with I²C interface.
+    """
+    package = new Infineon_Technologies_DPS310XTSA1_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+
+    # --- Power supply ---
+    assert power.voltage within 1.7V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x76
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.value = 4.7k +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Package ---
+    package.VDD   ~ power.hv
+    package.VDDIO ~ power.hv
+    package.GND   ~ power.lv
+    package.SCK ~ i2c.scl.line
+    package.SDI ~ i2c.sda.line
+    package.CSB ~ power.hv # I²C mode when CSB is high
+    package.SDO ~ addressor.address_lines[0].line

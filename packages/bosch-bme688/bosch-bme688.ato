@@ -1,0 +1,159 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import SPI
+import Addressor
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+
+from "parts/Bosch_Sensortec_BME688/Bosch_Sensortec_BME688.ato" import Bosch_Sensortec_BME688_package
+
+module Bosch_BME688:
+    """
+    Bosch BME688 4-in-1 environmental sensor (temperature, humidity, pressure, gas)
+
+    Features:
+    - Temperature: ±1.0°C accuracy (range: -40°C to +85°C)
+    - Humidity: ±3% accuracy (range: 0-100% RH)
+    - Pressure: ±1 hPa accuracy (range: 300-1100 hPa)
+    - VOC gas sensing with AI capabilities and programmable heater
+    - I2C (default) and SPI interfaces with automatic protocol selection
+    - Operating voltage: 1.71V to 3.6V (VDD and VDDIO)
+    - Power consumption: 2.1μA (sleep) to 12mA (gas measurement)
+    - Built-in I2C pull-ups and comprehensive power filtering
+
+    Default Configuration:
+    - I2C mode with address 0x77 (SDO floating) or 0x76 (SDO to GND)
+    - All power rails properly decoupled with 100nF + 10nF capacitors
+    - I2C pull-ups: 4.7kΩ on SCL/SDA lines
+    """
+
+    # --- Package ---
+    package = new Bosch_Sensortec_BME688_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x76 / 0x77)
+    """
+    i2c.required = True
+
+    spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+
+    power = new ElectricPower
+    """
+    Main power supply (1.71V to 3.6V)
+    """
+    power.required = True
+
+    # --- Internal power rails ---
+    power_core = new ElectricPower
+    """
+    Core power supply (VDD)
+    """
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io = new ElectricPower
+    """
+    I/O power supply (VDDIO)
+    """
+    power_io.vcc ~ package.VDDIO
+    power_io.gnd ~ package.GND
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # Power consumption specifications (typical values)
+    # VDD current: 2.1μA (sleep) to 12mA (gas measurement)
+    # VDDIO current: < 1μA (typical I/O operation)
+    power_core.current = 2.1uA to 12mA  # Depends on operation mode
+    power_io.current = 0.1uA to 1mA     # I/O interface current
+
+    # Power sequencing: VDD and VDDIO can be powered simultaneously
+    # No specific power-up sequence required
+
+    # Connect main power to internal rails
+    power.hv ~ power_core.hv
+    power.hv ~ power_io.hv
+    power.lv ~ power_core.lv
+    power.lv ~ power_io.lv
+
+    # --- I²C interface ---
+    i2c.scl.line ~ package.SCK
+    i2c.sda.line ~ package.SDI
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # I2C frequency constraints (BME688 supports up to 3.4MHz)
+    assert i2c.frequency within 10kHz to 3.4MHz
+
+    # I2C address selection via SDO pin
+    # SDO=0 (GND): Address 0x76, SDO=1 (VDDIO): Address 0x77
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x77  # Default address when SDO floating/high
+    addressor.address_lines[0].line ~ package.SDO
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.address is i2c.address
+
+    # I2C pull-up resistors (required for proper I2C operation)
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 4.7kohm +/- 5%
+        pullup.package = "0402"
+    power_io.hv ~> i2c_pullups[0] ~> i2c.scl.line  # SCL pullup
+    power_io.hv ~> i2c_pullups[1] ~> i2c.sda.line  # SDA pullup
+
+    # --- SPI interface ---
+    spi.sclk.line ~ package.SCK
+    spi.mosi.line ~ package.SDI
+    spi.miso.line ~ package.SDO
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    # SPI frequency constraints (BME688 supports up to 10MHz)
+    # Note: SPI mode 0 (CPOL=0, CPHA=0) or mode 3 (CPOL=1, CPHA=1)
+    spi.frequency = 1MHz to 10MHz
+
+    # SPI chip select (CSB pin)
+    # Default: Pull high for I2C mode, pull low for SPI chip select
+    cs = new ElectricLogic
+    """
+    SPI chip select / Protocol selection:
+    - High (VDDIO): I2C mode (default)
+    - Low (GND): SPI mode, acts as chip select
+    """
+    cs.line ~ package.CSB
+    cs.reference ~ power_io
+
+    # --- Decoupling capacitors ---
+    # Dedicated decoupling for VDD core supply
+    vdd_cap_100n = new Capacitor
+    vdd_cap_100n.capacitance = 100nF +/- 20%
+    vdd_cap_100n.package = "0402"
+    power_core.hv ~> vdd_cap_100n ~> power_core.lv
+
+    # High-frequency bypass for VDD
+    vdd_cap_10n = new Capacitor
+    vdd_cap_10n.capacitance = 10nF +/- 20%
+    vdd_cap_10n.package = "0402"
+    power_core.hv ~> vdd_cap_10n ~> power_core.lv
+
+    # Dedicated decoupling for VDDIO I/O supply
+    vddio_cap_100n = new Capacitor
+    vddio_cap_100n.capacitance = 100nF +/- 20%
+    vddio_cap_100n.package = "0402"
+    power_io.hv ~> vddio_cap_100n ~> power_io.lv
+
+    # High-frequency bypass for VDDIO
+    vddio_cap_10n = new Capacitor
+    vddio_cap_10n.capacitance = 10nF +/- 20%
+    vddio_cap_10n.package = "0402"
+    power_io.hv ~> vddio_cap_10n ~> power_io.lv

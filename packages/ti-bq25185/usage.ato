@@ -1,0 +1,45 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import Resistor
+
+from "ti-bq25185.ato" import TI_BQ25185
+
+module Usage:
+    """
+    Minimal usage example for TI BQ25185 battery charger.
+    Shows basic configuration for charging a single-cell Li-Ion battery with USB input.
+    """
+
+    charger = new TI_BQ25185
+
+    # Input power (USB 5V)
+    power_usb = new ElectricPower
+    power_usb ~ charger.power_input
+    assert power_usb.voltage within 4.75V to 5.25V
+
+    # System power output (for powering the device)
+    power_system = new ElectricPower
+    power_system ~ charger.power_system
+
+    # Battery connection (single-cell Li-Ion)
+    power_battery = new ElectricPower
+    power_battery ~ charger.power_battery
+    # Typical Li-Ion voltage range
+    assert power_battery.voltage within 3.0V to 4.2V
+
+    # Temperature sensing with 10kΩ NTC thermistor
+    temp_sensor = new Resistor
+    temp_sensor.resistance = 10kohm +/- 5%
+    temp_sensor.package = "0402"
+    charger.temp_sense.line ~> temp_sensor ~> power_system.lv
+
+    # Charge configuration (default values set by resistors in module)
+    # - Input current limit: 500mA (set by 18kΩ ILIM_VSET resistor)
+    # - Battery regulation voltage: 4.2V (set by 18kΩ ILIM_VSET resistor)
+    # - Charge current: depends on ISET resistor value
+
+    # Status LEDs can be connected to status_1 and status_2 pins
+    # status_1: Fault indication (active low)
+    # status_2: Charge status (active low during charging)

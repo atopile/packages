@@ -1,0 +1,82 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+import Electrical
+import ElectricSignal
+import ElectricLogic
+import Capacitor
+import Addressor
+import Resistor
+
+from "parts/Texas_Instruments_ADS1115IDGSR/Texas_Instruments_ADS1115IDGSR.ato" import Texas_Instruments_ADS1115IDGSR_package
+
+module TI_ADS1115:
+    """Texas Instruments ADS1115 16-bit ADC driver"""
+
+    # External interfaces
+    power = new ElectricPower
+    i2c = new I2C
+    inputs = new ElectricSignal[4]
+
+    # Configure power
+    power.required = True
+    assert power.voltage within 1.8V to 5.5V
+
+    # Package
+    package = new Texas_Instruments_ADS1115IDGSR_package
+
+    # Connect inputs to package
+    inputs[0].line ~ package.AIN0
+    inputs[1].line ~ package.AIN1
+    inputs[2].line ~ package.AIN2
+    inputs[3].line ~ package.AIN3
+
+    # Connect Input References
+    for input in inputs:
+        input.reference ~ power
+
+    # Connect I2C
+    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ package.SCL
+
+    # Connect Power
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+
+    # Decoupling Capacitor
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # I2C Address Configuration
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x48
+    addressor.address_lines[0].line ~ package.ADDR
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+
+    # I2C Pullups
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 1%
+    sda_pullup.package = "0402"
+    i2c.sda.line ~> sda_pullup ~> i2c.sda.reference.hv
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 1%
+    scl_pullup.package = "0402"
+    i2c.scl.line ~> scl_pullup ~> i2c.scl.reference.hv
+
+    # Alert Ready (open-drain output requires pullup)
+    alert_ready = new ElectricLogic
+    alert_ready.line ~ package.ALERT_RDY
+    alert_ready.reference.lv ~ power.lv
+
+    # Alert Ready pullup resistor (10k typical for open-drain)
+    # Pullup to alert reference so it matches connected logic level
+    alert_pullup = new Resistor
+    alert_pullup.resistance = 10kohm +/- 1%
+    alert_pullup.package = "0402"
+    alert_ready.line ~> alert_pullup ~> alert_ready.reference.hv

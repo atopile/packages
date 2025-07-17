@@ -1,0 +1,127 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+
+from "parts/Texas_Instruments_DRV2605LDGSR/Texas_Instruments_DRV2605LDGSR.ato" import Texas_Instruments_DRV2605LDGSR_package
+from "parts/UNI_ROYAL_0402WGF1002TCE/UNI_ROYAL_0402WGF1002TCE.ato" import UNI_ROYAL_0402WGF1002TCE_package
+
+module TI_DRV2605L:
+    """
+    TI DRV2605L haptic driver for LRA and ERM actuators with I2C interface.
+
+    Features:
+    - Haptic effect library with 123 built-in waveforms
+    - Support for Linear Resonant Actuators (LRA) and Eccentric Rotating Mass (ERM) motors
+    - I2C interface with fixed address 0x5A
+    - Smart loop architecture for improved actuator performance
+    - PWM input mode for real-time control
+    - Supply voltage: 2.0V to 5.2V
+    - Built-in voltage regulator for 1.8V rail
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_DRV2605LDGSR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (fixed address 0x5A)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply (2.0V to 5.2V)
+    """
+    power.required = True
+
+    haptic_output = new ElectricPower
+    """
+    Differential haptic motor output (OUT+/OUT-)
+    """
+    haptic_output.required = True
+
+    enable = new ElectricLogic
+    """
+    Enable control input (active high)
+    """
+    enable.required = False
+
+    trigger = new ElectricLogic
+    """
+    Hardware trigger input for PWM mode
+    """
+    trigger.required = False
+
+    # --- Power supply ---
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+    assert power.voltage within 2.0V to 5.2V
+
+    # --- I2C interface ---
+    # Fixed I2C address 0x5A (7-bit)
+    i2c.address = 0x5A
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- I2C pull-up resistors ---
+    # Built-in 10k pullups on breakout boards, but adding external for reliability
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+
+    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
+    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+
+    # --- Enable control ---
+    enable.line ~ package.EN
+    enable.reference ~ power
+
+    # Enable pull-up for default enabled state
+    enable_pullup = new Resistor
+    enable_pullup.resistance = 10kohm +/- 20%
+    enable_pullup.package = "0402"
+    power.vcc ~> enable_pullup ~> enable.line
+
+    # --- Trigger input ---
+    trigger.line ~ package.IN_TRIG
+    trigger.reference ~ power
+
+    # Trigger pull-down for default state
+    trigger_pulldown = new Resistor
+    trigger_pulldown.resistance = 10kohm +/- 20%
+    trigger_pulldown.package = "0402"
+    trigger.line ~> trigger_pulldown ~> power.gnd
+
+    # --- Haptic motor output ---
+    haptic_output.vcc ~ package.OUTpos
+    haptic_output.gnd ~ package.OUTneg
+
+    # --- Voltage regulator capacitor ---
+    # REG pin needs 1µF ceramic capacitor to ground
+    reg_cap = new Capacitor
+    reg_cap.capacitance = 1uF +/- 20%
+    reg_cap.package = "0603"
+    package.REG ~> reg_cap ~> power.gnd
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling
+    vdd_cap = new Capacitor
+    vdd_cap.capacitance = 100nF +/- 20%
+    vdd_cap.package = "0402"
+    power.vcc ~> vdd_cap ~> power.gnd
+
+    # Bulk capacitor for VDD
+    bulk_cap = new Capacitor
+    bulk_cap.capacitance = 10uF +/- 20%
+    bulk_cap.package = "0805"
+    power.vcc ~> bulk_cap ~> power.gnd

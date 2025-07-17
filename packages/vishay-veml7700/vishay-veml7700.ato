@@ -1,0 +1,78 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import I2C
+import Resistor
+
+from "parts/VISHAY_VEML7700_TR/VISHAY_VEML7700_TR.ato" import VISHAY_VEML7700_TR_package
+
+module Vishay_VEML7700:
+    """Driver for Vishay VEML7700 high accuracy ambient light sensor.
+
+    The VEML7700 is a digital 16-bit resolution ambient light sensor with I2C
+    interface. It features high sensitivity, excellent linearity across a wide
+    range, and low power consumption.
+
+    Features:
+    - 16-bit digital output with I2C interface
+    - Detection range: 0 lux to about 120k lux
+    - Resolution: 0.0036 lux/count
+    - Wide operating voltage: 2.5V to 3.6V
+    - Low power consumption: 300 µA typical
+    - Fast conversion time: 25ms to 800ms (programmable)
+    - Excellent temperature compensation
+
+    Exposes:
+      * i2c          – I²C bus interface (7-bit addr 0x10)
+      * power        – Power supply (2.5V - 3.6V)
+    """
+
+    # --- Package ---
+    package = new VISHAY_VEML7700_TR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit address: 0x10)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Power supply (2.5V to 3.6V)
+    Powers both analog and digital sections
+    """
+    power.required = True
+
+    # --- Power connections ---
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+    assert power.voltage within 2.5V to 3.6V
+
+    # --- I²C interface ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C address is fixed at 0x10
+    assert i2c.address is 0x10
+
+    # --- I²C pull-ups ---
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "0402"
+
+    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
+    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.vcc ~> decoupling_cap ~> power.gnd

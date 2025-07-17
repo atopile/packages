@@ -1,0 +1,101 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+
+from "parts/NXP_Semicon_PCT2075TP_147/NXP_Semicon_PCT2075TP_147.ato" import NXP_Semicon_PCT2075TP_147_package
+
+module NXP_PCT2075:
+    """
+    Driver for NXP PCT2075 I²C temperature sensor and thermal watchdog.
+
+    Features:
+    - Digital temperature sensor with 1°C accuracy
+    - I²C-bus Fm+ interface
+    - Thermal watchdog with open-drain output
+    - Configurable I²C address via address pins
+
+    Exposes:
+      * i2c        - I²C bus interface (7-bit addresses 0x48-0x4F)
+      * power      - Power supply rail (2.8V - 5.5V typical)
+      * os         - Open-drain overtemperature output
+    """
+
+    # --- Package ---
+    package = new NXP_Semicon_PCT2075TP_147_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply for the PCT2075 sensor
+    """
+    power.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x48-0x4F)
+    """
+    i2c.required = True
+    i2c.reference_shim ~ power
+
+    os = new ElectricLogic
+    """
+    Open-drain overtemperature output pin
+    """
+    os.reference ~ power
+
+    # --- Power supply ---
+    power.vcc ~ package.VCC
+    power.gnd ~ package.GND
+    assert power.voltage within 2.8V to 5.5V
+
+    # --- Exposed pad connection ---
+    # EP pad is connected to ground for thermal and electrical performance
+    power.gnd ~ package.EP
+
+    # --- I²C bus ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C address configuration via A0, A1, A2 pins
+    addressor = new Addressor<address_bits=3>
+    addressor.base = 0x48
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].line ~ package.A1
+    addressor.address_lines[1].reference ~ power
+    addressor.address_lines[2].line ~ package.A2
+    addressor.address_lines[2].reference ~ power
+    assert addressor.address is i2c.address
+
+    # I²C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 20%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Overtemperature output ---
+    os.line ~ package.OS
+
+    # OS pin pull-up resistor (open-drain output)
+    os_pullup = new Resistor
+    os_pullup.resistance = 10kohm +/- 20%
+    os_pullup.package = "0402"
+    power.hv ~> os_pullup ~> package.OS
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+        power.hv ~> cap ~> power.lv

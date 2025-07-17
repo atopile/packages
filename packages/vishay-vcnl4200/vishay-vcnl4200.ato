@@ -1,0 +1,138 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import Capacitor
+import Addressor
+import MOSFET
+
+from "parts/Vishay_Intertech_VCNL4200/Vishay_Intertech_VCNL4200.ato" import Vishay_Intertech_VCNL4200_package
+from "parts/Alpha___Omega_Semicon_AO3401A/Alpha___Omega_Semicon_AO3401A.ato" import Alpha___Omega_Semicon_AO3401A_package
+
+module Vishay_VCNL4200:
+    """
+    Vishay VCNL4200 high resolution long distance proximity and ambient light sensor
+
+    Features:
+    - Operating voltage: 2.5V to 3.6V
+    - I2C interface with fixed address 0x51
+    - Long-range proximity detection up to 1.5m
+    - Ambient light sensing with high resolution
+    - Interrupt functionality
+    - External IR LED control (optional)
+    - Operating temperature: -40°C to +85°C
+    - Supply current: 150µA typical (proximity mode)
+    - 16-bit resolution for both proximity and ambient light
+    - Built-in IR LED with current limiting and MOSFET control
+    - Sunlight immunity and crosstalk cancellation
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (fixed 7-bit address 0x51)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply for the sensor (2.5V to 3.6V)
+    """
+    power.required = True
+
+    interrupt = new ElectricLogic
+    """
+    Interrupt output pin (active low)
+    """
+    interrupt.required = False
+
+    led_control = new ElectricLogic
+    """
+    IR LED control pin (active low - pull low to turn on LED)
+    """
+    led_control.required = False
+
+    # --- Power rail constraints ---
+    assert power.voltage within 2.5V to 3.6V
+
+    # --- I2C configuration ---
+    # VCNL4200 has a fixed I2C address of 0x51 (LED_CATHODE connected to GND)
+    assert i2c.address is 0x51
+
+    # --- I2C pull-up resistors ---
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_sda = new Resistor
+
+    for pullup in [i2c_pullup_scl, i2c_pullup_sda]:
+        pullup.resistance = 10kohm +/- 20%
+        pullup.package = "0402"
+
+    power.hv ~> i2c_pullup_scl ~> i2c.scl.line
+    power.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Interrupt pull-up resistor ---
+    interrupt_pullup = new Resistor
+    interrupt_pullup.resistance = 10kohm +/- 20%
+    interrupt_pullup.package = "0402"
+
+    power.hv ~> interrupt_pullup ~> interrupt.line
+
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+
+    for cap in power_caps:
+        cap.package = "0402"
+
+    power_caps[0].capacitance = 2.2uF +/- 20%  # Bulk capacitor
+    power_caps[1].capacitance = 100nF +/- 20%  # High frequency decoupling
+
+    for cap in power_caps:
+        power.hv ~> cap ~> power.lv
+
+    # --- Package connections ---
+    package = new Vishay_Intertech_VCNL4200_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCLK ~ i2c.scl.line
+    package.SDAT ~ i2c.sda.line
+
+    # Interrupt connection
+    package.INT ~ interrupt.line
+    interrupt.reference ~ power
+
+    # --- IR LED current limiting and control ---
+    # LED current limiting resistor (cathode side)
+    led_resistor = new Resistor
+    led_resistor.resistance = 2.7kohm +/- 20%
+    led_resistor.package = "0402"
+    led_resistor.max_power = 100mW
+
+    # P-channel MOSFET for LED control (high-side switch)
+    led_mosfet = new Alpha___Omega_Semicon_AO3401A_package
+
+    # Gate pull-up resistor (keeps MOSFET off by default)
+    mosfet_pullup = new Resistor
+    mosfet_pullup.resistance = 10kohm +/- 20%
+    mosfet_pullup.package = "0402"
+
+    # LED circuit connections
+    power.hv ~ led_mosfet.S              # Source to VDD
+    led_mosfet.D ~ package.LEDpos         # Drain to LED anode
+    package.LEDneg ~> led_resistor ~> power.lv  # LED cathode through current limiting resistor
+
+    # MOSFET gate control (pulled up to turn off, pull low to turn on)
+    power.hv ~> mosfet_pullup ~> led_mosfet.G
+    led_control.line ~ led_mosfet.G
+    led_control.reference ~ power
+
+    led_control.line ~ package.LED_CATHODE

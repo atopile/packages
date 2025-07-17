@@ -1,0 +1,27 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-ina232.ato:TI_INA232
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check", "I2C.requires_pulls"]
+
+# This metadata is only required for publishing
+# Uncomment it and fill out the fields to publish your package
+package:
+  identifier: atopile/ti-ina232
+  repository: https://github.com/atopile/packages
+  version: "0.2.2"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: Texas Instruments; TI; INA232; Current; Sensor; Monitor; I2C; Power; High-side; Low-side; Shunt; 48V; SOT-23-8"
+  license: MIT

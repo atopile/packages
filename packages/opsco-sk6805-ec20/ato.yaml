@@ -1,0 +1,26 @@
+requires-atopile: "^0.10.8"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: opsco-sk6805-ec20.ato:OPSCO_SK6805_EC20
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/opsco-sk6805-ec20
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/opsco-sk6805-ec20/README.md
+  version: "0.3.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: OPSCO; SK6805; EC20; Addressable; RGB; LED; WS2812; Compatible; 2x2mm; Digital; Controller
+  license: MIT

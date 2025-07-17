@@ -1,0 +1,31 @@
+import I2C
+import ElectricPower
+
+from "st-lis331.ato" import ST_LIS331
+
+module Usage:
+    """
+    Minimal usage example for ST_LIS331.
+    Demonstrates basic connections for I2C communication with the accelerometer.
+    """
+
+    accelerometer = new ST_LIS331
+
+    # Power supplies
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    power_io = new ElectricPower
+    power_io.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.address = 0x19  # Default address (SDO/SA0 = 1 with internal pull-up)
+    i2c_bus.frequency = 400kHz
+
+    # Connect power
+    power_3v3 ~ accelerometer.power
+    power_io ~ accelerometer.power_io
+
+    # Connect I2C
+    i2c_bus ~ accelerometer.i2c

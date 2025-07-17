@@ -1,0 +1,112 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/STMicroelectronics_VL53L1CXV0FY_1/STMicroelectronics_VL53L1CXV0FY_1.ato" import STMicroelectronics_VL53L1CXV0FY_1_package
+
+
+module ST_VL53L1X:
+    """
+    Driver for ST VL53L1X Time-of-Flight distance sensor (I²C).
+
+    Exposes:
+      * power – Supply voltage (2.6V - 3.5V)
+      * i2c   – I²C bus interface (7-bit addr 0x29, default)
+      * xshut – Hardware shutdown pin (active low)
+      * gpio1 – Interrupt output pin
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_VL53L1CXV0FY_1_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Main power supply (2.6V to 3.5V)
+    Powers both AVDD and AVDDVCSEL rails
+    """
+    power.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x29 default)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+
+    xshut = new ElectricLogic
+    """
+    Hardware shutdown pin (active low)
+    Pull low to put device in shutdown mode
+    """
+    xshut.required = False
+
+    gpio1 = new ElectricLogic
+    """
+    Interrupt output pin (active low)
+    Configurable interrupt for various measurement events
+    """
+    gpio1.required = False
+
+    # --- Power supply ---
+    assert power.voltage within 2.6V to 3.5V
+
+    # Connect power pins (both AVDD and AVDDVCSEL to same supply)
+    power.vcc ~ package.AVDD
+    power.vcc ~ package.AVDDVCSEL
+    power.gnd ~ package.GND
+    power.gnd ~ package.GND2
+    power.gnd ~ package.GND3
+    power.gnd ~ package.GND4
+    power.gnd ~ package.AVSSVCSEL
+
+    # --- I²C bus ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C address (default 0x29, 7-bit address)
+    # VL53L1X has a fixed default address of 0x29
+    # Address can be changed via software if needed
+    assert i2c.address is 0x29
+
+    # --- XSHUT pullup ---
+    xshut_pullup = new Resistor
+    xshut_pullup.resistance = 10kohm +/- 5%
+    xshut_pullup.package = "0402"
+    power.vcc ~> xshut_pullup ~> package.XSHUT
+
+    # --- I²C pull-ups ---
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "0402"
+
+    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
+    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Control pins ---
+    xshut.line ~ package.XSHUT
+    xshut.reference ~ power
+
+    gpio1.line ~ package.GPIO1
+    gpio1.reference ~ power
+
+    # --- Decoupling capacitors ---
+    decoupling_cap_100nF = new Capacitor
+    decoupling_cap_100nF.capacitance = 100nF +/- 20%
+    decoupling_cap_100nF.package = "0402"
+    power.vcc ~> decoupling_cap_100nF ~> power.gnd
+
+    decoupling_cap_4u7 = new Capacitor
+    decoupling_cap_4u7.capacitance = 4.7uF +/- 20%
+    decoupling_cap_4u7.package = "0402"
+    power.vcc ~> decoupling_cap_4u7 ~> power.gnd

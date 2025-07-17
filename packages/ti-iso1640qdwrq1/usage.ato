@@ -1,0 +1,50 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import I2C
+import ElectricPower
+
+from "ti-iso1640qdwrq1.ato" import TI_ISO1640QDWRQ1
+
+module Microcontroller:
+    """Example microcontroller"""
+    i2c = new I2C
+    power = new ElectricPower
+
+module Sensor:
+    """Example sensor"""
+    i2c = new I2C
+    power = new ElectricPower
+
+module Example:
+    """
+    Example usage of ISO1640QDWRQ1 I2C isolator
+    Connect a microcontroller to a sensor via an I2C isolator
+    """
+
+    # Components
+    micro = new Microcontroller
+    sensor = new Sensor
+    isolator = new TI_ISO1640QDWRQ1
+
+    # Power Rails
+    power_3v3 = new ElectricPower
+    power_iso_3v3 = new ElectricPower
+
+    # Set power rail voltages
+    assert power_3v3.voltage within 3.3V +/- 5%
+    assert power_iso_3v3.voltage within 3.3V +/- 5%
+
+    # I2C frequency
+    assert micro.i2c.frequency <= 400kHz
+    assert sensor.i2c.frequency <= 400kHz
+
+    # Connections - isolator is 'bridgable'
+    micro.i2c ~> isolator ~> sensor.i2c
+
+    # Power connections
+    power_3v3 ~ micro.power
+    power_3v3 ~ isolator.power_rails[0]
+
+    # Isolated power
+    power_iso_3v3 ~ sensor.power
+    power_iso_3v3 ~ isolator.power_rails[1]

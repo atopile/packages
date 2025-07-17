@@ -1,0 +1,46 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import ElectricLogic
+import Resistor
+from "ti-ina237.ato" import TI_INA237
+
+module Usage:
+    """
+    Minimal usage example for ti-ina237.
+    Demonstrates basic current monitoring setup with shunt resistor
+    """
+
+    # Create the INA237 power monitor
+    power_monitor = new TI_INA237
+    power_monitor.max_current = 1A  # Set maximum expected current
+
+    # System power supplies
+    system_3v3 = new ElectricPower
+    system_3v3.voltage = 3.3V +/- 5%
+
+    load_power = new ElectricPower
+    load_power.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # Connect power monitor to system
+    system_3v3 ~ power_monitor.power
+    i2c_bus ~ power_monitor.i2c
+
+    # Connect bus voltage sensing to load power supply
+    power_monitor.vbus.line ~ load_power.hv
+    power_monitor.vbus.reference ~ system_3v3
+
+    # Connect current sensing through built-in shunt resistor
+    # Current flows: load_power.hv -> power_monitor (with internal shunt) -> load_power.lv
+    load_power.hv ~ power_monitor.current_sense.p.line
+    power_monitor.current_sense.n.line ~ load_power.lv
+
+    # Set I2C address to 0x40 (base address when A1=0, A0=0)
+    # Address pins will be pulled down internally or externally
+    power_monitor.i2c.address = 0x40
