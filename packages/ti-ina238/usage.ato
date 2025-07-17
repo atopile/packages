@@ -1,33 +1,106 @@
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 import ElectricPower
+import ElectricLogic
 import I2C
-
 from "ti-ina238.ato" import TI_INA238
 
 module Usage:
     """
-    Minimal usage example for ti-ina238 current monitor.
-    Measures load current/power on a 12 V rail.
+    Comprehensive usage examples for TI INA238 power monitor.
+
+    This example demonstrates:
+    - Multiple INA238 devices on a single I2C bus with different addresses
+    - Monitoring various current ranges (100mA to 10A)
+    - Different power rail configurations (3.3V, 5V, 12V)
     """
 
-    # Power rails
-    supply = new ElectricPower
-    load = new ElectricPower
-    supply.voltage = 5V +/- 5%
-
-    # I2C bus
+    # === Shared I2C bus ===
     i2c = new I2C
+    i2c.frequency = 400kHz  # Fast mode
 
-    # Device instance
-    sensor = new TI_INA238
-    sensor.max_current = 5A
-    sensor.power ~ supply
+    # === Power rails ===
+    # Supply voltage for all INA238 devices (3.3V logic)
+    supply_3v3 = new ElectricPower
+    supply_3v3.voltage = 3.3V +/- 5%
 
-    # Wiring
-    supply ~> sensor ~> load
-    sensor.i2c ~ i2c
+    # === Example 1: Low current USB device monitoring (100mA max) ===
+    # USB 5V rail monitoring
+    usb_5v_in = new ElectricPower
+    usb_5v_out = new ElectricPower
+    usb_5v_in.voltage = 5V +/- 10%
 
-    # Address automatically set by addressor (0x40 base address when A0=A1=0)
-    # Pull-up resistors are built into the module
+    usb_monitor = new TI_INA238
+    usb_monitor.max_current = 100mA
+    usb_monitor.power ~ supply_3v3
+    usb_monitor.i2c ~ i2c
+    usb_monitor.i2c.address = 0x40  # A0=GND, A1=GND
+
+    # Insert monitor in USB power path
+    usb_5v_in ~> usb_monitor ~> usb_5v_out
+
+    # === Example 2: Medium current 3.3V rail monitoring (2A max) ===
+    # Main 3.3V system rail
+    main_3v3_in = new ElectricPower
+    main_3v3_out = new ElectricPower
+    main_3v3_in.voltage = 3.3V +/- 5%
+
+    main_3v3_monitor = new TI_INA238
+    main_3v3_monitor.max_current = 2A
+    main_3v3_monitor.power ~ supply_3v3
+    main_3v3_monitor.i2c ~ i2c
+    main_3v3_monitor.i2c.address = 0x41  # A0=VS, A1=GND
+
+    # Insert monitor in 3.3V power path
+    main_3v3_in ~> main_3v3_monitor ~> main_3v3_out
+
+    # === Example 3: High current 12V rail monitoring (5A max) ===
+    # 12V power supply monitoring
+    supply_12v_in = new ElectricPower
+    supply_12v_out = new ElectricPower
+    supply_12v_in.voltage = 12V +/- 5%
+
+    supply_12v_monitor = new TI_INA238
+    supply_12v_monitor.max_current = 5A
+    supply_12v_monitor.power ~ supply_3v3
+    supply_12v_monitor.i2c ~ i2c
+    supply_12v_monitor.i2c.address = 0x42  # A0=SDA, A1=GND
+
+    # Insert monitor in 12V power path
+    supply_12v_in ~> supply_12v_monitor ~> supply_12v_out
+
+    # === Example 4: Very high current motor drive monitoring (10A max) ===
+    # Motor power monitoring
+    motor_pwr_in = new ElectricPower
+    motor_pwr_out = new ElectricPower
+    motor_pwr_in.voltage = 24V +/- 10%
+
+    motor_monitor = new TI_INA238
+    motor_monitor.max_current = 10A
+    motor_monitor.power ~ supply_3v3
+    motor_monitor.i2c ~ i2c
+    motor_monitor.i2c.address = 0x43  # A0=SCL, A1=GND
+
+    # Insert monitor in motor power path
+    motor_pwr_in ~> motor_monitor ~> motor_pwr_out
+
+    # === Example 5: Battery discharge monitoring (3.7V Li-Ion, 3A max) ===
+    # Battery monitoring with alert
+    battery_in = new ElectricPower
+    battery_out = new ElectricPower
+    battery_in.voltage = 3.7V +/- 0.5V  # Li-Ion voltage range
+
+    battery_monitor = new TI_INA238
+    battery_monitor.max_current = 3A
+    battery_monitor.power ~ supply_3v3
+    battery_monitor.i2c ~ i2c
+    battery_monitor.i2c.address = 0x44
+
+    # Insert monitor in battery discharge path
+    battery_in ~> battery_monitor ~> battery_out
+
+    # Connect alert output to microcontroller interrupt pin
+    # Note: The INA238 module includes built-in 10k pullup on alert pin
+    mcu_interrupt = new ElectricLogic
+    mcu_interrupt ~ battery_monitor.alert
