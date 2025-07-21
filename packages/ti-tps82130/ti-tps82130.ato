@@ -41,14 +41,14 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     """
     Enable the regulator (active high)
     """
-    enable.required = True
+    enable.line.required = True # TODO: should be enable.line
+
     power_good = new ElectricLogic
     """
     Power good signal (open drain).
     Goes high impedance once the output is above 95% of the nominal voltage, and is
     driven low once the output voltage falls below typically 90% of the nominal voltage.
     """
-    power_good.required = True
     assert power_good.reference.voltage <= power_out.voltage
 
     # --- Internal interfaces ---
