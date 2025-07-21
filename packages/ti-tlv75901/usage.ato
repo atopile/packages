@@ -1,0 +1,22 @@
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+
+module Usage:
+    # Create LDO
+    ldo = new TLV75901_driver
+
+    # Create example power interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # Configure voltages
+    power_in.voltage = 5V +/- 1%
+    power_out.voltage = 3.3V +/- 3%
+
+    # Connect to regulator (bridge connect)
+    power_in ~> ldo ~> power_out
+
+    # Connect to regulator (Interfaces)
+    power_in ~ ldo.power_in
+    power_out ~ ldo.power_out
