@@ -18,6 +18,7 @@ module LDK220M_R from AdjustableLDO:
     dropout_voltage = 100mV to 350mV
     assert power_in.voltage within 2.5V to 13.2V
     assert power_out.voltage within 1.2V to 12V
+    # assert power_out.voltage within power_in.voltage - dropout_voltage # TODO: fix
     assert reference_voltage within 1.185V +/- 2%
 
     # Package
