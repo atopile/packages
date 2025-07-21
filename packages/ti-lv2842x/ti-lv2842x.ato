@@ -1,13 +1,22 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
-
-import Resistor, Capacitor, Diode, Inductor, ElectricPower, ElectricLogic, ElectricSignal, ResistorVoltageDivider, Regulator
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+import Capacitor
+import Diode
+import Inductor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import ResistorVoltageDivider
+import has_single_electric_reference_shared
+from "regulators.ato" import Buck
 
 from "parts/Texas_Instruments_LV2842XLVDDCR/Texas_Instruments_LV2842XLVDDCR.ato" import Texas_Instruments_LV2842XLVDDCR_package
 from "parts/Guangdong_Hottech_1N5819WS/Guangdong_Hottech_1N5819WS.ato" import Guangdong_Hottech_1N5819WS_package
 
-module TI_LV2842X from Regulator:
+module TI_LV2842X from Buck:
     """
     High Efficiency Wide Input Voltage Range Buck Regulator
 
@@ -23,31 +32,35 @@ module TI_LV2842X from Regulator:
     # --- Package ---
     package = new Texas_Instruments_LV2842XLVDDCR_package
 
-    # --- External interfaces ---
-    # power_in from regulator
-    # power_out from regulator
-    power_sw_out = new ElectricPower
-    gnd = new ElectricSignal
-    bootstrap = new ElectricSignal
-    feedback = new ElectricSignal
-    shutdown = new ElectricLogic
+    # --- Parameters ---
+    assert reference_voltage within 0.765V +/- 19mV
+    assert power_in.voltage within 4V to 40V
+    assert power_out.voltage >= reference_voltage
+    assert power_out.voltage <= 40V
+    assert power_out.max_current within 10mA to 600mA # to be specialized by exact IC
+    K_IND = 0.3 # Ripple factor, 30% of Io
+    current_ripple = K_IND * power_out.max_current
+    switching_frequency = 325kHz to 1500kHz
+
+    # --- Internal interfaces ---
+    _power_sw_out = new ElectricPower
+    assert _power_sw_out.voltage within -1V to 40V
+    _bootstrap = new ElectricSignal
+    assert _bootstrap.reference.voltage within 3.8 to 45V
+    _feedback = new ElectricSignal
+    assert _feedback.reference.voltage within 0V to 5V
+    _enable = new ElectricLogic
+    _enable.reference ~ power_in
+
+    trait has_single_electric_reference_shared<gnd_only=True>
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
     power_in.lv ~ package.GND
-    power_in.lv ~ power_out.lv
-
-    power_sw_out.hv ~ package.SW
-    power_sw_out.lv ~ package.GND
-
-    bootstrap.line ~ package.CB
-    bootstrap.reference.gnd ~ package.GND
-
-    feedback.line ~ package.FB
-    feedback.reference.gnd ~ package.GND
-
-    shutdown.line ~ package.nSHDN
-    shutdown.reference.gnd ~ package.GND
+    _power_sw_out.hv ~ package.SW
+    _bootstrap.line ~ package.CB
+    _feedback.line ~ package.FB
+    _enable.line ~ package.nSHDN
 
     # Components
     diode = new Diode_1N5819WS
@@ -58,21 +71,19 @@ module TI_LV2842X from Regulator:
     bootstrap_capacitor = new Capacitor
     bootstrap_capacitor.capacitance = 200nF to 1uF
     bootstrap_capacitor.package = "C0402"
-    bootstrap_capacitor.p1 ~ bootstrap.line
-    bootstrap_capacitor.p2 ~ power_sw_out.hv
+    bootstrap_capacitor.p1 ~ _bootstrap.line
+    bootstrap_capacitor.p2 ~ _power_sw_out.hv
 
     # --- Feedback Divider ---
-    feedback_div = new ResistorVoltageDivider
-    feedback_div.power ~ power_out
-    feedback_div.output ~ feedback
-    feedback_div.r_top.package = "R0402"
-    feedback_div.r_bottom.package = "R0402"
-    feedback_div.r_bottom.resistance = 10kohm +/- 1%
+    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm
+    feedback_divider.r_top.package = "R0402"
+    feedback_divider.r_bottom.package = "R0402"
+    feedback_divider.output ~ _feedback
 
     # --- Enable ---
     # by default the shutdown pin is internally pulled up,
     # connection it anyway to power in makes routing more compact
-    shutdown.line ~ power_in.vcc
+    _enable.line ~ power_in.vcc
 
     # --- Input Capacitor ---
     input_cap = new Capacitor
@@ -95,23 +106,13 @@ module TI_LV2842X from Regulator:
         output_capacitance = output_capacitance + cap.capacitance
 
     # --- Diode ---
-    diode.anode ~ power_out.gnd
-    diode.cathode ~ power_sw_out.vcc
+    # lv>A>K>hv
+    power_out.lv ~> diode ~> _power_sw_out.hv
 
     # --- Inductor ---
-    power_sw_out.vcc ~> inductor ~> power_out.vcc
-
-    # --- Parameters ---
-    v_ref = 0.765V +/- 0.01% # compiler not working?
-    K_IND = 0.3 # Ripple factor, 30% of Io
-    current_ripple = K_IND * power_out.max_current
-    switching_frequency = 325kHz to 1500kHz
-    power_out.max_current = 10mA to 600mA # to be specialized by exact IC
-    assert power_in.voltage within 4.5V to 42V
-    assert power_out.voltage within 0.8V to 40V
+    _power_sw_out.hv ~> inductor ~> power_out.hv
 
     # --- Calculations ---
-    assert feedback_div.r_top.resistance is feedback_div.r_bottom.resistance * ((power_out.voltage / v_ref) - 1)
     assert inductor.inductance within (power_in.voltage - power_out.voltage) * power_out.voltage / (power_in.voltage * current_ripple * switching_frequency)
     assert inductor.saturation_current >= power_out.max_current * 1.10
     assert inductor.max_current >= power_out.max_current
@@ -124,10 +125,6 @@ component Diode_1N5819WS from Diode:
     package = new Guangdong_Hottech_1N5819WS_package
     cathode ~ package.K
     anode ~ package.A
-
-
-component SWPA4030S100MT from Sunlord_SWPA4030S100MT_package:
-    pass
 
 
 # None of these parts are available
