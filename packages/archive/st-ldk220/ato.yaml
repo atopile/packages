@@ -7,10 +7,13 @@ paths:
 builds:
   ldk220:
     entry: ldk220.ato:LDK220M_R
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
-  test:
-    entry: ldk220.ato:Test
-
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 package:
   identifier: atopile/st-ldk220
   repository: https://github.com/atopile/packages

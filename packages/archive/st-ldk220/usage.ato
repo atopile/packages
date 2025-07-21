@@ -1,0 +1,12 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+
+module Usage:
+    """Test module for the LDK220M-R"""
+
+    ldo = new LDK220M_R
+    assert ldo.v_out within 3.3V +/- 5%
+    assert ldo.v_in is 5V +/- 5%
