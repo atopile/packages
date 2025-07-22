@@ -1,0 +1,24 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+import ElectricPower
+
+from "atopile/ti-tps63020/ti-tps63020.ato" import TI_TPS63020DSJR
+
+module Usage:
+    power_in = new ElectricPower
+    assert power_in.voltage within 4.5V to 5.5V
+
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.3V to 3.6V
+
+    power_1v8 = new ElectricPower
+    assert power_1v8.voltage within 1.8V to 2.2V
+
+    regulator_1v8 = new TI_TPS63020DSJR
+    regulator_3v3 = new TI_TPS63020DSJR
+
+    power_in ~> regulator_1v8 ~> power_1v8
+    power_in ~> regulator_3v3 ~> power_3v3
