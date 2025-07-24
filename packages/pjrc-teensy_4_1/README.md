@@ -40,6 +40,14 @@ module Usage:
     # --- Connections ---
     teensy.usb_device ~ usb_connector.usb2
     teensy.ethernet ~ ethernet_connector.ethernet
+
+    # --- Net renaming (optional) ---
+    teensy.usb_device.usb_if.d.p.line.override_net_name = "USB_P"
+    teensy.usb_device.usb_if.d.n.line.override_net_name = "USB_N"
+    teensy.ethernet.pairs[0].p.line.override_net_name = "ETH_RX_P"
+    teensy.ethernet.pairs[0].n.line.override_net_name = "ETH_RX_N"
+    teensy.ethernet.pairs[1].p.line.override_net_name = "ETH_TX_P"
+    teensy.ethernet.pairs[1].n.line.override_net_name = "ETH_TX_N"
 ```
 
 ## Contributing
