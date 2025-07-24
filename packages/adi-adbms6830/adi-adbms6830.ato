@@ -1,0 +1,442 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+from "generics/interfaces.ato" import SPI, ISOSPI, Power, DiffPair
+from "generics/filters.ato" import DifferentialLowPassFilter, LowPassFilter
+from "generics/inductors.ato" import FerriteBead
+from "generics/resistors.ato" import Resistor
+from "generics/capacitors.ato" import Capacitor
+from "generics/vdivs.ato" import _VDiv
+
+import BJT, Inductor, DifferentialPair
+
+from "parts/adi-adbms6830/adi-adbms6830.ato" import ADBMS6830_package
+
+module ADBMS6830:
+    """
+    16CH cell monitor with 16 cell sense and bleed inputs, SPI and ISOSPI interfaces, and 10 gpio
+    """
+    package = new ADBMS6830_package
+
+    # --- External interfaces ---
+    vbat = new ElectricPower
+    """
+    Power supply for the ADBMS6830, connected across cell stack with kelvin connection
+    """
+    vbat.required = true
+    assert vbat.voltage within 11V to 85V
+
+    vreg = new ElectricPower
+    """
+    5V rail generated from stack via internal LDO controller and external BJT.
+    Powers core circuits, isoSPI xcvr, and discharge switches
+    """
+    assert vreg.voltage within 4.5V to 5.5V
+
+    vref2 = new ElectricPower
+    """
+    Secondary ADC reference, can be used for biasing thermistors
+    """
+    assert vref2.voltage within 3V +/- 5mV
+
+    cell_sense_inputs = new DifferentialPair[16]
+    """
+    Cell voltag sense inputs for the ADBMS6830. Each cell interface is a differential input at the ic pins.
+    """
+
+    cell_balance_inputs = new DifferentialPair[16]
+    """
+    Cell balance inputs for the ADBMS6830. Each cell interface is a differential input at the ic pins.
+    """
+
+    iso_a_external = new ISOSPI
+    """
+    External differential pair SPI interface defined at the external connector interface, DC isolated from ASIC gnd
+    """
+
+    iso_b_external = new ISOSPI
+    """
+    External differential pair SPI interface defined at the external connector interface, DC isolated from ASIC gnd
+    """
+
+    spi = new SPI
+    """
+    SPI interface for communication with port A of the ADBMS6830
+    """
+
+    gpios = new ElectricSignal[9]
+    """
+    Single ended GPIO inputs for the ADBMS6830.
+    """
+
+    vreg_drive = new ElectricSignal
+    """
+    Drive signal to bias base of the NPN transistor in the VREG LDO, typical voltage 5.7V
+    """
+    vreg_drive.reference = vreg
+
+    # --- Internal interfaces ---
+    asic_vp = new ElectricPower
+    """
+    High voltage power supply of ASIC, defined at the ASIC pins
+    """
+
+    vref1 = new ElectricPower
+    """
+    Primary ADC reference
+    """
+
+    iso_a_internal = new ISOSPI
+    """
+    Internal interface for the ADBMS6830, defined at the pins of the IC, biased to ASIC gnd
+    """
+    iso_b_internal = new ISOSPI
+    """
+    Internal interface for the ADBMS6830, defined at the pins of the IC, biased to ASIC gnd
+    """
+
+    # --- Power Supply ---
+    npn = new Diodes_Incorporated_FZT853TA
+    vreg_fb = new BLM15HD182SN1D
+
+    vbat.hv ~> vreg_input_filter ~> npn ~> vreg_fb ~> vreg.hv
+    vreg_drive.line ~> vreg_drive_filter ~> npn.base
+
+    vbat.hv ~> vplus_filter ~> asic_vp
+    vbat.gnd ~ vplus_filter.input.gnd
+    vplus_filter.output.io ~ asic_vp
+
+    # --- Decoupling Caps ---
+    vreg_cap = new Capacitor
+    vreg_cap.package = "0603"
+    vreg_cap.value = 1uF +/- 20%
+    vreg.hv ~> vreg_cap ~> vreg.lv
+
+    vref2_cap = new Capacitor
+    vref2_cap.package = "0402"
+    vref2_cap.value = 1uF +/- 20%
+    vref2.hv ~> vref2_cap ~> vref2.lv
+
+    vref1_cap = new Capacitor
+    vref1_cap.package = "0402"
+    vref1_cap.value = 1uF +/- 20%
+    vref1.hv ~> vref1_cap ~> vref1.lv
+
+    # --- isoSPI Isolation ---
+    isoSPI_isolation_caps = new Capacitor[4]
+    for isoSPI_isolation_cap in isoSPI_isolation_caps:
+        isoSPI_isolation_cap.capacitance = 22nF +/- 20%
+        isoSPI_isolation_cap.voltage within 100V to 200V
+
+    iso_a_internal.p ~> isoSPI_isolation_caps[0] ~> iso_a_external.p
+    iso_a_internal.n ~> isoSPI_isolation_caps[1] ~> iso_a_external.n
+    iso_b_internal.p ~> isoSPI_isolation_caps[2] ~> iso_b_external.p
+    iso_b_internal.n ~> isoSPI_isolation_caps[3] ~> iso_b_external.n
+
+    # --- isoSPI termination network ---
+    isoSPI_termination_resistors = new Resistor[4]
+    for isoSPI_termination_resistor in isoSPI_termination_resistors:
+        isoSPI_termination_resistor.resistance = 100ohm +/- 10%
+        isoSPI_termination_resistor.package = "0402"
+    isoSPI_dc_bias_caps = new Capacitor[2]
+    for isoSPI_dc_bias_cap in isoSPI_dc_bias_caps:
+        isoSPI_dc_bias_cap.capacitance = 100nF +/- 20%
+        isoSPI_dc_bias_cap.package = "0402"
+
+    iso_a_termination_midpoint = new Electrical
+    iso_b_termination_midpoint = new Electrical
+    iso_a_internal.p ~> isoSPI_termination_resistors[0] ~> iso_a_termination_midpoint  ~> isoSPI_termination_resistors[1] ~> iso_a_external.n
+    iso_a_termination_midpoint ~> isoSPI_dc_bias_caps[0] ~> vreg.lv
+    iso_b_internal.p ~> isoSPI_termination_resistors[2] ~> iso_b_termination_midpoint  ~> isoSPI_termination_resistors[3] ~> iso_b_external.n
+    iso_b_termination_midpoint ~> isoSPI_dc_bias_caps[1] ~> vreg.lv
+
+    # ISOMD mode select (SPI or ISOSPI)
+    # ISOMD ~ VREG = ISOSPI
+    # ISOMD ~ GND = SPI
+    isomd_sw = new MSK12CO2_SPDT_SWITCH
+    isomd_sw.output ~ package.ISOMD
+    isomd_sw.power.vcc ~ package.VREG
+    isomd_sw.power.gnd ~ package.GND
+
+    # --- Power Supply Filters ---
+    vreg_input_filter = new LowPassFilter
+    vreg_input_filter.resistor.value = 330ohm +/- 10%
+    vreg_input_filter.resistor.package = "1206"
+    vreg_input_filter.capacitor.value = 10nF +/- 20%
+    vreg_input_filter.capacitor.package = "0805"
+    vreg_input_filter.cutoff_frequency = 30kHz to 70kHz
+    vreg_input_filter.input.gnd ~ vbat.lv
+    vreg_input_filter.capacitor.voltage within 100V to 200V
+
+    vreg_drive_filter = new LowPassFilter
+    vreg_drive_filter.resistor.value = 10ohm +/- 10%
+    vreg_drive_filter.resistor.package = "0402"
+    vreg_drive_filter.capacitor.value = 10nF +/- 20%
+    vreg_drive_filter.capacitor.package = "0402"
+    vreg_drive_filter.cutoff_frequency = 1MHz to 3MHz
+
+    vplus_filter = new LowPassFilter
+    vplus_filter.resistor.value = 1kohm +/- 10%
+    vplus_filter.resistor.package = "0805"
+    vplus_filter.capacitor.value = 10nF +/- 20%
+    vplus_filter.capacitor.package = "0805"
+    vplus_filter.cutoff_frequency = 10kHz to 30kHz
+
+    # --- Package Connections ---
+    asic_vp.hv ~ package.VP
+    asic_vp.lv ~ package.GND
+
+    vreg.hv ~ package.VREG
+    vreg.lv ~ package.GND
+
+    vref1.hv ~ package.VREF1
+    vref1.lv ~ package.GND
+
+    vref2.hv ~ package.VREF2
+    vref2.lv ~ package.GND
+
+    vbat.gnd ~ package.GND
+
+    iso_a_internal.p ~ package.SCKIPA
+    iso_a_internal.n ~ package.CSBIMA
+    iso_b_internal.p ~ package.IPB
+    iso_b_internal.n ~ package.IMB
+
+    # Cell0 cap to gnd
+    cell0_cap = new Capacitor
+    cell0_cap.package = "0402"
+    cell0_cap.value = 100nF +/- 20%
+    cell0_cap.p1 ~ package.C0
+    cell0_cap.p2 ~ package.GND
+
+    # Cell interfaces
+    cell1 = new CellInput
+    cell1.sense.p ~ package.C1
+    cell1.sense.n ~ package.C0
+    cell1.bleed.p ~ package.S1P
+    cell1.bleed.n ~ package.S1N
+    cell1.sgnd ~ package.GND
+
+    cell2 = new CellInput
+    cell2.sense.p ~ package.C2
+    cell2.sense.n ~ package.C1
+    cell2.bleed.p ~ package.S2P
+    cell2.bleed.n ~ package.S2N
+    cell2.sgnd ~ package.S1P
+
+    cell3 = new CellInput
+    cell3.sense.p ~ package.C3
+    cell3.sense.n ~ package.C2
+    cell3.bleed.p ~ package.S3P
+    cell3.bleed.n ~ package.S3N
+    cell3.sgnd ~ package.S2P
+
+    cell4 = new CellInput
+    cell4.sense.p ~ package.C4
+    cell4.sense.n ~ package.C3
+    cell4.bleed.p ~ package.S4P
+    cell4.bleed.n ~ package.S4N
+    cell4.sgnd ~ package.S3P
+
+    cell5 = new CellInput
+    cell5.sense.p ~ package.C5
+    cell5.sense.n ~ package.C4
+    cell5.bleed.p ~ package.S5P
+    cell5.bleed.n ~ package.S5N
+    cell5.sgnd ~ package.S4P
+
+    cell6 = new CellInput
+    cell6.sense.p ~ package.C6
+    cell6.sense.n ~ package.C5
+    cell6.bleed.p ~ package.S6P
+    cell6.bleed.n ~ package.S6N
+    cell6.sgnd ~ package.S5P
+
+    cell7 = new CellInput
+    cell7.sense.p ~ package.C7
+    cell7.sense.n ~ package.C6
+    cell7.bleed.p ~ package.S7P
+    cell7.bleed.n ~ package.S7N
+    cell7.sgnd ~ package.S6P
+
+    cell8 = new CellInput
+    cell8.sense.p ~ package.C8
+    cell8.sense.n ~ package.C7
+    cell8.bleed.p ~ package.S8P
+    cell8.bleed.n ~ package.S8N
+    cell8.sgnd ~ package.S7P
+
+    cell9 = new CellInput
+    cell9.sense.p ~ package.C9
+    cell9.sense.n ~ package.C9N
+    cell9.sense.n ~ package.C8
+    cell9.bleed.p ~ package.S9P
+    cell9.bleed.n ~ package.S9N
+    cell9.sgnd ~ package.S8P
+
+    cell10 = new CellInput
+    cell10.sense.p ~ package.C10
+    cell10.sense.n ~ package.C9
+    cell10.bleed.p ~ package.S10P
+    cell10.bleed.n ~ package.S10N
+    cell10.sgnd ~ package.S9P
+
+    cell11 = new CellInput
+    cell11.sense.p ~ package.C11
+    cell11.sense.n ~ package.C10
+    cell11.bleed.p ~ package.S11P
+    cell11.bleed.n ~ package.S11N
+    cell11.sgnd ~ package.S10P
+
+    cell12 = new CellInput
+    cell12.sense.p ~ package.C12
+    cell12.sense.n ~ package.C11
+    cell12.bleed.p ~ package.S12P
+    cell12.bleed.n ~ package.S12N
+    cell12.sgnd ~ package.S11P
+
+    cell13 = new CellInput
+    cell13.sense.p ~ package.C13
+    cell13.sense.n ~ package.C12
+    cell13.bleed.p ~ package.S13P
+    cell13.bleed.n ~ package.S13N
+    cell13.sgnd ~ package.S12P
+
+    cell14 = new CellInput
+    cell14.sense.p ~ package.C14
+    cell14.sense.n ~ package.C13
+    cell14.bleed.p ~ package.S14P
+    cell14.bleed.n ~ package.S14N
+    cell14.sgnd ~ package.S13P
+
+    cell15 = new CellInput
+    cell15.sense.p ~ package.C15
+    cell15.sense.n ~ package.C14
+    cell15.bleed.p ~ package.S15P
+    cell15.bleed.n ~ package.S15N
+    cell15.sgnd ~ package.S14P
+
+    cell16 = new CellInput
+    cell16.sense.p ~ package.C16
+    cell16.sense.n ~ package.C15
+    cell16.bleed.p ~ package.S16P
+    cell16.bleed.n ~ package.S16N
+    cell16.sgnd ~ package.S15P
+
+    gpios[0] ~ package.GPIO1
+    gpios[1] ~ package.GPIO2
+    gpios[2] ~ package.GPIO3
+    gpios[3] ~ package.GPIO4
+    gpios[4] ~ package.GPIO5
+    gpios[5] ~ package.GPIO6
+    gpios[6] ~ package.GPIO7
+    gpios[7] ~ package.GPIO8
+    gpios[8] ~ package.GPIO9
+
+    temp_sensor_1 = new TempSensor
+    temp_sensor_1.power.vcc ~ package.VREF1
+    temp_sensor_1.power.gnd ~ package.GND
+    temp_sensor_1.output.io ~ package.GPIO1
+
+    temp_sensor_2 = new TempSensor
+    temp_sensor_2.power.vcc ~ package.VREF1
+    temp_sensor_2.output.io ~ package.GPIO2
+    temp_sensor_2.power.gnd ~ package.GND
+
+
+module TempSensor from _VDiv:
+    # 100kΩ 100uA 100mW ±1% 4250K ±1% 0402 NTC Thermistors ROHS
+    r_top.mpn = "C77130"
+    r_top.footprint = "R0402"
+    r_top.value = 100kohm +/- 1%
+    r_bottom.value = 100kohm +/- 1%
+    r_bottom.footprint = "R0402"
+
+module CellInput:
+    """
+    Interfaces between the ADBMS6830 and one cell from the cell stack
+    - sense: differential input for cell sense voltage
+    - bleed: differential input for cell bleed current
+    - sgnd: ground reference for bleed filter (SN-1P bleed input) as inputs are not shared
+    """
+    power = new Power
+    sense = new DiffPair
+    bleed = new DiffPair
+    signal sgnd # gnd reference for bleed filter (SN-1P bleed input) as inputs are not shared
+
+    sense_filter = new DifferentialLowPassFilter
+    bleed_filter_top = new DifferentialLowPassFilter
+    bleed_filter_bot = new DifferentialLowPassFilter
+
+    power.vcc ~ sense_filter.input.p; sense_filter.output.p ~ sense.p
+    sense_filter.output.n ~ sense.n
+
+    power.vcc ~ bleed_filter_top.input.p; bleed_filter_top.output.p ~ bleed.p
+    bleed_filter_top.output.n ~ bleed_filter_bot.output.p
+    power.gnd ~ bleed_filter_bot.input.p; bleed_filter_bot.output.p ~ bleed.n
+    bleed_filter_bot.output.n ~ sgnd
+
+
+    # Configure filter
+    sense_filter.cutoff_frequency = 65kHz to 95kHz
+    sense_filter.capacitor.value = 10nF +/- 10%
+    sense_filter.capacitor.package = "0603"
+    sense_filter.resistor.value = 200ohm +/- 2%
+    sense_filter.resistor.package = "0402"
+
+    bleed_filter_top.cutoff_frequency = 65kHz to 95kHz
+    bleed_filter_top.capacitor.value = 100nF +/- 10%
+    bleed_filter_top.capacitor.package = "0603"
+    bleed_filter_top.resistor.value = 20ohm +/- 2%
+    bleed_filter_top.resistor.package = "0805"
+
+    bleed_filter_bot.cutoff_frequency = 65kHz to 95kHz
+    bleed_filter_bot.capacitor.value = 100nF +/- 10%
+    bleed_filter_bot.capacitor.package = "0603"
+    bleed_filter_bot.resistor.value = 20ohm +/- 2%
+    bleed_filter_bot.resistor.package = "0805"
+
+
+
+    # Mathy bits
+    bleed_rds_on = 0.5ohms to 2ohms
+    cell_voltage = 1.8V to 4.5V
+    bleed_current = 80mA to 100mA
+    # bleed_filter.resistor.power_rating = 0.25W to 100W
+    assert 3.8V / (2 * bleed_filter_top.resistor.value + bleed_rds_on) within bleed_current
+    # assert (3.8V / (2 * bleed_filter.resistor.value + bleed_rds_on))**2 * bleed_filter.resistor.value within bleed_filter.resistor.power_rating
+
+
+component Diodes_Incorporated_FZT853TA from BJT:
+    package = new Diodes_Incorporated_FZT853TA_package
+
+    signal collector ~ package.C
+    collector ~ package.C
+    signal emitter ~ package.E
+    signal base ~ package.B
+
+    doping_type = "NPN"
+
+
+component BLM15HD182SN1D from Inductor:
+    # component BLM15HD182SN1D
+    footprint = "L0402"
+    lcsc_id = "C76888"
+    mpn = "C76888"
+    # pins
+    signal _2 ~ pin 2
+    signal _1 ~ pin 1
+
+component MSK12CO2_SPDT_SWITCH:
+    # component MINI_space_MSK12CO2
+    footprint = "SW-SMD_MSK12CO2"
+    lcsc_id = "C2681570"
+    mpn = "C2681570"
+    # pins
+    power = new Power
+    power.gnd ~ pin 1
+    signal output ~ pin 2
+    power.vcc ~ pin 3
+    power.gnd ~ pin 4
+    power.gnd ~ pin 5
