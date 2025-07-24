@@ -7,18 +7,32 @@ from faebryk.libs.units import Quantity
 
 
 class ADBMS6830InputFilters(Module):
+    """
+    Filters between the cell connections and the primary and secondary sense pins of the ADBMS6830.
+
+    :param number_of_cells: Number of battery cells in the stack
+    :param sense_filter_resistance: Resistance of the sense filter
+    :param sense_filter_capacitance: Capacitance of the sense filter
+    :param max_balance_current: Maximum balance current, used to calculate balance resistor values
+    :param total_number_of_channels: Total number of channels available on ASIC, unused channels are depopulated
+
+    Balance Filters: f(max_balance_current, sense_filter_corner_frequency)
+        Values calculated from maximum balance current and sense filter corner frequency
+    """
+
     def __init__(
         self,
         number_of_cells: int = 16,
-        sense_filter_capacitance: Quantity = 100 * P.nF,
         sense_filter_resistance: Quantity = 200 * P.Ω,
-        balance_filter_res: Quantity = 100 * P.nF,
+        sense_filter_capacitance: Quantity = 10 * P.nF,
+        max_balance_current: Quantity = 0.100 * P.A,
         total_number_of_channels: int = 16,
     ):
         super().__init__()
         self.number_of_cells = number_of_cells
-        self.sense_filter_capacitance = sense_filter_capacitance
         self.sense_filter_resistance = sense_filter_resistance
+        self.sense_filter_capacitance = sense_filter_capacitance
+        self.max_balance_current = max_balance_current
         self.total_number_of_channels = total_number_of_channels
 
     bleed_resistance = L.p_field(
@@ -52,21 +66,20 @@ class ADBMS6830InputFilters(Module):
         cell_power: F.ElectricPower
         sense_input: F.DifferentialPair
 
-        sense_resistor: F.Resistor
-        sense_capacitor: F.Capacitor
-
-        filter_corner_frequency: Quantity
+        sense_filter: F.FilterElectricalRC
 
         def __preinit__(self):
-            self.sense_resistor.resistance.alias_is(self.sense_filter_resistance)
-            self.sense_capacitor.capacitance.alias_is(self.sense_filter_capacitance)
-            self.filter_corner_frequencyalias_is(
-                2 * P.π * self.sense_filter_resistance * self.sense_filter_capacitance
+            # Set value of sense filter
+            self.sense_filter.resistor.resistance.alias_is(self.sense_filter_resistance)
+            self.sense_filter.capacitor.capacitance.alias_is(
+                self.sense_filter_capacitance
             )
 
-            self.cell_power.hv.connect_via(self.sense_resistor, self.sense_input.p.line)
+            self.cell_power.hv.connect_via(
+                self.sense_filter.resistor, self.sense_input.p.line
+            )
             self.sense_input.p.line.connect_via(
-                self.sense_capacitor, self.sense_input.n.line
+                self.sense_filter.capacitor, self.sense_input.n.line
             )
 
     class BalanceFilter(Module):
@@ -83,38 +96,35 @@ class ADBMS6830InputFilters(Module):
 
         cell_power: F.ElectricPower
         balance_input: F.DifferentialPair
-        cap_bridge_connect: F.ElectricSignal
+        cap_bridge_connect: F.ElectricSignal  # Connect to cell below, transients to gnd
 
-        top_balance_resistor: F.Resistor
-        bottom_balance_resistor: F.Resistor
-        differential_balance_capacitor: F.Capacitor
-        bridge_capacitor: F.Capacitor
-
-        balance_filter_capacitance: Quantity
+        top_balance_filter: F.FilterElectricalRC
+        bottom_balance_filter: F.FilterElectricalRC
 
         def __preinit__(self):
-            self.top_balance_resistor.resistance.alias_is(
+            self.top_balance_filter.resistor.resistance.alias_is(
                 self.balance_filter_resistance
             )
-            self.bottom_balance_resistor.resistance.alias_is(
+            self.bottom_balance_filter.resistor.resistance.alias_is(
                 self.balance_filter_resistance
             )
-            self.differential_balance_capacitor.capacitance.alias_is(
+            self.top_balance_filter.capacitor.capacitance.alias_is(
                 self.balance_filter_capacitance
             )
-            self.bridge_capacitor.capacitance.alias_is(self.balance_filter_capacitance)
-
+            self.bottom_balance_filter.capacitor.capacitance.alias_is(
+                self.balance_filter_capacitance
+            )
             self.cell_power.hv.connect_via(
-                self.top_balance_resistor, self.balance_input.p.line
+                self.top_balance_filter.resistor, self.balance_input.p.line
             )
             self.cell_power.lv.connect_via(
-                self.bottom_balance_resistor, self.balance_input.n.line
+                self.bottom_balance_filter.resistor, self.balance_input.n.line
             )
             self.balance_input.p.line.connect_via(
-                self.differential_balance_capacitor, self.balance_input.n.line
+                self.top_balance_filter.capacitor, self.balance_input.n.line
             )
             self.balance_input.n.line.connect_via(
-                self.bridge_capacitor, self.cap_bridge_connect.line
+                self.bottom_balance_filter.capacitor, self.cap_bridge_connect.line
             )
 
     @L.rt_field
@@ -128,6 +138,11 @@ class ADBMS6830InputFilters(Module):
     bottom_sense_filter: SenseFilter
 
     def __preinit__(self):
+        # Calculate balance resistance value based on max balance current
+        self.bleed_resistance.constrain_ge(
+            ((self.cell_inputs[0].voltage / self.max_balance_current) - 1.0 * P.ohm) / 2
+        )
+
         # Stack all cell power interface in series
         # Connect input filters
         for idx, cell_input in enumerate(self.cell_inputs):

@@ -50,6 +50,13 @@ module ADBMS6830:
     Cell balance inputs for the ADBMS6830. Each cell interface is a differential input at the ic pins.
     """
 
+    cell_stack = new ElectricPower[16]
+    """
+    Cell stack power supply, defined at the cell connection pins
+    """
+    for cell in cell_stack:
+        cell.voltage = 1.8V to 4.25V
+
     iso_a_external = new ISOSPI
     """
     External differential pair SPI interface defined at the external connector interface, DC isolated from ASIC gnd
