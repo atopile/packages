@@ -6,7 +6,8 @@ import ElectricSignal
 import SPI
 import USB2_0
 import I2C
-# import CAN_TTL
+import CAN_TTL
+import I2S
 import UART_Base
 import Ethernet
 import ElectricLogic
@@ -58,15 +59,22 @@ module PJRC_Teensy_4_1:
 
     # digital interfaces
     gpio = new ElectricLogic[42]
+    """General purpose I/O. Same number as on the silkscreen."""
     spi = new SPI[2]
+    """SPI interfaces. Interface 3 is used for the SD card."""
     chip_select = new ElectricLogic[2]
     i2c = new I2C[3]
-    can = new UART_Base[3]
-    # can = new CAN_TTL[3]
+    can = new CAN_TTL[3]
     ethernet = new Ethernet
+    """Ethernet interface from on board PHY"""
     uart = new UART_Base[8]
+    """Individually usable UART interfaces"""
     usb_host = new USB2_0
+    """USB host interface to connect USB devices to the Teensy"""
     usb_device = new USB2_0
+    i2s = new I2S[2]
+    spdif_in = new ElectricLogic
+    spdif_out = new ElectricLogic
 
     # analog interfaces
     analog = new ElectricSignal[18]
@@ -92,10 +100,10 @@ module PJRC_Teensy_4_1:
         logic.reference_shim ~ power_3v3
     for logic in uart:
         logic.reference_shim ~ power_3v3
-    for logic in analog:
+    for logic in i2s:
         logic.reference_shim ~ power_3v3
-    on_off.reference_shim ~ power_3v3
-    program.reference_shim ~ power_3v3
+    for logic in [spdif_in, spdif_out, on_off, program]:
+        logic.reference_shim ~ power_3v3
 
     # default pinmux and fixed peripheral connections
     # can
@@ -112,7 +120,7 @@ module PJRC_Teensy_4_1:
     spi[0].sclk ~ gpio[13]
     chip_select[0] ~ gpio[10]
     spi[1].mosi ~ gpio[26]
-    spi[1].miso ~ gpio[0]
+    spi[1].miso ~ gpio[1]
     spi[1].sclk ~ gpio[27]
     chip_select[1] ~ gpio[0]
 
@@ -141,6 +149,10 @@ module PJRC_Teensy_4_1:
     uart[6].tx ~ gpio[29]
     uart[7].rx ~ gpio[34]
     uart[7].tx ~ gpio[35]
+
+    # spdif
+    spdif_in ~ gpio[15]
+    spdif_out ~ gpio[14]
 
     # analog
     analog[0] ~ gpio[14]
@@ -223,8 +235,8 @@ module PJRC_Teensy_4_1:
     power_battery.hv ~ header_extension.5
 
     power_usb_host.hv ~ header_usb_host.1
-    usb_host.usb_if.d.p.line ~ header_usb_host.2
-    usb_host.usb_if.d.n.line ~ header_usb_host.3
+    usb_host.usb_if.d.n.line ~ header_usb_host.2
+    usb_host.usb_if.d.p.line ~ header_usb_host.3
     power_usb_host.lv ~ header_usb_host.4
     power_usb_host.lv ~ header_usb_host.5
 
@@ -232,8 +244,8 @@ module PJRC_Teensy_4_1:
     ethernet.pairs[0].n.line ~ header_ethernet.2 # rx-
     ethernet.led_speed.line ~ header_ethernet.3 # led anode
     ethernet.led_speed.reference.lv ~ header_ethernet.4 # gnd
-    ethernet.pairs[1].p.line ~ header_ethernet.5 # tx+
-    ethernet.pairs[1].n.line ~ header_ethernet.6 # tx-
+    ethernet.pairs[1].n.line ~ header_ethernet.5 # tx-
+    ethernet.pairs[1].p.line ~ header_ethernet.6 # tx+
 
     usb_device.usb_if.d.n.line ~ usb_pogo.1
     usb_device.usb_if.d.p.line ~ usb_pogo.2
