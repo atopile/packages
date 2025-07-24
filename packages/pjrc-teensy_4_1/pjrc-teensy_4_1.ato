@@ -36,10 +36,25 @@ module PJRC_Teensy_4_1:
     # --- External interfaces ---
     # power
     power = new ElectricPower
+    """
+    Main power input. Also connected to VBUS of the on board USB connector.
+    """
+    assert power.voltage within 3.6V to 5.5V
     power_3v3 = new ElectricPower
+    """
+    3.3V power output. Used on the module, can power low power external devices (250mA max)
+    """
+    assert power_3v3.voltage within 3.3V +/- 5%
     power_battery = new ElectricPower
+    """
+    Battery backup power input. Used in low power mode and to keep the RTC running.
+    """
+    assert power_battery.voltage within 2.5V to 3.6V
     power_usb_host = new ElectricPower
-    power_usb_device = new ElectricPower
+    """
+    USB host power output. Used to power USB devices conencted to the USB host connector.
+    """
+    assert power_usb_host.voltage within 5V +/- 0.25V
 
     # digital interfaces
     gpio = new ElectricLogic[42]
@@ -65,6 +80,22 @@ module PJRC_Teensy_4_1:
     # --- Internal connections ---
     # logic references
     trait has_single_electric_reference_shared<gnd_only=True>
+    for logic in gpio:
+        logic.reference_shim ~ power_3v3
+    for logic in spi:
+        logic.reference_shim ~ power_3v3
+    for logic in chip_select:
+        logic.reference_shim ~ power_3v3
+    for logic in i2c:
+        logic.reference_shim ~ power_3v3
+    for logic in can:
+        logic.reference_shim ~ power_3v3
+    for logic in uart:
+        logic.reference_shim ~ power_3v3
+    for logic in analog:
+        logic.reference_shim ~ power_3v3
+    on_off.reference_shim ~ power_3v3
+    program.reference_shim ~ power_3v3
 
     # default pinmux and fixed peripheral connections
     # can
