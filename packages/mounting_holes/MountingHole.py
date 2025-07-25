@@ -44,8 +44,8 @@ class MountingHole(Module):
         # We currently only have footprints for these sizes
         if self._metric_screw_size not in supported_metric_sizes:
             raise UserBadParameterError(
-                f"Unsupported metric_screw_size: {self._metric_screw_size.name} "
-                f"Supported sizes are: {[m.name for m in supported_metric_sizes]}"
+                f"Unsupported metric_screw_size: [{self._metric_screw_size.name}]. "
+                f"Supported sizes are: {[m.name for m in supported_metric_sizes]}."
             )
         size_metric = self._metric_screw_size
         size_mm = f"{size_metric.value}mm"

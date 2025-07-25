@@ -38,12 +38,7 @@ module Usage:
     m2_with_pad.contact ~ m3_top_pad.contact
     m3_top_pad.contact ~ m4_pad_with_vias.contact
     # m6_no_pad has no contact
-
 ```
-
-## Overview
-
-This package contains the base for various logos.
 
 ## Contributing
 
