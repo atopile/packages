@@ -13,8 +13,16 @@ builds:
     entry: usage.ato:Usage
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  inputfilters:
+  input-filters:
     entry: input-filters.py:ADBMS6830InputFilters
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  sense-filter:
+    entry: input-filters.py:SenseFilter
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  balance-filter:
+    entry: input-filters.py:BalanceFilter
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
