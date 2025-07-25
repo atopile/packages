@@ -159,8 +159,8 @@ module ADI_ADBMS6830:
     vreg.lv ~ vbat.lv
 
     vbat.hv ~> vplus_filter ~> asic_vp.hv
-    vbat.gnd ~ vplus_filter.reference_shim.lv
-    vbat.hv ~ cell_stack[0].hv
+    vbat.lv ~ vplus_filter.reference_shim.lv
+    vbat.hv ~ cell_stack[-1].hv
     vbat.lv ~ cell_stack[0].lv
 
     # --- Decoupling Caps ---
