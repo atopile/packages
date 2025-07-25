@@ -77,6 +77,7 @@ class NetTie(Module):
         # Connect all interfaces to the first one
         for p in self.power[1:]:
             p.connect_shallow(self.power[0])
+            p.add(F.requires_external_usage())
 
         # add footprint
         fp_name = self.footprint_name()
