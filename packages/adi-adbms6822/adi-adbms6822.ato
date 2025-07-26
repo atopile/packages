@@ -144,19 +144,36 @@ module ADI_ADBMS6822:
     isospi_2.p.line ~ package.IP2
     isospi_2.n.line ~ package.IM2
 
-    # --- Mode Select and Configuration Connections ---
+    # --- Configuration ---
+    adi_adbms6822_configurator = new ADI_ADBMS6822_Configurator<spi_mode_1="PERIPHERAL", spi_mode_2="PERIPHERAL", phapol_1="CLK_HIGH_SECOND_EDGE", phapol_2="CLK_HIGH_SECOND_EDGE", xcvrmd_1="BIDIRECTIONAL_STANDARD", xcvrmd_2="BIDIRECTIONAL_STANDARD", rto_1="TIMEOUT_1_5_SEC", rto_2="TIMEOUT_1_5_SEC">
+    """
+    Configures the ADBMS6822 module based on the external interface settings.
+    SPI Mode 1: SPI controller mode
+    SPI Mode 2: SPI peripheral mode
+    PHAPOL 1: SPI clock phase and polarity
+    PHAPOL 2: SPI clock phase and polarity
+    XCVRMD 1: Transceiver mode
+    XCVRMD 2: Transceiver mode
+    RTO 1: Timeout period
+    RTO 2: Timeout period
+    """
+    adi_adbms6822_configurator.spi_mode_1_signal ~ mstr_1
+    adi_adbms6822_configurator.spi_mode_2_signal ~ mstr_2
+    adi_adbms6822_configurator.phapol_1_signal ~ phapol_1
+    adi_adbms6822_configurator.phapol_2_signal ~ phapol_2
+    adi_adbms6822_configurator.xcvrmd_1_signal ~ xcvrmd_1
+    adi_adbms6822_configurator.xcvrmd_2_signal ~ xcvrmd_2
+    adi_adbms6822_configurator.rto_1_signal ~ rto_1
+    adi_adbms6822_configurator.rto_2_signal ~ rto_2
 
-    # Configuration notes for external interface usage:
-    # Low Power Mode Timeout (configure via rto_1 and rto_2 external interfaces)
-    # Timeout Time      Resistance
-    # 1.5 sec           0  | 0    | 10 kΩ
-    # 1.5 sec           92 |      | 100 kΩ
-    # 3 sec             15 | 17.8 | 22 kΩ
-    # 6 sec             28 | 30.9 | 34 kΩ
-    # 12 sec            41 | 43.2 | 46 kΩ
-    # 18 sec            54 | 56.2 | 58 kΩ
-    # 24 sec            67 | 68.1 | 71 kΩ
-    # 48 sec            79 | 80.6 | 83 kΩ
+    mstr_1.line.override_net_name = "MSTR_1_CONFIG"
+    mstr_2.line.override_net_name = "MSTR_2_CONFIG"
+    phapol_1.line.override_net_name = "PHAPOL_1_CONFIG"
+    phapol_2.line.override_net_name = "PHAPOL_2_CONFIG"
+    xcvrmd_1.line.override_net_name = "XCVRMD_1_CONFIG"
+    xcvrmd_2.line.override_net_name = "XCVRMD_2_CONFIG"
+    rto_1.line.override_net_name = "RTO_1_CONFIG"
+    rto_2.line.override_net_name = "RTO_2_CONFIG"
 
     # --- Package Connections ---
     package.EP ~ package.GND
@@ -204,34 +221,3 @@ module ADI_ADBMS6822:
     xcvrmd_2.line ~ package.XCVRMD2
     rto_1.line ~ package.RTO
     rto_2.line ~ package.RTO2
-
-
-    adi_adbms6822_configurator = new ADI_ADBMS6822_Configurator<spi_mode_1="PERIPHERAL", spi_mode_2="MASTER", phapol_1="CLK_LOW_SECOND_EDGE", phapol_2="CLK_HIGH_SECOND_EDGE", xcvrmd_1="BIDIRECTIONAL_STANDARD", xcvrmd_2="BIDIRECTIONAL_STANDARD", rto_1="TIMEOUT_1_5_SEC", rto_2="TIMEOUT_3_SEC">
-    """
-    Configures the ADBMS6822 module based on the external interface settings.
-    SPI Mode 1: SPI controller mode
-    SPI Mode 2: SPI peripheral mode
-    PHAPOL 1: SPI clock phase and polarity
-    PHAPOL 2: SPI clock phase and polarity
-    XCVRMD 1: Transceiver mode
-    XCVRMD 2: Transceiver mode
-    RTO 1: Timeout period
-    RTO 2: Timeout period
-    """
-    adi_adbms6822_configurator.spi_mode_1_signal ~ mstr_1
-    adi_adbms6822_configurator.spi_mode_2_signal ~ mstr_2
-    adi_adbms6822_configurator.phapol_1_signal ~ phapol_1
-    adi_adbms6822_configurator.phapol_2_signal ~ phapol_2
-    adi_adbms6822_configurator.xcvrmd_1_signal ~ xcvrmd_1
-    adi_adbms6822_configurator.xcvrmd_2_signal ~ xcvrmd_2
-    adi_adbms6822_configurator.rto_1_signal ~ rto_1
-    adi_adbms6822_configurator.rto_2_signal ~ rto_2
-
-    mstr_1.line.override_net_name = "MSTR_1_CONFIG"
-    mstr_2.line.override_net_name = "MSTR_2_CONFIG"
-    phapol_1.line.override_net_name = "PHAPOL_1_CONFIG"
-    phapol_2.line.override_net_name = "PHAPOL_2_CONFIG"
-    xcvrmd_1.line.override_net_name = "XCVRMD_1_CONFIG"
-    xcvrmd_2.line.override_net_name = "XCVRMD_2_CONFIG"
-    rto_1.line.override_net_name = "RTO_1_CONFIG"
-    rto_2.line.override_net_name = "RTO_2_CONFIG"
