@@ -1,0 +1,40 @@
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import I2C
+
+from "maxim-ds2484.ato" import Maxim_DS2484, OneWire
+
+module TemperatureSensor:
+    """
+    Mock 1-Wire temperature sensor for testing
+    """
+    onewire = new OneWire
+
+module Usage:
+    """
+    Minimal usage example for Maxim DS2484 1-Wire to I2C bridge.
+    Shows how to connect power supply, I2C bus, and 1-Wire devices.
+    """
+
+    # Create bridge instance
+    bridge = new Maxim_DS2484
+
+    # Main power supply for the bridge (3.3V or 5V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # External I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # 1-Wire temperature sensor
+    temp_sensor = new TemperatureSensor
+
+    # Connect interfaces
+    power_3v3 ~ bridge.power
+    i2c_bus ~ bridge.i2c
+    bridge.onewire ~ temp_sensor.onewire
+
+    # Set I2C address (default 0x18)
+    bridge.i2c.address = 0x18

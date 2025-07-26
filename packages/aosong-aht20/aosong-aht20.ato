@@ -1,0 +1,69 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import I2C
+import Resistor
+
+from "parts/Aosong__Elec_AHT20_F/Aosong__Elec_AHT20_F.ato" import Aosong__Elec_AHT20_F_package
+
+module Aosong_AHT20:
+    """
+    Aosong AHT20 digital temperature and humidity sensor with I2C interface.
+
+    Features:
+    - Temperature measurement range: -40°C to +85°C
+    - Humidity measurement range: 0% to 100% RH
+    - I2C digital output (fixed address 0x38)
+    - High precision: ±0.3°C (temperature), ±2% RH (humidity)
+    - Low power consumption: 0.25μA in sleep mode
+    - Fast response time: <5s (humidity), <30s (temperature)
+    """
+
+    # --- Package ---
+    package = new Aosong__Elec_AHT20_F_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (fixed address 0x38)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Power supply (1.8V to 3.6V)
+    """
+    power.required = True
+
+    # --- Power supply ---
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+    assert power.voltage within 1.8V to 3.6V
+
+    # --- I2C interface ---
+    # AHT20 has fixed I2C address 0x38
+    i2c.address = 0x38
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power.vcc ~> scl_pullup ~> i2c.scl.line
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power.vcc ~> sda_pullup ~> i2c.sda.line
+
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.vcc ~> decoupling_cap ~> power.gnd

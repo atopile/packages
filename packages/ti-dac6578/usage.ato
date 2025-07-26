@@ -1,0 +1,43 @@
+import ElectricPower
+import I2C
+import Electrical
+
+from "ti-dac6578.ato" import TI_DAC6578
+
+module MCU:
+    """Host MCU providing I²C bus and power rail."""
+
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Usage:
+    """Complete usage example for TI_DAC6578 DAC."""
+
+    # MCU & DAC
+    mcu = new MCU
+    dac = new TI_DAC6578
+
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V +/- 5%
+    power ~ mcu.power
+    power ~ dac.power
+
+    # I²C connection
+    mcu.i2c ~ dac.i2c
+
+    # Note: DAC module includes 4.7k I2C pull-ups internally
+
+    # Reference voltage (using power supply)
+    dac.vref ~ power.hv
+
+    # DAC outputs can be connected to external circuits
+    # Example: connecting to test points or analog circuits
+    # dac.outputs[0] ~ analog_circuit_input_a  # Channel A
+    # dac.outputs[1] ~ analog_circuit_input_b  # Channel B
+    # ... etc for channels 2-7 (C through H)
+
+    # Control signals can be connected to microcontroller pins:
+    # dac.clear_n ~ mcu.gpio_clear
+    # dac.ldac_n ~ mcu.gpio_ldac

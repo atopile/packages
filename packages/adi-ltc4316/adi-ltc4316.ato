@@ -1,0 +1,156 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import Resistor
+import Capacitor
+import I2C
+import ElectricPower
+import ElectricLogic
+
+from "parts/Analog_Devices_LTC4316IDD_PBF/Analog_Devices_LTC4316IDD_PBF.ato" import Analog_Devices_LTC4316IDD_PBF_package
+
+module ADI_LTC4316:
+    """
+    Analog Devices LTC4316 I2C Address Translator
+
+    The LTC4316 enables I2C address translation to resolve address conflicts
+    between devices on the same bus. It provides XOR-based address translation
+    controlled by external resistor configuration.
+
+    IMPORTANT LIMITATIONS:
+    - Does NOT support I2C clock stretching
+    - Not compatible with devices that use clock stretching (e.g., BNO055)
+    - Address translation configuration is latched on ENABLE rising edge
+    - Requires ENABLE pin toggle to update address translation settings
+    - Both input and output I2C buses must share the same ground reference
+
+    FEATURES:
+    - Up to 127 different address translations possible
+    - XOR-based address bit manipulation (A4, A5, A6)
+    - Pass-through mode available (XORH = VCC)
+    - Automatic recovery from bus faults
+    - Mixed voltage I2C bus support (input/output can be different voltages)
+    """
+
+    # --- External interfaces ---
+    i2c_in = new I2C
+    """
+    Input I2C bus interface
+    """
+    i2c_in.required = True
+
+    i2c_out = new I2C
+    """
+    Output I2C bus interface (translated addresses)
+    """
+    i2c_out.required = True
+
+    power = new ElectricPower
+    """
+    Power supply interface (2.25V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 2.25V to 5.5V
+
+    enable = new ElectricLogic
+    """
+    Enable pin - active high enables address translation.
+    When high, the LTC4316 is active and performing translation.
+    When low, it enters low-power mode.
+    Can be toggled to dynamically reconfigure address translation.
+    """
+    enable.reference ~ power
+
+    ready = new ElectricLogic
+    """
+    Ready pin - open-drain output indicating device is ready for operation.
+    Requires external pull-up resistor to operate correctly.
+    Pin goes low during configuration, releases high when ready.
+    """
+    ready.reference ~ power
+
+    # --- Address translation configuration ---
+    xor_high = new ElectricLogic
+    """
+    XOR configuration pin for upper address bits (A5, A6).
+    Voltage level determines XOR mask:
+    - Connect to VCC via pull-up: sets corresponding bits in XOR mask
+    - Connect to GND via pull-down: clears corresponding bits in XOR mask
+    - Connect to VCC directly: enables pass-through mode
+    """
+    xor_high.reference ~ power
+
+    xor_low = new ElectricLogic
+    """
+    XOR configuration pin for lower address bit (A4).
+    Voltage level determines XOR mask:
+    - Connect to VCC via pull-up: sets bit A4 in XOR mask
+    - Connect to GND via pull-down: clears bit A4 in XOR mask
+    """
+    xor_low.reference ~ power
+
+    # --- I2C Pull-up resistors ---
+    # LTC4316 has NO internal pull-ups - external pull-ups required
+
+    # Input side I2C pull-ups
+    i2c_in_scl_pullup = new Resistor
+    i2c_in_scl_pullup.resistance = 10kohm +/- 5%
+    i2c_in_scl_pullup.package = "0402"
+    i2c_in.scl.line ~ i2c_in_scl_pullup.unnamed[0]
+    power.hv ~ i2c_in_scl_pullup.unnamed[1]
+
+    i2c_in_sda_pullup = new Resistor
+    i2c_in_sda_pullup.resistance = 10kohm +/- 5%
+    i2c_in_sda_pullup.package = "0402"
+    i2c_in.sda.line ~ i2c_in_sda_pullup.unnamed[0]
+    power.hv ~ i2c_in_sda_pullup.unnamed[1]
+
+    # Output side I2C pull-ups
+    i2c_out_scl_pullup = new Resistor
+    i2c_out_scl_pullup.resistance = 10kohm +/- 5%
+    i2c_out_scl_pullup.package = "0402"
+    i2c_out.scl.line ~ i2c_out_scl_pullup.unnamed[0]
+    power.hv ~ i2c_out_scl_pullup.unnamed[1]
+
+    i2c_out_sda_pullup = new Resistor
+    i2c_out_sda_pullup.resistance = 10kohm +/- 5%
+    i2c_out_sda_pullup.package = "0402"
+    i2c_out.sda.line ~ i2c_out_sda_pullup.unnamed[0]
+    power.hv ~ i2c_out_sda_pullup.unnamed[1]
+
+    # --- READY pin pull-up ---
+    # READY is open-drain output - requires external pull-up
+    ready_pullup = new Resistor
+    ready_pullup.resistance = 10kohm +/- 5%
+    ready_pullup.package = "0402"
+    ready.line ~ ready_pullup.unnamed[0]
+    power.hv ~ ready_pullup.unnamed[1]
+
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~ decoupling_cap.unnamed[0]
+    power.lv ~ decoupling_cap.unnamed[1]
+
+    # --- Enable pin pull-up ---
+    enable_pullup = new Resistor
+    enable_pullup.resistance = 10kohm +/- 5%
+    enable_pullup.package = "0402"
+    enable.line ~> enable_pullup ~> power.hv
+
+    # --- Package ---
+    package = new Analog_Devices_LTC4316IDD_PBF_package
+
+    # Package connections
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+    package.EP ~ power.lv  # Exposed pad connects to ground
+    package.SCLIN ~ i2c_in.scl.line
+    package.SDAIN ~ i2c_in.sda.line
+    package.SCLOUT ~ i2c_out.scl.line
+    package.SDAOUT ~ i2c_out.sda.line
+    package.ENABLE ~ enable.line
+    package.READY ~ ready.line
+    package.XORH ~ xor_high.line
+    package.XORL ~ xor_low.line

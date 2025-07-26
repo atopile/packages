@@ -1,0 +1,80 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import I2C, ElectricPower, ElectricLogic, Resistor, Capacitor
+
+from "parts/Vishay_Intertech_VCNL4040M3OE/Vishay_Intertech_VCNL4040M3OE.ato" import Vishay_Intertech_VCNL4040M3OE_package
+
+module Vishay_VCNL4040:
+    """
+    Vishay VCNL4040 Proximity and Light Sensor
+
+    Two-in-one sensor with proximity detection (0-200mm) and ambient light sensing (0.0125-6553 lux).
+    Features I2C interface with 7-bit address 0x60.
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply for the sensor (2.5V to 3.6V)
+    """
+    power.required = True
+    assert power.voltage within 2.5V to 3.6V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x60)
+    """
+    i2c.required = True
+    assert i2c.address is 0x60
+    i2c.reference_shim ~ power
+
+
+    int_pin = new ElectricLogic
+    """
+    Interrupt output pin (active low)
+    """
+    int_pin.reference ~ power
+
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    power_cap = new Capacitor
+    power_cap.capacitance = 1uF +/- 20%
+    power_cap.package = "0402"
+    power.vcc ~> power_cap ~> power.gnd
+
+    power_resistor = new Resistor
+    power_resistor.resistance = 22ohm +/- 5%
+    power_resistor.package = "0402"
+
+    # Large decoupling for IR LED current spikes
+    ir_led_cap = new Capacitor
+    ir_led_cap.capacitance = 2.2uF +/- 20%
+    ir_led_cap.package = "0603"
+    power.vcc ~> ir_led_cap ~> power.gnd
+
+    # --- Interrupt pin pull-up ---
+    int_pullup = new Resistor
+    int_pullup.resistance = 10kohm +/- 5%
+    int_pullup.package = "0402"
+    int_pin.line ~> int_pullup ~> int_pin.reference.hv
+
+    # --- Package ---
+    package = new Vishay_Intertech_VCNL4040M3OE_package
+    package.VDD ~> power_resistor ~> power.vcc
+    package.GND ~ power.gnd
+    package.SCLK ~ i2c.scl.line
+    package.SDAT ~ i2c.sda.line
+    package.INT ~ int_pin.line
+    # Internal IR emitter and detector connections (handled internally by the sensor)
+    package.ANODE ~ power.vcc
+    package.CATHODELED ~ power.gnd
+    package.CATHODESENSOE ~ power.gnd

@@ -1,0 +1,49 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "st-lsm6dsox-lis3mdl.ato" import ST_LSM6DSOX_LIS3MDL
+
+module Usage:
+    """
+    Comprehensive usage example for ST_LSM6DSOX_LIS3MDL.
+    Shows how to connect power and I2C to the 9-DoF IMU combo sensor.
+
+    This example demonstrates:
+    - Power supply connection (3V-5V)
+    - I2C bus connection shared by both sensors
+    - Optional interrupt pin connections
+
+    I2C Addresses:
+    - LSM6DSOX (6-axis IMU): 0x6A or 0x6B
+    - LIS3MDL (magnetometer): 0x1C or 0x1E
+    """
+
+    imu_combo = new ST_LSM6DSOX_LIS3MDL
+
+    # Power supply (3V-5V)
+    power_supply = new ElectricPower
+    power_supply.voltage = 3.3V +/- 5%
+    power_supply ~ imu_combo.power
+
+    # I2C bus (shared by both LSM6DSOX and LIS3MDL)
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ imu_combo.i2c
+
+    # Optional: Connect interrupt pins if needed
+    # LSM6DSOX interrupt pins
+    # imu_combo.imu_int1 can be connected to a microcontroller GPIO
+    # imu_combo.imu_int2 can be connected to a microcontroller GPIO
+
+    # LIS3MDL interrupt pins
+    # imu_combo.mag_int can be connected to a microcontroller GPIO
+    # imu_combo.mag_drdy can be connected to a microcontroller GPIO
+
+    # Note: Both sensors will be accessible on the same I2C bus:
+    # - Read accelerometer/gyroscope data from LSM6DSOX at 0x6A/0x6B
+    # - Read magnetometer data from LIS3MDL at 0x1C/0x1E
+    # - LSM6DSOX can also read LIS3MDL data through its auxiliary interface

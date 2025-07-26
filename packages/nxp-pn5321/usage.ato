@@ -1,0 +1,24 @@
+import ElectricPower
+import DifferentialPair
+import I2C
+
+from "nxp-pn5321.ato" import NXP_PN5321_driver
+
+module Antenna:
+    input = new DifferentialPair
+
+module Example:
+    nfc = new NXP_PN5321_driver
+    antenna = new Antenna
+
+    # Power
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 10%
+    power_3v3 ~ nfc.power_3v3
+
+    # I2C interface
+    i2c = new I2C
+    i2c ~ nfc.i2c
+
+    # Antenna connection
+    nfc.antenna_output ~ antenna.input

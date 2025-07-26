@@ -1,0 +1,85 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import can_bridge_by_name
+
+from "parts/OPSCO_Optoelectronics_SK6805_EC15/OPSCO_Optoelectronics_SK6805_EC15.ato" import OPSCO_Optoelectronics_SK6805_EC15_package
+
+module OPSCO_SK6805_EC15:
+    """Driver for OPSCO SK6805-EC15 ultra-compact addressable RGB LED.
+
+    The SK6805-EC15 is the smallest member of the SK6805 family, featuring
+    a tiny 0606 package (1.5mm × 1.5mm) while maintaining full WS2812
+    compatibility. Perfect for high-density LED applications where space
+    is extremely limited.
+
+    Features:
+    - Ultra-compact 0606 package (1.5mm × 1.5mm × 0.8mm)
+    - Integrated control circuit and RGB chip
+    - WS2812 protocol compatibility
+    - 24-bit color depth (8 bits per channel)
+    - PWM frequency: 400Hz typical
+    - Data transfer rate: 800Kbps
+    - Forward voltage: 5V ±0.5V
+    - Operating temperature: -40°C to +80°C
+    - Wavelengths: R(620-625nm), G(520-530nm), B(460-470nm)
+
+    Exposes:
+      * power        – Power supply (5V ±0.5V)
+      * data_in      – Data input signal
+      * data_out     – Data output signal (for chaining)
+    """
+
+    # --- Package ---
+    package = new OPSCO_Optoelectronics_SK6805_EC15_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply (5V ±0.5V)
+    Powers both RGB LEDs and digital controller
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Data input signal (WS2812 protocol)
+    Receives color and timing data
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Data output signal for chaining LEDs
+    Regenerated signal for next LED in chain
+    """
+    data_out.required = False
+
+    # --- Power connections ---
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
+    assert power.voltage within 4.5V to 5.5V
+
+    # --- Data signal connections ---
+    data_in.line ~ package.DIN
+    data_in.reference ~ power
+
+    data_out.line ~ package.DOUT
+    data_out.reference ~ power
+
+    # --- Enable bridging for chaining LEDs ---
+    # Note: Bridging capabilities for LED chaining
+    trait can_bridge_by_name<input_name="data_in", output_name="data_out">
+
+    # --- Power decoupling ---
+    # Note: For ultra-compact designs, external decoupling may be minimal
+    # Consider board-level decoupling for dense LED arrays
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0201"  # Smallest available for space constraint
+    power.vcc ~> decoupling_cap ~> power.gnd

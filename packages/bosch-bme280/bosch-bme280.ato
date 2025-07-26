@@ -26,12 +26,34 @@ module Bosch_BME280:
 
     # --- External interfaces ---
     i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x76/0x77)
+    """
+    i2c.required = True
+
     power_core = new ElectricPower
+    """
+    Core supply rail (1.71V to 3.6V)
+    """
     power_core.required = True
+
     power_io = new ElectricPower
+    """
+    Digital I/O supply rail (1.2V to 3.6V)
+    """
     power_io.required = True
+
     spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+    spi.required = False
+
     spi_cs = new ElectricLogic
+    """
+    SPI chip select signal
+    """
+    spi_cs.required = False
 
     # --- Power supply ---
     power_core.vcc ~ package.VDD

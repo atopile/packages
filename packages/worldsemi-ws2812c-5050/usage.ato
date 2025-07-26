@@ -1,0 +1,52 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import ElectricLogic
+
+from "worldsemi-ws2812c.ato" import Worldsemi_WS2812C
+from "worldsemi-ws2812c.ato" import WS2812C_Strip
+from "worldsemi-ws2812c.ato" import WS2812C_Matrix
+
+module Usage:
+    """
+    Usage examples for Worldsemi WS2812C addressable RGB LEDs.
+
+    This example demonstrates:
+    - Single LED configuration
+    - LED strip with multiple LEDs
+    - Proper power supply and data connections
+    - Matrix example
+    """
+
+    # --- Single LED Example ---
+    single_led = new Worldsemi_WS2812C
+
+    # Power supply for single LED (5V)
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V +/- 5%
+    power_5v ~ single_led.power
+
+    # Data input from microcontroller
+    mcu_data = new ElectricLogic
+    """Data signal from microcontroller GPIO"""
+    mcu_data ~ single_led.data_in
+    power_5v ~ mcu_data.reference
+
+    # --- LED Strip Example ---
+    led_strip = new WS2812C_Strip
+
+    # Connect same power supply to strip
+    power_5v ~ led_strip.power
+
+    # Separate data line for strip
+    strip_data = new ElectricLogic
+    """Data signal for LED strip"""
+    strip_data ~ led_strip.data_in
+
+    # Matrix
+    led_matrix = new WS2812C_Matrix
+
+    # Connect power to matrix
+    power_5v ~ led_matrix.power
