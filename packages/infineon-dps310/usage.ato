@@ -1,0 +1,27 @@
+import ElectricPower
+import I2C
+
+from "infineon-dps310.ato" import Infineon_DPS310
+
+module MCU:
+    """Host MCU providing I²C bus and power rail."""
+
+    power = new ElectricPower
+    i2c = new I2C
+
+
+module Usage:
+    """Minimal example for the Infineon_DPS310 barometric pressure and altitude sensor."""
+
+    # MCU & sensor
+    mcu = new MCU
+    pressure_sensor = new Infineon_DPS310
+
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ mcu.power
+    power ~ pressure_sensor.power
+
+    # I²C connection
+    mcu.i2c ~ pressure_sensor.i2c

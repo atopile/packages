@@ -1,0 +1,117 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+import I2C
+import ElectricPower
+import Capacitor
+import Resistor
+import ElectricSignal
+import ElectricLogic
+
+import Electrical
+from "parts/Texas_Instruments_DAC6578SPWR/Texas_Instruments_DAC6578SPWR.ato" import Texas_Instruments_DAC6578SPWR_package
+
+module TI_DAC6578:
+    """
+    Texas Instruments DAC6578 8-Channel 10-Bit DAC with I2C Interface
+
+    Features:
+    - 8 x 10-bit DAC channels accessible via outputs[0-7]
+    - I2C interface (address 0x4C, up to 3.4MHz)
+    - Supply voltage: 2.7V to 5.5V (3.3V typical)
+    - Resolution: 10-bit (0-1023 range)
+    - Reference voltage input for full-scale output control
+    - Control signals: nCLR (clear), nLDAC (load)
+    - Built-in decoupling capacitors and 4.7k I2C pull-ups
+    """
+    package = new Texas_Instruments_DAC6578SPWR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Main power supply (2.7V to 5.5V, 3.3V typical)
+    """
+    power.required = True
+
+    i2c = new I2C
+    """
+    I2C communication interface (address 0x4C, up to 3.4MHz)
+    """
+    i2c.required = True
+
+    outputs = new Electrical[8]
+    """
+    8 x 10-bit DAC output channels (0-1023 range)
+    Output voltage range: 0V to VREF
+    """
+
+    clear_n = new ElectricLogic
+    """
+    Clear control (active low) - resets all DAC outputs to zero
+    """
+    clear_n.reference ~ power
+
+    ldac_n = new ElectricLogic
+    """
+    Load DAC control (active low) - transfers input registers to DAC registers
+    """
+    ldac_n.reference ~ power
+
+    vref = new Electrical
+    """
+    Reference voltage input (sets full-scale output voltage)
+    Connect to external precision reference or leave unconnected to use AVDD
+    """
+
+    # --- Power supply ---
+    assert power.voltage within 3.3V +/- 5%
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x4C
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 4.7kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Logic signal pull-ups ---
+    logic_pullups = new Resistor[2]
+    for resistor in logic_pullups:
+        resistor.resistance = 10kohm +/- 1%
+        resistor.package = "0402"
+    clear_n.line ~> logic_pullups[0] ~> power.lv
+    ldac_n.line ~> logic_pullups[1] ~> power.lv
+
+    # --- Package connections ---
+    package.VREFIN ~ vref
+    package.GND ~ power.lv
+    package.AVDD ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.VOUTA ~ outputs[0]
+    package.VOUTB ~ outputs[1]
+    package.VOUTC ~ outputs[2]
+    package.VOUTD ~ outputs[3]
+    package.VOUTE ~ outputs[4]
+    package.VOUTF ~ outputs[5]
+    package.VOUTG ~ outputs[6]
+    package.VOUTH ~ outputs[7]
+    package.nLDAC ~ ldac_n.line
+    package.nCLR ~ clear_n.line
+    # package.ADDR0 ~ addressor.address_line.line # floating for address 0x4C

@@ -1,0 +1,71 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import Resistor
+import Capacitor
+
+# --- Part import ---
+from "parts/Lite_On_LTR_303ALS_01/Lite_On_LTR_303ALS_01.ato" import Lite_On_LTR_303ALS_01_package
+
+module Liteon_LTR303:
+    """
+    Lite-On LTR-303ALS-01 – Digital ambient-light sensor with I²C interface.
+
+    Exposes:
+      • power   – Single-rail supply (2.4 V … 3.6 V)
+      • i2c     – I²C bus (fixed 7-bit address 0x29)
+      • int     – Active-low interrupt output (open-drain)
+    """
+
+    # --- Package ---
+    package = new Lite_On_LTR_303ALS_01_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+
+    i2c = new I2C
+    i2c.required = True
+
+    interrupt = new ElectricLogic
+
+    # --- Power supply ---
+    assert power.voltage within 2.4V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x29
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 4.7kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitor ---
+    decouple = new Capacitor
+    decouple.capacitance = 100nF +/- 20%
+    decouple.package = "0402"
+    power.vcc ~> decouple ~> power.gnd
+
+    # --- Interrupt output ---
+    interrupt.reference ~ power
+    interrupt_pullup = new Resistor
+    interrupt_pullup.resistance = 10kohm +/- 1%
+    interrupt_pullup.package = "0402"
+    interrupt.line ~> interrupt_pullup ~> power.hv
+
+    # --- Package ---
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    interrupt.line ~ package.INT

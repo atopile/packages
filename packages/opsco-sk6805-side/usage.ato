@@ -1,0 +1,34 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+
+from "opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
+
+module Usage:
+    """
+    Minimal usage example for opsco-sk6805-side.
+
+    This example demonstrates chaining 8 side-emitting LEDs
+    for edge lighting applications like light guides or indirect illumination.
+    """
+
+    # Create array of 8 side-emitting LEDs
+    edge_leds = new OPSCO_SK6805_SIDE[8]
+
+    # Power supply (5V for LED strip)
+    power_5v = new ElectricPower
+    power_5v.voltage = 5.0V +/- 2%
+
+    # Connect power to all LEDs
+    for led in edge_leds:
+        power_5v ~ led.power
+
+    # Data input from microcontroller
+    data_input = new ElectricLogic
+    data_input.reference ~ power_5v
+
+    # Chain LEDs together for edge lighting effect
+    data_input ~> edge_leds[0] ~> edge_leds[1] ~> edge_leds[2] ~> edge_leds[3] ~> edge_leds[4] ~> edge_leds[5] ~> edge_leds[6] ~> edge_leds[7]

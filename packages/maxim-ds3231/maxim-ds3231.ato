@@ -1,0 +1,87 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Resistor
+import Capacitor
+
+from "parts/Maxim_Integrated_DS3231SN_T_R/Maxim_Integrated_DS3231SN_T_R.ato" import Maxim_Integrated_DS3231SN_T_R_package
+
+module Maxim_DS3231:
+    """
+    Maxim Integrated DS3231 – extremely accurate I²C real-time clock (RTC) with integrated TCXO and crystal.
+
+    Exposes:
+      * i2c          – I²C bus interface (fixed 7-bit addr 0x68)
+      * power        – Primary supply rail (2.3 V – 5.5 V)
+      * backup_power – Backup battery rail for VBAT (optional)
+      * sqw_int      – INT/SQW open-drain output (optional)
+      * clk_32khz    – 32.768 kHz push-pull clock output (optional)
+    """
+
+    # --- Package ---
+    package = new Maxim_Integrated_DS3231SN_T_R_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+    backup_power = new ElectricPower
+    backup_power.required = True
+    square_interrupt = new ElectricLogic
+    power_lost = new ElectricLogic # RST, internal 50k pull-up
+    clock_32khz_out = new ElectricLogic
+
+    # --- Power supply ---
+    assert power.voltage within 2.3V to 5.5V
+    assert backup_power.voltage within 2.3V to 5.5V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    assert i2c.address is 0x68
+
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Optional outputs ---
+    square_interrupt.reference ~ power
+    clock_32khz_out.reference ~ power
+    power_lost.reference ~ power
+
+    # --- Output pull-ups ---
+    square_interrupt_pullup_resistor = new Resistor
+    square_interrupt_pullup_resistor.resistance = 10kohm +/- 5%
+    square_interrupt_pullup_resistor.package = "0402"
+    power.hv ~> square_interrupt_pullup_resistor ~> square_interrupt.line
+
+    clock_32khz_out_pullup_resistor = new Resistor
+    clock_32khz_out_pullup_resistor.resistance = 10kohm +/- 5%
+    clock_32khz_out_pullup_resistor.package = "0402"
+    power.hv ~> clock_32khz_out_pullup_resistor ~> clock_32khz_out.line
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # --- Package ---
+    package.VCC  ~ power.hv
+    package.GND  ~ power.lv
+    package.VBAT ~ backup_power.hv
+    package.GND ~ backup_power.lv
+    package.SCL  ~ i2c.scl.line
+    package.SDA  ~ i2c.sda.line
+    package.INTSQW ~ square_interrupt.line
+    package.P32kHz ~ clock_32khz_out.line
+    package.RST    ~ power_lost.line

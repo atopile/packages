@@ -1,0 +1,37 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+
+from "st-vl53l0x.ato" import ST_VL53L0X
+
+module Usage:
+    """
+    Minimal usage example for st-vl53l0x.
+    Demonstrates basic connections for ToF distance sensor operation.
+    """
+
+    # --- Distance sensor ---
+    tof_sensor = new ST_VL53L0X
+
+    # --- Power supply (3.3V typical) ---
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # --- I2C bus ---
+    i2c_bus = new I2C
+    assert i2c_bus.frequency <= 400kHz
+    assert i2c_bus.address is 0x29
+
+    # --- Optional control signals ---
+    shutdown_control = new ElectricLogic
+    interrupt_pin = new ElectricLogic
+
+    # --- Connections ---
+    power_3v3 ~ tof_sensor.power
+    i2c_bus ~ tof_sensor.i2c
+    shutdown_control ~ tof_sensor.xshut
+    interrupt_pin ~ tof_sensor.gpio1

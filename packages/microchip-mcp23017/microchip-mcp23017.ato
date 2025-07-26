@@ -30,17 +30,48 @@ module Microchip_MCP23017:
 
     # --- External interfaces ---
     power = new ElectricPower
+    """
+    Single-rail power supply (1.8V to 5.5V)
+    """
     power.required = True
 
     i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x20-0x27)
+    """
     i2c.required = True
 
     reset = new ElectricLogic
-    inta  = new ElectricLogic
-    intb  = new ElectricLogic
+    """
+    Active-low reset input (pulled high internally)
+    """
+    reset.required = False
+
+    inta = new ElectricLogic
+    """
+    Interrupt output for Port A changes
+    """
+    inta.required = False
+
+    intb = new ElectricLogic
+    """
+    Interrupt output for Port B changes
+    """
+    intb.required = False
 
     gpio_a = new ElectricLogic[8]
+    """
+    8-bit GPIO Port A (GPA0-GPA7)
+    """
+    for gpio in gpio_a:
+        gpio.required = False
+
     gpio_b = new ElectricLogic[8]
+    """
+    8-bit GPIO Port B (GPB0-GPB7)
+    """
+    for gpio in gpio_b:
+        gpio.required = False
 
     # --- I²C bus ---
     scl_pullup = new Resistor

@@ -30,7 +30,7 @@ module ADI_ADXL375:
     power_digital = new ElectricPower
 
     # --- Power supply ---
-    assert power.voltage within 3.3V +/- 5%
+    assert power.voltage within 2.0V to 3.6V
     power_analog ~ power
     power_digital ~ power
 
@@ -39,6 +39,7 @@ module ADI_ADXL375:
     i2c.scl.reference ~ power_digital
     addressor = new Addressor<address_bits=1>
     addressor.address_lines[0].line ~ package.SDO_ALTADDRESS
+    addressor.address_lines[0].reference ~ power_digital
     assert addressor.base is 0x53
     assert addressor.address is i2c.address
 
@@ -53,14 +54,14 @@ module ADI_ADXL375:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 20%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
 
     # --- Chip select ---
     chip_select_pullup_resistor = new Resistor
-    chip_select_pullup_resistor.value = 10k +/- 1%
+    chip_select_pullup_resistor.resistance = 10kohm +/- 20%
     chip_select_pullup_resistor.package = "0402"
     package.nCS ~> chip_select_pullup_resistor ~> power_digital.hv
 

@@ -1,0 +1,36 @@
+#pragma experiment("TRAITS")
+import I2C
+import ElectricPower
+
+from "bosch-bme688.ato" import Bosch_BME688
+
+module Usage:
+    """
+    Usage example for bosch-bme688.
+    Shows how to connect the BME688 sensor with I2C interface and power supply.
+
+    The sensor comes with built-in I2C pull-ups and power filtering.
+    Just connect power and I2C bus - everything else is handled automatically.
+    """
+
+    # Create sensor instance
+    sensor = new Bosch_BME688
+
+    # Create I2C bus
+    i2c = new I2C
+    i2c.frequency = 400kHz  # Fast mode I2C
+
+    # Create power supply
+    power = new ElectricPower
+    power.voltage = 3.3V  # Recommended voltage
+
+    # Connect interfaces - that's it!
+    i2c ~ sensor.i2c
+    power ~ sensor.power
+
+    # Address will be 0x77 (SDO floating) or 0x76 (SDO to GND)
+    # Built-in features automatically included:
+    # - I2C pull-ups (4.7kΩ)
+    # - Power filtering (100nF + 10nF caps)
+    # - Protocol selection (I2C default)
+    assert sensor.i2c.address is 0x77

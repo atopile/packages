@@ -1,0 +1,118 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import SPI
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/STMicroelectronics_LIS331DLHTR/STMicroelectronics_LIS331DLHTR.ato" import STMicroelectronics_LIS331DLHTR_package
+
+module ST_LIS331:
+    """
+    STMicroelectronics LIS331DLH Triple-Axis Digital Accelerometer
+    - Measurement ranges: ±2g, ±4g, ±8g
+    - 16-bit resolution
+    - I2C and SPI interfaces
+    - Configurable interrupts
+    - Operating voltage: 2.16V to 3.6V
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Main power supply (2.16V to 3.6V)
+    """
+    power.required = True
+    assert power.voltage within 2.16V to 3.6V
+
+    power_io = new ElectricPower
+    """
+    I/O power supply (1.71V to VDD)
+    """
+    power_io.required = True
+    assert power_io.voltage within 1.71V to 3.6V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x19 / 0x18)
+    Note: 0x19 when SDO/SA0 is high (default with internal pull-up)
+          0x18 when SDO/SA0 is low (connected to GND)
+          configured by addressor: eg: i2c.address = 0x19
+    """
+    i2c.required = True
+
+    # Optional interrupt outputs
+    int1 = new ElectricLogic
+    """
+    Interrupt 1 output (optional)
+    """
+    int1.reference ~ power_io
+
+    int2 = new ElectricLogic
+    """
+    Interrupt 2 output (optional)
+    """
+    int2.reference ~ power_io
+
+    # --- I²C bus connections ---
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # --- I²C addressing ---
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x19  # Default address with internal pull-up on SDO/SA0
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.address is i2c.address
+
+    # I2C pull-up resistors (soft pullups)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling
+    vdd_caps = new Capacitor[2]
+    for cap in vdd_caps:
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "0402"
+        power.hv ~> cap ~> power.lv
+
+    # VDD_IO decoupling
+    vddio_cap = new Capacitor
+    vddio_cap.capacitance = 100nF +/- 10%
+    vddio_cap.package = "0402"
+    power_io.hv ~> vddio_cap ~> power_io.lv
+
+    # --- Package connections ---
+    package = new STMicroelectronics_LIS331DLHTR_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.Vdd_IO ~ power_io.hv
+    package.GND ~ power_io.lv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCL_SPC ~ i2c.scl.line
+    package.SDA_SDI_SDO ~ i2c.sda.line
+    package.SDO_SA0 ~ addressor.address_lines[0].line
+
+    # Interrupt connections
+    package.INT1 ~ int1.line
+    package.INT2 ~ int2.line
+
+    # Chip select (tie high for I2C mode)
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 5%
+    cs_pullup.package = "0402"
+    power_io.hv ~> cs_pullup ~> package.CS
+
+    # --- Reserved pins ---
+    # Pins 10 and 15 (Reserved) are left unconnected as per datasheet

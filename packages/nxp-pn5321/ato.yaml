@@ -1,0 +1,22 @@
+requires-atopile: ^0.9.0
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: nxp-pn5321.ato:NXP_PN5321_driver
+    exclude_checks: ['PCB.requires_drc_check']
+  usage:
+    entry: usage.ato:Example
+    exclude_checks: ['PCB.requires_drc_check']
+package:
+  identifier: atopile/nxp-pn5321
+  repository: https://github.com/atopile/packages
+  version: "0.1.3"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: NXP PN5321 NFC Reader
+  license: MIT
