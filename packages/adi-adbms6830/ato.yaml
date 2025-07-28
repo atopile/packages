@@ -1,4 +1,4 @@
-requires-atopile: "^0.10.8"
+requires-atopile: ^0.10.8
 
 paths:
   src: ./
@@ -8,31 +8,44 @@ builds:
   default:
     entry: adi-adbms6830.ato:ADI_ADBMS6830
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
   input-filters:
     entry: input-filters.py:ADBMS6830InputFilters
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
   sense-filter:
     entry: input-filters.py:SenseFilter
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
   balance-filter:
     entry: input-filters.py:BalanceFilter
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
 
 package:
   identifier: atopile/adi-adbms6830
   repository: https://github.com/atopile/packages
-  homepage: https://github.com/atopile/packages/blob/main/packages/adi-adbms6830/README.md
-  version: "0.1.0"
+  homepage:
+    https://github.com/atopile/packages/blob/main/packages/adi-adbms6830/README.md
+  version: 0.1.0
   authors:
-    - name: atopile
-      email: hi@atopile.io
-  summary: "Tags: battery; bms; battery monitoring; battery management; adbms6830; analog devices"
+  - name: atopile
+    email: hi@atopile.io
+  summary: 'Tags: battery; bms; battery monitoring; battery management; adbms6830;
+    analog devices'
   license: MIT
+
+dependencies:
+- type: registry
+  identifier: atopile/saleae-header
+  release: 0.1.5
+- type: registry
+  identifier: atopile/pjrc-teensy-4-1
+  release: 0.1.0
+- type: file #TODO: Switch to registry
+  identifier: atopile/adi-adbms6830
+  path: ../adi-adbms6822

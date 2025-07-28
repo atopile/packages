@@ -2,11 +2,11 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-from "atopile/pjrc-teensy_4_1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
 from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
-from "atopile/usb-connectors/usb-connector.ato" import USBCConn
-from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2, SaleaeHeaderVertical
 
 import ElectricPower, Resistor
 
@@ -45,8 +45,8 @@ module Usage:
     adbms6822.vp_power ~ power_lv
 
     # Connect all grounds, not isolated grounds
-    adbms6830.vbat.lv ~ power_lv
-    adbms6830.vbat.lv ~ power_hv
+    adbms6830.vbat.lv ~ power_lv.lv
+    adbms6830.vbat.lv ~ power_hv.lv
 
     # --- SPI Connections ---
     teensy.spi[0] ~ adbms6822.spi[0]
@@ -58,11 +58,7 @@ module Usage:
     adbms6822.isospi_ports[0] ~ adbms6830.iso_a_external
     adbms6822.isospi_ports[1] ~ adbms6830.iso_b_external
 
-    usbc_connector.usb2.usb2_if ~ teensy.usb2
-
-    spi_jumper = new _SPIJumper
-    micro.spi ~ spi_jumper.spi_in; spi_jumper.spi_out ~ bms.spi
-    power_connector.power ~ cell_sim.power_in
+    usbc_connector.usb2.usb_if ~ teensy.usb2
 
     ldo3v3 = new LDK220M_R
     ldo3v3.v_in = 5V +/- 10%
@@ -71,41 +67,18 @@ module Usage:
     ldo3v3.power_out ~ power3v3
     usbc.power ~ ldo3v3.power_in
 
-    bms_ref_debug = new SaleaeHeaderRightAngle_2
-    bms.ic.VREF1 ~ bms_ref_debug.ch0.io
-    bms.ic.VREF2 ~ bms_ref_debug.ch1.io
-    bms.ic.VREG ~ bms_ref_debug.ch2.io
-    bms.ic.DRIVE ~ bms_ref_debug.ch3.io
-    bms_ref_debug.gnd ~ bms.vbat.gnd
 
-    bms_spi_debug = new SaleaeHeaderRightAngle_2
-    bms_spi_debug.spi ~ micro.spi
-    bms_spi_debug.gnd ~ bms.vbat.gnd
+    # --- Saleae Debug Header Connections ---
+    # Spi Interface
+    saleae_spi_interface = new SaleaeHeaderRightAngle_2
 
+    saleae_spi_interface.headers[0].spi ~ adbms6822.spi[0]
+    saleae_spi_interface.headers[0].spi_cs ~ adbms6822.spi_cs[0]
+    saleae_spi_interface.headers[1].spi ~ adbms6822.spi[1]
+    saleae_spi_interface.headers[1].spi_cs ~ adbms6822.spi_cs[1]
 
-module _SPIJumper:
-    spi_in = new SPI
-    spi_out = new SPI
-
-    # resistors to jump the SPI signals
-    mosi_resistor = new Resistor
-    miso_resistor = new Resistor
-    sck_resistor = new Resistor
-    cs_resistor = new Resistor
-
-    #TODO: make these 0R (compiler issue)
-    mosi_resistor.value = 0.1ohm to 1ohm
-    miso_resistor.value = 0.1ohm to 1ohm
-    sck_resistor.value = 0.1ohm to 1ohm
-    cs_resistor.value = 0.1ohm to 1ohm
-
-    mosi_resistor.package = "0402"
-    miso_resistor.package = "0402"
-    sck_resistor.package = "0402"
-    cs_resistor.package = "0402"
-
-    # connect the resistors to the SPI signals
-    spi_in.mosi ~ mosi_resistor.1; mosi_resistor.2 ~ spi_out.mosi
-    spi_in.miso ~ miso_resistor.1; miso_resistor.2 ~ spi_out.miso
-    spi_in.sck ~ sck_resistor.1; sck_resistor.2 ~ spi_out.sck
-    spi_in.cs ~ cs_resistor.1; cs_resistor.2 ~ spi_out.cs
+    # BMB Debug
+    saleae_bmb_debug = new SaleaeHeaderVertical
+    adbms6830.vreg.hv ~ saleae_bmb_debug.header.channels[0].line
+    adbms6830.vreg_drive.line ~ saleae_bmb_debug.header.channels[1].line
+    adbms6830.vref2.hv ~ saleae_bmb_debug.header.channels[2].line
