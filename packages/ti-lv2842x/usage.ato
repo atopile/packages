@@ -1,6 +1,7 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
 
 from "atopile/ti-lv2842x/ti-lv2842x.ato" import TI_LV2842X
 
@@ -8,39 +9,68 @@ module Usage:
     """
     Test design
     """
+
+
+    # --- 36V to 15V ---
+    power_36v = new ElectricPower
+    assert power_36v.voltage within 36V +/- 10%
+    power_15v = new ElectricPower
+    assert power_15v.voltage within 15V +/- 5%
     regulator42_15v = new TI_LV2842X
-    regulator42_15v.power_in.voltage = 36V +/- 10%
-    regulator42_15v.power_out.voltage = 15V +/- 5%
+    regulator42_15v.power_in ~ power_36v
+    regulator42_15v.power_out ~ power_15v
     regulator42_15v.power_out.max_current = 500mA
 
-    regulator42_35v = new TI_LV2842X
-    regulator42_35v.power_in.voltage = 38V +/- 10%
-    regulator42_35v.power_out.voltage = 35V +/- 5%
-    regulator42_35v.power_out.max_current = 400mA
+    # --- 38V to 24V ---
+    power_38v = new ElectricPower
+    assert power_38v.voltage within 38V +/- 10%
+    power_24v = new ElectricPower
+    assert power_24v.voltage within 24V +/- 5%
+    regulator38_24v = new TI_LV2842X
+    regulator38_24v.power_in ~ power_38v
+    regulator38_24v.power_out ~ power_24v
+    regulator38_24v.power_out.max_current = 400mA
 
+    # --- 24V to 12V ---
+    # power_24v = new ElectricPower
+    # assert power_24v.voltage within 24V +/- 5%
+    power_12v = new ElectricPower
+    assert power_12v.voltage within 12V +/- 5%
     regulator41_12v = new TI_LV2842X
-    regulator41_12v.power_in.voltage = 24V +/- 10%
-    regulator41_12v.power_out.voltage = 12V +/- 5%
+    regulator41_12v.power_in ~ power_24v
+    regulator41_12v.power_out ~ power_12v
     regulator41_12v.power_out.max_current = 200mA
 
+    # --- 12V to 5V ---
+    power_5v = new ElectricPower
+    assert power_5v.voltage within 5V +/- 5%
     regulator40_5v = new TI_LV2842X
-    regulator40_5v.power_in.voltage = 12V +/- 10%
-    regulator40_5v.power_out.voltage = 5V +/- 5%
+    regulator40_5v.power_in ~ power_12v
+    regulator40_5v.power_out ~ power_5v
     regulator40_5v.power_out.max_current = 50mA
 
+    # --- 5V to 0.8V ---
+    power_0v8 = new ElectricPower
+    assert power_0v8.voltage within 0.8V +/- 5%
     regulator42_0v8 = new TI_LV2842X
-    regulator42_0v8.power_in.voltage = 5V +/- 10%
-    regulator42_0v8.power_out.voltage = 0.8V +/- 5%
+    regulator42_0v8.power_in ~ power_5v
+    regulator42_0v8.power_out ~ power_0v8
     regulator42_0v8.power_out.max_current = 50mA
 
     # Big inductor
+    power_42v = new ElectricPower
+    assert power_42v.voltage within 42V +/- 10%
+    power_8v = new ElectricPower
+    assert power_8v.voltage within 8V +/- 5%
     regulator42_big_inductor = new TI_LV2842X
-    regulator42_big_inductor.power_in.voltage = 42V +/- 10%
-    regulator42_big_inductor.power_out.voltage = 8V +/- 5%
+    regulator42_big_inductor.power_in ~ power_42v
+    regulator42_big_inductor.power_out ~ power_8v
     regulator42_big_inductor.power_out.max_current = 10mA
 
     # Small inductor
+    power_10v = new ElectricPower
+    assert power_10v.voltage within 10V +/- 5%
     regulator42_small_inductor = new TI_LV2842X
-    regulator42_small_inductor.power_in.voltage = 12V +/- 10%
-    regulator42_small_inductor.power_out.voltage = 10V +/- 5%
+    regulator42_small_inductor.power_in ~ power_12v
+    regulator42_small_inductor.power_out ~ power_10v
     regulator42_small_inductor.power_out.max_current = 600mA
