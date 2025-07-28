@@ -61,12 +61,13 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     assert feedback_divider.r_bottom.resistance <= 100kohm +/-1%
 
     # --- Components & connections ---
-    input_power_decoupling_capacitor = new Capacitor
-    #input_power_decoupling_capacitor.package = "1206"
-    input_power_decoupling_capacitor.temperature_coefficient = "X7R"
-    assert input_power_decoupling_capacitor.capacitance >= 10uF
-    assert input_power_decoupling_capacitor.max_voltage >= power_in.voltage * 1.5
-    power_in.hv ~> input_power_decoupling_capacitor ~> power_in.lv
+    input_power_decoupling_capacitors = new Capacitor[2]
+    for cap in input_power_decoupling_capacitors:
+        cap.package = "0805"
+        cap.capacitance = 4.7uF +/- 20%
+        cap.temperature_coefficient = "X7R"
+        assert cap.max_voltage >= power_in.voltage * 1.5
+        power_in.hv ~> cap ~> power_in.lv
 
     output_power_decoupling_capacitor = new Capacitor
     output_power_decoupling_capacitor.package = "0805"
