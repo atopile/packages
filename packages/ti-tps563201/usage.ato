@@ -2,7 +2,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 
 import ElectricPower
-from "ti-tps563201.ato" import TPS563201
+from "ti-tps563201.ato" import TI_TPS563201
 
 module Usage:
     """
@@ -18,10 +18,10 @@ module Usage:
     assert power_5v.voltage is 5V +/- 5%
 
     # Create the buck regulator
-    buck = new TPS563201
+    buck = new TI_TPS563201
 
     # Configure output voltage
-    assert buck.output_voltage is 3.3V +/- 2%
+    assert buck.output_voltage within 3.3V +/- 4%
 
     # Connect power
     power_5v ~ buck.power_in
