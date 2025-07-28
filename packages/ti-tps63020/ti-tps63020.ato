@@ -2,7 +2,7 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
-#pragma experiment("MODULE_TEMPLATING")
+
 import Capacitor
 import Diode
 import Resistor
@@ -16,9 +16,9 @@ from "regulators.ato" import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS63020DSJR/Texas_Instruments_TPS63020DSJR.ato" import Texas_Instruments_TPS63020DSJR_package
 
-module TI_TPS63020DSJR from AdjustableRegulator:
+module TPS63020_driver from AdjustableRegulator:
     """
-    #TODO
+    TI TPS63020 High Efficiency Single Inductor Buck-boost Converter with 4-A Switches
     """
 
     # --- Package ---
@@ -44,8 +44,6 @@ module TI_TPS63020DSJR from AdjustableRegulator:
     assert _sync.reference.voltage within max_pin_voltage
     _power_good = new ElectricSignal
     assert _power_good.reference.voltage within max_pin_voltage
-
-    trait has_single_electric_reference_shared
 
     # --- Components ---
     # Power good pullup resistor
