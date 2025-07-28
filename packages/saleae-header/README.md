@@ -33,13 +33,9 @@ module Usage:
     # Double right angle female header for direct connection to Saleae Logic 8/16
     direct_saleae_interface = new SaleaeHeaderRightAngle_2
 
-    direct_saleae_interface.headers[0].channels[0] ~ spi.sclk
-    direct_saleae_interface.headers[0].channels[1] ~ spi.miso
-    direct_saleae_interface.headers[0].channels[2] ~ spi.mosi
-    direct_saleae_interface.headers[0].channels[3] ~ spi_cs
+    spi ~ direct_saleae_interface.headers[0].spi
 
-    direct_saleae_interface.headers[1].channels[0] ~ i2c.scl
-    direct_saleae_interface.headers[1].channels[1] ~ i2c.sda
+    i2c ~ direct_saleae_interface.headers[1].i2c
 ```
 
 ## Contributing

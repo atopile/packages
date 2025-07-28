@@ -3,7 +3,7 @@
 #pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 
-import ElectricSignal, Electrical, Resistor
+import ElectricSignal, Electrical, Resistor, SPI, I2C, UART, USB2_0
 
 import has_single_electric_reference_shared
 
@@ -29,6 +29,31 @@ module SaleaeHeader:
     channels[2] ~ saleae_debug_header.channels[2]
     channels[3] ~ saleae_debug_header.channels[3]
 
+    # SPI
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    spi.mosi ~ channels[0]
+    spi.miso ~ channels[1]
+    spi.sclk ~ channels[2]
+    spi_cs ~ channels[3]
+
+    # I2C
+    i2c = new I2C
+    i2c.scl ~ channels[0]
+    i2c.sda ~ channels[1]
+    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # UART
+    uart = new UART
+    uart.base_uart.tx ~ channels[2]
+    uart.base_uart.rx ~ channels[3]
+    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # USB2
+    usb2 = new USB2_0
+    usb2.usb_if.d.p ~ channels[2]
+    usb2.usb_if.d.n ~ channels[3]
+
 module SaleaeHeaderVertical:
     package = new HCTL_PZ254_2_04_S_package
     channels = new ElectricSignal[4]
@@ -53,6 +78,32 @@ module SaleaeHeaderVertical:
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
 
+    # SPI
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    spi.mosi ~ channels[0]
+    spi.miso ~ channels[1]
+    spi.sclk ~ channels[2]
+    spi_cs ~ channels[3]
+
+    # I2C
+    i2c = new I2C
+    i2c.scl ~ channels[0]
+    i2c.sda ~ channels[1]
+    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # UART
+    uart = new UART
+    uart.base_uart.tx ~ channels[2]
+    uart.base_uart.rx ~ channels[3]
+    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # USB2
+    usb2 = new USB2_0
+    usb2.usb_if.d.p ~ channels[2]
+    usb2.usb_if.d.n ~ channels[3]
+
+
 module SaleaeHeaderRightAngle:
     package = new HCTL_PM254_2_04_W_8_5_package
     channels = new ElectricSignal[4]
@@ -76,6 +127,31 @@ module SaleaeHeaderRightAngle:
     channels[1].reference_shim.lv ~ package.3
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
+
+    # SPI
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    spi.mosi ~ channels[0]
+    spi.miso ~ channels[1]
+    spi.sclk ~ channels[2]
+    spi_cs ~ channels[3]
+
+    # I2C
+    i2c = new I2C
+    i2c.scl ~ channels[0]
+    i2c.sda ~ channels[1]
+    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # UART
+    uart = new UART
+    uart.base_uart.tx ~ channels[2]
+    uart.base_uart.rx ~ channels[3]
+    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
+
+    # USB2
+    usb2 = new USB2_0
+    usb2.usb_if.d.p ~ channels[2]
+    usb2.usb_if.d.n ~ channels[3]
 
 module SaleaeHeaderRightAngle_1:
     headers = new SaleaeHeaderRightAngle[1]

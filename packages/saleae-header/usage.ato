@@ -10,18 +10,15 @@ module Usage:
     # Single vertical header for connection with Saleae through harness
     harness_saleae_debug_header = new SaleaeHeaderVertical
 
-    spi.sclk ~ harness_saleae_debug_header.channels[0]
+    spi.mosi ~ harness_saleae_debug_header.channels[0]
     spi.miso ~ harness_saleae_debug_header.channels[1]
-    spi.mosi ~ harness_saleae_debug_header.channels[2]
+    spi.sclk ~ harness_saleae_debug_header.channels[2]
     spi_cs ~ harness_saleae_debug_header.channels[3]
 
     # Double right angle female header for direct connection to Saleae Logic 8/16
     direct_saleae_interface = new SaleaeHeaderRightAngle_2
 
-    direct_saleae_interface.headers[0].channels[0] ~ spi.sclk
-    direct_saleae_interface.headers[0].channels[1] ~ spi.miso
-    direct_saleae_interface.headers[0].channels[2] ~ spi.mosi
-    direct_saleae_interface.headers[0].channels[3] ~ spi_cs
+    spi ~ direct_saleae_interface.headers[0].spi
+    spi_cs ~ direct_saleae_interface.headers[0].spi_cs
 
-    direct_saleae_interface.headers[1].channels[0] ~ i2c.scl
-    direct_saleae_interface.headers[1].channels[1] ~ i2c.sda
+    i2c ~ direct_saleae_interface.headers[1].i2c
