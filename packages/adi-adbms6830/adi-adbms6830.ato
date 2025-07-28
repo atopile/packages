@@ -207,6 +207,13 @@ module ADI_ADBMS6830:
     iso_b_internal.p.line ~> isoSPI_termination_resistors[2] ~> iso_b_termination_midpoint; iso_b_termination_midpoint ~> isoSPI_termination_resistors[3] ~> iso_b_internal.n.line
     iso_b_termination_midpoint ~> isoSPI_dc_bias_caps[1] ~> vreg.lv
 
+    # C9N Filter Network
+    c9n_filter = new FilterElectricalRC
+    c9n_filter.resistor.resistance = 200ohm +/- 5%
+    c9n_filter.capacitor.capacitance = 10nF +/- 20%
+    cell_stack[8].lv ~> c9n_filter ~> package.C9N
+    c9n_filter.in_.reference.lv ~ cell_sense_inputs[7].p.line
+
     # --- Package Connections ---
     asic_vp.hv ~ package.Vpos
     asic_vp.lv ~ package.Vneg
@@ -260,7 +267,7 @@ module ADI_ADBMS6830:
     cell_sense_inputs[6].p.line ~ package.C7
     cell_sense_inputs[7].n.line ~ package.C7
     cell_sense_inputs[7].p.line ~ package.C8
-    cell_sense_inputs[8].n.line ~ package.C8
+    cell_sense_inputs[8].n.line ~ package.C9N
     cell_sense_inputs[8].p.line ~ package.C9
     cell_sense_inputs[9].n.line ~ package.C9
     cell_sense_inputs[9].p.line ~ package.C10
@@ -408,6 +415,7 @@ module ADI_ADBMS6830:
     cell_sense_inputs[5].p.line.override_net_name = "C6"
     cell_sense_inputs[6].p.line.override_net_name = "C7"
     cell_sense_inputs[7].p.line.override_net_name = "C8"
+    cell_sense_inputs[8].n.line.override_net_name = "C9N"
     cell_sense_inputs[8].p.line.override_net_name = "C9"
     cell_sense_inputs[9].p.line.override_net_name = "C10"
     cell_sense_inputs[10].p.line.override_net_name = "C11"

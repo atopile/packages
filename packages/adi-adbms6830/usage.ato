@@ -1,65 +1,69 @@
-from "ADBMS6830.ato" import ADBMS6830
-from "cell-sim.ato" import CellSim
-from "generics/buttons.ato" import ButtonSKRPACE010
-from "ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
-from "generics/interfaces.ato" import Power, SPI
-from "rp2040/RP2040Kit.ato" import RP2040Kit
-from "usb-connectors/usb-connectors.ato" import USBCConn
-from "saleae-header/saleae-header.ato" import SaleaeHeader
-from "xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
-from "generics/resistors.ato" import Resistor
-from "connectors.ato" import ConnectorISOSPI
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+from "atopile/pjrc-teensy-4-1" import PJRC_Teensy_4_1
+from "atopile/adi-adbms6830" import ADI_ADBMS6830
+from "atopile/adi-adbms6822" import ADI_ADBMS6822
+from "atopile/usb-connectors" import USBCConn
+from "atopile/saleae-header" import SaleaeDebugHeader
+
+import Resistor
 
 
 module Usage:
-    bms = new ADBMS6830
-    cell_sim = new CellSim
-    micro = new RP2040Kit
+    """
+    Usage example for the ADBMS6830 with teensy 4.1 microcontroller with ADBMS6822 to bridge 4w SPI to ISOSPI.
+    """
 
-    power_connector = new XT30_Male_Right_Angle
+    teensy = new PJRC_Teensy_4_1
+    adbms6830 = new ADI_ADBMS6830
+    adbms6822 = new ADI_ADBMS6822
 
-    # ISO SPI connectors
-    port_a_connector = new ConnectorISOSPI
-    port_b_connector = new ConnectorISOSPI
+    # --- External Interfaces ---
+    power_hv = new ElectricPower
+    """
+    High voltage power supply for the ADBMS6830.
+    """
+    assert power_hv.voltage within 16V to 20V
 
-    port_a_connector.isospi ~ bms.iso_a
-    port_b_connector.isospi ~ bms.iso_b
+    power_lv = new ElectricPower
+    """
+    Low voltage logic level power supply for the teensy and ADBMS6822.
+    """
+    assert power_lv.voltage within 3.6V to 5.5V
 
-    # connect gnd together
-    micro.power.gnd ~ bms.vbat.gnd
+    usbc_connector = new USBCConn
+    """
+    Power supply and comms for teensy.
+    """
+
+    # --- Power Connections ---
+    adbms6830.vbat ~ power_hv
+
+    adbms6822.vdds_spi_power ~ power_lv
+    adbms6822.vdd_iso_spi_power ~ power_lv
+    adbms6822.vp_power ~ power_lv
+
+    # Connect all grounds, not isolated grounds
+    adbms6830.vbat.lv ~ power_lv
+    adbms6830.vbat.lv ~ power_hv
+
+    # --- SPI Connections ---
+    teensy.spi[0] ~ adbms6822.spi[0]
+    teensy.chip_select[0] ~ adbms6822.spi_cs[0]
+    teensy.spi[1] ~ adbms6822.spi[1]
+    teensy.chip_select[1] ~ adbms6822.spi_cs[1]
+
+    # --- isoSPI Connections ---
+    adbms6822.isospi_ports[0] ~ adbms6830.iso_a_external
+    adbms6822.isospi_ports[1] ~ adbms6830.iso_b_external
+
+    usbc_connector.usb2.usb2_if ~ teensy.usb2
 
     spi_jumper = new _SPIJumper
     micro.spi ~ spi_jumper.spi_in; spi_jumper.spi_out ~ bms.spi
     power_connector.power ~ cell_sim.power_in
-
-    # connect cellsim to BMS
-    cell_sim.cell1.power_out ~ bms.cell1.power
-    cell_sim.cell2.power_out ~ bms.cell2.power
-    cell_sim.cell3.power_out ~ bms.cell3.power
-    cell_sim.cell4.power_out ~ bms.cell4.power
-    cell_sim.cell5.power_out ~ bms.cell5.power
-    cell_sim.cell6.power_out ~ bms.cell6.power
-    cell_sim.cell7.power_out ~ bms.cell7.power
-    cell_sim.cell8.power_out ~ bms.cell8.power
-    cell_sim.cell9.power_out ~ bms.cell9.power
-    cell_sim.cell10.power_out ~ bms.cell10.power
-    cell_sim.cell11.power_out ~ bms.cell11.power
-    cell_sim.cell12.power_out ~ bms.cell12.power
-    cell_sim.cell13.power_out ~ bms.cell13.power
-    cell_sim.cell14.power_out ~ bms.cell14.power
-    cell_sim.cell15.power_out ~ bms.cell15.power
-    cell_sim.cell16.power_out ~ bms.cell16.power
-    cell_sim.power_batt ~ bms.vbat
-
-    # Interfaces
-    power3v3 = new Power
-    usbc = new USBCConn
-    usbc.usb2 ~ micro.usb2
-    micro.power ~ power3v3
-
-    # assign reset and boot buttons
-    micro.reset_btn.btn -> ButtonSKRPACE010
-    micro.boot_btn.btn -> ButtonSKRPACE010
 
     ldo3v3 = new LDK220M_R
     ldo3v3.v_in = 5V +/- 10%
