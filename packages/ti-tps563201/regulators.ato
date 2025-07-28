@@ -1,0 +1,27 @@
+import ResistorVoltageDivider, ElectricPower
+
+module AdjustableRegulator:
+    """Base module for adjustable voltage regulators
+
+    This module provides a common interface for adjustable voltage regulators
+    with a feedback divider for setting the output voltage.
+    """
+    # Interfaces
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    # Parameters
+    input_voltage: V
+    output_voltage: V
+    reference_voltage: V
+
+    # Feedback divider
+    feedback_divider = new ResistorVoltageDivider
+
+    # Configure feedback divider
+    feedback_divider.v_in = output_voltage
+    feedback_divider.v_out = reference_voltage
+
+    # Aliases for easier access
+    v_in = input_voltage
+    v_out = output_voltage
