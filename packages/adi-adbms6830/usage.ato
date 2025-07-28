@@ -2,20 +2,19 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-from "atopile/pjrc-teensy-4-1" import PJRC_Teensy_4_1
-from "atopile/adi-adbms6830" import ADI_ADBMS6830
-from "atopile/adi-adbms6822" import ADI_ADBMS6822
-from "atopile/usb-connectors" import USBCConn
-from "atopile/saleae-header" import SaleaeDebugHeader
+from "atopile/pjrc-teensy_4_1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
+from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
+from "atopile/usb-connectors/usb-connector.ato" import USBCConn
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 
-import Resistor
+import ElectricPower, Resistor
 
 
 module Usage:
     """
     Usage example for the ADBMS6830 with teensy 4.1 microcontroller with ADBMS6822 to bridge 4w SPI to ISOSPI.
     """
-
     teensy = new PJRC_Teensy_4_1
     adbms6830 = new ADI_ADBMS6830
     adbms6822 = new ADI_ADBMS6822
@@ -72,14 +71,14 @@ module Usage:
     ldo3v3.power_out ~ power3v3
     usbc.power ~ ldo3v3.power_in
 
-    bms_ref_debug = new SaleaeHeader
+    bms_ref_debug = new SaleaeHeaderRightAngle_2
     bms.ic.VREF1 ~ bms_ref_debug.ch0.io
     bms.ic.VREF2 ~ bms_ref_debug.ch1.io
     bms.ic.VREG ~ bms_ref_debug.ch2.io
     bms.ic.DRIVE ~ bms_ref_debug.ch3.io
     bms_ref_debug.gnd ~ bms.vbat.gnd
 
-    bms_spi_debug = new SaleaeHeader
+    bms_spi_debug = new SaleaeHeaderRightAngle_2
     bms_spi_debug.spi ~ micro.spi
     bms_spi_debug.gnd ~ bms.vbat.gnd
 
