@@ -1,14 +1,36 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 
-import ElectricSignal
-import Resistor
+import ElectricSignal, Electrical, Resistor
+
+import has_single_electric_reference_shared
 
 from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package
-
+from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package
 
 module SaleaeHeader:
+    """
+    Supports legacy designs with headers.
+    """
     header = new HCTL_PZ254_2_04_S_package
+    channels = new ElectricSignal[4]
+    gnd = new Electrical
+
+    saleae_debug_header = new SaleaeHeaderVertical
+    gnd ~ saleae_debug_header.channels[0].reference_shim.lv
+
+    for channel in channels:
+        gnd ~ channel.reference.gnd
+
+    channels[0] ~ saleae_debug_header.channels[0]
+    channels[1] ~ saleae_debug_header.channels[1]
+    channels[2] ~ saleae_debug_header.channels[2]
+    channels[3] ~ saleae_debug_header.channels[3]
+
+module SaleaeHeaderVertical:
+    package = new HCTL_PZ254_2_04_S_package
     channels = new ElectricSignal[4]
     protection_resistors = new Resistor[4]
 
@@ -17,19 +39,49 @@ module SaleaeHeader:
         resistor.resistance = 1kohm +/- 5%
         resistor.package = "R0402"
 
-    # Connect the grounds together
-    signal gnd
-    for channel in channels:
-        gnd ~ channel.reference.gnd
-
     # connect ios via resistors to the header
-    channels[0].line ~> protection_resistors[0] ~> header.1
-    channels[1].line ~> protection_resistors[1] ~> header.3
-    channels[2].line ~> protection_resistors[2] ~> header.5
-    channels[3].line ~> protection_resistors[3] ~> header.7
+    channels[0].line ~> protection_resistors[0] ~> package.2
+    channels[1].line ~> protection_resistors[1] ~> package.4
+    channels[2].line ~> protection_resistors[2] ~> package.6
+    channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    gnd ~ header.2
-    gnd ~ header.4
-    gnd ~ header.6
-    gnd ~ header.8
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    channels[0].reference_shim.lv ~ package.1
+    channels[1].reference_shim.lv ~ package.3
+    channels[2].reference_shim.lv ~ package.5
+    channels[3].reference_shim.lv ~ package.7
+
+module SaleaeHeaderRightAngle:
+    package = new HCTL_PM254_2_04_W_8_5_package
+    channels = new ElectricSignal[4]
+    protection_resistors = new Resistor[4]
+
+    # Configure resistors
+    for resistor in protection_resistors:
+        resistor.resistance = 1kohm +/- 5%
+        resistor.package = "R0402"
+
+    # connect ios via resistors to the header
+    channels[0].line ~> protection_resistors[0] ~> package.2
+    channels[1].line ~> protection_resistors[1] ~> package.4
+    channels[2].line ~> protection_resistors[2] ~> package.6
+    channels[3].line ~> protection_resistors[3] ~> package.8
+
+    # connect the grounds together
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    channels[0].reference_shim.lv ~ package.1
+    channels[1].reference_shim.lv ~ package.3
+    channels[2].reference_shim.lv ~ package.5
+    channels[3].reference_shim.lv ~ package.7
+
+module SaleaeHeaderRightAngle_1:
+    headers = new SaleaeHeaderRightAngle[1]
+
+module SaleaeHeaderRightAngle_2:
+    headers = new SaleaeHeaderRightAngle[2]
+
+module SaleaeHeaderRightAngle_4:
+    headers = new SaleaeHeaderRightAngle[4]
