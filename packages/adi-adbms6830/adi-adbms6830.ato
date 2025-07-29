@@ -78,9 +78,12 @@ module ADI_ADBMS6830:
     iso_b_external.n.line.override_net_name = "iso_b_external_N"
 
     spi = new SPI
+    spi_cs = new ElectricSignal
     """
     SPI interface for communication with port A of the ADBMS6830
     """
+    spi.reference_shim.lv ~ vreg.lv
+    spi_cs.reference.lv ~ vreg.lv
 
     gpios = new ElectricSignal[9]
     """
@@ -97,7 +100,7 @@ module ADI_ADBMS6830:
     """
     ISOMD mode select signal, high is ISOSPI, low is SPI
     """
-    isomd.required = True
+    isomd.line.required = True
     isomd.reference.lv ~ vreg.lv
 
     # --- Internal interfaces ---
@@ -236,8 +239,16 @@ module ADI_ADBMS6830:
 
     isomd.line ~ package.ISOMD
 
+    # Can use either SPI OR isoSPI on port A, not both. Configured externally by ISOMD signal.
     iso_a_internal.p.line ~ package.SCKIPA
     iso_a_internal.n.line ~ package.CSBIMA
+
+    spi.sclk ~ package.SCKIPA
+    spi.mosi ~ package.SDI
+    spi.miso ~ package.SDO
+    spi_cs ~ package.CSBIMA
+
+    # Can use either SPI OR isoSPI on port B, not both. Configured externally by ISOMD signal.
     iso_b_internal.p.line ~ package.IPB
     iso_b_internal.n.line ~ package.IMB
 
