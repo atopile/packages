@@ -7,7 +7,7 @@ import Capacitor
 import Resistor
 import has_single_electric_reference_shared
 
-from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 from "parts/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14.ato" import Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14_package
 
 module OLED12832:
@@ -48,11 +48,7 @@ module OLED12832:
     # Internal rail - charge pump requires 3.5V to 4.2V input
     regulator_4v = new LDK220M_R
     power_5v ~ regulator_4v.power_in
-    # regulator_4v.v_out = 4.2V +/- 3%
-    regulator_4v.feedback_div.r_top.package = "0402"
-    regulator_4v.feedback_div.r_bottom.package = "0402"
-    regulator_4v.feedback_div.r_top.resistance = 25.5kohm +/- 1%
-    regulator_4v.feedback_div.r_bottom.resistance = 10kohm +/- 1%
+    regulator_4v.v_out = 4.2V +/- 3%
 
     _power_4v = new ElectricPower
     _power_4v ~ regulator_4v.power_out
@@ -60,7 +56,6 @@ module OLED12832:
     power_3v3 ~ _power_vdd
     power_3v3 ~ _power_vcc
     _power_4v ~ _power_vbat
-
 
     # Charge pump
     charge_pump_cap_1 = new Capacitor
@@ -113,7 +108,7 @@ module OLED12832:
     reset_pullup.package = "0402"
     reset_pullup.p2 ~ power_3v3.vcc
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    # trait has_single_electric_reference_shared<gnd_only=True> # Broken AttributeError: 'NoneType' object has no attribute 'lv'
 
     # --- Package ---
     package.VDD ~ _power_vdd.vcc
@@ -126,7 +121,5 @@ module OLED12832:
     package.SCL ~ i2c.scl.line
     package.nRES ~ reset_pullup.p1
     package.IREF ~ iref_resistor.p1
-    package.C1N ~ charge_pump_cap_1.p1
-    package.C1P ~ charge_pump_cap_1.p2
-    package.C2N ~ charge_pump_cap_2.p1
-    package.C2P ~ charge_pump_cap_2.p2
+    package.C1N ~> charge_pump_cap_1 ~> package.C1P
+    package.C2N ~> charge_pump_cap_2 ~> package.C2P
