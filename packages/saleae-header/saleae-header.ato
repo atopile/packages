@@ -29,6 +29,9 @@ module SaleaeHeader:
     channels[2] ~ saleae_debug_header.channels[2]
     channels[3] ~ saleae_debug_header.channels[3]
 
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
+
     # SPI
     spi = new SPI
     spi_cs = new ElectricSignal
@@ -48,11 +51,6 @@ module SaleaeHeader:
     uart.base_uart.tx ~ channels[2]
     uart.base_uart.rx ~ channels[3]
     uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
-
-    # USB2
-    usb2 = new USB2_0
-    usb2.usb_if.d.p ~ channels[2]
-    usb2.usb_if.d.n ~ channels[3]
 
 module SaleaeHeaderVertical:
     package = new HCTL_PZ254_2_04_S_package
@@ -78,6 +76,9 @@ module SaleaeHeaderVertical:
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
 
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
+
     # SPI
     spi = new SPI
     spi_cs = new ElectricSignal
@@ -97,11 +98,6 @@ module SaleaeHeaderVertical:
     uart.base_uart.tx ~ channels[2]
     uart.base_uart.rx ~ channels[3]
     uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
-
-    # USB2
-    usb2 = new USB2_0
-    usb2.usb_if.d.p ~ channels[2]
-    usb2.usb_if.d.n ~ channels[3]
 
 
 module SaleaeHeaderRightAngle:
@@ -128,6 +124,9 @@ module SaleaeHeaderRightAngle:
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
 
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
+
     # SPI
     spi = new SPI
     spi_cs = new ElectricSignal
@@ -147,11 +146,6 @@ module SaleaeHeaderRightAngle:
     uart.base_uart.tx ~ channels[2]
     uart.base_uart.rx ~ channels[3]
     uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
-
-    # USB2
-    usb2 = new USB2_0
-    usb2.usb_if.d.p ~ channels[2]
-    usb2.usb_if.d.n ~ channels[3]
 
 module SaleaeHeaderRightAngle_1:
     headers = new SaleaeHeaderRightAngle[1]
