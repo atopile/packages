@@ -29,6 +29,9 @@ module SaleaeHeader:
     channels[2] ~ saleae_debug_header.channels[2]
     channels[3] ~ saleae_debug_header.channels[3]
 
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
+
     # SPI
     spi = new SPI
     spi_cs = new ElectricSignal
@@ -72,6 +75,9 @@ module SaleaeHeaderVertical:
     channels[1].reference_shim.lv ~ package.3
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
+
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
 
     # SPI
     spi = new SPI
@@ -117,6 +123,9 @@ module SaleaeHeaderRightAngle:
     channels[1].reference_shim.lv ~ package.3
     channels[2].reference_shim.lv ~ package.5
     channels[3].reference_shim.lv ~ package.7
+
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
 
     # SPI
     spi = new SPI
