@@ -1,0 +1,119 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+import Resistor
+import Capacitor
+import Diode
+import Inductor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import ResistorVoltageDivider
+import EnablePin
+import has_single_electric_reference_shared
+from "regulators.ato" import AdjustableRegulator
+
+from "parts/Texas_Instruments_TPS82130SILR/Texas_Instruments_TPS82130SILR.ato" import Texas_Instruments_TPS82130SILR_package
+
+module Texas_Instruments_TPS82130 from AdjustableRegulator:
+    """
+    """
+    # --- Package ---
+    package = new Texas_Instruments_TPS82130SILR_package
+
+    # --- External module Parameters ---
+    soft_start_time_ms: ms
+    """
+    Startup slope of the output voltage
+    """
+
+    # --- Internal module Parameters ---
+    assert power_in.voltage within 3.0V to 17V
+    assert power_out.voltage within 0.9V to 6V
+    #assert soft_start_time_ms within 7ms +/-20%
+    assert soft_start_time_ms within 0.1ms to 10ms
+
+    # --- External interfaces ---
+    # power_in from regulator
+    # power_out from regulator
+    enable = new ElectricLogic #TODO: support EnablePin
+    """
+    Enable the regulator (active high)
+    """
+    enable.line.required = True # TODO: should be enable.line
+
+    power_good = new ElectricLogic
+    """
+    Power good signal (open drain).
+    Goes high impedance once the output is above 95% of the nominal voltage, and is
+    driven low once the output voltage falls below typically 90% of the nominal voltage.
+    """
+    assert power_good.reference.voltage <= power_out.voltage
+
+    # --- Internal interfaces ---
+    _feedback = new ElectricSignal
+    _soft_start_tracking = new ElectricSignal
+
+    # --- Adjustable Regulator Configuration ---
+    assert reference_voltage within 0.800V +/- 0.015V
+    assert feedback_divider.max_current within 100uA to 1mA
+    assert feedback_divider.r_bottom.resistance <= 100kohm +/-1%
+
+    # --- Components & connections ---
+    input_power_decoupling_capacitors = new Capacitor[2]
+    for cap in input_power_decoupling_capacitors:
+        cap.package = "0805"
+        cap.capacitance = 4.7uF +/- 20%
+        cap.temperature_coefficient = "X7R"
+        assert cap.max_voltage >= power_in.voltage * 1.5
+        power_in.hv ~> cap ~> power_in.lv
+
+    output_power_decoupling_capacitor = new Capacitor
+    output_power_decoupling_capacitor.package = "0805"
+    assert output_power_decoupling_capacitor.capacitance within 22uF to 400uF
+    # assert output_power_decoupling_capacitor.max_voltage >= power_out.voltage * 1.5 # TODO: broken in solver
+    assert output_power_decoupling_capacitor.max_voltage >= 9V
+    power_out.hv ~> output_power_decoupling_capacitor ~> power_out.lv
+
+    base_load_resistor = new Resistor # Might be to discharge the ouput capacitor(s)
+    base_load_resistor.package = "0201"
+    # base_load_resistor.resistance = 100kohm +/- 10%
+    power_out.hv ~> base_load_resistor ~> power_out.lv
+
+    soft_start_capacitor = new Capacitor
+    soft_start_capacitor.package = "0201" # might need 0402 due to limited picker options
+    assert soft_start_capacitor.max_voltage >= power_in.voltage * 1.5
+    _soft_start_tracking.line ~> soft_start_capacitor ~> power_in.lv
+
+    feedback_divider.r_bottom.package = "0201"
+    feedback_divider.r_top.package = "0201"
+    feedback_divider.output ~ _feedback
+
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    # --- Calculations ---
+    # soft start time
+    _soft_start_current = 2.1uA to 2.8uA
+    _soft_start_threshold_voltage = 1.25V
+    assert soft_start_capacitor.capacitance within soft_start_time_ms * (_soft_start_current / _soft_start_threshold_voltage) * (1 +/- 20%)
+
+    # load resistor
+    _minimum_load_current = 13uA
+    base_load_resistor.resistance = power_out.voltage / _minimum_load_current
+
+    # minimum output voltage
+    dropout_resistance = 69mohm
+    dropout_voltage = power_out.max_current * dropout_resistance
+    assert power_out.voltage <= power_in.voltage - dropout_voltage
+    assert power_in.voltage >= power_out.voltage + dropout_voltage
+
+    # --- Package Connections ---
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    power_in.lv ~ package.EP
+    power_out.hv ~ package.VOUT
+    enable.line ~ package.EN
+    power_good.line ~ package.PG
+    _soft_start_tracking.line ~ package.SS_TR
+    _feedback.line ~ package.FB
