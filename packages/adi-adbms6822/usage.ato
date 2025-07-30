@@ -1,108 +1,41 @@
-from "ADBMS6830.ato" import ADBMS6830
-from "cell-sim.ato" import CellSim
-from "generics/buttons.ato" import ButtonSKRPACE010
-from "ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
-from "generics/interfaces.ato" import Power, SPI
-from "rp2040/RP2040Kit.ato" import RP2040Kit
-from "usb-connectors/usb-connectors.ato" import USBCConn
-from "saleae-header/saleae-header.ato" import SaleaeHeader
-from "xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
-from "generics/resistors.ato" import Resistor
-from "connectors.ato" import ConnectorISOSPI
+import DifferentialPair, ElectricPower
+
+from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
+from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
+
 
 
 module Usage:
-    bms = new ADBMS6830
-    cell_sim = new CellSim
-    micro = new RP2040Kit
 
-    power_connector = new XT30_Male_Right_Angle
+    teensy = new PJRC_Teensy_4_1
+    adbms6822 = new ADI_ADBMS6822
+    usb_c_connector = new USBCConn
 
-    # ISO SPI connectors
-    port_a_connector = new ConnectorISOSPI
-    port_b_connector = new ConnectorISOSPI
+    # --- External Interfaces ---
+    power_5v = new ElectricPower
+    """
+    Main power rail for the Teensy and ADBMS6822.
+    """
+    # adbms6822.isospi_ports[0]
+    # adbms6822.isospi_ports[1]
 
-    port_a_connector.isospi ~ bms.iso_a
-    port_b_connector.isospi ~ bms.iso_b
+    # --- Power Connections ---
+    adbms6822.vdds_spi_power ~ power_5v
+    adbms6822.vdd_iso_spi_power ~ power_5v
+    adbms6822.vp_power ~ power_5v
 
-    # connect gnd together
-    micro.power.gnd ~ bms.vbat.gnd
-
-    spi_jumper = new _SPIJumper
-    micro.spi ~ spi_jumper.spi_in; spi_jumper.spi_out ~ bms.spi
-    power_connector.power ~ cell_sim.power_in
-
-    # connect cellsim to BMS
-    cell_sim.cell1.power_out ~ bms.cell1.power
-    cell_sim.cell2.power_out ~ bms.cell2.power
-    cell_sim.cell3.power_out ~ bms.cell3.power
-    cell_sim.cell4.power_out ~ bms.cell4.power
-    cell_sim.cell5.power_out ~ bms.cell5.power
-    cell_sim.cell6.power_out ~ bms.cell6.power
-    cell_sim.cell7.power_out ~ bms.cell7.power
-    cell_sim.cell8.power_out ~ bms.cell8.power
-    cell_sim.cell9.power_out ~ bms.cell9.power
-    cell_sim.cell10.power_out ~ bms.cell10.power
-    cell_sim.cell11.power_out ~ bms.cell11.power
-    cell_sim.cell12.power_out ~ bms.cell12.power
-    cell_sim.cell13.power_out ~ bms.cell13.power
-    cell_sim.cell14.power_out ~ bms.cell14.power
-    cell_sim.cell15.power_out ~ bms.cell15.power
-    cell_sim.cell16.power_out ~ bms.cell16.power
-    cell_sim.power_batt ~ bms.vbat
-
-    # Interfaces
-    power3v3 = new Power
-    usbc = new USBCConn
-    usbc.usb2 ~ micro.usb2
-    micro.power ~ power3v3
-
-    # assign reset and boot buttons
-    micro.reset_btn.btn -> ButtonSKRPACE010
-    micro.boot_btn.btn -> ButtonSKRPACE010
-
-    ldo3v3 = new LDK220M_R
-    ldo3v3.v_in = 5V +/- 10%
-    ldo3v3.v_out = 3.3V +/- 10%
-
-    ldo3v3.power_out ~ power3v3
-    usbc.power ~ ldo3v3.power_in
-
-    bms_ref_debug = new SaleaeHeader
-    bms.ic.VREF1 ~ bms_ref_debug.ch0.io
-    bms.ic.VREF2 ~ bms_ref_debug.ch1.io
-    bms.ic.VREG ~ bms_ref_debug.ch2.io
-    bms.ic.DRIVE ~ bms_ref_debug.ch3.io
-    bms_ref_debug.gnd ~ bms.vbat.gnd
-
-    bms_spi_debug = new SaleaeHeader
-    bms_spi_debug.spi ~ micro.spi
-    bms_spi_debug.gnd ~ bms.vbat.gnd
+    teensy.power ~ power_5v
 
 
-module _SPIJumper:
-    spi_in = new SPI
-    spi_out = new SPI
+    # --- Saleae Debug Header Connections ---
+    saleae_spi_interface = new SaleaeHeaderRightAngle_2
 
-    # resistors to jump the SPI signals
-    mosi_resistor = new Resistor
-    miso_resistor = new Resistor
-    sck_resistor = new Resistor
-    cs_resistor = new Resistor
+    # Spi 0
+    saleae_spi_interface.headers[0].spi ~ adbms6822.spi[0]
+    saleae_spi_interface.headers[0].spi_cs ~ adbms6822.spi_cs[0]
 
-    #TODO: make these 0R (compiler issue)
-    mosi_resistor.value = 0.1ohm to 1ohm
-    miso_resistor.value = 0.1ohm to 1ohm
-    sck_resistor.value = 0.1ohm to 1ohm
-    cs_resistor.value = 0.1ohm to 1ohm
-
-    mosi_resistor.package = "0402"
-    miso_resistor.package = "0402"
-    sck_resistor.package = "0402"
-    cs_resistor.package = "0402"
-
-    # connect the resistors to the SPI signals
-    spi_in.mosi ~ mosi_resistor.1; mosi_resistor.2 ~ spi_out.mosi
-    spi_in.miso ~ miso_resistor.1; miso_resistor.2 ~ spi_out.miso
-    spi_in.sck ~ sck_resistor.1; sck_resistor.2 ~ spi_out.sck
-    spi_in.cs ~ cs_resistor.1; cs_resistor.2 ~ spi_out.cs
+    # Spi 1
+    saleae_spi_interface.headers[1].spi ~ adbms6822.spi[1]
+    saleae_spi_interface.headers[1].spi_cs ~ adbms6822.spi_cs[1]
