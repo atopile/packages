@@ -108,8 +108,6 @@ module Usage:
     sbi.signals_up.29 ~ adbms6830.iso_b_external.n.line
     sbi.signals_up.30 ~ adbms6830.iso_b_external.p.line
 
-    power_hv.lv ~ sbi.cell_power_down.1
-    power_hv.hv ~ sbi.cell_power_down.30
 
     cells[0] ~ adbms6830.cell_stack[0]
     cells[1] ~ adbms6830.cell_stack[1]
@@ -128,6 +126,7 @@ module Usage:
     cells[14] ~ adbms6830.cell_stack[14]
     cells[15] ~ adbms6830.cell_stack[15]
 
+    power_hv.lv ~ sbi.cell_power_down.1
     cells[0].lv ~ sbi.cell_power_down.2
     cells[0].hv ~ sbi.cell_power_down.3
     cells[1].lv ~ sbi.cell_power_down.3
@@ -160,7 +159,9 @@ module Usage:
     cells[14].hv ~ sbi.cell_power_down.17
     cells[15].lv ~ sbi.cell_power_down.17
     cells[15].hv ~ sbi.cell_power_down.18
+    power_hv.hv ~ sbi.cell_power_down.30
 
+    power_hv.lv ~ sbi.cell_sense_down.1
     cells[0].lv ~ sbi.cell_sense_down.2
     cells[0].hv ~ sbi.cell_sense_down.3
     cells[1].lv ~ sbi.cell_sense_down.3
@@ -193,6 +194,7 @@ module Usage:
     cells[14].hv ~ sbi.cell_sense_down.17
     cells[15].lv ~ sbi.cell_sense_down.17
     cells[15].hv ~ sbi.cell_sense_down.18
+    power_hv.hv ~ sbi.cell_sense_down.30
 
     cells[0].lv.override_net_name = "CELL0"
     cells[0].hv.override_net_name = "CELL1"
