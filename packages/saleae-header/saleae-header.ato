@@ -18,16 +18,20 @@ module SaleaeHeader:
     channels = new ElectricSignal[4]
     gnd = new Electrical
 
-    saleae_debug_header = new SaleaeHeaderVertical
-    gnd ~ saleae_debug_header.channels[0].reference_shim.lv
+    protection_resistors = new Resistor[4]
 
     for channel in channels:
         gnd ~ channel.reference.gnd
 
-    channels[0] ~ saleae_debug_header.channels[0]
-    channels[1] ~ saleae_debug_header.channels[1]
-    channels[2] ~ saleae_debug_header.channels[2]
-    channels[3] ~ saleae_debug_header.channels[3]
+    # Configure resistors
+    for resistor in protection_resistors:
+        resistor.resistance = 1kohm +/- 5%
+        resistor.package = "0402"
+
+    channels[0].line ~> protection_resistors[0] ~> header.2
+    channels[1].line ~> protection_resistors[1] ~> header.4
+    channels[2].line ~> protection_resistors[2] ~> header.6
+    channels[3].line ~> protection_resistors[3] ~> header.8
 
     for channel in channels:
         assert channel.reference.voltage within -25V to 25V
