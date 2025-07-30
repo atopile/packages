@@ -1,0 +1,41 @@
+import DifferentialPair, ElectricPower
+
+from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
+from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
+
+
+
+module Usage:
+
+    teensy = new PJRC_Teensy_4_1
+    adbms6822 = new ADI_ADBMS6822
+    usb_c_connector = new USBCConn
+
+    # --- External Interfaces ---
+    power_5v = new ElectricPower
+    """
+    Main power rail for the Teensy and ADBMS6822.
+    """
+    # adbms6822.isospi_ports[0]
+    # adbms6822.isospi_ports[1]
+
+    # --- Power Connections ---
+    adbms6822.vdds_spi_power ~ power_5v
+    adbms6822.vdd_iso_spi_power ~ power_5v
+    adbms6822.vp_power ~ power_5v
+
+    teensy.power ~ power_5v
+
+
+    # --- Saleae Debug Header Connections ---
+    saleae_spi_interface = new SaleaeHeaderRightAngle_2
+
+    # Spi 0
+    saleae_spi_interface.headers[0].spi ~ adbms6822.spi[0]
+    saleae_spi_interface.headers[0].spi_cs ~ adbms6822.spi_cs[0]
+
+    # Spi 1
+    saleae_spi_interface.headers[1].spi ~ adbms6822.spi[1]
+    saleae_spi_interface.headers[1].spi_cs ~ adbms6822.spi_cs[1]

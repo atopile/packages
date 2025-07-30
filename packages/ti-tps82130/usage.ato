@@ -1,0 +1,29 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import ElectricLogic
+
+from "atopile/ti-tps82130/ti-tps82130.ato" import Texas_Instruments_TPS82130
+
+module Usage:
+    """
+    Test design
+    """
+    regulator12_3v3 = new Texas_Instruments_TPS82130
+    regulator12_3v3.power_out.max_current = 3000mA
+    regulator12_3v3.soft_start_time_ms = 1.8ms
+
+    # --- Connections ---
+    power_input = new ElectricPower
+    assert power_input.voltage within 12V +/- 10%
+    power_output = new ElectricPower
+    assert power_output.voltage within 3.3V +/- 5%
+
+    # TODO: enable required workaround
+    enable = new ElectricLogic
+    enable.line ~ power_input.hv
+
+    regulator12_3v3.power_in ~ power_input
+    regulator12_3v3.power_out ~ power_output
+    regulator12_3v3.enable ~ enable
