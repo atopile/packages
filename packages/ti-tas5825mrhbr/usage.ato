@@ -1,0 +1,48 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import I2S
+import DifferentialPair
+
+from "ti_tas5825mrhbr.ato" import Texas_Instruments_TAS5825MRHBR_driver
+
+module Usage:
+    """
+    Minimal usage example for ti-tas5825mrhbr audio amplifier.
+    Demonstrates basic connections for I2S audio amplification.
+    """
+
+    # Power supplies
+    power_3v3 = new ElectricPower
+    power_20v = new ElectricPower
+
+
+    # I2S audio interface
+    i2s = new I2S
+
+    # I2C control interface
+    i2c = new I2C
+    i2c.frequency = 400kHz
+
+    # Amplifier instance
+    amp = new Texas_Instruments_TAS5825MRHBR_driver
+
+    # Power connections
+    amp.power_pvdd ~ power_20v
+    amp.power_dvdd ~ power_3v3
+
+    # Interface connections
+    amp.i2s ~ i2s
+    amp.i2c ~ i2c
+
+    # Set I2C address (0x4C base + resistor-selected offset)
+    # Default address is 0x50 with 4.7kohm resistor
+    assert amp.i2c.address is 0x50
+
+    # Audio outputs (differential pairs for Class-D amplifier)
+    speaker_a = new DifferentialPair
+    speaker_b = new DifferentialPair
+
+    amp.output_a ~ speaker_a
+    amp.output_b ~ speaker_b
