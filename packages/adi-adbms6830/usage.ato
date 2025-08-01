@@ -138,6 +138,12 @@ module Usage:
     sbi.isoSPI_up.p.line ~> analog_DPDT.switches_no[0] ~> sbi.isoSPI_passthru.p.line
     sbi.isoSPI_up.n.line ~> analog_DPDT.switches_no[1] ~> sbi.isoSPI_passthru.n.line
 
+    DPDT = new XKB_Connectivity_SK_3245S_L1_B_package # 1~2x3, 6~5x4
+    DPDT.1 ~ sbi.isoSPI_up.n.line
+    DPDT.2 ~ sbi.isoSPI_passthru.n.line
+    DPDT.4 ~ sbi.isoSPI_passthru.p.line
+    DPDT.5 ~ sbi.isoSPI_up.p.line
+
 
     cells[0] ~ adbms6830.cell_stack[0]
     cells[1] ~ adbms6830.cell_stack[1]
