@@ -12,8 +12,7 @@ from "atopile/adi-adbms6830/usage.ato" import StackableBMBInterface
 from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "parts/DIBO_DB125_3_81_2P_BK_S/DIBO_DB125_3_81_2P_BK_S.ato" import DIBO_DB125_3_81_2P_BK_S_package
-from "parts/XINGLIGHT_XL_1606UBC/XINGLIGHT_XL_1606UBC.ato" import XINGLIGHT_XL_1606UBC_package # blue
-from "parts/XINGLIGHT_XL_1606UGC/XINGLIGHT_XL_1606UGC.ato" import XINGLIGHT_XL_1606UGC_package # green
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue, LEDIndicatorGreen
 from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" import XKB_Connectivity_SK_3245S_L1_B_package
 
 
@@ -77,16 +76,12 @@ module Usage:
     gpio_dac.outputs[7] ~ sbi.signals_up.17
 
     # --- LED Connections ---
-    led_blue = new XINGLIGHT_XL_1606UBC_package
-    led_blue_resistor = new Resistor
-    led_green = new XINGLIGHT_XL_1606UGC_package
-    led_green_resistor = new Resistor
-
-    assert led_blue_resistor.resistance within (power_5v.voltage-2.4V) / (500uA +/-20%)
-    assert led_green_resistor.resistance within (power_3v3.voltage-2.4V) / (500uA +/-20%)
-    power_5v.hv ~> led_blue_resistor ~> led_blue.A; led_blue.K ~ power_5v.lv
-    power_3v3.hv ~> led_green_resistor ~> led_green.A; led_green.K ~ power_3v3.lv
-
+    led_blue = new LEDIndicatorBlue
+    led_blue.current = 0.5mA to 1mA
+    power_5v.hv ~> led_blue ~> power_5v.lv
+    led_green = new LEDIndicatorGreen
+    led_green.current = 0.5mA to 1mA
+    power_3v3.hv ~> led_green ~> power_3v3.lv
 
     # --- Saleae Debug Header Connections ---
     saleae_spi_interface = new SaleaeHeaderRightAngle_2
