@@ -1,0 +1,46 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import SPI
+import USB2_0
+import ElectricLogic
+
+from "cm5.ato" import CM5
+
+module Usage:
+    """
+    Minimal usage example for Raspberry Pi CM5 module.
+    Demonstrates basic connections for power, I2C, SPI, and a simple LED.
+    """
+
+    # Power supply
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V +/- 5%
+
+    # CM5 instance
+    controller = new CM5
+
+    # Connect power
+    power_5v ~ controller.power_5v
+
+    # Example I2C sensor connection
+    i2c_sensor = new I2C
+    i2c_sensor ~ controller.i2cs[0]  # Using I2C0
+
+    # Example SPI device connection
+    spi_device = new SPI
+    spi_device ~ controller.spi0
+
+    # SPI chip select
+    spi_cs = new ElectricLogic
+    spi_cs ~ controller.spi0_cs0
+
+    # Example USB connection
+    usb_device = new USB2_0
+    usb_device ~ controller.usb2
+
+    # Example LED connection using the LED data pin
+    led_signal = new ElectricLogic
+    led_signal ~ controller.led_data

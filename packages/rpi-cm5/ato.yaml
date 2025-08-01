@@ -7,12 +7,17 @@ paths:
 builds:
   cm5:
     entry: cm5.ato:CM5
-    exclude_checks: ['PCB.requires_drc_check']
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/rpi-cm5
   repository: https://github.com/atopile/packages
-  version: "0.1.5"
+  version: "0.1.6"
   authors:
     - name: atopile
       email: hi@atopile.io
