@@ -11,9 +11,11 @@ from "parts/XFCN_PZ254V_11_02P/XFCN_PZ254V_11_02P.ato" import XFCN_PZ254V_11_02P
 from "parts/HCTL_PM254_2_10_S_8_5/HCTL_PM254_2_10_S_8_5.ato" import HCTL_PM254_2_10_S_8_5_package
 from "parts/HRS_DF40HC_3_0__30DS_0_4V_51/HRS_DF40HC_3_0__30DS_0_4V_51.ato" import HRS_DF40HC_3_0__30DS_0_4V_51_package
 from "parts/HRS_DF40C_30DP_0_4V_51/HRS_DF40C_30DP_0_4V_51.ato" import HRS_DF40C_30DP_0_4V_51_package
+from "parts/XINGLIGHT_XL_1606UBC/XINGLIGHT_XL_1606UBC.ato" import XINGLIGHT_XL_1606UBC_package # blue
+from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" import XKB_Connectivity_SK_3245S_L1_B_package
 
 
-import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider
+import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider, DifferentialPair
 
 import can_bridge_by_name
 
@@ -73,6 +75,12 @@ module Usage:
     thermistors[1].output.line ~ adbms6830.gpios[1].line
     thermistors[2].output.line ~ adbms6830.gpios[2].line
 
+    # --- Onboard LED ---
+    led = new XINGLIGHT_XL_1606UBC_package
+    led_resistor = new Resistor
+    assert led_resistor.resistance within (adbms6830.vreg.voltage-2.4V) / (500uA +/-20%)
+    adbms6830.vreg.hv ~> led_resistor ~> led.A
+    led.K ~ adbms6830.vreg.lv
 
     # BMB Debug
     # saleae_bmb_debug = new SaleaeHeaderRightAngle
@@ -93,20 +101,26 @@ module Usage:
     sbi.signals_down.7 ~ adbms6830.vref2.hv
     sbi.signals_down.8 ~ adbms6830.isomd.line
     sbi.signals_down.9 ~ adbms6830.vreg_drive.line
-    sbi.signals_down.10 ~ adbms6830.gpios[0].line
-    sbi.signals_down.11 ~ adbms6830.gpios[1].line
-    sbi.signals_down.12 ~ adbms6830.gpios[2].line
-    sbi.signals_down.13 ~ adbms6830.gpios[3].line
-    sbi.signals_down.14 ~ adbms6830.gpios[4].line
-    sbi.signals_down.15 ~ adbms6830.gpios[5].line
-    sbi.signals_down.16 ~ adbms6830.gpios[6].line
-    sbi.signals_down.17 ~ adbms6830.gpios[7].line
-    sbi.signals_down.18 ~ adbms6830.gpios[8].line
+    sbi.gpios[0] ~ adbms6830.gpios[0]
+    sbi.gpios[1] ~ adbms6830.gpios[1]
+    sbi.gpios[2] ~ adbms6830.gpios[2]
+    sbi.gpios[3] ~ adbms6830.gpios[3]
+    sbi.gpios[4] ~ adbms6830.gpios[4]
+    sbi.gpios[5] ~ adbms6830.gpios[5]
+    sbi.gpios[6] ~ adbms6830.gpios[6]
+    sbi.gpios[7] ~ adbms6830.gpios[7]
+    sbi.gpios[8] ~ adbms6830.gpios[8]
 
     sbi.signals_down.29 ~ adbms6830.iso_a_external.n.line
     sbi.signals_down.30 ~ adbms6830.iso_a_external.p.line
     sbi.signals_up.29 ~ adbms6830.iso_b_external.n.line
     sbi.signals_up.30 ~ adbms6830.iso_b_external.p.line
+
+    DPDT = new XKB_Connectivity_SK_3245S_L1_B_package # 1~2x3, 6~5x4
+    DPDT.1 ~ sbi.isoSPI_up.n.line
+    DPDT.2 ~ sbi.isoSPI_passthru.n.line
+    DPDT.4 ~ sbi.isoSPI_passthru.p.line
+    DPDT.5 ~ sbi.isoSPI_up.p.line
 
 
     cells[0] ~ adbms6830.cell_stack[0]
@@ -214,6 +228,9 @@ module Usage:
     cells[14].hv.override_net_name = "CELL15"
     cells[15].hv.override_net_name = "CELL16"
 
+    sbi.isoSPI_passthru.p.line.override_net_name = "ISOpass_P"
+    sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
+
     atopile_logo = new atopile_logo_25x6mm
 
 module TempSensor:
@@ -234,13 +251,6 @@ module TempSensor:
     output.line ~ r_top.p2
     output.reference.lv ~ power.lv
 
-module Jumper from XFCN_PZ254V_11_02P_package:
-    p1 = new Electrical
-    p2 = new Electrical
-    p1 ~ pin 1
-    p2 ~ pin 2
-    trait can_bridge_by_name<input_name = "p1", output_name = "p2">
-
 module StackableBMBInterface:
     cell_power_up = new HRS_DF40HC_3_0__30DS_0_4V_51_package
     cell_power_down = new HRS_DF40C_30DP_0_4V_51_package
@@ -250,6 +260,31 @@ module StackableBMBInterface:
 
     signals_up = new HRS_DF40HC_3_0__30DS_0_4V_51_package
     signals_down = new HRS_DF40C_30DP_0_4V_51_package
+
+    isoSPI_up = new DifferentialPair
+    isoSPI_up.n.line ~ signals_up.29
+    isoSPI_up.p.line ~ signals_up.30
+    isoSPI_down = new DifferentialPair
+    isoSPI_down.n.line ~ signals_down.29
+    isoSPI_down.p.line ~ signals_down.30
+    isoSPI_passthru = new DifferentialPair
+    isoSPI_passthru.n.line ~ signals_up.27
+    isoSPI_passthru.p.line ~ signals_up.28
+    isoSPI_passthru.n.line ~ signals_down.27
+    isoSPI_passthru.p.line ~ signals_down.28
+
+    gpios = new ElectricSignal[10]
+    gpios[0].line ~ signals_down.10
+    gpios[1].line ~ signals_down.11
+    gpios[2].line ~ signals_down.12
+    gpios[3].line ~ signals_down.13
+    gpios[4].line ~ signals_down.14
+    gpios[5].line ~ signals_down.15
+    gpios[6].line ~ signals_down.16
+    gpios[7].line ~ signals_down.17
+    gpios[8].line ~ signals_down.18
+    gpios[9].line ~ signals_down.19
+
 
     cell_power_down.1 ~ cell_power_up.1
     cell_power_down.2 ~ cell_power_up.2

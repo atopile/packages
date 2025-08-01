@@ -1,4 +1,6 @@
-import DifferentialPair, ElectricPower
+#pragma experiment("BRIDGE_CONNECT")
+
+import DifferentialPair, ElectricPower, Resistor
 
 from "parts/Nextron_Z_231012820106/Nextron_Z_231012820106.ato" import Nextron_Z_231012820106_package
 
@@ -8,11 +10,15 @@ from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
 from "atopile/adi-adbms6830/usage.ato" import StackableBMBInterface
 from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
+from "atopile/logos/logos.ato" import atopile_logo_25x6mm
+from "parts/DIBO_DB125_3_81_2P_BK_S/DIBO_DB125_3_81_2P_BK_S.ato" import DIBO_DB125_3_81_2P_BK_S_package
+from "parts/XINGLIGHT_XL_1606UBC/XINGLIGHT_XL_1606UBC.ato" import XINGLIGHT_XL_1606UBC_package # blue
+from "parts/XINGLIGHT_XL_1606UGC/XINGLIGHT_XL_1606UGC.ato" import XINGLIGHT_XL_1606UGC_package # green
+from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" import XKB_Connectivity_SK_3245S_L1_B_package
 
 
 
 module Usage:
-
     teensy = new PJRC_Teensy_4_1
     adbms6822 = new ADI_ADBMS6822
     usb_c_connector = new USBCConn
@@ -38,20 +44,28 @@ module Usage:
     # --- Power Connections ---
     power_5v ~ usb_c_connector.usb2.usb_if.buspower
     adbms6822.vp_power ~ power_5v
-    adbms6822.vdd_iso_spi_power ~ power_5v
+    adbms6822.vdd_iso_spi_power ~ power_3v3
     adbms6822.vdds_spi_power ~ power_3v3
     gpio_dac.power ~ power_3v3
+    gpio_dac.vref ~ power_3v3.hv
 
-    power_5v ~ teensy.power
+    teensy.power ~ power_5v
     teensy.power_3v3 ~ power_3v3
+    stack_power.lv ~ power_3v3.lv
 
 
+    # --- Comms Connections ---
     teensy.spi[0] ~ adbms6822.spi[0]
     teensy.chip_select[0] ~ adbms6822.spi_cs[0]
     teensy.spi[1] ~ adbms6822.spi[1]
     teensy.chip_select[1] ~ adbms6822.spi_cs[1]
+    teensy.usb_device ~ usb_c_connector.usb2
 
-    teensy.i2c[0] ~ gpio_dac.i2c
+
+    # --- GPIO DAC Connections ---
+    gpio_dac.i2c ~ teensy.i2c[0]
+    gpio_dac.clear_n ~ teensy.gpio[2]
+    gpio_dac.ldac_n ~ teensy.gpio[3]
 
     gpio_dac.outputs[0] ~ sbi.signals_up.10
     gpio_dac.outputs[1] ~ sbi.signals_up.11
@@ -61,6 +75,17 @@ module Usage:
     gpio_dac.outputs[5] ~ sbi.signals_up.15
     gpio_dac.outputs[6] ~ sbi.signals_up.16
     gpio_dac.outputs[7] ~ sbi.signals_up.17
+
+    # --- LED Connections ---
+    led_blue = new XINGLIGHT_XL_1606UBC_package
+    led_blue_resistor = new Resistor
+    led_green = new XINGLIGHT_XL_1606UGC_package
+    led_green_resistor = new Resistor
+
+    assert led_blue_resistor.resistance within (power_5v.voltage-2.4V) / (500uA +/-20%)
+    assert led_green_resistor.resistance within (power_3v3.voltage-2.4V) / (500uA +/-20%)
+    power_5v.hv ~> led_blue_resistor ~> led_blue.A; led_blue.K ~ power_5v.lv
+    power_3v3.hv ~> led_green_resistor ~> led_green.A; led_green.K ~ power_3v3.lv
 
 
     # --- Saleae Debug Header Connections ---
@@ -74,7 +99,43 @@ module Usage:
     saleae_spi_interface.headers[1].spi ~ adbms6822.spi[1]
     saleae_spi_interface.headers[1].spi_cs ~ adbms6822.spi_cs[1]
 
+    # External isoSPI connectors
+    external_isoSPI_connectors = new DIBO_DB125_3_81_2P_BK_S_package[2]
+    external_isoSPI_connectors[0].1 ~ adbms6822.isospi_ports[0].p.line
+    external_isoSPI_connectors[0].2 ~ adbms6822.isospi_ports[0].n.line
+    external_isoSPI_connectors[1].1 ~ adbms6822.isospi_ports[1].p.line
+    external_isoSPI_connectors[1].2 ~ adbms6822.isospi_ports[1].n.line
+    adbms6822.isospi_ports[0].p.line.override_net_name = "ISO0_P"
+    adbms6822.isospi_ports[0].n.line.override_net_name = "ISO0_N"
+    adbms6822.isospi_ports[1].p.line.override_net_name = "ISO1_P"
+    adbms6822.isospi_ports[1].n.line.override_net_name = "ISO1_N"
+
     # IDC Cellsim connector
+    sbi.isoSPI_up ~ adbms6822.isospi_ports[0]
+    sbi.isoSPI_down ~ adbms6822.isospi_ports[1]
+    sbi.isoSPI_passthru ~ adbms6822.isospi_ports[1]
+
+    sbi.signals_up.1 ~ teensy.gpio[22]
+    sbi.signals_up.2 ~ teensy.gpio[21]
+    sbi.signals_up.3 ~ teensy.gpio[20]
+    sbi.signals_up.4 ~ teensy.gpio[17]
+    sbi.signals_up.5 ~ teensy.gpio[16]
+    sbi.signals_up.6 ~ teensy.gpio[15]
+    sbi.signals_up.7 ~ teensy.gpio[14]
+    sbi.signals_up.8 ~ teensy.gpio[41]
+    sbi.signals_up.9 ~ teensy.gpio[40]
+
+    sbi.signals_up.10 ~ teensy.gpio[39]
+    sbi.signals_up.11 ~ teensy.gpio[38]
+    sbi.signals_up.12 ~ teensy.gpio[35]
+    sbi.signals_up.13 ~ teensy.gpio[34]
+    sbi.signals_up.14 ~ teensy.gpio[33]
+    sbi.signals_up.15 ~ teensy.gpio[28]
+    sbi.signals_up.16 ~ teensy.gpio[29]
+    sbi.signals_up.17 ~ teensy.gpio[30]
+    sbi.signals_up.18 ~ teensy.gpio[31]
+    sbi.signals_up.19 ~ teensy.gpio[32]
+
     cellsim_connector = new Nextron_Z_231012820106_package
     stack_power.lv ~ cellsim_connector.19
     cells[0].lv ~ cellsim_connector.18
@@ -199,3 +260,5 @@ module Usage:
     cells[13].hv.override_net_name = "CELL14"
     cells[14].hv.override_net_name = "CELL15"
     cells[15].hv.override_net_name = "CELL16"
+
+    atopile_logo = new atopile_logo_25x6mm
