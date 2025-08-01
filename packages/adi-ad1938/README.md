@@ -1,7 +1,7 @@
 # AD1938 - Audio DAC/ADC
 
-This package provides a driver for the AD1938 audio DAC/ADC with 4 differential inputs
-(2x stereo) and 4 unipolar outputs (4x stereo).
+This package provides a driver for the AD1938 audio DAC/ADC (CODEC) with 4 differential inputs
+(2x stereo) and 8 unipolar outputs (4x stereo).
 
 ## Usage
 
@@ -61,6 +61,10 @@ module Example:
     # clock
     clock_source.clock_out ~ dac_adc.model.pll_clock_in
 ```
+
+## Development notes
+
+See [Development notes](../development_notes.md) for information about this codec.
 
 ## Contributing
 

@@ -58,16 +58,64 @@ module _VoltageReferenceDecoupling:
 
 module Analog_Devices_AD1938_driver:
     """
-    Analog Devices AD1938WBSTZ-RL
+    Analog Devices AD1938WBSTZ-RL is a high performance,
+    single-chip codec with 4x ADC inputs and 8x DAC outputs
+
+    - PLL generated or direct master clock
+    - Low EMI design
+    - 108 dB DAC/107 dB ADC dynamic range and SNR
+    - -94 dB THD + N
+    - 3.3 V single supply
+    - Tolerance for 5 V logic inputs
+    - Supports 24 bits and 8 kHz to 192 kHz sample rates
+    - 4x Differential ADC input
+    - 8x Single-ended DAC output
+    - Log volume control with autoramp function
+    - SPI controllable for flexibility
+    - Software-controllable clickless mute
+    - Software power-down
+    - Right-justified, left-justified, I2
+    - S-justified, and TDM modes
+    - Master and slave modes up to 16-channel input/output
+    - 48-lead LQFP package
+    - Qualified for automotive applications
     """
     model = new Analog_Devices_AD1938_model
 
+    # --- External interfaces ---
     # power
     power = new ElectricPower
+    """
+    Main power input, will also be used to derive the analog power from.
+    """
     power.required = True
     assert power.voltage within 3.3V +/- 10%
 
+    # Passthrough from model
+    reset_disable = new ElectricLogic
+    """
+    Reset disable input (active low)
+    Used to disable or reset the device.
+    """
+    reset_disable.required = True
+    reset_disable ~ model.reset_disable
+    reset_pulldown = new Resistor
+    reset_pulldown.package = "0402"
+    reset_pulldown.resistance = 100kohm +/- 10%
+    reset_disable.line ~> reset_pulldown ~> reset_disable.reference.lv
+
+    pll_clock_in = new ElectricLogic
+    """
+    MCLKI/XI, Master clock input for PLL. Either of the LRCLK inputs can also be used
+    for the PLL master clock instead of this input.
+    """
+    pll_clock_in.line ~ model.pll_clock_in
+    # pll_clock_in.required = True # TODO: one of the clock options should be used
+
+    # --- Internal interfaces ---
     _power_analog_filtered = new ElectricPower
+
+    # --- Components and connections ---
     choke = new Inductor
     choke.package = "0805"
     #choke.inductance = 100uH +/- 10%
@@ -76,6 +124,16 @@ module Analog_Devices_AD1938_driver:
     power.lv ~> _power_analog_filtered.lv
     _power_analog_filtered ~> model.power_analog
     power ~ model.power_io
+
+    # pllfilter
+    pll_filter = new _PLLFilter
+    model.pll_filter ~> pll_filter ~> model.power_analog.lv
+
+    #TODO: is optional. probably want to use a dsp or other logic clock source
+    ## oscillator
+    #oscillator_driver = new _OscillatorDriver
+    #model.xtal_in ~> oscillator_driver ~> model.xtal_out
+    #oscillator_driver.ground ~ power.lv
 
     # Decoupling caps
     # TODO verify pin neighbours with chip
@@ -110,20 +168,3 @@ module Analog_Devices_AD1938_driver:
     decoupling_bulk_power_io.package = "0805"
     decoupling_bulk_power_io.capacitance = 10uF +/- 20%
     model.power_io.hv ~> decoupling_bulk_power_io ~> model.power_io.lv
-
-    # pllfilter
-    pll_filter = new _PLLFilter
-    model.pll_filter ~> pll_filter ~> model.power_analog.lv
-
-    ## oscillator
-    #oscillator_driver = new _OscillatorDriver
-    #model.xtal_in ~> oscillator_driver ~> model.xtal_out
-    #oscillator_driver.ground ~ power.lv
-
-    # Passthrough required
-    reset_disable = new ElectricLogic
-    pll_clock_in = new ElectricLogic
-    reset_disable ~ model.reset_disable
-    pll_clock_in.line ~ model.pll_clock_in
-    reset_disable.required = True
-    # pll_clock_in.required = True
