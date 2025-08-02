@@ -1,0 +1,87 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower, Resistor, ElectricLogic, SPI
+
+from "macroblock-mbi5043.ato" import Macroblock_MBI5043
+
+module Usage:
+    """
+    Minimal usage example for macroblock-mbi5043.
+    Demonstrates basic LED driver configuration with SPI control.
+    """
+
+    # --- Components ---
+    led_driver = new Macroblock_MBI5043
+
+    # --- Power Supply ---
+    power_5v = new ElectricPower
+    """
+    5V power supply for the LED driver
+    """
+    assert power_5v.voltage within 4.8V to 5.2V
+
+    # --- Control Signals ---
+    spi_controller = new SPI
+    """
+    SPI interface from microcontroller to LED driver
+    """
+
+    latch_enable = new ElectricLogic
+    """
+    Latch enable signal - controlled by microcontroller GPIO
+    """
+    latch_enable.reference ~ power_5v
+
+    output_enable = new ElectricLogic
+    """
+    Output enable signal - controlled by microcontroller GPIO
+    """
+    output_enable.reference ~ power_5v
+
+    global_clock = new ElectricLogic
+    """
+    Global clock for PWM - controlled by microcontroller PWM output
+    """
+    global_clock.reference ~ power_5v
+
+    # --- LED Load Examples ---
+    led_array = new Resistor[16]
+    """
+    Example LED load represented as resistors
+    In real application, these would be LEDs
+    """
+    for led in led_array:
+        led.resistance = 100ohm +/- 5%  # Typical LED + current limiting resistor equivalent
+        led.package = "0603"
+
+    # --- Connections ---
+    # Power
+    led_driver.power ~ power_5v
+
+    # SPI Communication
+    led_driver.spi ~ spi_controller
+
+    # Control signals
+    led_driver.le ~ latch_enable
+    led_driver.oe ~ output_enable
+    led_driver.gclk ~ global_clock
+
+    # LED connections
+    power_5v.hv ~> led_array[0] ~> led_driver.led_outputs[0].line
+    power_5v.hv ~> led_array[1] ~> led_driver.led_outputs[1].line
+    power_5v.hv ~> led_array[2] ~> led_driver.led_outputs[2].line
+    power_5v.hv ~> led_array[3] ~> led_driver.led_outputs[3].line
+    power_5v.hv ~> led_array[4] ~> led_driver.led_outputs[4].line
+    power_5v.hv ~> led_array[5] ~> led_driver.led_outputs[5].line
+    power_5v.hv ~> led_array[6] ~> led_driver.led_outputs[6].line
+    power_5v.hv ~> led_array[7] ~> led_driver.led_outputs[7].line
+    power_5v.hv ~> led_array[8] ~> led_driver.led_outputs[8].line
+    power_5v.hv ~> led_array[9] ~> led_driver.led_outputs[9].line
+    power_5v.hv ~> led_array[10] ~> led_driver.led_outputs[10].line
+    power_5v.hv ~> led_array[11] ~> led_driver.led_outputs[11].line
+    power_5v.hv ~> led_array[12] ~> led_driver.led_outputs[12].line
+    power_5v.hv ~> led_array[13] ~> led_driver.led_outputs[13].line
+    power_5v.hv ~> led_array[14] ~> led_driver.led_outputs[14].line
+    power_5v.hv ~> led_array[15] ~> led_driver.led_outputs[15].line
