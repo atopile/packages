@@ -2,14 +2,14 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-import ElectricPower, Resistor, ElectricLogic, SPI
+import ElectricPower, Resistor, ElectricLogic
 
 from "macroblock-mbi5043.ato" import Macroblock_MBI5043
 
 module Usage:
     """
     Minimal usage example for macroblock-mbi5043.
-    Demonstrates basic LED driver configuration with SPI control.
+    Demonstrates basic LED driver configuration with serial data control.
     """
 
     # --- Components ---
@@ -23,22 +23,23 @@ module Usage:
     assert power_5v.voltage within 4.8V to 5.2V
 
     # --- Control Signals ---
-    spi_controller = new SPI
+    serial_data_input = new ElectricLogic
     """
-    SPI interface from microcontroller to LED driver
+    Serial Data Input - controlled by microcontroller GPIO
     """
+    serial_data_input.reference ~ power_5v
+
+    data_clock = new ElectricLogic
+    """
+    Data Clock - controlled by microcontroller GPIO
+    """
+    data_clock.reference ~ power_5v
 
     latch_enable = new ElectricLogic
     """
     Latch enable signal - controlled by microcontroller GPIO
     """
     latch_enable.reference ~ power_5v
-
-    output_enable = new ElectricLogic
-    """
-    Output enable signal - controlled by microcontroller GPIO
-    """
-    output_enable.reference ~ power_5v
 
     global_clock = new ElectricLogic
     """
@@ -60,12 +61,12 @@ module Usage:
     # Power
     led_driver.power ~ power_5v
 
-    # SPI Communication
-    led_driver.spi ~ spi_controller
+    # Serial Communication
+    led_driver.sdi ~ serial_data_input
+    led_driver.dclk ~ data_clock
 
     # Control signals
     led_driver.le ~ latch_enable
-    led_driver.oe ~ output_enable
     led_driver.gclk ~ global_clock
 
     # LED connections
