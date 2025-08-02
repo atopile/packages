@@ -30,6 +30,13 @@ module Macroblock_MBI5043:
     sdi.line.required = True
     sdi.reference ~ power
 
+    sdo = new ElectricLogic
+    """
+    Serial Data Output
+    """
+    sdo.line.required = True
+    sdo.reference ~ power
+
     dclk = new ElectricLogic
     """
     Serial Data Clock
@@ -87,7 +94,7 @@ module Macroblock_MBI5043:
 
     # SPI interface connections
     package.SDI ~ sdi.line
-    # package.SDO ~ spi.miso.line
+    package.SDO ~ sdo.line
     package.DCLK ~ dclk.line
 
     # Control signal connections

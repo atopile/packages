@@ -5,6 +5,7 @@
 import ElectricPower, Resistor, ElectricLogic
 
 from "macroblock-mbi5043.ato" import Macroblock_MBI5043
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
@@ -48,15 +49,13 @@ module Usage:
     global_clock.reference ~ power_5v
 
     # --- LED Load Examples ---
-    led_array = new Resistor[16]
+    indicator_leds = new LEDIndicatorBlue[16]
+    for led in indicator_leds:
+        led.current = 10mA +/- 10%
     """
     Example LED load represented as resistors
     In real application, these would be LEDs
     """
-    for led in led_array:
-        led.resistance = 100ohm +/- 5%  # Typical LED + current limiting resistor equivalent
-        led.package = "0603"
-
     # --- Connections ---
     # Power
     led_driver.power ~ power_5v
@@ -70,19 +69,19 @@ module Usage:
     led_driver.gclk ~ global_clock
 
     # LED connections
-    power_5v.hv ~> led_array[0] ~> led_driver.led_outputs[0].line
-    power_5v.hv ~> led_array[1] ~> led_driver.led_outputs[1].line
-    power_5v.hv ~> led_array[2] ~> led_driver.led_outputs[2].line
-    power_5v.hv ~> led_array[3] ~> led_driver.led_outputs[3].line
-    power_5v.hv ~> led_array[4] ~> led_driver.led_outputs[4].line
-    power_5v.hv ~> led_array[5] ~> led_driver.led_outputs[5].line
-    power_5v.hv ~> led_array[6] ~> led_driver.led_outputs[6].line
-    power_5v.hv ~> led_array[7] ~> led_driver.led_outputs[7].line
-    power_5v.hv ~> led_array[8] ~> led_driver.led_outputs[8].line
-    power_5v.hv ~> led_array[9] ~> led_driver.led_outputs[9].line
-    power_5v.hv ~> led_array[10] ~> led_driver.led_outputs[10].line
-    power_5v.hv ~> led_array[11] ~> led_driver.led_outputs[11].line
-    power_5v.hv ~> led_array[12] ~> led_driver.led_outputs[12].line
-    power_5v.hv ~> led_array[13] ~> led_driver.led_outputs[13].line
-    power_5v.hv ~> led_array[14] ~> led_driver.led_outputs[14].line
-    power_5v.hv ~> led_array[15] ~> led_driver.led_outputs[15].line
+    power_5v.hv ~> indicator_leds[0] ~> led_driver.led_outputs[0].line
+    power_5v.hv ~> indicator_leds[1] ~> led_driver.led_outputs[1].line
+    power_5v.hv ~> indicator_leds[2] ~> led_driver.led_outputs[2].line
+    power_5v.hv ~> indicator_leds[3] ~> led_driver.led_outputs[3].line
+    power_5v.hv ~> indicator_leds[4] ~> led_driver.led_outputs[4].line
+    power_5v.hv ~> indicator_leds[5] ~> led_driver.led_outputs[5].line
+    power_5v.hv ~> indicator_leds[6] ~> led_driver.led_outputs[6].line
+    power_5v.hv ~> indicator_leds[7] ~> led_driver.led_outputs[7].line
+    power_5v.hv ~> indicator_leds[8] ~> led_driver.led_outputs[8].line
+    power_5v.hv ~> indicator_leds[9] ~> led_driver.led_outputs[9].line
+    power_5v.hv ~> indicator_leds[10] ~> led_driver.led_outputs[10].line
+    power_5v.hv ~> indicator_leds[11] ~> led_driver.led_outputs[11].line
+    power_5v.hv ~> indicator_leds[12] ~> led_driver.led_outputs[12].line
+    power_5v.hv ~> indicator_leds[13] ~> led_driver.led_outputs[13].line
+    power_5v.hv ~> indicator_leds[14] ~> led_driver.led_outputs[14].line
+    power_5v.hv ~> indicator_leds[15] ~> led_driver.led_outputs[15].line
