@@ -1,0 +1,36 @@
+requires-atopile: ^0.9.0
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  cell:
+    entry: cell.ato:Cell
+    hide_designators: true
+
+  cellsim-8ch:
+    entry: cellsim-8ch.ato:CellSim8Ch
+    hide_designators: true
+
+package:
+  identifier: atopile/cellsim
+  repository: https://github.com/atopile/packages
+  version: 0.2.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: Cellsimulator for BMS development
+  license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/ti-lv284x
+- type: registry
+  identifier: atopile/st-ldk220
+- type: registry
+  identifier: atopile/ti-tca9548a
+- type: registry
+  identifier: atopile/ti-iso1640x
+- type: registry
+  identifier: atopile/ti-tca6408
+  release: 0.1.7

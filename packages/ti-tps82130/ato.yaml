@@ -1,0 +1,48 @@
+requires-atopile: ^0.10.12
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-tps82130.ato:Texas_Instruments_TPS82130
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+  # development_board:
+  #   entry: development_board.ato:DevelopmentBoard
+  #   hide_designators: true
+  #   exclude_checks: [PCB.requires_drc_check]
+
+  # dual_banana_connectors:
+  #   entry: development_board.ato:DualBananaConnectors_driver
+  #   hide_designators: true
+  #   exclude_checks: [PCB.requires_drc_check]
+
+  # ti_tps82130_with_test_points:
+  #   entry: development_board.ato:TITPS82130WithTestPoints
+  #   hide_designators: true
+  #   exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/ti-tps82130
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-tps82130/README.md
+  version: 0.1.1
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: 3-17V Input 3A step-down converter module with integrated inductor
+  license: MIT
+dependencies:
+  - type: registry
+    identifier: atopile/saleae-header
+    release: 0.1.5
+  - type: registry
+    identifier: atopile/pin-headers
+    release: 0.1.5
