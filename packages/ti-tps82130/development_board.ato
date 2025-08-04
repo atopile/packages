@@ -1,0 +1,224 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+import ElectricPower
+import ElectricLogic
+import Electrical
+import Resistor
+import can_bridge_by_name
+import ResistorVoltageDivider
+import has_single_electric_reference_shared
+
+from "atopile/ti-tps82130/ti-tps82130.ato" import Texas_Instruments_TPS82130
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeader
+
+from "parts/Changzhou_Amass_Elec_24_245_1/Changzhou_Amass_Elec_24_245_1.ato" import Changzhou_Amass_Elec_24_245_1_package
+from "parts/Changzhou_Amass_Elec_24_245_2/Changzhou_Amass_Elec_24_245_2.ato" import Changzhou_Amass_Elec_24_245_2_package
+from "parts/ronghe_RH_5015/ronghe_RH_5015.ato" import ronghe_RH_5015_package
+from "parts/SHOU_HAN_5_8_ZSGT/SHOU_HAN_5_8_ZSGT.ato" import SHOU_HAN_5_8_ZSGT_package
+from "parts/XFCN_PZ254V_12_8P/XFCN_PZ254V_12_8P.ato" import XFCN_PZ254V_12_8P_package
+from "parts/BOOMELE_2_54_1_3P/BOOMELE_2_54_1_3P.ato" import BOOMELE_2_54_1_3P_package
+
+module DevelopmentBoard from AdjustableRegulatorDevelopmentBoard:
+    """
+    Development board for the Texas Instruments TPS82130 regulator.
+    3 configurations (3-17V input):
+    - variable output (external feedback input)
+    - 3.3V output
+    - 5V output
+    All with test and measurement points
+    """
+    # --- Connections ---
+    power_input = new ElectricPower
+    power_output = new ElectricPower
+
+    # --- Components ---
+    power_output_mux = new PowerMux
+
+    # externally adjustable output
+    regulator_adj = new TITPS82130WithTestPoints
+    regulator_adj.regulator.power_out.max_current = 3000mA
+    regulator_adj.regulator.soft_start_time_ms = 1.8ms
+    assert regulator_adj.regulator.power_out.voltage within 1V +/- 5%
+    power_input ~> regulator_adj ~> power_output_mux.input[0]
+
+    # 3.3V output
+    regulator_3v3 = new TITPS82130WithTestPoints
+    regulator_3v3.regulator.power_out.max_current = 3000mA
+    regulator_3v3.regulator.soft_start_time_ms = 1.8ms
+    assert regulator_3v3.regulator.power_out.voltage within 3.3V +/- 5%
+    power_input ~> regulator_3v3 ~> power_output_mux.input[1]
+
+    # 5V output
+    regulator_5v = new TITPS82130WithTestPoints
+    regulator_5v.regulator.power_out.max_current = 3000mA
+    regulator_5v.regulator.soft_start_time_ms = 1.8ms
+    assert regulator_5v.regulator.power_out.voltage within 5V +/- 5%
+    power_input ~> regulator_5v ~> power_output_mux.input[2]
+
+    # power input to output
+    power_input ~> power_output_mux.input[3]
+
+    # connectors
+    power_in_connector.power ~ power_input
+    power_out_connector.power ~ power_output_mux.output
+
+module TITPS82130WithTestPoints:
+    """
+    Wrapper module for the Texas Instruments TPS82130 regulator with added test clip,
+    scope, and analysis interfaces.
+    """
+    # --- External interfaces ---
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+    # --- Components ---
+    regulator = new Texas_Instruments_TPS82130
+    regulator.power_in ~ power_in
+    regulator.power_out ~ power_out
+
+    enable_switch = new ToggleSwitch
+    regulator.enable.line <~ enable_switch <~ regulator.enable.reference.hv
+    regulator.enable.reference ~ regulator.power_in
+
+    feedback_header = new Male_2_54mm_1x3P_TH
+    regulator.power_out.hv ~ feedback_header.pins[0]
+    regulator._feedback.line ~ feedback_header.pins[1]
+    regulator.power_out.lv ~ feedback_header.pins[2]
+
+    enable_test_ring = new TestRing
+    regulator.enable.line ~ enable_test_ring.line
+    feedback_test_ring = new TestRing
+    regulator._feedback.line ~ feedback_test_ring.line
+    soft_start_test_ring = new TestRing
+    regulator._soft_start_tracking.line ~ soft_start_test_ring.line
+
+    scope_header = new SaleaeHeader
+    scope_header.gnd ~ power_in.lv
+    scope_header.channels[3].line ~ power_out.hv
+    scope_header.channels[2] ~ regulator._feedback
+    scope_header.channels[1] ~ regulator.power_good
+    # saleae input is max +/-10V, so we put a resistor divider to get 1/2 of the voltage
+    measurement_divider = new ResistorVoltageDivider
+    measurement_divider.r_top.resistance = 100kohm +/- 1%
+    measurement_divider.r_top.package = "0201"
+    measurement_divider.r_bottom.resistance = 100kohm +/- 1%
+    measurement_divider.r_bottom.package = "0201"
+    measurement_divider.power ~ power_in
+    measurement_divider.output ~ scope_header.channels[0]
+
+module AdjustableRegulatorDevelopmentBoard:
+    """
+    Generic development board for adjustable regulators
+    """
+    # --- Components ---
+    # power in and outputs
+    power_in_connector = new DualBananaConnectors_driver
+    power_out_connector = new DualBananaConnectors_driver
+
+    power_in_test_ring = new TestRing
+    power_out_test_ring = new TestRing
+    gnd_test_ring = new TestRing[3]
+
+    # --- Connections ---
+    power_in_connector.power.hv ~ power_in_test_ring.line
+    power_out_connector.power.hv ~ power_out_test_ring.line
+    for gtr in gnd_test_ring:
+        gtr.line ~ power_in_connector.power.lv
+
+module TestRing:
+    """
+    Test ring for connecting test clips
+    """
+    package = new ronghe_RH_5015_package
+    # external interfaces
+    line = new Electrical
+
+    # connections
+    line ~ package.1
+
+module DualBananaConnectors_driver:
+    """
+    Dual banana connectors (Red and Black) with 3/4\" (19.05mm) spacing.
+    """
+
+    # external interfaces
+    power = new ElectricPower
+
+    # components
+    red_plug = new Changzhou_Amass_Elec_24_245_1_package
+    black_plug = new Changzhou_Amass_Elec_24_245_2_package
+
+    # connections
+    power.hv ~ red_plug.5
+    power.lv ~ black_plug.5
+
+    power.required = True
+
+module ToggleSwitch:
+    """
+    Toggle switch (SPDT)
+    """
+    package = new SHOU_HAN_5_8_ZSGT_package
+
+    # --- External interfaces ---
+    input = new Electrical[2]
+    output = new Electrical[2]
+    output_2 = new Electrical[2]
+
+    trait can_bridge_by_name<input_name="input[0]", output_name="output[0]">
+
+    # --- Package ---
+    input[0] ~ package.2
+    output[0] ~ package.1
+    output_2[0] ~ package.3
+    input[1] ~ package.5
+    output[1] ~ package.4
+    output_2[1] ~ package.6
+
+module PowerMux:
+    """
+    Manually select between 4 ElectricalPowers
+    """
+    # --- External interfaces ---
+    input = new ElectricPower[4]
+    output = new ElectricPower
+
+    # --- Components ---
+    header = new Male_2_54mm_2x4P_TH
+
+    # --- Connections ---
+    input[0].hv ~ header.pins[0]
+    input[1].hv ~ header.pins[2]
+    input[2].hv ~ header.pins[4]
+    input[3].hv ~ header.pins[6]
+    output.hv ~ header.pins[1]
+    output.hv ~ header.pins[3]
+    output.hv ~ header.pins[5]
+    output.hv ~ header.pins[7]
+
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+module Male_2_54mm_2x4P_TH:
+    """2x4 pin male header"""
+    package = new XFCN_PZ254V_12_8P_package
+    pins = new Electrical[8]
+    pins[0] ~ package.1
+    pins[1] ~ package.2
+    pins[2] ~ package.3
+    pins[3] ~ package.4
+    pins[4] ~ package.5
+    pins[5] ~ package.6
+    pins[6] ~ package.7
+    pins[7] ~ package.8
+
+module Male_2_54mm_1x3P_TH:
+    """1x3 pin male header"""
+    package = new BOOMELE_2_54_1_3P_package
+    pins = new Electrical[3]
+    pins[0] ~ package.1
+    pins[1] ~ package.2
+    pins[2] ~ package.3

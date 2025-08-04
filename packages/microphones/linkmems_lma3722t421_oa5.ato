@@ -1,0 +1,36 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Capacitor
+import ElectricPower
+import ElectricSignal
+
+from "microphone.ato" import MicrophoneAnalog
+
+from "parts/LinkMems_LMA3722T421_OA5/LinkMems_LMA3722T421_OA5.ato" import LinkMems_LMA3722T421_OA5_package
+
+module LinkMems_LMA3722T421_OA5 from MicrophoneAnalog:
+    """
+    The LMA3722T MEMS Microphones are integrated with specialized Pre-amplification ASIC to
+    provide high sensitivity, high SNR output from a capacitive audio sensor. It's packaged for
+    surface mounting and high temperature reflow assembly.
+    """
+    package = new LinkMems_LMA3722T421_OA5_package
+
+    #1.62V to 3.6V
+    assert power.voltage within 1.6V to 3.6V
+
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.package = "C0402"
+    assert decoupling_capacitor.max_voltage >= power.voltage * 1.5
+    assert decoupling_capacitor.capacitance within 100 nF +/- 30%
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    dc_blocking_capacitor = new Capacitor
+    dc_blocking_capacitor.package = "C0402"
+    assert dc_blocking_capacitor.max_voltage >= power.voltage * 1.5
+    assert dc_blocking_capacitor.capacitance >= 1 uF
+
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    analog.line ~> dc_blocking_capacitor ~> package.OUT
+
+    analog.reference ~ power

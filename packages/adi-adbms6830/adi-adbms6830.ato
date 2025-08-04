@@ -1,0 +1,477 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+# from "generics/interfaces.ato" import SPI, ISOSPI, Power, DiffPair
+# from "generics/filters.ato" import DifferentialLowPassFilter, LowPassFilter
+# from "generics/inductors.ato" import FerriteBead
+# from "generics/resistors.ato" import Resistor
+# from "generics/capacitors.ato" import Capacitor
+# from "generics/vdivs.ato" import _VDiv
+
+import BJT, Inductor, DifferentialPair, Electrical, ElectricPower, ElectricSignal, Resistor, Capacitor, SPI, ResistorVoltageDivider, FilterElectricalRC
+
+from "parts/Analog_Devices_ADBMS6830MWCCSZ/Analog_Devices_ADBMS6830MWCCSZ.ato" import Analog_Devices_ADBMS6830MWCCSZ_package
+from "input-filters.py" import ADBMS6830InputFilters
+from "parts/Diodes_Incorporated_FZT853TA/Diodes_Incorporated_FZT853TA.ato" import Diodes_Incorporated_FZT853TA_package
+from "parts/SHOU_HAN_MINI_MSK12CO2/SHOU_HAN_MINI_MSK12CO2.ato" import SHOU_HAN_MINI_MSK12CO2_package
+from "parts/Murata_Electronics_BLM15HD182SN1D/Murata_Electronics_BLM15HD182SN1D.ato" import Murata_Electronics_BLM15HD182SN1D_package
+
+module ADI_ADBMS6830:
+    """
+    16CH cell monitor with 16 cell sense and bleed inputs, SPI and ISOSPI interfaces, and 10 gpio
+    """
+    package = new Analog_Devices_ADBMS6830MWCCSZ_package
+
+    # --- External interfaces ---
+    number_of_cells = 16
+
+    # max_bleed_current_mA = 100mA +/- 10%
+
+    vbat = new ElectricPower
+    """
+    Power supply for the ADBMS6830, connected across cell stack with kelvin connection
+    """
+    vbat.required = True
+    assert vbat.voltage within 11V to 85V
+
+    vreg = new ElectricPower
+    """
+    5V rail generated from stack via internal LDO controller and external BJT.
+    Powers core circuits, isoSPI xcvr, and discharge switches
+    """
+    assert vreg.voltage within 4.5V to 5.5V
+
+    vref2 = new ElectricPower
+    """
+    Secondary ADC reference, can be used for biasing thermistors
+    """
+    assert vref2.voltage within 3V +/- 5mV
+
+    cell_sense_inputs = new DifferentialPair[16]
+    """
+    Cell voltag sense inputs for the ADBMS6830. Each cell interface is a differential input at the ic pins.
+    """
+
+    cell_balance_inputs = new DifferentialPair[16]
+    """
+    Cell balance inputs for the ADBMS6830. Each cell interface is a differential input at the ic pins.
+    """
+
+    cell_stack = new ElectricPower[16]
+    """
+    Cell stack power supply, defined at the cell connection pins
+    """
+    for cell in cell_stack:
+        cell.voltage = 1.8V to 4.25V
+
+    iso_a_external = new DifferentialPair
+    """
+    External differential pair SPI interface defined at the external connector interface, DC isolated from ASIC gnd
+    """
+    iso_a_external.p.line.override_net_name = "iso_a_external_P"
+    iso_a_external.n.line.override_net_name = "iso_a_external_N"
+
+    iso_b_external = new DifferentialPair
+    """
+    External differential pair SPI interface defined at the external connector interface, DC isolated from ASIC gnd
+    """
+    iso_b_external.p.line.override_net_name = "iso_b_external_P"
+    iso_b_external.n.line.override_net_name = "iso_b_external_N"
+
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    """
+    SPI interface for communication with port A of the ADBMS6830
+    """
+    spi.reference_shim.lv ~ vreg.lv
+    spi_cs.reference.lv ~ vreg.lv
+
+    gpios = new ElectricSignal[9]
+    """
+    Single ended GPIO inputs for the ADBMS6830.
+    """
+
+    vreg_drive = new ElectricSignal
+    """
+    Drive signal to bias base of the NPN transistor in the VREG LDO, typical voltage 5.7V
+    """
+    vreg_drive.reference ~ vreg
+
+    isomd = new ElectricSignal
+    """
+    ISOMD mode select signal, high is ISOSPI, low is SPI
+    """
+    isomd.line.required = True
+    isomd.reference.lv ~ vreg.lv
+
+    # --- Internal interfaces ---
+    asic_vp = new ElectricPower
+    """
+    High voltage power supply of ASIC, defined at the ASIC pins
+    """
+
+    vref1 = new ElectricPower
+    """
+    Primary ADC reference
+    """
+
+    iso_a_internal = new DifferentialPair
+    """
+    Internal interface for the ADBMS6830, defined at the pins of the IC, biased to ASIC gnd
+    """
+    iso_a_internal.p.line.override_net_name = "iso_a_internal_P"
+    iso_a_internal.n.line.override_net_name = "iso_a_internal_N"
+    iso_b_internal = new DifferentialPair
+    """
+    Internal interface for the ADBMS6830, defined at the pins of the IC, biased to ASIC gnd
+    """
+    iso_b_internal.p.line.override_net_name = "iso_b_internal_P"
+    iso_b_internal.n.line.override_net_name = "iso_b_internal_N"
+
+    # --- Power Supply ---
+    npn = new Diodes_Incorporated_FZT853TA
+    vreg_fb = new BLM15HD182SN1D
+
+    # --- Power Supply Filters ---
+    vreg_input_filter = new FilterElectricalRC
+    vreg_input_filter.resistor.resistance = 330ohm +/- 10%
+    vreg_input_filter.resistor.package = "1206"
+    vreg_input_filter.capacitor.capacitance = 10nF +/- 20%
+    vreg_input_filter.capacitor.package = "0805"
+    vreg_input_filter.cutoff_frequency = 30kHz to 70kHz
+    vreg_input_filter.reference_shim.lv ~ vbat.lv
+    assert vreg_input_filter.capacitor.max_voltage within 100V to 200V
+
+    vreg_drive_filter = new FilterElectricalRC
+    vreg_drive_filter.resistor.resistance = 10ohm +/- 10%
+    vreg_drive_filter.resistor.package = "0402"
+    vreg_drive_filter.capacitor.capacitance = 10nF +/- 20%
+    vreg_drive_filter.capacitor.package = "0402"
+    vreg_drive_filter.cutoff_frequency = 1MHz to 3MHz
+    vreg_drive_filter.reference_shim.lv ~ vreg.lv
+
+    vplus_filter = new FilterElectricalRC
+    vplus_filter.resistor.resistance = 1kohm +/- 10%
+    vplus_filter.resistor.package = "0805"
+    vplus_filter.capacitor.capacitance = 10nF +/- 20%
+    vplus_filter.capacitor.package = "0805"
+    vplus_filter.cutoff_frequency = 10kHz to 30kHz
+    vplus_filter.reference_shim.lv ~ vbat.lv
+
+    vbat.hv ~> vreg_input_filter ~> npn ~> vreg_fb ~> vreg.hv
+    vreg_drive.line ~> vreg_drive_filter ~> npn.base
+    vreg.lv ~ vbat.lv
+
+    vbat.hv ~> vplus_filter ~> asic_vp.hv
+    vbat.lv ~ vplus_filter.reference_shim.lv
+    vbat.hv ~ cell_stack[-1].hv
+    vbat.lv ~ cell_stack[0].lv
+
+    # --- Decoupling Caps ---
+    vreg_cap = new Capacitor
+    vreg_cap.package = "0603"
+    vreg_cap.value = 1uF +/- 20%
+    vreg.hv ~> vreg_cap ~> vreg.lv
+
+    vref2_cap = new Capacitor
+    vref2_cap.package = "0402"
+    vref2_cap.value = 1uF +/- 20%
+    vref2.hv ~> vref2_cap ~> vref2.lv
+
+    vref1_cap = new Capacitor
+    vref1_cap.package = "0402"
+    vref1_cap.value = 1uF +/- 20%
+    vref1.hv ~> vref1_cap ~> vref1.lv
+
+    # --- isoSPI Isolation ---
+    isoSPI_isolation_caps = new Capacitor[4]
+    for isoSPI_isolation_cap in isoSPI_isolation_caps:
+        isoSPI_isolation_cap.capacitance = 22nF +/- 20%
+        assert isoSPI_isolation_cap.max_voltage within 100V to 200V
+
+    iso_a_internal.p.line ~> isoSPI_isolation_caps[0] ~> iso_a_external.p.line
+    iso_a_internal.n.line ~> isoSPI_isolation_caps[1] ~> iso_a_external.n.line
+    iso_b_internal.p.line ~> isoSPI_isolation_caps[2] ~> iso_b_external.p.line
+    iso_b_internal.n.line ~> isoSPI_isolation_caps[3] ~> iso_b_external.n.line
+
+    # --- isoSPI termination network ---
+    isoSPI_termination_resistors = new Resistor[4]
+    for isoSPI_termination_resistor in isoSPI_termination_resistors:
+        isoSPI_termination_resistor.resistance = 100ohm +/- 10%
+        isoSPI_termination_resistor.package = "0402"
+    isoSPI_dc_bias_caps = new Capacitor[2]
+    for isoSPI_dc_bias_cap in isoSPI_dc_bias_caps:
+        isoSPI_dc_bias_cap.capacitance = 100nF +/- 20%
+        isoSPI_dc_bias_cap.package = "0402"
+
+    iso_a_termination_midpoint = new Electrical
+    iso_b_termination_midpoint = new Electrical
+    iso_a_internal.p.line ~> isoSPI_termination_resistors[0] ~> iso_a_termination_midpoint; iso_a_termination_midpoint ~> isoSPI_termination_resistors[1] ~> iso_a_internal.n.line
+    iso_a_termination_midpoint ~> isoSPI_dc_bias_caps[0] ~> vreg.lv
+    iso_b_internal.p.line ~> isoSPI_termination_resistors[2] ~> iso_b_termination_midpoint; iso_b_termination_midpoint ~> isoSPI_termination_resistors[3] ~> iso_b_internal.n.line
+    iso_b_termination_midpoint ~> isoSPI_dc_bias_caps[1] ~> vreg.lv
+
+    # C9N Filter Network
+    c9n_filter = new FilterElectricalRC
+    c9n_filter.resistor.resistance = 200ohm +/- 5%
+    c9n_filter.capacitor.capacitance = 10nF +/- 20%
+    cell_stack[8].lv ~> c9n_filter ~> package.C9N
+    c9n_filter.in_.reference.lv ~ cell_sense_inputs[7].p.line
+
+    # --- Package Connections ---
+    asic_vp.hv ~ package.Vpos
+    asic_vp.lv ~ package.Vneg
+
+    vreg.hv ~ package.VREG
+    vreg.lv ~ package.Vneg
+
+    vreg_drive.line ~ package.DRIVE
+    vreg_drive.reference.lv ~ package.Vneg
+
+    vref1.hv ~ package.VREF1
+    vref1.lv ~ package.Vneg
+
+    vref2.hv ~ package.VREF2
+    vref2.lv ~ package.Vneg
+
+    vbat.lv ~ package.Vneg
+
+    vbat.lv ~ package.PAD
+
+    isomd.line ~ package.ISOMD
+
+    # Can use either SPI OR isoSPI on port A, not both. Configured externally by ISOMD signal.
+    iso_a_internal.p.line ~ package.SCKIPA
+    iso_a_internal.n.line ~ package.CSBIMA
+
+    spi.sclk ~ package.SCKIPA
+    spi.mosi ~ package.SDI
+    spi.miso ~ package.SDO
+    spi_cs ~ package.CSBIMA
+
+    # Can use either SPI OR isoSPI on port B, not both. Configured externally by ISOMD signal.
+    iso_b_internal.p.line ~ package.IPB
+    iso_b_internal.n.line ~ package.IMB
+
+    gpios[0].line ~ package.GPIO1
+    gpios[1].line ~ package.GPIO2
+    gpios[2].line ~ package.GPIO3
+    gpios[3].line ~ package.GPIO4
+    gpios[4].line ~ package.GPIO5
+    gpios[5].line ~ package.GPIO6
+    gpios[6].line ~ package.GPIO7
+    gpios[7].line ~ package.GPIO8
+    gpios[8].line ~ package.GPIO9
+
+    cell_sense_inputs[0].n.line ~ package.C0
+    cell_sense_inputs[0].p.line ~ package.C1
+    cell_sense_inputs[1].n.line ~ package.C1
+    cell_sense_inputs[1].p.line ~ package.C2
+    cell_sense_inputs[2].n.line ~ package.C2
+    cell_sense_inputs[2].p.line ~ package.C3
+    cell_sense_inputs[3].n.line ~ package.C3
+    cell_sense_inputs[3].p.line ~ package.C4
+    cell_sense_inputs[4].n.line ~ package.C4
+    cell_sense_inputs[4].p.line ~ package.C5
+    cell_sense_inputs[5].n.line ~ package.C5
+    cell_sense_inputs[5].p.line ~ package.C6
+    cell_sense_inputs[6].n.line ~ package.C6
+    cell_sense_inputs[6].p.line ~ package.C7
+    cell_sense_inputs[7].n.line ~ package.C7
+    cell_sense_inputs[7].p.line ~ package.C8
+    cell_sense_inputs[8].n.line ~ package.C9N
+    cell_sense_inputs[8].p.line ~ package.C9
+    cell_sense_inputs[9].n.line ~ package.C9
+    cell_sense_inputs[9].p.line ~ package.C10
+    cell_sense_inputs[10].n.line ~ package.C10
+    cell_sense_inputs[10].p.line ~ package.C11
+    cell_sense_inputs[11].n.line ~ package.C11
+    cell_sense_inputs[11].p.line ~ package.C12
+    cell_sense_inputs[12].n.line ~ package.C12
+    cell_sense_inputs[12].p.line ~ package.C13
+    cell_sense_inputs[13].n.line ~ package.C13
+    cell_sense_inputs[13].p.line ~ package.C14
+    cell_sense_inputs[14].n.line ~ package.C14
+    cell_sense_inputs[14].p.line ~ package.C15
+    cell_sense_inputs[15].n.line ~ package.C15
+    cell_sense_inputs[15].p.line ~ package.C16
+
+    cell_balance_inputs[0].n.line ~ package.S1N
+    cell_balance_inputs[0].p.line ~ package.S1P
+    cell_balance_inputs[1].n.line ~ package.S2N
+    cell_balance_inputs[1].p.line ~ package.S2P
+    cell_balance_inputs[2].n.line ~ package.S3N
+    cell_balance_inputs[2].p.line ~ package.S3P
+    cell_balance_inputs[3].n.line ~ package.S4N
+    cell_balance_inputs[3].p.line ~ package.S4P
+    cell_balance_inputs[4].n.line ~ package.S5N
+    cell_balance_inputs[4].p.line ~ package.S5P
+    cell_balance_inputs[5].n.line ~ package.S6N
+    cell_balance_inputs[5].p.line ~ package.S6P
+    cell_balance_inputs[6].n.line ~ package.S7N
+    cell_balance_inputs[6].p.line ~ package.S7P
+    cell_balance_inputs[7].n.line ~ package.S8N
+    cell_balance_inputs[7].p.line ~ package.S8P
+    cell_balance_inputs[8].n.line ~ package.S9N
+    cell_balance_inputs[8].p.line ~ package.S9P
+    cell_balance_inputs[9].n.line ~ package.S10N
+    cell_balance_inputs[9].p.line ~ package.S10P
+    cell_balance_inputs[10].n.line ~ package.S11N
+    cell_balance_inputs[10].p.line ~ package.S11P
+    cell_balance_inputs[11].n.line ~ package.S12N
+    cell_balance_inputs[11].p.line ~ package.S12P
+    cell_balance_inputs[12].n.line ~ package.S13N
+    cell_balance_inputs[12].p.line ~ package.S13P
+    cell_balance_inputs[13].n.line ~ package.S14N
+    cell_balance_inputs[13].p.line ~ package.S14P
+    cell_balance_inputs[14].n.line ~ package.S15N
+    cell_balance_inputs[14].p.line ~ package.S15P
+    cell_balance_inputs[15].n.line ~ package.S16N
+    cell_balance_inputs[15].p.line ~ package.S16P
+
+    # Cell input filters
+    cell_input_filters = new ADBMS6830InputFilters<number_of_cells=16,sense_filter_resistance_ohms=200,sense_filter_capacitance_nF=10,max_balance_current_mA=100,total_number_of_channels=16>
+
+    #TODO: zip connect when zip available
+    # cell_input_filters.cell_inputs ~ cell_stack
+    cell_input_filters.cell_inputs[0] ~ cell_stack[0]
+    cell_input_filters.cell_inputs[1] ~ cell_stack[1]
+    cell_input_filters.cell_inputs[2] ~ cell_stack[2]
+    cell_input_filters.cell_inputs[3] ~ cell_stack[3]
+    cell_input_filters.cell_inputs[4] ~ cell_stack[4]
+    cell_input_filters.cell_inputs[5] ~ cell_stack[5]
+    cell_input_filters.cell_inputs[6] ~ cell_stack[6]
+    cell_input_filters.cell_inputs[7] ~ cell_stack[7]
+    cell_input_filters.cell_inputs[8] ~ cell_stack[8]
+    cell_input_filters.cell_inputs[9] ~ cell_stack[9]
+    cell_input_filters.cell_inputs[10] ~ cell_stack[10]
+    cell_input_filters.cell_inputs[11] ~ cell_stack[11]
+    cell_input_filters.cell_inputs[12] ~ cell_stack[12]
+    cell_input_filters.cell_inputs[13] ~ cell_stack[13]
+    cell_input_filters.cell_inputs[14] ~ cell_stack[14]
+    cell_input_filters.cell_inputs[15] ~ cell_stack[15]
+
+    cell_input_filters.sense_inputs[0] ~ cell_sense_inputs[0]
+    cell_input_filters.sense_inputs[1] ~ cell_sense_inputs[1]
+    cell_input_filters.sense_inputs[2] ~ cell_sense_inputs[2]
+    cell_input_filters.sense_inputs[3] ~ cell_sense_inputs[3]
+    cell_input_filters.sense_inputs[4] ~ cell_sense_inputs[4]
+    cell_input_filters.sense_inputs[5] ~ cell_sense_inputs[5]
+    cell_input_filters.sense_inputs[6] ~ cell_sense_inputs[6]
+    cell_input_filters.sense_inputs[7] ~ cell_sense_inputs[7]
+    cell_input_filters.sense_inputs[8] ~ cell_sense_inputs[8]
+    cell_input_filters.sense_inputs[9] ~ cell_sense_inputs[9]
+    cell_input_filters.sense_inputs[10] ~ cell_sense_inputs[10]
+    cell_input_filters.sense_inputs[11] ~ cell_sense_inputs[11]
+    cell_input_filters.sense_inputs[12] ~ cell_sense_inputs[12]
+    cell_input_filters.sense_inputs[13] ~ cell_sense_inputs[13]
+    cell_input_filters.sense_inputs[14] ~ cell_sense_inputs[14]
+    cell_input_filters.sense_inputs[15] ~ cell_sense_inputs[15]
+
+    cell_input_filters.balance_inputs[0] ~ cell_balance_inputs[0]
+    cell_input_filters.balance_inputs[1] ~ cell_balance_inputs[1]
+    cell_input_filters.balance_inputs[2] ~ cell_balance_inputs[2]
+    cell_input_filters.balance_inputs[3] ~ cell_balance_inputs[3]
+    cell_input_filters.balance_inputs[4] ~ cell_balance_inputs[4]
+    cell_input_filters.balance_inputs[5] ~ cell_balance_inputs[5]
+    cell_input_filters.balance_inputs[6] ~ cell_balance_inputs[6]
+    cell_input_filters.balance_inputs[7] ~ cell_balance_inputs[7]
+    cell_input_filters.balance_inputs[8] ~ cell_balance_inputs[8]
+    cell_input_filters.balance_inputs[9] ~ cell_balance_inputs[9]
+    cell_input_filters.balance_inputs[10] ~ cell_balance_inputs[10]
+    cell_input_filters.balance_inputs[11] ~ cell_balance_inputs[11]
+    cell_input_filters.balance_inputs[12] ~ cell_balance_inputs[12]
+    cell_input_filters.balance_inputs[13] ~ cell_balance_inputs[13]
+    cell_input_filters.balance_inputs[14] ~ cell_balance_inputs[14]
+    cell_input_filters.balance_inputs[15] ~ cell_balance_inputs[15]
+
+    cell_balance_inputs[0].n.line.override_net_name = "S1N"
+    cell_balance_inputs[0].p.line.override_net_name = "S1P"
+    cell_balance_inputs[1].n.line.override_net_name = "S2N"
+    cell_balance_inputs[1].p.line.override_net_name = "S2P"
+    cell_balance_inputs[2].n.line.override_net_name = "S3N"
+    cell_balance_inputs[2].p.line.override_net_name = "S3P"
+    cell_balance_inputs[3].n.line.override_net_name = "S4N"
+    cell_balance_inputs[3].p.line.override_net_name = "S4P"
+    cell_balance_inputs[4].n.line.override_net_name = "S5N"
+    cell_balance_inputs[4].p.line.override_net_name = "S5P"
+    cell_balance_inputs[5].n.line.override_net_name = "S6N"
+    cell_balance_inputs[5].p.line.override_net_name = "S6P"
+    cell_balance_inputs[6].n.line.override_net_name = "S7N"
+    cell_balance_inputs[6].p.line.override_net_name = "S7P"
+    cell_balance_inputs[7].n.line.override_net_name = "S8N"
+    cell_balance_inputs[7].p.line.override_net_name = "S8P"
+    cell_balance_inputs[8].n.line.override_net_name = "S9N"
+    cell_balance_inputs[8].p.line.override_net_name = "S9P"
+    cell_balance_inputs[9].n.line.override_net_name = "S10N"
+    cell_balance_inputs[9].p.line.override_net_name = "S10P"
+    cell_balance_inputs[10].n.line.override_net_name = "S11N"
+    cell_balance_inputs[10].p.line.override_net_name = "S11P"
+    cell_balance_inputs[11].n.line.override_net_name = "S12N"
+    cell_balance_inputs[11].p.line.override_net_name = "S12P"
+    cell_balance_inputs[12].n.line.override_net_name = "S13N"
+    cell_balance_inputs[12].p.line.override_net_name = "S13P"
+    cell_balance_inputs[13].n.line.override_net_name = "S14N"
+    cell_balance_inputs[13].p.line.override_net_name = "S14P"
+    cell_balance_inputs[14].n.line.override_net_name = "S15N"
+    cell_balance_inputs[14].p.line.override_net_name = "S15P"
+    cell_balance_inputs[15].n.line.override_net_name = "S16N"
+    cell_balance_inputs[15].p.line.override_net_name = "S16P"
+
+    cell_sense_inputs[0].n.line.override_net_name = "C0"
+    cell_sense_inputs[0].p.line.override_net_name = "C1"
+    cell_sense_inputs[1].p.line.override_net_name = "C2"
+    cell_sense_inputs[2].p.line.override_net_name = "C3"
+    cell_sense_inputs[3].p.line.override_net_name = "C4"
+    cell_sense_inputs[4].p.line.override_net_name = "C5"
+    cell_sense_inputs[5].p.line.override_net_name = "C6"
+    cell_sense_inputs[6].p.line.override_net_name = "C7"
+    cell_sense_inputs[7].p.line.override_net_name = "C8"
+    cell_sense_inputs[8].n.line.override_net_name = "C9N"
+    cell_sense_inputs[8].p.line.override_net_name = "C9"
+    cell_sense_inputs[9].p.line.override_net_name = "C10"
+    cell_sense_inputs[10].p.line.override_net_name = "C11"
+    cell_sense_inputs[11].p.line.override_net_name = "C12"
+    cell_sense_inputs[12].p.line.override_net_name = "C13"
+    cell_sense_inputs[13].p.line.override_net_name = "C14"
+    cell_sense_inputs[14].p.line.override_net_name = "C15"
+    cell_sense_inputs[15].p.line.override_net_name = "C16"
+
+#     temp_sensor_1 = new TempSensor
+#     temp_sensor_1.power.vcc ~ package.VREF1
+#     temp_sensor_1.power.gnd ~ package.Vneg
+#     temp_sensor_1.output.io ~ package.GPIO1
+
+#     temp_sensor_2 = new TempSensor
+#     temp_sensor_2.power.vcc ~ package.VREF1
+#     temp_sensor_2.output.io ~ package.GPIO2
+#     temp_sensor_2.power.gnd ~ package.Vneg
+
+
+# module TempSensor from ResistorVoltageDivider:
+#     # 100kΩ 100uA 100mW ±1% 4250K ±1% 0402 NTC Thermistors ROHS
+#     r_top.mpn = "C77130"
+#     r_top.footprint = "R0402"
+#     r_top.value = 100kohm +/- 1%
+#     r_bottom.value = 100kohm +/- 1%
+#     r_bottom.footprint = "R0402"
+
+
+module Diodes_Incorporated_FZT853TA from BJT:
+    package = new Diodes_Incorporated_FZT853TA_package
+
+    signal collector ~ package.C
+    collector ~ package.C
+    signal emitter ~ package.E
+    signal base ~ package.B
+
+    doping_type = "NPN"
+
+
+    # # component BLM15HD182SN1D
+    # mpn = "C76888"
+component BLM15HD182SN1D from Inductor:
+    lcsc_id = "C76888"
+    unnamed[0] ~ pin 1
+    unnamed[1] ~ pin 2
