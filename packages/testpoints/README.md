@@ -1,6 +1,6 @@
-# Mounting Holes
+# Test Points
 
-Various mounting holes.
+Various testpoints.
 
 Supported sizes:
 
