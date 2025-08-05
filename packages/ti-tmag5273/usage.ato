@@ -1,0 +1,61 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+import Resistor
+
+from "ti-tmag5273.ato" import TI_TMAG5273
+
+module Usage:
+    """
+    Usage example for TMAG5273 3D Hall-effect sensor showing different I2C address configurations.
+    The TMAG5273 supports addresses from 0x22 to 0x79 through internal configuration.
+    """
+
+    # Power rails
+    device_power = new ElectricPower
+    device_power.voltage = 3.3V +/- 5%
+
+    # I2C bus with pull-up resistors (optional - TMAG5273 has internal pull-ups)
+    i2c = new I2C
+    i2c.frequency = 400kHz
+
+    # External I2C pull-ups (optional since TMAG5273 has internal ones)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> device_power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> device_power.hv
+
+    # Example 1: Default configuration (address 0x22)
+    sensor1 = new TI_TMAG5273
+    sensor1.i2c.address = 0x22  # Default address
+
+    # Example 2: Alternative address (0x35)
+    sensor2 = new TI_TMAG5273
+    sensor2.i2c.address = 0x35
+
+    # Example 3: Another address (0x48)
+    sensor3 = new TI_TMAG5273
+    sensor3.i2c.address = 0x48
+
+    # Example 4: High address (0x79)
+    sensor4 = new TI_TMAG5273
+    sensor4.i2c.address = 0x79
+
+    # Connect power and I2C to all sensors
+    for sensor in [sensor1, sensor2, sensor3, sensor4]:
+        sensor.power ~ device_power
+        sensor.i2c ~ i2c
+
+    # Note: The TMAG5273 I2C address is configured through the I2C_ADDR register
+    # The actual address is set by writing to the device's internal registers
+    # This differs from hardware-based address configuration using pins
+
+    # Expected addresses:
+    # sensor1: 0x22 (default)
+    # sensor2: 0x35 (configured via register)
+    # sensor3: 0x48 (configured via register)
+    # sensor4: 0x79 (maximum address)

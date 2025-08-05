@@ -1,0 +1,53 @@
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+from "parts/Texas_Instruments_TMAG5273A1QDBVR/Texas_Instruments_TMAG5273A1QDBVR.ato" import Texas_Instruments_TMAG5273A1QDBVR_package
+
+module TI_TMAG5273:
+    # Component
+    ic = new Texas_Instruments_TMAG5273A1QDBVR_package
+
+    # Power interface
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 1.7V to 3.6V
+
+    # I2C interface
+    i2c = new I2C
+    assert i2c.frequency within 0Hz to 1MHz
+    i2c.address = 0x22  # Default address (firmware configurable from 0x22 to 0x79)
+    assert i2c.address within 0x22 to 0x79
+
+    # Interrupt pin (optional)
+    interrupt = new ElectricLogic
+
+    # Connections
+    # Power
+    power.hv ~ ic.VCC
+    power.lv ~ ic.GND
+
+    # I2C
+    i2c.scl.line ~ ic.SCL
+    i2c.sda.line ~ ic.SDA
+
+    # Interrupt
+    interrupt.line ~ ic.nINT
+
+    # Decoupling capacitors
+    # 100nF and 10nF as recommended in datasheet
+    decap_100n = new Capacitor
+    decap_100n.capacitance = 100nF +/- 20%
+    decap_100n.package = "0402"
+    decap_100n.max_voltage = 6.3V
+    power.hv ~> decap_100n ~> power.lv
+
+    decap_10n = new Capacitor
+    decap_10n.capacitance = 10nF +/- 20%
+    decap_10n.package = "0402"
+    decap_10n.max_voltage = 6.3V
+    power.hv ~> decap_10n ~> power.lv
+
+    # Note: TMAG5273 has internal pull-ups on SCL and SDA
+    # External pull-ups may not be required if using internal ones

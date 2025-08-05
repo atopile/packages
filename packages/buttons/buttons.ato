@@ -1,0 +1,139 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import Resistor
+import Electrical
+import ElectricSignal
+import ElectricLogic
+import ElectricPower
+
+import has_single_electric_reference_shared
+import can_bridge_by_name
+
+module Button:
+    """
+        Momentary switch with two terminals connecting 2x Electricals
+    """
+    input = new Electrical
+    output = new Electrical
+
+    trait can_bridge_by_name
+
+module SignalButton:
+    """
+    Momentary switch with two terminals connecting 2x ElectricalSignals
+    """
+    button = new Button
+    input = new ElectricSignal
+    output = new ElectricSignal
+    input.line ~ button.input
+    output.line ~ button.output
+
+    trait has_single_electric_reference_shared
+    trait can_bridge_by_name
+
+module VerticalButton from ALPSALPINE_SKRPACE010_button_driver:
+    pass
+
+module HorizontalButton from ALPSALPINE_SKTDLDE010_button_driver:
+    pass
+
+module ButtonPullup:
+    """
+    Connects button output to output reference.hv via a resistor when button is pressed
+    """
+    button = new SignalButton
+    output = new ElectricSignal
+    pullup = new Resistor
+
+    # Connections
+    output ~ button.output
+    button.input.line ~> pullup ~> output.reference.hv
+
+    # Configure pullup
+    pullup.resistance = 10kohms +/- 20%
+    pullup.package = "R0402"
+
+
+module ButtonPulldown:
+    """
+    Connects button output to output reference.gnd via a resistor when button is pressed
+    """
+    button = new SignalButton
+    output = new ElectricSignal
+    pulldown = new Resistor
+
+    # Connections
+    output ~ button.output
+    button.input.line ~> pulldown ~> output.reference.gnd
+
+    # Configure pulldown
+    pulldown.resistance = 10kohms +/- 20%
+    pulldown.package = "R0402"
+
+
+module TestPullupPulldownButtons:
+    """
+    Test module for pullup/pulldown buttons
+    """
+    # Create example signals
+    config_pins = new ElectricSignal[2]
+    power = new ElectricPower
+    for config_pin in config_pins:
+        config_pin.reference ~ power # Typically done inside a driver
+
+    # Make and configure pullup and pulldown buttons
+    btn_pullup_vertical = new ButtonPullup
+    btn_pullup_vertical.button.button -> VerticalButton
+    config_pins[0] ~ btn_pullup_vertical.output
+
+    btn_pulldown_horizontal = new ButtonPulldown
+    btn_pulldown_horizontal.button.button -> HorizontalButton
+    config_pins[1] ~ btn_pulldown_horizontal.output
+
+module TestButtons:
+    """
+    Test module for direct use of horizontal and vertical buttons
+    """
+    config_pins = new ElectricSignal[2]
+    power = new ElectricPower
+    for config_pin in config_pins:
+        config_pin.reference ~ power # Typically done inside a driver
+
+    # When button is pressed, enable will be pulled HIGH via a 10k resistor
+    pull_resistors = new Resistor[2]
+    for pr in pull_resistors:
+        pr.resistance = 10kohms +/- 20%
+        pr.package = "R0402"
+
+    btn_horizontal = new HorizontalButton
+    btn_vertical = new VerticalButton
+
+    # Connect first button to pull config_pins[0] to gnd through 10k
+    config_pins[0].line ~> btn_horizontal ~> pull_resistors[0] ~> power.lv
+
+    # Connect second button to pull config_pins[1] to hv through 10k
+    config_pins[1].line ~> btn_vertical ~> pull_resistors[1] ~> power.hv
+
+
+# TODO: Move these drivers to separate files
+from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
+
+module ALPSALPINE_SKRPACE010_button_driver from Button:
+    package = new ALPSALPINE_SKRPACE010_package
+    # pins
+    input ~ package.1
+    input ~ package.2
+    output ~ package.3
+    output ~ package.4
+
+from "parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010.ato" import ALPSALPINE_SKTDLDE010_package
+
+module ALPSALPINE_SKTDLDE010_button_driver from Button:
+    package = new ALPSALPINE_SKTDLDE010_package
+    # pins
+    input ~ package.1
+    output ~ package.2
+    # package.3 mechanical
+    # package.4 mechanical
