@@ -16,16 +16,26 @@ module OLED12832:
 
     # --- External interfaces ---
     power_5v = new ElectricPower
+    """
+    Main power supply.
+    """
     power_5v.required = True
     power_3v3 = new ElectricPower
+    """
+    Logic power supply.
+    """
     power_3v3.required = True
     i2c = new I2C
+    """
+    I²C bus.
+    """
     i2c.required = True
 
     # --- Power supply ---
     assert power_5v.voltage within 5V +/- 5%
     assert power_3v3.voltage within 3.3V +/- 5%
 
+    # Internal rails
     _power_vdd = new ElectricPower
     _power_vbat = new ElectricPower
     _power_vcomh = new ElectricPower

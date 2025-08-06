@@ -35,7 +35,6 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ display.i2c
-
 ```
 
 ## Contributing
