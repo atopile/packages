@@ -1,0 +1,23 @@
+requires-atopile: "^0.10.14"
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+    targets:
+      - mfg-data
+
+package:
+  identifier: atopile/testpoints
+  repository: https://github.com/atopile/packages
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.com
+  summary: Various testpoints
+  license: MIT
