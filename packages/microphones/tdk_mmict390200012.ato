@@ -1,0 +1,34 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Capacitor
+import ElectricPower
+import PDM
+
+from "microphone.ato" import MicrophonePDM
+
+from "parts/TDK_InvenSense_MMICT390200012/TDK_InvenSense_MMICT390200012.ato" import TDK_InvenSense_MMICT390200012_package
+
+module TDK_InvenSense_MMICT390200012 from MicrophonePDM:
+    """
+    The T3902 is a low-power, low-noise digital MEMS microphone in a small package.
+    The T3902 consists of a MEMS microphone element and an impedance converter amplifier
+    followed by a fourth-order Σ-Δ modulator. The pulse density modulated (PDM) interface
+    allows two microphones to be time multiplexed on a data line using a single clock.
+    """
+    package = new TDK_InvenSense_MMICT390200012_package
+
+    #1.62V to 3.6V
+    assert power.voltage within 1.8V * (1 + (-0.1 to 2))
+
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    pdm.data.line ~ package.DATA
+    pdm.clock.line ~ package.CLK
+    pdm.select.line ~ package.SELECT
+
+    pdm.select.line.required = True
+
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.package = "0402"
+    assert decoupling_capacitor.max_voltage >= power.voltage * 1.5
+    assert decoupling_capacitor.capacitance within 100 nF +/- 30%
+    power.hv ~> decoupling_capacitor ~> power.lv
