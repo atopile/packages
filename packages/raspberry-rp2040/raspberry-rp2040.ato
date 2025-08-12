@@ -149,6 +149,9 @@ module Raspberry_Pi_RP2040:
     reset_switch.output ~ reset
     boot_switch.output ~ qspi.chip_select
 
+    # factory test enable
+    _factory_test_enable ~ power.lv
+
     # --- Peripherals default sensible connections ---
     # i2c
     i2c.sda ~ gpio[2]
