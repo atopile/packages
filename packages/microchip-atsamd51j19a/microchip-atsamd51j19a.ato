@@ -28,8 +28,9 @@ from "parts/Microchip_Tech_ATSAMD51J19A_MFT/Microchip_Tech_ATSAMD51J19A_MFT.ato"
 from "parts/Seiko_Epson_Q13FC13500004/Seiko_Epson_Q13FC13500004.ato" import Seiko_Epson_Q13FC13500004_package
 from "parts/Winbond_W25Q16JVUXIQ/Winbond_W25Q16JVUXIQ.ato" import Winbond_W25Q16JVUXIQ_package
 from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_package
+
 from "atopile/addressable-leds/sk6805-ec20.ato" import SK6805EC20_driver
-from "atopile/st-ldk220/ldk220.ato" import LDK220M_R
+from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 from "atopile/buttons/buttons.ato" import VerticalButton
 
 module Microchip_ATSAMD51J19A:
@@ -239,9 +240,6 @@ module Microchip_ATSAMD51J19A:
     for gpio in port_b:
         gpio.reference ~ power_3v3
 
-    # connect all grounds together
-    trait has_single_electric_reference_shared<gnd_only=True>
-
     # --- Decoupling (recommendation: one 100 nF per supply pin group) ---
     decoupling = new Capacitor[4]
     for cap in decoupling:
@@ -346,6 +344,9 @@ module Microchip_ATSAMD51J19A:
     i2c.scl.line.override_net_name = "SCL"
     uart.tx.line.override_net_name = "TX"
     uart.rx.line.override_net_name = "RX"
+
+    # connect all grounds together TODO: breaks build
+    # trait has_single_electric_reference_shared<gnd_only=True>
 
 # --- Helper modules ---
 module _QSPIFlash from SPIFlash:
