@@ -1,21 +1,23 @@
-requires-atopile: "^0.9.0"
+requires-atopile: "^0.11.4"
 
 paths:
   src: "."
   layout: ./layouts
 
 builds:
-  # bq24045dsqr:
-  # entry: bq2404x.ato:BQ24045DSQR
-  bq24040dsqr:
-    entry: bq2404x.ato:BQ24040DSQR
-  test:
-    entry: bq2404x.ato:Test
+  default:
+    entry: ti-bq2404x.ato:BQ24040DSQR
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/ti-bq2404x
   repository: https://github.com/atopile/packages
-  version: "0.2.2"
+  version: "0.2.3"
   authors:
     - name: atopile
       email: hi@atopile.io

@@ -1,0 +1,10 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+from "atopile/ti-bq2404x/ti-bq2404x.ato" import BQ24040DSQR
+
+module Usage:
+    charger = new BQ24040DSQR
+    power_in = new ElectricPower
+    power_batt = new ElectricPower
+    power_in ~> charger ~> power_batt
