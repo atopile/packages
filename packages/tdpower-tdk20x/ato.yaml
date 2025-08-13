@@ -7,13 +7,17 @@ paths:
 builds:
   default:
     entry: tdpower-tdk20x.ato:TDPOWER_TDK20_driver
-  test:
-    entry: tdpower-tdk20x.ato:Test
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/tdpower-tdk20x
   repository: https://github.com/atopile/packages
-  version: "0.1.4"
+  version: "0.1.5"
   authors:
     - name: atopile
       email: hi@atopile.io
