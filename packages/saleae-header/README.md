@@ -4,7 +4,7 @@ Features:
 - **SaleaeHeaderVertical**: Single vertical header for connection via harness
 - **SaleaeHeaderRightAngle_x**: Right-angle headers for direct connection to Saleae(x=1,2,4)
 - **Built-in protection**: 1kΩ series resistors on all signal lines
-- **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals 
+- **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals
 
 ## SaleaeHeaderRightAngle_2
 ![Saleae Header Example](./saleae_header_example.png)
