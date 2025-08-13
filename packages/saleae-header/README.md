@@ -15,6 +15,9 @@ Features:
 ## Usage
 
 ```ato
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderVertical
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 import ElectricSignal,SPI,I2C
@@ -24,14 +27,7 @@ module Usage:
     spi = new SPI
     spi_cs = new ElectricSignal
     i2c = new I2C
-
-    # Single vertical header for connection with Saleae through harness
-    harness_saleae_debug_header = new SaleaeHeaderVertical
-
-    spi.mosi ~ harness_saleae_debug_header.channels[0]
-    spi.miso ~ harness_saleae_debug_header.channels[1]
-    spi.sclk ~ harness_saleae_debug_header.channels[2]
-    spi_cs ~ harness_saleae_debug_header.channels[3]
+    example_signals = new ElectricSignal[4]
 
     # Double right angle female header for direct connection to Saleae Logic 8/16
     direct_saleae_interface = new SaleaeHeaderRightAngle_2
@@ -41,6 +37,13 @@ module Usage:
 
     i2c ~ direct_saleae_interface.headers[1].i2c
 
+    # Single vertical header for connection with Saleae through harness
+    harness_saleae_debug_header = new SaleaeHeaderVertical
+
+    example_signals[0] ~ harness_saleae_debug_header.channels[0]
+    example_signals[1] ~ harness_saleae_debug_header.channels[1]
+    example_signals[2] ~ harness_saleae_debug_header.channels[2]
+    example_signals[3] ~ harness_saleae_debug_header.channels[3]
 ```
 
 ## Contributing
