@@ -69,21 +69,21 @@ module BQ2404XDSQR:
 
     # Input Capacitor
     input_cap = new Capacitor
-    input_cap.power ~ power_in
-    input_cap.package = "C0402"
+    input_cap.package = "0402"
     input_cap.capacitance = 1uF +/- 20%
+    power_in.vcc ~> input_cap ~> power_in.gnd
 
     # Output Capacitor
     output_cap = new Capacitor
-    output_cap.power ~ power_batt
-    output_cap.package = "C0402"
+    output_cap.package = "0402"
     output_cap.capacitance = 1uF +/- 20%
+    power_batt.vcc ~> output_cap ~> power_batt.gnd
 
     # ISet resistor - 540ohm = 1A to 10.8kohm = 100mA (RISET = 540 / IOUT)
     iset_resistor = new Resistor
     iset_resistor.p1 ~ package.ISET
     iset_resistor.p2 ~ package.VSS
-    iset_resistor.package = "R0402"
+    iset_resistor.package = "0402"
 
     # Set default charge current
     charge_current = 200mA +/- 10%
@@ -95,42 +95,3 @@ module BQ2404XDSQR:
     #ISET2 - High: input current 500mA max, Low: input current 100mA max
     #TODO: should be configured based on charge_current
     package.ISET2 ~ power_in.vcc # set to 500mA
-
-
-import Battery
-import PoweredLED
-module Test:
-    """
-    Test module for BQ24040DSQR
-    """
-    charger = new BQ24040DSQR
-
-    battery = new Battery
-    battery.voltage = 4.2V
-    battery.capacity = 300mAh
-
-    # Configure charge current to 1C
-    charger.charge_current = battery.capacity / 1h +/- 10%
-
-    # Connect power
-    power = new ElectricPower
-    power.voltage = 5V
-
-    power ~> charger ~> battery.power
-
-    # Charge indicator
-    charge_led = new PoweredLED
-    power.vcc ~> charge_led ~> charger.charge_status.line
-    charge_led.current_limiting_resistor.resistance = 10kohm +/- 10%
-    charge_led.led.lcsc_id = "C2288"
-
-    # Power good indicator
-    power_good_led = new PoweredLED
-    power.vcc ~> power_good_led ~> charger.power_good.line
-    power_good_led.current_limiting_resistor.resistance = 10kohm +/- 10%
-    power_good_led.led.lcsc_id = "C12624"
-
-    # Temperature sensor - 10k ohm NTC
-    temp_sensor = new Resistor
-    temp_sensor.lcsc_id = "C2892547"
-    charger.temperature_sense.line ~> temp_sensor ~> power.gnd
