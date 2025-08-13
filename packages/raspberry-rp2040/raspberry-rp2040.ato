@@ -42,6 +42,7 @@ module Raspberry_Pi_RP2040:
     """
     Primary 3.3 V rail powering IO buffers
     """
+    power.required = True
     assert power.voltage within 3.3V +/- 10%
 
     i2c = new I2C
@@ -148,6 +149,9 @@ module Raspberry_Pi_RP2040:
     # reset and boot switches
     reset_switch.output ~ reset
     boot_switch.output ~ qspi.chip_select
+
+    # factory test enable
+    _factory_test_enable ~ power.lv
 
     # --- Peripherals default sensible connections ---
     # i2c
