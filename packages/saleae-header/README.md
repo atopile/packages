@@ -1,19 +1,22 @@
-# Saleae Debug Header Connectors
-
-Debug header configured for use with Saleae logic analyzers, includes interfaces for signals (io + gnd) as well as support for monitoring buses like I2C and SPI. Monitor your SPI bus as easily as `saleae.spi ~ micro.spi`!
+# Debug Header for Saleae Logic Analyzers
 
 Features:
 - **SaleaeHeaderVertical**: Single vertical header for connection via harness
 - **SaleaeHeaderRightAngle_x**: Right-angle headers for direct connection to Saleae(x=1,2,4)
 - **Built-in protection**: 1kΩ series resistors on all signal lines
-- **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals
+- **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals 
 
-![Saleae Debug Header](https://firebasestorage.googleapis.com/v0/b/atopile.appspot.com/o/saleae-debug-header.png?alt=media&token=84e11ffe-b67d-438b-ae7e-e35b59780a78 "Saleae Debug Header")
+## SaleaeHeaderRightAngle_2
+![Saleae Header Example](./saleae_header_example.png)
+
+## SaleaeHeaderVertical
+![Saleae Header Example](./vertical_example.png)
 
 ## Usage
 
 ```ato
-from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderVertical, SaleaeHeaderRightAngle_2
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderVertical
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 import ElectricSignal,SPI,I2C
 
 module Usage:
@@ -25,17 +28,19 @@ module Usage:
     # Single vertical header for connection with Saleae through harness
     harness_saleae_debug_header = new SaleaeHeaderVertical
 
-    spi.sclk ~ harness_saleae_debug_header.channels[0]
+    spi.mosi ~ harness_saleae_debug_header.channels[0]
     spi.miso ~ harness_saleae_debug_header.channels[1]
-    spi.mosi ~ harness_saleae_debug_header.channels[2]
+    spi.sclk ~ harness_saleae_debug_header.channels[2]
     spi_cs ~ harness_saleae_debug_header.channels[3]
 
     # Double right angle female header for direct connection to Saleae Logic 8/16
     direct_saleae_interface = new SaleaeHeaderRightAngle_2
 
     spi ~ direct_saleae_interface.headers[0].spi
+    spi_cs ~ direct_saleae_interface.headers[0].spi_cs
 
     i2c ~ direct_saleae_interface.headers[1].i2c
+
 ```
 
 ## Contributing
