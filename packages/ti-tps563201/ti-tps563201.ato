@@ -80,7 +80,9 @@ module TI_TPS563201 from AdjustableRegulator:
 
     # Inductor
     inductor = new Inductor
-    inductor.lcsc_id = "C408335" # MWSA0402S-2R2MT, 2.2uH +/- 30%, 3.4A
+    inductor.inductance = 2.2uH +/- 30%
+    assert inductor.max_current >= 3A
+    inductor.package = "SMD4x4mm"
     package.SW ~> inductor ~> power_out.vcc
 
     # Enable
