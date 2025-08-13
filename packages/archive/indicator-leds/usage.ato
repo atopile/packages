@@ -7,16 +7,19 @@ from "indicator-leds.ato" import LEDIndicatorRed
 from "indicator-leds.ato" import LEDIndicatorGreen
 
 
-module Example:
+module Usage:
+    """
+    Minimal usage example for `indicator-leds`.
+    Demonstrates direct power connection and bridge usage.
+    """
+
     red_led = new LEDIndicatorRed
     green_led = new LEDIndicatorGreen
 
-    # Can connect directly to a power interface
+    # Direct power connection
     power = new ElectricPower
     power.voltage = 5V
-
     power ~ red_led.power
 
-    # Or can use bridge connect
-    gpio = new ElectricSignal
-    gpio.line ~> green_led ~> gpio.reference.gnd
+    # Bridge connect across the power rail
+    power.hv ~> green_led ~> power.lv

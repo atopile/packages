@@ -5,7 +5,7 @@
 import LED
 import Resistor
 import ElectricPower
-from "can_bridge_by_name.py" import can_bridge_by_name
+import can_bridge_by_name
 
 from "parts/Hubei_KENTO_Elec_KT_0603G/Hubei_KENTO_Elec_KT_0603G.ato" import Hubei_KENTO_Elec_KT_0603G_driver
 from "parts/Hubei_KENTO_Elec_Blue_light_0603/Hubei_KENTO_Elec_Blue_light_0603.ato" import Hubei_KENTO_Elec_Blue_light_0603_driver
@@ -16,11 +16,19 @@ from "parts/Hubei_KENTO_Elec_KT_0603W/Hubei_KENTO_Elec_KT_0603W.ato" import Hube
 
 
 module LEDIndicator:
+    """
+    Simple indicator LED with a series resistor.
+    Exposes a power rail and can be bridged between `power.hv` and `power.lv`.
+    """
+
     power = new ElectricPower
+    """
+    Power rail used to drive the LED (hv) and return (lv)
+    """
     resistor = new Resistor
     led = new LED
 
-    resistor.package = "R0402"
+    resistor.package = "0402"
 
     current = 0.5mA to 3mA # TODO: calculate with brightness (TypicalLuminousIntensity) instead
 
@@ -33,10 +41,10 @@ module LEDIndicator:
     assert power.voltage >= led.forward_voltage
 
     # Connections
-    power.hv ~> led ~> resistor ~> power.gnd
+    power.hv ~> led ~> resistor ~> power.lv
 
     # Make bridgable
-    signal low ~ power.gnd
+    signal low ~ power.lv
     signal high ~ power.hv
     trait can_bridge_by_name<input_name="high", output_name="low">
 
@@ -62,7 +70,3 @@ module LEDIndicatorYellowGreen from LEDIndicator:
 
 module LEDIndicatorWhite from LEDIndicator:
     led -> Hubei_KENTO_Elec_KT_0603W_driver
-
-# import ElectricPower
-# import ElectricSignal
-# from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
