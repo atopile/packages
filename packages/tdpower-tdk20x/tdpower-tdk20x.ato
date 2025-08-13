@@ -6,6 +6,7 @@ import ElectricPower
 import Capacitor
 import CapacitorElectrolytic
 import Resistor
+from "parts/Honor_Elec_RVT1V101M0607/Honor_Elec_RVT1V101M0607.ato" import Honor_Elec_RVT1V101M0607_package
 
 from "parts/TDPOWER_TDK20_24S24WH/TDPOWER_TDK20_24S24WH.ato" import TDPOWER_TDK20_24S24WH_package
 
@@ -24,24 +25,23 @@ module TDPOWER_TDK20_driver from Regulator:
     # Input ceramics
     input_caps = new Capacitor[3]
     for cap in input_caps:
-        power_in ~ cap.power
-        cap.package = "C0805"
+        cap.package = "0805"
         assert cap.max_voltage within 30V to 100V
         assert cap.capacitance within 10uF +/- 10%
+        power_in.vcc ~> cap ~> power_in.gnd
 
     # Output ceramics
     output_cap_1 = new Capacitor
-    power_out ~ output_cap_1.power
-    output_cap_1.package = "C0805"
+    output_cap_1.package = "0805"
     assert output_cap_1.max_voltage within 30V to 100V
     assert output_cap_1.capacitance within 1uF +/- 10%
+    power_out.vcc ~> output_cap_1 ~> power_out.gnd
 
     # Output electrolytics
-    output_electrolytics = new Capacitor[2]
+    output_electrolytics = new Honor_Elec_RVT1V101M0607_driver[2]
 
     for cap in output_electrolytics:
         power_out.vcc ~> cap ~> power_out.gnd
-        cap.lcsc_id = "C3339"
 
     # Y capacitors
     y_caps = new Capacitor[3]
@@ -52,11 +52,11 @@ module TDPOWER_TDK20_driver from Regulator:
     for y_cap in y_caps:
         assert y_cap.max_voltage within 1kV to 2kV
         assert y_cap.capacitance within 2.2nF +/- 20%
-        y_cap.package = "C1206"
+        y_cap.package = "1206"
 
     # Enable resistor
     enable_resistor = new Resistor
-    enable_resistor.package = "R0402"
+    enable_resistor.package = "0402"
     enable_resistor.resistance = 10kohm +/- 10%
 
     # Enable
@@ -66,14 +66,8 @@ module TDPOWER_TDK20_driver from Regulator:
     # Enabled by default
     package.CNT ~> enable_resistor ~> power_in.vcc
 
-module Test:
-    # Create converter (default 24V in, 24V out)
-    converter = new TDPOWER_TDK20_driver
+module Honor_Elec_RVT1V101M0607_driver from CapacitorElectrolytic:
+    package = new Honor_Elec_RVT1V101M0607_package
 
-    # Create power and I2C interfaces
-    power_in = new ElectricPower
-    power_out = new ElectricPower
-
-    # connect power to converter
-    power_in ~ converter.power_in
-    power_out ~ converter.power_out
+    package.1 ~ anode
+    package.2 ~ cathode
