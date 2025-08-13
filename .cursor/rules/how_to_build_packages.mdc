@@ -4,9 +4,9 @@ globs:
 alwaysApply: true
 ---
 
-# Building a new package
+# 1 Building a new package
 
-## File Structure
+## 1.1 File Structure
 
 ```
 packages/
@@ -20,7 +20,7 @@ packages/
         usage.ato
 ```
 
-## Steps
+## 1.2 Steps to create a new package
 
 1. Create a new directory `<package_name>` as stated in the file structure.
 2. Create ato.yaml, `<package_name>.ato`, README.md, usage.ato
@@ -46,7 +46,7 @@ packages/
 9. Build the main build target with your MCP
 10. Make sure to make use of the LSP and build errors
 
-## Additional Notes & Gotchas (generic)
+## 1.3 Additional Notes & Gotchas (generic)
 
 - Multi-rail devices (VDD / VDDIO, AVDD / DVDD, etc.)
 
@@ -74,7 +74,7 @@ packages/
 
 These tips should prevent common "footprint not found", "pin X missing", and build-time path errors when you add new devices.
 
-## Legend
+## 1.4 Legend
 
 `<manufacturer>`: lower-case, <10 chars
 
@@ -116,7 +116,7 @@ These tips should prevent common "footprint not found", "pin X missing", and bui
 
 `<module_name>`: `<Manufacturer>`\_`<Part_Number>`
 
-## <package_name>.ato
+## 1.5 <package_name>.ato
 
 `````ato
 <pragmas>
@@ -200,12 +200,13 @@ Remove empty sections.
 ## ato.yaml
 
 ```yaml
-requires-atopile: "^0.10.8"
+requires-atopile: "^<latest_atopile_version>"
 
 paths:
   src: ./
   layout: ./layouts
 
+# Ensure the project has at least a default build and a usage build
 builds:
   default:
     entry: <package_name>.ato:<module_name>
@@ -270,7 +271,7 @@ module Usage:
 ## Usage
 
 ```ato
-<copy-paste of usage.ato>
+<copy-paste exactly the latest of usage.ato>
 ```
 
 ## Contributing
@@ -281,3 +282,14 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 This package is provided under the [MIT License](mdc:packages/packages/packages/https:/opensource.org/license/mit).
 `````
+# 2 Updating an existing package
+The package should follow the structure that is described in detail. To update a package, review each section to ensure that it complies with the latest syntax and structure. The following steps are a guideline to effectively review packages:
+
+
+## 2.1 Review Procedure
+1) Inspect file structure. Ensure that it complies with section 1.1 of this document.
+2) Inpect ato.yaml file. Esnure that it complies with section 1.2 of this document. Ensure that there is at least a default and usage build target - it is valid to have extra build targets. Check what version of atopile is being used by running "ato --version", set the requires-atopile field to be greater than the current version being used.
+3) Run "ato build". Resolve any errors or warnings with the build. Try not to add or delete compoents, as it will change the layout and require manual relayout.
+4) Run "ato build --frozen". Resolve any errors or warnings.
+5) If all the build targets are successfully building, update the README.md to have the exact same text as the usage.ato file. Also enure that the existing information in the readme is accurate - if not, search for the part number and update the readme with information about the part. Try not to stray far from the instructions, and don't add too much information from the datasheet, only what would be helpful for a user browsing the package directory and evaluating using this package.
+6) Run "ato package verify". Ensure that this passes as the final check that the package is ready to be published.
