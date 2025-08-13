@@ -7,10 +7,10 @@ Features:
 - **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals
 
 ## SaleaeHeaderRightAngle_2
-![Saleae Header Example](saleae_header_example.png)
+![Saleae Header Example](https://github.com/atopile/packages/blob/main/packages/saleae-header/saleae_header_example.png?raw=true)
 
 ## SaleaeHeaderVertical
-![Saleae Header Example](vertical_example.png)
+![Saleae Header Example](https://github.com/atopile/packages/blob/main/packages/saleae-header/vertical_example.png?raw=true)
 
 ## Usage
 
