@@ -1,25 +1,38 @@
-requires-atopile: "^0.11.4"
+requires-atopile: ^0.11.4
 
 paths:
-  src: "."
+  src: .
   layout: ./layouts
 
 builds:
   default:
     entry: ti-bq2404x.ato:BQ24040DSQR
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
+  # bq24040dsqr:
+  #   entry: ti-bq2404x.ato:BQ24040DSQR
+  #   hide_designators: true
+  #   exclude_checks: ["PCB.requires_drc_check"]
+  # bq24045dsqr:
+  #   entry: ti-bq2404x.ato:BQ24045DSQR
+  #   hide_designators: true
+  #   exclude_checks: ["PCB.requires_drc_check"]
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
 
 package:
   identifier: atopile/ti-bq2404x
   repository: https://github.com/atopile/packages
-  version: "0.2.3"
+  version: 0.2.3
   authors:
-    - name: atopile
-      email: hi@atopile.io
-  summary: BQ2404x 1A, Single-Input, Single Cell Li-Ion and Li-Pol Battery Charger With Auto Start
+  - name: atopile
+    email: hi@atopile.io
+  summary: BQ2404x 1A, Single-Input, Single Cell Li-Ion and Li-Pol Battery
+    Charger With Auto Start
   license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/indicator-leds
+  release: 0.1.4
