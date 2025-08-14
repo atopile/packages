@@ -10,19 +10,26 @@ Convenience modules for single indicator LEDs with a correctly sized series resi
 import ElectricSignal
 import ElectricPower
 
-from "indicator-leds.ato" import LEDIndicatorRed
-from "indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+
 
 module Usage:
+    """
+    Minimal usage example for `indicator-leds`.
+    Demonstrates direct power connection and bridge usage.
+    """
+
     red_led = new LEDIndicatorRed
     green_led = new LEDIndicatorGreen
 
+    # Direct power connection
     power = new ElectricPower
     power.voltage = 5V
     power ~ red_led.power
 
-    gpio = new ElectricSignal
-    gpio.line ~> green_led ~> gpio.reference.lv
+    # Bridge connect across the power rail
+    power.hv ~> green_led ~> power.lv
 ```
 
 ## Contributing
