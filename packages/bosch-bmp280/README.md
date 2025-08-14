@@ -23,29 +23,37 @@ The BMP280 is a digital temperature and pressure sensor featuring high accuracy 
 import ElectricPower
 import I2C
 
-from "bosch-bmp280.ato" import Bosch_BMP280
+from "atopile/bosch-bmp280/bosch-bmp280.ato" import Bosch_BMP280
 
 module Usage:
     """
     Minimal usage example for bosch-bmp280.
-    Shows basic I²C connection and power supply.
+    Demonstrates basic I²C connection with 3.3V power supply.
+    The sensor will be configured at I2C address 0x76 (SDO pin pulled low).
     """
 
+    # Sensor instance
     sensor = new Bosch_BMP280
 
-    # Connect external I²C bus
+    # External I²C bus
     i2c = new I2C
+    """External I2C bus for sensor communication"""
     i2c ~ sensor.i2c
 
-    # Connect power supplies
+    # Power supply (3.3V rail for both core and I/O)
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 5%
 
+    # Connect both power rails to the same 3.3V supply
     power_3v3 ~ sensor.power_core
     power_3v3 ~ sensor.power_io
 
-    # Set I²C address to 0x76 (SDO pulled low)
-    assert sensor.i2c.address is 0x76
+    # Provide I2C bus reference voltage
+    power_3v3 ~ i2c.scl.reference
+    power_3v3 ~ i2c.sda.reference
+
+    # Configure I²C address to 0x76 (SDO pin will be pulled low via internal pull-down)
+    sensor.i2c.address = 0x76
 ```
 
 ## Interface Details
