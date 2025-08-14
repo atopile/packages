@@ -68,6 +68,7 @@ module USBTypeCConnector_driver:
     # connections
     connector.usb ~> fused_usb ~> esd_protection ~> usb
     connector.shield ~ usb.usb_if.buspower.lv
+    connector.power_vbus.lv ~ usb.usb_if.buspower.lv
 
     connector.cc[0].line ~> cc_resistors[0] ~> usb.usb_if.buspower.lv
     connector.cc[1].line ~> cc_resistors[1] ~> usb.usb_if.buspower.lv
@@ -173,3 +174,4 @@ module TECH_PUBLIC_USBLC6_2SC6_model:
     assert decoupling_capacitor.max_voltage >= 10V
     decoupling_capacitor.package = "C0402"
     usb_in.usb_if.buspower.hv ~> decoupling_capacitor ~> usb_in.usb_if.buspower.lv
+    usb_in.usb_if.buspower.lv ~ usb_out.usb_if.buspower.lv
