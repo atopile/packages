@@ -21,12 +21,15 @@ The Bosch BME688 is a 4-in-1 environmental sensor that measures temperature, hum
 import I2C
 import ElectricPower
 
-from "bosch-bme688.ato" import Bosch_BME688
+from "atopile/bosch-bme688/bosch-bme688.ato" import Bosch_BME688
 
 module Usage:
     """
-    Minimal usage example for bosch-bme688.
+    Usage example for bosch-bme688.
     Shows how to connect the BME688 sensor with I2C interface and power supply.
+
+    The sensor comes with built-in I2C pull-ups and power filtering.
+    Just connect power and I2C bus - everything else is handled automatically.
     """
 
     # Create sensor instance
@@ -34,18 +37,22 @@ module Usage:
 
     # Create I2C bus
     i2c = new I2C
-    i2c.frequency = 100kHz
+    i2c.frequency = 400kHz  # Fast mode I2C
 
     # Create power supply
     power = new ElectricPower
-    power.voltage = 3.3V
+    power.voltage = 3.3V  # Recommended voltage
 
-    # Connect interfaces
+    # Connect interfaces - that's it!
     i2c ~ sensor.i2c
     power ~ sensor.power
 
-    # Set I2C address (0x76 or 0x77 depending on SDO pin)
-    assert sensor.i2c.address is 0x76
+    # Address will be 0x77 (SDO floating) or 0x76 (SDO to GND)
+    # Built-in features automatically included:
+    # - I2C pull-ups (4.7kΩ)
+    # - Power filtering (100nF + 10nF caps)
+    # - Protocol selection (I2C default)
+    assert sensor.i2c.address is 0x77
 ```
 
 ## I2C Address Configuration
