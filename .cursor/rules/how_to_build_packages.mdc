@@ -320,3 +320,4 @@ The package should follow the structure that is described in detail. To update a
 * After updating a package, use the MCP tool to inspect the current version that is available on the package registry and be sure to minor rev from the current latest version on the package resistry -> x.y.z and update it to exactly x.y.z+1
 * If a build is failing the frozen build, saying there have been changes to the layout, try running a regular build first, then running a frozen build to see if the issue is resolved.
 * If package verifications is failing because there are warnings in the logs, try running a new build, as sometimes there are one time warnings when a component changes that will go away on the next build.
+* Only update the `requires-atopile` in the ato.yaml if the package no longer builds with the current version of the compilet. If the package builds but just needs some cleaning or refactoring, the version requirment should not be upgraded.
