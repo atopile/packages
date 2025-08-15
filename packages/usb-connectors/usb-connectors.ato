@@ -67,8 +67,14 @@ module USBTypeCConnector_driver:
 
     # connections
     connector.usb ~> fused_usb ~> esd_protection ~> usb
+
+    # Connect grounds through
+    connector.power_vbus.lv ~ fused_usb.usb_in.usb_if.buspower.lv;
+    fused_usb.usb_out.usb_if.buspower.lv ~ esd_protection.usb_in.usb_if.buspower.lv;
+    esd_protection.usb_out.usb_if.buspower.lv ~ usb.usb_if.buspower.lv
     connector.shield ~ usb.usb_if.buspower.lv
-    connector.power_vbus.lv ~ usb.usb_if.buspower.lv
+    # esd_protection.usb_in.usb_if.buspower.lv ~ connector.power_vbus.lv`
+
 
     connector.cc[0].line ~> cc_resistors[0] ~> usb.usb_if.buspower.lv
     connector.cc[1].line ~> cc_resistors[1] ~> usb.usb_if.buspower.lv
