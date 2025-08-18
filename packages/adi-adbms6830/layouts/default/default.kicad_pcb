@@ -94,12 +94,12 @@
     (net 5 "S2N")
     (net 6 "S3P")
     (net 7 "iso_b_internal_P")
-    (net 8 "SDI")
+    (net 8 "MOSI")
     (net 9 "iso_a_external_P")
     (net 10 "S3N")
     (net 11 "S4N")
     (net 12 "iso_a_external_N")
-    (net 13 "VREF1")
+    (net 13 "vref1-VCC")
     (net 14 "GPIO2")
     (net 15 "C2")
     (net 16 "S12N")
@@ -116,8 +116,8 @@
     (net 27 "S5N")
     (net 28 "C5")
     (net 29 "S9N")
-    (net 30 "VREF2")
-    (net 31 "SDO")
+    (net 30 "vref2-VCC")
+    (net 31 "MISO")
     (net 32 "S13P")
     (net 33 "iso_a_termination_midpoint")
     (net 34 "S5P")
@@ -151,7 +151,7 @@
     (net 62 "S14N")
     (net 63 "S11N")
     (net 64 "S1P")
-    (net 65 "Vpos")
+    (net 65 "asic_vp-VCC")
     (net 66 "S14P")
     (net 67 "C4")
     (net 68 "iso_b_external_P")
@@ -159,32 +159,32 @@
     (net 70 "C13")
     (net 71 "ISOMD")
     (net 72 "emitter")
-    (net 73 "VREG")
+    (net 73 "vreg-VCC")
     (net 74 "C0")
     (net 75 "DRIVE")
     (net 76 "iso_b_internal_N")
     (net 77 "iso_a_internal_N")
-    (net 78 "-gnd-0")
-    (net 79 "-gnd-4")
-    (net 80 "-gnd-12")
-    (net 81 "-gnd-14")
-    (net 82 "-gnd-5")
-    (net 83 "-gnd-8")
-    (net 84 "-gnd-13")
-    (net 85 "-gnd-6")
-    (net 86 "-gnd-11")
-    (net 87 "-gnd-10")
-    (net 88 "-gnd-2")
-    (net 89 "-gnd-9")
-    (net 90 "-gnd-3")
-    (net 91 "-gnd-7")
-    (net 92 "hv")
+    (net 78 "sense_filters[0]-cell_power-GND")
+    (net 79 "sense_filters[11]-cell_power-GND")
+    (net 80 "sense_filters[5]-cell_power-GND")
+    (net 81 "sense_filters[7]-cell_power-GND")
+    (net 82 "sense_filters[12]-cell_power-GND")
+    (net 83 "sense_filters[15]-cell_power-GND")
+    (net 84 "sense_filters[6]-cell_power-GND")
+    (net 85 "sense_filters[13]-cell_power-GND")
+    (net 86 "sense_filters[4]-cell_power-GND")
+    (net 87 "sense_filters[3]-cell_power-GND")
+    (net 88 "sense_filters[1]-cell_power-GND")
+    (net 89 "sense_filters[2]-cell_power-GND")
+    (net 90 "sense_filters[9]-cell_power-GND-0")
+    (net 91 "sense_filters[14]-cell_power-GND")
+    (net 92 "cell_power-VCC")
     (net 93 "C9")
-    (net 94 "-gnd-15")
+    (net 94 "sense_filters[9]-cell_power-GND-1")
     (net 95 "C9N")
     (net 96 "C8")
-    (net 97 "-gnd-1")
-    (net 98 "line")
+    (net 97 "sense_filters[8]-cell_power-GND")
+    (net 98 "vbat-VCC")
     (footprint "UNI_ROYAL_0402WGF1000TCE:R0402"
         (layer "F.Cu")
         (uuid "0425894f-7931-406a-bd28-5f364642524b")
@@ -1090,7 +1090,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 81 "-gnd-14")
+            (net 81 "sense_filters[7]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -1386,7 +1386,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 90 "-gnd-3")
+            (net 90 "sense_filters[9]-cell_power-GND-0")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -2362,7 +2362,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 80 "-gnd-12")
+            (net 80 "sense_filters[5]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -2658,7 +2658,7 @@
             (at -0.75 0 90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 86 "-gnd-11")
+            (net 86 "sense_filters[4]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -2954,7 +2954,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 80 "-gnd-12")
+            (net 80 "sense_filters[5]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -3575,7 +3575,7 @@
             (at 0.55 0 -90)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 73 "VREG")
+            (net 73 "vreg-VCC")
             (uuid "c6f7f27a-d0c7-41e8-8923-9cd574d845df")
         )
         (pad "1" smd rect
@@ -3878,7 +3878,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 92 "hv")
+            (net 92 "cell_power-VCC")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -4199,14 +4199,14 @@
             (at 1 0 0)
             (size 1.41 1.35)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "7e0aba95-ea93-48aa-bcac-eb8798ba7f60")
         )
         (pad "1" smd rect
             (at -1 0 0)
             (size 1.41 1.35)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 65 "Vpos")
+            (net 65 "asic_vp-VCC")
             (uuid "5493dcfd-afc5-4dc2-8b11-ec092ff40020")
         )
         (model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL21B103KBANNNC/C0805_L2.0-W1.3-H1.3.step"
@@ -4842,7 +4842,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 97 "-gnd-1")
+            (net 97 "sense_filters[8]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -5126,7 +5126,7 @@
             (at -0.75 0 180)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 97 "-gnd-1")
+            (net 97 "sense_filters[8]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -5459,7 +5459,7 @@
             (at 0.7 0 0)
             (size 0.8 0.9)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "28113cfd-23d9-457b-8d54-59f529c1820c")
         )
         (pad "1" smd rect
@@ -5762,7 +5762,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 88 "-gnd-2")
+            (net 88 "sense_filters[1]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -6058,7 +6058,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 87 "-gnd-10")
+            (net 87 "sense_filters[3]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -6354,7 +6354,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 82 "-gnd-5")
+            (net 82 "sense_filters[12]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -6650,7 +6650,7 @@
             (at -0.75 0 -90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 83 "-gnd-8")
+            (net 83 "sense_filters[15]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -7286,7 +7286,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 85 "-gnd-6")
+            (net 85 "sense_filters[13]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -7922,7 +7922,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 84 "-gnd-13")
+            (net 84 "sense_filters[6]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -8218,7 +8218,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -8798,7 +8798,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 89 "-gnd-9")
+            (net 89 "sense_filters[2]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -9718,7 +9718,7 @@
             (at -0.75 0 90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 89 "-gnd-9")
+            (net 89 "sense_filters[2]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -10014,7 +10014,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 81 "-gnd-14")
+            (net 81 "sense_filters[7]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -10310,7 +10310,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 83 "-gnd-8")
+            (net 83 "sense_filters[15]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -10606,7 +10606,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 94 "-gnd-15")
+            (net 94 "sense_filters[9]-cell_power-GND-1")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -11854,7 +11854,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 94 "-gnd-15")
+            (net 94 "sense_filters[9]-cell_power-GND-1")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -12830,7 +12830,7 @@
             (at -0.75 0 -90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 91 "-gnd-7")
+            (net 91 "sense_filters[14]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -13126,7 +13126,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 97 "-gnd-1")
+            (net 97 "sense_filters[8]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -14423,14 +14423,14 @@
             (at 1 0 0)
             (size 1.13 1.38)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 65 "Vpos")
+            (net 65 "asic_vp-VCC")
             (uuid "37b64283-7e6d-46e2-ac84-d65a7f2729de")
         )
         (pad "1" smd rect
             (at -1 0 0)
             (size 1.13 1.38)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 98 "line")
+            (net 98 "vbat-VCC")
             (uuid "df88dd6b-acae-4585-9a62-4ea78195d86b")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0805W8F1001T5E/R0805_L2.0-W1.3-H0.6.step"
@@ -15066,7 +15066,7 @@
             (at -0.75 0 90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 87 "-gnd-10")
+            (net 87 "sense_filters[3]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -15362,7 +15362,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 79 "-gnd-4")
+            (net 79 "sense_filters[11]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -17018,7 +17018,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 90 "-gnd-3")
+            (net 90 "sense_filters[9]-cell_power-GND-0")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -17679,14 +17679,14 @@
             (at 0.55 0 90)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "0e926d55-2b0c-4e10-9133-7ff22230f56e")
         )
         (pad "1" smd rect
             (at -0.55 0 90)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 30 "VREF2")
+            (net 30 "vref2-VCC")
             (uuid "07604173-e005-4652-a160-1b45193c8738")
         )
         (model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL05B104KO5NNNC/C0402_L1.0-W0.5-H0.5.step"
@@ -18322,7 +18322,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 79 "-gnd-4")
+            (net 79 "sense_filters[11]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -18618,7 +18618,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 88 "-gnd-2")
+            (net 88 "sense_filters[1]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -19678,28 +19678,28 @@
             (at -4.75 -0.25 -90)
             (size 0.75 0.25)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 13 "VREF1")
+            (net 13 "vref1-VCC")
             (uuid "3c24342f-bcfa-48f7-8fb4-9256f18863c1")
         )
         (pad "62" smd rect
             (at -4.75 -0.75 -90)
             (size 0.75 0.25)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 73 "VREG")
+            (net 73 "vreg-VCC")
             (uuid "eebe20aa-2eae-4ba3-8e2c-d94169650379")
         )
         (pad "61" smd rect
             (at -4.75 -1.25 -90)
             (size 0.75 0.25)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 30 "VREF2")
+            (net 30 "vref2-VCC")
             (uuid "582abc34-bc20-451f-994f-edce21eb43d4")
         )
         (pad "60" smd rect
             (at -4.75 -1.75 -90)
             (size 0.75 0.25)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "139a07c0-afd5-49d9-b318-70567479e21f")
         )
         (pad "59" smd rect
@@ -19720,7 +19720,7 @@
             (at -4.75 -3.25 -90)
             (size 0.75 0.25)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 31 "SDO")
+            (net 31 "MISO")
             (uuid "983f5ac3-e38a-4c30-8756-03eac59a8585")
         )
         (pad "56" smd rect
@@ -20173,7 +20173,7 @@
                     (width 0.1)
                 )
             )
-            (net 8 "SDI")
+            (net 8 "MOSI")
             (uuid "c1c7f5c0-de2a-4d14-9861-36d61c120ac1")
         )
         (pad "55" smd custom
@@ -20239,14 +20239,14 @@
                     (width 0.1)
                 )
             )
-            (net 65 "Vpos")
+            (net 65 "asic_vp-VCC")
             (uuid "addb5a78-9c62-4c9c-b60f-f846f81321d2")
         )
         (pad "73" smd rect
             (at 0 0 -180)
             (size 6 6)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "b50bb68d-d6da-4215-a73c-f4b358b12b6d")
         )
         (model "${KIPRJMOD}/../../parts/Analog_Devices_ADBMS6830MWCCSZ/QFN-72_L10.0-W10.0-P0.50-BL-EP6.0_1.STEP"
@@ -21142,7 +21142,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 98 "line")
+            (net 98 "vbat-VCC")
             (uuid "e0b76cae-63b4-4981-9dac-bf9f25ec4c12")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F3000T5E/R1206_L3.2-W1.6-H0.6.step"
@@ -22458,7 +22458,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 97 "-gnd-1")
+            (net 97 "sense_filters[8]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -24782,7 +24782,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 84 "-gnd-13")
+            (net 84 "sense_filters[6]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -25078,7 +25078,7 @@
             (at -0.75 0 -90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 82 "-gnd-5")
+            (net 82 "sense_filters[12]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -25374,7 +25374,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 90 "-gnd-3")
+            (net 90 "sense_filters[9]-cell_power-GND-0")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -25695,7 +25695,7 @@
             (at 0.55 0 180)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "8a63ef5f-ee50-42fd-9abf-17cfe4a2141b")
         )
         (pad "1" smd rect
@@ -26023,14 +26023,14 @@
             (at 0.55 0 90)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "0e926d55-2b0c-4e10-9133-7ff22230f56e")
         )
         (pad "1" smd rect
             (at -0.55 0 90)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 13 "VREF1")
+            (net 13 "vref1-VCC")
             (uuid "07604173-e005-4652-a160-1b45193c8738")
         )
         (model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL05B104KO5NNNC/C0402_L1.0-W0.5-H0.5.step"
@@ -29702,7 +29702,7 @@
             (at -0.75 0 90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -29998,7 +29998,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 86 "-gnd-11")
+            (net 86 "sense_filters[4]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -30671,7 +30671,7 @@
             (at 0.55 0 0)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "8a63ef5f-ee50-42fd-9abf-17cfe4a2141b")
         )
         (pad "1" smd rect
@@ -31314,7 +31314,7 @@
             (at -0.75 0 90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 88 "-gnd-2")
+            (net 88 "sense_filters[1]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -31635,7 +31635,7 @@
             (at 0.55 0 0)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "0e926d55-2b0c-4e10-9133-7ff22230f56e")
         )
         (pad "1" smd rect
@@ -31938,7 +31938,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 82 "-gnd-5")
+            (net 82 "sense_filters[12]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -32827,7 +32827,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 86 "-gnd-11")
+            (net 86 "sense_filters[4]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -33123,7 +33123,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 87 "-gnd-10")
+            (net 87 "sense_filters[3]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -33419,7 +33419,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 80 "-gnd-12")
+            (net 80 "sense_filters[5]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -33715,7 +33715,7 @@
             (at -0.75 0 -90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 85 "-gnd-6")
+            (net 85 "sense_filters[13]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -34351,7 +34351,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 81 "-gnd-14")
+            (net 81 "sense_filters[7]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -34647,7 +34647,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 83 "-gnd-8")
+            (net 83 "sense_filters[15]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -34943,7 +34943,7 @@
             (at -0.75 0 -90)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 92 "hv")
+            (net 92 "cell_power-VCC")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -35239,7 +35239,7 @@
             (at -1.48 0 180)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 89 "-gnd-9")
+            (net 89 "sense_filters[2]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -35875,7 +35875,7 @@
             (at -0.75 0 0)
             (size 0.81 0.86)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 79 "-gnd-4")
+            (net 79 "sense_filters[11]-cell_power-GND")
             (uuid "16668ee2-0c10-442f-b88a-d8c5f15f68e1")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF2000T5E/R0603.STEP"
@@ -36171,7 +36171,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 91 "-gnd-7")
+            (net 91 "sense_filters[14]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -36807,7 +36807,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 84 "-gnd-13")
+            (net 84 "sense_filters[6]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -37103,7 +37103,7 @@
             (at -1.48 0 90)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 94 "-gnd-15")
+            (net 94 "sense_filters[9]-cell_power-GND-1")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -37118,7 +37118,7 @@
             )
         )
     )
-    (footprint "FH_0805B103K101NT:C0805"
+    (footprint "YAGEO_CC0805KRX7R0BB103:C0805"
         (layer "F.Cu")
         (uuid "f3f473ca-3092-4d93-b4e9-85614642524b")
         (at 143.8 83.6 0)
@@ -37126,7 +37126,7 @@
             (at 0 -4 0)
             (layer "F.SilkS")
             (hide yes)
-            (uuid "d9659b89-f878-41d1-919a-881279da8883")
+            (uuid "ceacc98a-2b0e-4c72-844f-4ae544081afd")
             (effects
                 (font
                     (size 1 1)
@@ -37138,7 +37138,7 @@
             (at 0 4 0)
             (layer "F.Fab")
             (hide no)
-            (uuid "ebc69d51-a730-48bf-a4ca-c24965a39028")
+            (uuid "ac14f8eb-3d11-40d6-a047-e6856111d889")
             (effects
                 (font
                     (size 1 1)
@@ -37146,7 +37146,7 @@
                 )
             )
         )
-        (property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0805B103K101NT_C128805.pdf"
+        (property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_YAGEO-CC0805KRX7R0BB103_C107135.pdf"
             (at 0 0 0)
             (layer "User.9")
             (hide yes)
@@ -37170,11 +37170,11 @@
                 )
             )
         )
-        (property "checksum" "3834456e822678e81dbde6cac358cc1a09247c7c678e6ea067eb148113d16fe8"
+        (property "checksum" "207d61298b94a9f078f370764af7a411a9caefb7d58adf1523083b049830a6d0"
             (at 0 0 0)
             (layer "User.9")
             (hide no)
-            (uuid "8fb9e59b-a08d-4a16-a810-46a62e730540")
+            (uuid "9b970593-f499-4127-9031-6cf74128921f")
             (effects
                 (font
                     (size 0.125 0.125)
@@ -37183,11 +37183,11 @@
                 (hide yes)
             )
         )
-        (property "__atopile_lib_fp_hash__" "1c8b5a95-de9c-6a33-b5e6-c39ab8585db8"
+        (property "__atopile_lib_fp_hash__" "fba9e1cb-a50e-9764-f6d5-846393701da9"
             (at 0 0 0)
             (layer "User.9")
             (hide yes)
-            (uuid "f294841d-dcb0-4b87-b828-5e2d4642524b")
+            (uuid "3f1ef29b-fcce-4eb9-9370-84034642524b")
             (effects
                 (font
                     (size 0.125 0.125)
@@ -37195,7 +37195,7 @@
                 )
             )
         )
-        (property "LCSC" "C128805"
+        (property "LCSC" "C107135"
             (at 0 0 0)
             (layer "User.9")
             (hide yes)
@@ -37207,7 +37207,7 @@
                 )
             )
         )
-        (property "Manufacturer" "FH(Guangdong Fenghua Advanced Tech)"
+        (property "Manufacturer" "YAGEO"
             (at 0 0 0)
             (layer "User.9")
             (hide yes)
@@ -37219,7 +37219,7 @@
                 )
             )
         )
-        (property "Partnumber" "0805B103K101NT"
+        (property "Partnumber" "CC0805KRX7R0BB103"
             (at 0 0 0)
             (layer "User.9")
             (hide yes)
@@ -37288,7 +37288,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "da65b25d-afda-4e3a-b07f-d98ae8000d78")
+            (uuid "9833e39c-5a83-449b-91db-924ce1a50ea0")
         )
         (fp_line
             (start 0.4 0.9)
@@ -37298,7 +37298,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "f5c788f0-2357-4487-8ae8-f4fa546ddcbe")
+            (uuid "fa0c180f-595e-407d-8ac1-6547049f2a36")
         )
         (fp_line
             (start 1.96 0.75)
@@ -37308,7 +37308,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "380d28b7-a3bf-4d7d-8009-e26cf3c6294d")
+            (uuid "c42ec5b3-f11f-451f-8152-cfeb9e80580e")
         )
         (fp_line
             (start -1.81 -0.9)
@@ -37318,7 +37318,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "b0102779-ddb3-49bb-a965-b6c3a5f86fb8")
+            (uuid "ddc69449-8fd3-4368-9484-cdf6e734ec52")
         )
         (fp_line
             (start -0.4 0.9)
@@ -37328,7 +37328,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "e42dd160-ded9-4b3e-962a-5982915760af")
+            (uuid "481954d2-3159-410c-ad83-ca821257b24e")
         )
         (fp_line
             (start -1.96 0.75)
@@ -37338,7 +37338,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "807a56c5-8a94-47d1-a41f-be0ddd0cae42")
+            (uuid "5e43dbeb-9b20-4eba-a0a3-7cc01da2575c")
         )
         (fp_arc
             (start 1.96 0.75)
@@ -37349,7 +37349,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "c4fe1da8-130e-4d8e-a055-c7e11e555644")
+            (uuid "cd19f923-f0e6-40b8-8b45-0844a3c0c03f")
         )
         (fp_arc
             (start 1.81 -0.9)
@@ -37360,7 +37360,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "b6b1bc75-60f0-41dd-abe2-bd51fe8703db")
+            (uuid "b1a1137e-9c2b-448a-8379-7c83579fb304")
         )
         (fp_arc
             (start -1.96 0.75)
@@ -37371,7 +37371,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "36aad0f1-1ff1-434f-8655-39a5bfbaf2a2")
+            (uuid "08ef2ea6-9af2-4198-8ac2-7e01f2e9e948")
         )
         (fp_arc
             (start -1.81 -0.9)
@@ -37382,7 +37382,7 @@
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "237f9004-1534-44c1-b7cd-42a447d2975a")
+            (uuid "bd130061-7f18-45db-a4c0-2c39a689df11")
         )
         (fp_circle
             (center -1 0.63)
@@ -37393,12 +37393,12 @@
             )
             (fill no)
             (layer "F.Fab")
-            (uuid "c967584c-8962-4443-9488-a622b6abc865")
+            (uuid "7dcf3e84-1a70-4232-847f-1c2fe5241616")
         )
         (fp_text user "%R"
             (at 0 0 0)
             (layer "F.Fab")
-            (uuid "a1f3df57-3902-4691-9126-2854104e79c2")
+            (uuid "02428f3f-efb0-4d4a-a473-f751014febf0")
             (effects
                 (font
                     (size 1 1)
@@ -37410,7 +37410,7 @@
         (fp_text user "${REFERENCE}"
             (at 0 -4 0)
             (layer "F.SilkS")
-            (uuid "d9659b89-f878-41d1-919a-881279da8883")
+            (uuid "ceacc98a-2b0e-4c72-844f-4ae544081afd")
             (effects
                 (font
                     (size 1 1)
@@ -37424,17 +37424,17 @@
             (at 1 0 0)
             (size 1.41 1.35)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
-            (uuid "a2211594-6bbf-4d5b-9a28-8872e32f4bb9")
+            (net 78 "sense_filters[0]-cell_power-GND")
+            (uuid "19a06082-ebec-43ca-af5e-87ec5d52421c")
         )
         (pad "1" smd rect
             (at -1 0 0)
             (size 1.41 1.35)
             (layers "F.Cu" "F.Paste" "F.Mask")
             (net 46 "collector")
-            (uuid "578cfd59-2108-4bb6-bd8c-c4db716c7f3c")
+            (uuid "07d91710-0584-4106-905b-b59dcb5ca4ac")
         )
-        (model "${KIPRJMOD}/../../parts/FH_0805B103K101NT/C0805_L2.0-W1.3-H1.3.step"
+        (model "${KIPRJMOD}/../../parts/YAGEO_CC0805KRX7R0BB103/C0805_L2.0-W1.3-H1.3.step"
             (offset
                 (xyz 0 0 0)
             )
@@ -37727,7 +37727,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 85 "-gnd-6")
+            (net 85 "sense_filters[13]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -38048,14 +38048,14 @@
             (at 0.7 0 90)
             (size 0.8 0.9)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "28113cfd-23d9-457b-8d54-59f529c1820c")
         )
         (pad "1" smd rect
             (at -0.7 0 90)
             (size 0.8 0.9)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 73 "VREG")
+            (net 73 "vreg-VCC")
             (uuid "6f276659-3961-43bd-bbbc-9ae2021d122d")
         )
         (model "${KIPRJMOD}/../../parts/YAGEO_CC0603KRX7R9BB104/C0603_L1.6-W0.8-H0.8.step"
@@ -39056,7 +39056,7 @@
             (at 0.55 0 0)
             (size 0.79 0.54)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 78 "-gnd-0")
+            (net 78 "sense_filters[0]-cell_power-GND")
             (uuid "0e926d55-2b0c-4e10-9133-7ff22230f56e")
         )
         (pad "1" smd rect
@@ -39359,7 +39359,7 @@
             (at -1.48 0 0)
             (size 1.21 1.7)
             (layers "F.Cu" "F.Paste" "F.Mask")
-            (net 91 "-gnd-7")
+            (net 91 "sense_filters[14]-cell_power-GND")
             (uuid "b61e206f-de31-42cf-8948-a703443da2a9")
         )
         (model "${KIPRJMOD}/../../parts/UNI_ROYAL_1206W4F220JT5E/R1206_L3.2-W1.6-H0.6.step"
@@ -40365,7 +40365,7 @@
     )
     (zone
         (net 78)
-        (net_name "-gnd-0")
+        (net_name "sense_filters[0]-cell_power-GND")
         (layers "F.Cu" "B.Cu")
         (uuid "81d9cc70-8081-4d42-941e-bc6a9d299782")
         (hatch edge 0.5)
@@ -51872,6 +51872,6 @@
     )
     (group "cell_input_filters"
         (uuid "63656c6c-5f69-6e70-7574-5f66696c74657273")
-        (members "c0fd02e0-6585-449a-9fd8-11f34642524b" "13ba5a6e-938a-434b-9921-a9c94642524b" "b9ec7a53-5229-4d54-851f-7d2e4642524b" "5c8c3c61-e1cf-46af-95a3-44cc4642524b" "b8c551a8-c14b-40aa-964f-0fa44642524b" "7292301e-51f1-4c8f-95db-b1644642524b" "4c74ede7-1ee6-4f29-82b3-1e0a4642524b" "11494b66-fd4c-4268-826a-094a4642524b" "b8eed8db-76f4-4ea0-84fc-c5664642524b" "2b5972da-0028-477a-912f-9b264642524b" "1140dea5-2c95-4af3-a084-fdbf4642524b" "1755b95c-a6a0-452a-805f-66ae4642524b" "eef0bd0e-3ccd-4d17-a0d4-65e94642524b" "a865c8a0-b727-4f81-9c19-60ad4642524b" "8c27f8d7-a151-4abe-bd27-75544642524b" "29e981f5-8fd7-462b-839d-69d64642524b" "8f270a6d-2bfb-463e-8621-e3334642524b" "768786ac-3935-4609-b1c5-38ea4642524b" "5881d5df-bb20-4350-ba3e-439d4642524b" "d886ca98-63ac-42a8-b822-47b04642524b" "6f6d0a83-3b29-4f48-8132-40f44642524b" "10cf319f-3acd-4ded-bf3f-ff194642524b" "ef35d399-26a2-45d6-8670-74af4642524b" "9b22125a-74ee-40d1-b4e2-a8a34642524b" "96f8ff94-1cdd-4220-9b98-f4c84642524b" "54b48884-1f4e-433a-ba63-a9084642524b" "693b96ae-9f79-4092-9427-a44c4642524b" "4019c732-e5b6-49ec-88a3-959e4642524b" "0700f9dd-0817-4e20-bc72-22a84642524b" "51fc6022-9d3f-4205-bc38-a6094642524b" "10fac8f4-bbaf-42ed-9818-e7344642524b" "31517920-d254-4f75-85d2-37ae4642524b" "d240e3b3-d879-407a-8b85-d6134642524b" "43fc9eb1-46dd-414c-9d0e-a9c74642524b" "f8ebb585-7c7d-49b3-9ec9-3a8b4642524b" "bc24fd96-fffc-467e-b0f0-d1974642524b" "5ed0d392-bc4d-4e7c-89f2-0e604642524b" "5b0bd3e7-1d0f-47ad-9279-78194642524b" "2fc00935-0090-4d16-9ec3-77514642524b" "234cd510-bcab-4102-a95b-2cba4642524b" "44ac432c-a4c9-4c3b-a187-ec444642524b" "d2c0827f-e5f3-448f-9799-73914642524b" "cbf6a410-b130-4535-a00c-93664642524b" "47574e6e-d65c-4b70-88b9-cbd04642524b" "2c7ce2d1-64d5-4bae-a3c2-78274642524b" "77bc423a-f938-45b0-b0c1-4d484642524b" "0a83eb16-3184-4e5b-bca8-bfae4642524b" "ca0a606c-fa2a-440e-9875-2a614642524b" "45551fc2-5cd3-41d1-9f58-99944642524b" "38112223-7f7e-4961-bcbf-7cb44642524b" "e67ddae2-dbc7-4cb5-a431-3f564642524b" "60da466a-c64c-4c0a-b74b-67a34642524b" "bb12097d-5a1f-4a1d-879d-52714642524b" "ff5f8644-0458-423a-be62-44934642524b" "d90435f3-ed91-4da4-99e4-d52b4642524b" "1ee22fc1-a8d4-4de5-8a76-91cf4642524b" "d19b6145-c794-4edf-b324-3a434642524b" "c87b0b00-100f-461e-9b4d-727c4642524b" "e606074e-76c7-453e-a347-dfbd4642524b" "e4f1ff8f-0263-40fb-a5fd-038b4642524b" "e18a4738-01b4-4215-bef0-abd74642524b" "4a8ab11c-a573-46ce-9613-fed14642524b" "0d3ac313-1fd0-4f47-a01e-77a14642524b" "d3cb5fd8-e8b9-4213-88fb-50594642524b" "ecc91021-87d0-4def-993f-1ac84642524b" "ba0cc3e8-3d2a-44e8-8d61-aede4642524b" "1efaabd8-4062-4686-9528-d07d4642524b" "bab63b1c-784f-4a2e-91dd-68cd4642524b" "627c59c1-dde6-48ec-aabf-cd434642524b" "62feed5b-57a2-4f3d-a26e-0a924642524b" "4cc700a9-d7d3-4cd1-8749-dc054642524b" "3e1a5e48-0631-475c-ad31-7e7b4642524b" "d60f2660-fa9b-47fb-958b-5af54642524b" "6f407726-16cc-4ed7-be99-171b4642524b" "0d6c77fa-70f9-476b-b87a-81344642524b" "27a279f3-a7cd-47ec-9164-9fdb4642524b" "ec73be8f-d950-4f3c-b7c5-ac034642524b" "8bbbb3a4-5731-4677-85f3-c5c74642524b" "a3bd709f-e3d7-4942-a968-359d4642524b" "48e91e80-3f10-4c7a-ae87-62204642524b" "fc291792-faf6-4fbd-bbdd-43bd4642524b" "3a38a1f2-5abd-4238-bcfd-af014642524b" "0a883c9e-3ebd-489c-bc58-00744642524b" "db25cb24-1ce7-4433-b7f2-60da4642524b" "3ef045fc-a1a7-4bf6-a6d6-680e4642524b" "cd246ce4-2c7a-4adb-baa8-2dc64642524b" "f6967015-caee-4616-a825-03494642524b" "8e3ec7b9-04ea-4a46-a79f-97244642524b" "56fa6072-5f3d-41ff-97bf-f6bd4642524b" "acf66037-e998-494e-8cdb-6f024642524b" "34f82b67-a12f-43a0-a67e-71d14642524b" "87c89087-b91f-4707-9794-58a64642524b" "c4567ece-5ada-47e0-9614-a88e4642524b" "a763037c-abff-4192-af87-070c4642524b" "f3b79ff7-6025-41fe-a5b0-42264642524b" "179ca4d9-a988-4329-aa0f-a33f4642524b" "c68f2fb7-c367-43fd-82c6-78f44642524b" "92ff52a7-a2d2-4017-97e3-66d94642524b")
+        (members "4a8ab11c-a573-46ce-9613-fed14642524b" "1755b95c-a6a0-452a-805f-66ae4642524b" "4019c732-e5b6-49ec-88a3-959e4642524b" "d19b6145-c794-4edf-b324-3a434642524b" "a865c8a0-b727-4f81-9c19-60ad4642524b" "8f270a6d-2bfb-463e-8621-e3334642524b" "ecc91021-87d0-4def-993f-1ac84642524b" "27a279f3-a7cd-47ec-9164-9fdb4642524b" "1140dea5-2c95-4af3-a084-fdbf4642524b" "c87b0b00-100f-461e-9b4d-727c4642524b" "10cf319f-3acd-4ded-bf3f-ff194642524b" "13ba5a6e-938a-434b-9921-a9c94642524b" "0d3ac313-1fd0-4f47-a01e-77a14642524b" "0a83eb16-3184-4e5b-bca8-bfae4642524b" "c0fd02e0-6585-449a-9fd8-11f34642524b" "d2c0827f-e5f3-448f-9799-73914642524b" "693b96ae-9f79-4092-9427-a44c4642524b" "eef0bd0e-3ccd-4d17-a0d4-65e94642524b" "1ee22fc1-a8d4-4de5-8a76-91cf4642524b" "ca0a606c-fa2a-440e-9875-2a614642524b" "0700f9dd-0817-4e20-bc72-22a84642524b" "4c74ede7-1ee6-4f29-82b3-1e0a4642524b" "f6967015-caee-4616-a825-03494642524b" "bab63b1c-784f-4a2e-91dd-68cd4642524b" "ff5f8644-0458-423a-be62-44934642524b" "cbf6a410-b130-4535-a00c-93664642524b" "c4567ece-5ada-47e0-9614-a88e4642524b" "3ef045fc-a1a7-4bf6-a6d6-680e4642524b" "2c7ce2d1-64d5-4bae-a3c2-78274642524b" "2fc00935-0090-4d16-9ec3-77514642524b" "a3bd709f-e3d7-4942-a968-359d4642524b" "8bbbb3a4-5731-4677-85f3-c5c74642524b" "d90435f3-ed91-4da4-99e4-d52b4642524b" "e18a4738-01b4-4215-bef0-abd74642524b" "62feed5b-57a2-4f3d-a26e-0a924642524b" "6f6d0a83-3b29-4f48-8132-40f44642524b" "768786ac-3935-4609-b1c5-38ea4642524b" "34f82b67-a12f-43a0-a67e-71d14642524b" "179ca4d9-a988-4329-aa0f-a33f4642524b" "fc291792-faf6-4fbd-bbdd-43bd4642524b" "627c59c1-dde6-48ec-aabf-cd434642524b" "87c89087-b91f-4707-9794-58a64642524b" "b8eed8db-76f4-4ea0-84fc-c5664642524b" "5ed0d392-bc4d-4e7c-89f2-0e604642524b" "29e981f5-8fd7-462b-839d-69d64642524b" "e67ddae2-dbc7-4cb5-a431-3f564642524b" "5b0bd3e7-1d0f-47ad-9279-78194642524b" "f3b79ff7-6025-41fe-a5b0-42264642524b" "56fa6072-5f3d-41ff-97bf-f6bd4642524b" "bc24fd96-fffc-467e-b0f0-d1974642524b" "cd246ce4-2c7a-4adb-baa8-2dc64642524b" "96f8ff94-1cdd-4220-9b98-f4c84642524b" "e4f1ff8f-0263-40fb-a5fd-038b4642524b" "6f407726-16cc-4ed7-be99-171b4642524b" "0a883c9e-3ebd-489c-bc58-00744642524b" "38112223-7f7e-4961-bcbf-7cb44642524b" "bb12097d-5a1f-4a1d-879d-52714642524b" "47574e6e-d65c-4b70-88b9-cbd04642524b" "3e1a5e48-0631-475c-ad31-7e7b4642524b" "db25cb24-1ce7-4433-b7f2-60da4642524b" "5881d5df-bb20-4350-ba3e-439d4642524b" "d240e3b3-d879-407a-8b85-d6134642524b" "b8c551a8-c14b-40aa-964f-0fa44642524b" "48e91e80-3f10-4c7a-ae87-62204642524b" "0d6c77fa-70f9-476b-b87a-81344642524b" "234cd510-bcab-4102-a95b-2cba4642524b" "ba0cc3e8-3d2a-44e8-8d61-aede4642524b" "92ff52a7-a2d2-4017-97e3-66d94642524b" "d3cb5fd8-e8b9-4213-88fb-50594642524b" "43fc9eb1-46dd-414c-9d0e-a9c74642524b" "d886ca98-63ac-42a8-b822-47b04642524b" "8e3ec7b9-04ea-4a46-a79f-97244642524b" "acf66037-e998-494e-8cdb-6f024642524b" "8c27f8d7-a151-4abe-bd27-75544642524b" "3a38a1f2-5abd-4238-bcfd-af014642524b" "d60f2660-fa9b-47fb-958b-5af54642524b" "1efaabd8-4062-4686-9528-d07d4642524b" "54b48884-1f4e-433a-ba63-a9084642524b" "11494b66-fd4c-4268-826a-094a4642524b" "10fac8f4-bbaf-42ed-9818-e7344642524b" "77bc423a-f938-45b0-b0c1-4d484642524b" "5c8c3c61-e1cf-46af-95a3-44cc4642524b" "c68f2fb7-c367-43fd-82c6-78f44642524b" "60da466a-c64c-4c0a-b74b-67a34642524b" "51fc6022-9d3f-4205-bc38-a6094642524b" "ef35d399-26a2-45d6-8670-74af4642524b" "45551fc2-5cd3-41d1-9f58-99944642524b" "2b5972da-0028-477a-912f-9b264642524b" "31517920-d254-4f75-85d2-37ae4642524b" "44ac432c-a4c9-4c3b-a187-ec444642524b" "a763037c-abff-4192-af87-070c4642524b" "9b22125a-74ee-40d1-b4e2-a8a34642524b" "e606074e-76c7-453e-a347-dfbd4642524b" "ec73be8f-d950-4f3c-b7c5-ac034642524b" "f8ebb585-7c7d-49b3-9ec9-3a8b4642524b" "b9ec7a53-5229-4d54-851f-7d2e4642524b" "7292301e-51f1-4c8f-95db-b1644642524b" "4cc700a9-d7d3-4cd1-8749-dc054642524b")
     )
 )
