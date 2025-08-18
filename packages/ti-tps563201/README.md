@@ -19,28 +19,40 @@ The TPS563201 is a synchronous buck converter with integrated MOSFETs capable of
 ## Usage
 
 ```ato
-from "atopile/ti-tps563201/ti-tps563201.ato" import TPS563201
-import ElectricPower
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
-module MyProject:
-    # Power rails
-    power_12v = new ElectricPower
+import ElectricPower
+from "atopile/ti-tps563201/ti-tps563201.ato" import TI_TPS563201
+
+module Usage:
+    """
+    Example usage of TPS563201 Buck Regulator
+    Converting 5V input to 3.3V output
+    """
+
+    # Define power rails
+    power_5v = new ElectricPower
     power_3v3 = new ElectricPower
 
-    # Buck converter
-    regulator = new TPS563201
+    # Configure input voltage
+    assert power_5v.voltage is 5V +/- 5%
 
-    # Configure voltages
-    assert power_12v.voltage is 12V +/- 10%
-    assert regulator.output_voltage is 3.3V +/- 2%
+    # Create the buck regulator
+    buck = new TI_TPS563201
+
+    # Configure output voltage
+    assert buck.output_voltage within 3.3V +/- 4%
 
     # Connect power
-    power_12v ~ regulator.power_in
-    regulator.power_out ~ power_3v3
+    power_5v ~ buck.power_in
+    buck.power_out ~ power_3v3
 
-    # Optional: control enable (defaults to always enabled)
+    # Enable control (optional - defaults to always enabled)
+    # If you want external control, connect to an ElectricLogic signal:
     # enable = new ElectricLogic
-    # enable ~ regulator.enable
+    # enable ~ buck.enable
+
 ```
 
 ## Example Configurations
