@@ -1,4 +1,3 @@
-#C431092
 import ElectricPower
 
 from "parts/AMASS_XT30PW_F20_G_Y/AMASS_XT30PW_F20_G_Y.ato" import AMASS_XT30PW_F20_G_Y_package
@@ -27,8 +26,8 @@ module XT30_Female_Right_Angle from XTConnector_base:
     # Package
     package = new AMASS_XT30PW_M30_G_Y_package
     # Connections
-    power.vcc ~ package.1
-    power.gnd ~ package.2
+    power.vcc ~ package.2
+    power.gnd ~ package.1
 
 module XT30_Female_Vertical from XTConnector_base:
     # Package
@@ -36,18 +35,3 @@ module XT30_Female_Vertical from XTConnector_base:
     # Connections
     power.vcc ~ package.1
     power.gnd ~ package.2
-
-
-module Test:
-    """Test module for XT30 connectors"""
-    right_angle_male = new XT30_Male_Right_Angle
-    vertical_male = new XT30_Male_Vertical
-    right_angle_female = new XT30_Female_Right_Angle
-    vertical_female = new XT30_Female_Vertical
-
-    # Connect power together
-    power = new ElectricPower
-    power ~ right_angle_male.power
-    power ~ vertical_male.power
-    power ~ right_angle_female.power
-    power ~ vertical_female.power
