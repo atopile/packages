@@ -19,8 +19,9 @@ The AD5693R is a single-channel 16-bit digital-to-analog converter (DAC) with an
 
 import ElectricPower
 import I2C
+import ElectricSignal
 
-from "adi-ad5693r.ato" import ADI_AD5693R
+from "atopile/adi-ad5693r/adi-ad5693r.ato" import ADI_AD5693R
 
 module Usage:
     """
@@ -43,16 +44,13 @@ module Usage:
     power_3v3 ~ dac.power
     i2c_bus ~ dac.i2c
 
-    # Connect VLOGIC to same rail as VDD for 3.3V logic
-    dac.vlogic.line ~ power_3v3.hv
-
     # Configure address (tie A0 to GND for 0x0C address)
     dac.addressor.address_lines[0].line ~ power_3v3.lv
 
-    # Note: Built-in pull resistors handle default states:
-    # - LDAC has pulldown resistor for immediate DAC updates
-    # - RESET has weak pullup resistor to keep device out of reset
-    # No external connections needed unless you want manual control
+    # Connect DAC output
+    dac_out = new ElectricSignal
+    dac_out ~ dac.dac_out
+
 ```
 
 ## Interface Description

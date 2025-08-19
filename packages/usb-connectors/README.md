@@ -8,8 +8,8 @@ This package provides USB connectors for convenience.
 import USB2_0
 import ElectricPower
 
-from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontal_driver
-from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCVertical_driver
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCVerticalConnector
 
 module MCU:
     """Host MCU providing USB bus and power rail."""
@@ -24,8 +24,8 @@ module Usage:
 
     # MCU & sensor
     mcu = new MCU
-    usb_connector_horizontal = new USB2_0TypeCHorizontal_driver
-    usb_connector_vertical = new USB2_0TypeCVertical_driver
+    usb_connector_horizontal = new USB2_0TypeCHorizontalConnector
+    usb_connector_vertical = new USB2_0TypeCVerticalConnector
 
     # Shared 5V PD rail
     power = new ElectricPower
@@ -36,6 +36,7 @@ module Usage:
     # USB connection
     mcu.usb_1 ~ usb_connector_horizontal.usb
     mcu.usb_2 ~ usb_connector_vertical.usb
+
 ```
 
 ## Contributing
