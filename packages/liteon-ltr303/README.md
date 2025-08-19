@@ -33,6 +33,7 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ ambient_light_sensor.i2c
+
 ```
 
 ## Contributing

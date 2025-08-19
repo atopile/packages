@@ -22,22 +22,26 @@ import ElectricPower
 
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 
+module MCU:
+    """Host MCU providing power rail."""
+
+    power = new ElectricPower
+    assert power.voltage is 3.3V +/- 5%
+
+
 module Usage:
-    """Example using LDK220M-R to generate 3.3V from 5V input."""
+    """Minimal example for the LDK220M-R LDO."""
 
-    # Define input power
-    power_5v = new ElectricPower
-    assert power_5v.voltage is 5V +/- 5%
+    some_input_power = new ElectricPower
+    assert some_input_power.voltage is 5V +/- 5%
 
-    # Define output power requirement
-    power_3v3 = new ElectricPower
-    assert power_3v3.voltage is 3.3V +/- 5%
-
-    # Create LDO instance
+    # MCU & sensor
+    mcu = new MCU
     ldo = new LDK220M_R
 
-    # Connect power rails
-    power_5v ~> ldo ~> power_3v3
+    # Shared 3V3 rail
+    some_input_power ~> ldo ~> mcu.power
+
 ```
 
 ## Output Voltage Configuration

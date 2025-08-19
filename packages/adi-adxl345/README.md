@@ -51,6 +51,7 @@ module Usage:
     i2c_bus ~ accelerometer.i2c
 
     # I2C address is fixed at 0x53 (SDO pin tied to GND)
+
 ```
 
 ## Hardware Features

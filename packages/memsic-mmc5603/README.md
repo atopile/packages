@@ -22,7 +22,7 @@ The MMC5603 is a 3-axis anisotropic magnetoresistive (AMR) magnetic sensor from 
 import ElectricPower
 import I2C
 
-from "memsic-mmc5603.ato" import MEMSIC_MMC5603
+from "atopile/memsic-mmc5603/memsic-mmc5603.ato" import MEMSIC_MMC5603
 
 module Usage:
     """
@@ -44,6 +44,7 @@ module Usage:
     # Connect interfaces
     power_1v8 ~ magnetometer.power
     i2c_bus ~ magnetometer.i2c
+
 ```
 
 ## Technical Specifications

@@ -14,13 +14,14 @@ import ElectricPower
 import I2C
 
 # --- Package import ---
-from "sensirion-sht31.ato" import Sensirion_SHT31
+from "atopile/sensirion-sht31/sensirion-sht31.ato" import Sensirion_SHT31
+
 
 module Usage:
     """
     Minimal usage example for `sensirion-sht31`.
     Powers the SHT31 from a 3 V 3 rail and connects it to an I²C bus using the
-    default address (0x44).
+    default address **0x44** (ADDR pin low).
     """
 
     # Power rail (3.3 V)
@@ -45,6 +46,7 @@ module Usage:
 
     # (Optional) Select address – defaults to 0x44 (ADDR=0)
     sensor.i2c.address = 0x44
+
 ```
 
 ## Contributing

@@ -24,7 +24,7 @@ The SK6805-SIDE is a side-emitting addressable RGB LED with integrated controlle
 import ElectricPower
 import ElectricLogic
 
-from "opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
+from "atopile/opsco-sk6805-side/opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
 
 module Usage:
     """
@@ -51,6 +51,7 @@ module Usage:
 
     # Chain LEDs together for edge lighting effect
     data_input ~> edge_leds[0] ~> edge_leds[1] ~> edge_leds[2] ~> edge_leds[3] ~> edge_leds[4] ~> edge_leds[5] ~> edge_leds[6] ~> edge_leds[7]
+
 ```
 
 ## Technical Specifications

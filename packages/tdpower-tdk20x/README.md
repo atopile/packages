@@ -19,6 +19,7 @@ module Usage:
     # connect power to converter
     power_in ~ converter.power_in
     converter.power_out ~ power_out
+
 ```
 
 ## Contributing

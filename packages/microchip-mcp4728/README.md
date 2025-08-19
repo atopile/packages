@@ -23,7 +23,7 @@ The MCP4728 is a quad channel, 12-bit voltage output Digital-to-Analog Converter
 import ElectricPower
 import I2C
 
-from "microchip-mcp4728.ato" import Microchip_MCP4728
+from "atopile/microchip-mcp4728/microchip-mcp4728.ato" import Microchip_MCP4728
 
 module Usage:
     """
@@ -58,6 +58,7 @@ module Usage:
     # dac.voutb.line - Channel B output
     # dac.voutc.line - Channel C output
     # dac.voutd.line - Channel D output
+
 ```
 
 ## I2C Address Configuration

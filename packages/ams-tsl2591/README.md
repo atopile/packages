@@ -18,7 +18,7 @@ Advanced digital light sensor with ultra-high sensitivity and 600M:1 dynamic ran
 import I2C
 import ElectricPower
 
-from "ams-tsl2591.ato" import AMS_TSL2591
+from "atopile/ams-tsl2591/ams-tsl2591.ato" import AMS_TSL2591
 
 module Usage:
     """
@@ -40,6 +40,7 @@ module Usage:
     # Connect sensor to power and I2C
     power_3v3 ~ light_sensor.power
     i2c_bus ~ light_sensor.i2c
+
 ```
 
 ## Technical Specifications

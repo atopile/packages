@@ -22,10 +22,12 @@ The STMicroelectronics HTS221 is a compact digital humidity and temperature sens
 #pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 
-from "atopile/interfacing/i2c.ato" import I2C
-from "atopile/power/power.ato" import Power
+import I2C
+import ElectricPower
+import ElectricLogic
+import Resistor
 
-from "st-hts221.ato" import ST_HTS221
+from "atopile/st-hts221/st-hts221.ato" import ST_HTS221
 
 module Usage:
     """
@@ -36,7 +38,7 @@ module Usage:
     sensor = new ST_HTS221
 
     # Connect power supply
-    power_3v3 = new Power
+    power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 5%
     power_3v3 ~ sensor.power
 
@@ -44,6 +46,14 @@ module Usage:
     i2c_bus = new I2C
     i2c_bus.frequency = 400kHz
     i2c_bus ~ sensor.i2c
+
+    # Set CS high for I2C mode
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 1%
+    cs_pullup.package = "0402"
+    power_3v3.hv ~> cs_pullup ~> sensor.cs.line
+    power_3v3 ~ sensor.power
+
 ```
 
 ## Contributing

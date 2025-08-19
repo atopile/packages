@@ -1,0 +1,371 @@
+
+
+## Usage
+
+```ato
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
+from "atopile/logos/logos.ato" import atopile_logo_25x6mm
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
+
+from "parts/Liansheng_BH_00019/Liansheng_BH_00019.ato" import Liansheng_BH_00019_package
+from "parts/XFCN_PZ254V_11_02P/XFCN_PZ254V_11_02P.ato" import XFCN_PZ254V_11_02P_package
+from "parts/HCTL_PM254_2_10_S_8_5/HCTL_PM254_2_10_S_8_5.ato" import HCTL_PM254_2_10_S_8_5_package
+from "parts/HRS_DF40HC_3_0__30DS_0_4V_51/HRS_DF40HC_3_0__30DS_0_4V_51.ato" import HRS_DF40HC_3_0__30DS_0_4V_51_package
+from "parts/HRS_DF40C_30DP_0_4V_51/HRS_DF40C_30DP_0_4V_51.ato" import HRS_DF40C_30DP_0_4V_51_package
+from "parts/SHOU_HAN_MSK12C02_HB/SHOU_HAN_MSK12C02_HB.ato" import SHOU_HAN_MSK12C02_HB
+from "parts/Texas_Instruments_TS5A22362DGSR/Texas_Instruments_TS5A22362DGSR.ato" import Texas_Instruments_TS5A22362DGSR
+
+import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider, DifferentialPair, ElectricLogic
+
+import can_bridge_by_name
+
+## DF40 3mm stack Connectors:
+# 10P: C5623558 (2.5), C424635
+# 20P : C3644774 (3.5), C531034 (3.0), C3032587 (2.5), C597932(2.0), C424637 - no stock
+# 30P: C597945 (3.5), C531034 (3.0), C597933(2.0), C429942
+
+module Usage:
+    """
+    Usage example for the ADBMS6830 with teensy 4.1 microcontroller with ADBMS6822 to bridge 4w SPI to ISOSPI.
+    """
+    adbms6830 = new ADI_ADBMS6830
+
+    # --- External Interfaces ---
+    cells = new ElectricPower[16]
+    """
+    Power supply to mimic the cells. Can be supplied via cell simulator or USB_PD split by voltage divider.
+    """
+
+    power_hv = new ElectricPower
+    """
+    High voltage power supply for the ADBMS6830.
+    """
+    assert power_hv.voltage within 16V to 85V
+
+    power_5v = new ElectricPower
+    """
+    Low voltage logic level power supply for the teensy and ADBMS6822.
+    """
+    assert power_5v.voltage within 3.6V to 5.5V
+    power_5v ~ adbms6830.vreg
+
+    # --- Power Connections ---
+    adbms6830.vbat ~ power_hv
+
+    # Connect all grounds, not isolated grounds
+    adbms6830.vbat.lv ~ power_5v.lv
+    adbms6830.vbat.lv ~ power_hv.lv
+
+    adbms6830_spi_sdo_pullup = new Resistor
+    adbms6830_spi_sdo_pullup.resistance = 10kohm +/- 5%
+    adbms6830_spi_sdo_pullup.package = "0402"
+    adbms6830.spi.miso.line ~> adbms6830_spi_sdo_pullup ~> adbms6830.vreg.hv
+
+    # --- isoSPI Connections ---
+    isomd_pullup = new Resistor
+    isomd_pullup.resistance = 10kohm +/- 5%
+    isomd_pullup.package = "0402"
+    adbms6830.isomd.line ~> isomd_pullup ~> adbms6830.vreg.hv
+
+    # --- Onboard Thermistors ---
+    thermistors = new TempSensor[3]
+    for thermistor in thermistors:
+        thermistor.power ~ adbms6830.vref2
+        thermistor.output.reference.lv ~ adbms6830.vref2.lv
+    thermistors[0].output.line ~ adbms6830.gpios[0].line
+    thermistors[1].output.line ~ adbms6830.gpios[1].line
+    thermistors[2].output.line ~ adbms6830.gpios[2].line
+
+    # --- Onboard LED ---
+    led = new LEDIndicatorBlue
+    led.current = 0.5mA to 1mA
+    adbms6830.vreg.hv ~> led ~> adbms6830.vreg.lv
+
+    # BMB Debug
+    # saleae_bmb_debug = new SaleaeHeaderRightAngle
+    # adbms6830.vreg.hv ~ saleae_bmb_debug.channels[0].line
+    # adbms6830.vreg_drive.line ~ saleae_bmb_debug.channels[1].line
+    # adbms6830.vref2.hv ~ saleae_bmb_debug.channels[2].line
+
+    # idc_cell_connector = new Nextron_Z_231012820106_package
+    sbi = new StackableBMBInterface
+
+    # --- Signal Connections ---
+    sbi.signals_down.1 ~ adbms6830.spi.mosi.line
+    sbi.signals_down.2 ~ adbms6830.spi.miso.line
+    sbi.signals_down.3 ~ adbms6830.spi.sclk.line
+    sbi.signals_down.4 ~ adbms6830.spi_cs.line
+    sbi.signals_down.5 ~ adbms6830.vreg.lv
+    sbi.signals_down.6 ~ adbms6830.vreg.hv
+    sbi.signals_down.7 ~ adbms6830.vref2.hv
+    sbi.signals_down.8 ~ adbms6830.isomd.line
+    sbi.signals_down.9 ~ adbms6830.vreg_drive.line
+    sbi.gpios[0] ~ adbms6830.gpios[0]
+    sbi.gpios[1] ~ adbms6830.gpios[1]
+    sbi.gpios[2] ~ adbms6830.gpios[2]
+    sbi.gpios[3] ~ adbms6830.gpios[3]
+    sbi.gpios[4] ~ adbms6830.gpios[4]
+    sbi.gpios[5] ~ adbms6830.gpios[5]
+    sbi.gpios[6] ~ adbms6830.gpios[6]
+    sbi.gpios[7] ~ adbms6830.gpios[7]
+    sbi.gpios[8] ~ adbms6830.gpios[8]
+
+    sbi.isoSPI_down.n.line ~ adbms6830.iso_a_external.n.line
+    sbi.isoSPI_down.p.line ~ adbms6830.iso_a_external.p.line
+    sbi.isoSPI_up.n.line ~ adbms6830.iso_b_external.n.line
+    sbi.isoSPI_up.p.line ~ adbms6830.iso_b_external.p.line
+
+    # ISOSPI loopback switch
+    SPDT = new SHOU_HAN_MSK12C02_HB # 1x2~3
+    analog_DPDT = new Texas_Instruments_TS5A22362DGSR
+    switch_resistors = new Resistor[2]
+    for switch_resistor in switch_resistors:
+        switch_resistor.package = "0402"
+    switch_resistors[0].resistance = 100ohm +/- 5%
+    switch_resistors[1].resistance = 10kohm +/- 5%
+
+
+    _passthru_enable = new ElectricLogic
+    _passthru_enable ~ analog_DPDT.enables[0]
+    _passthru_enable ~ analog_DPDT.enables[1]
+    power_5v.hv ~> switch_resistors[0] ~> SPDT.switch_no ~> _passthru_enable.line
+    power_5v.lv ~> switch_resistors[1] ~> SPDT.switch_nc ~> _passthru_enable.line
+
+    led_passthru = new LEDIndicatorBlue
+    led_passthru.current = 0.5mA to 1mA
+    _passthru_enable.line ~> led_passthru ~> power_5v.lv
+
+    sbi.isoSPI_up.p.line ~> analog_DPDT.switches_no[0] ~> sbi.isoSPI_passthru.p.line
+    sbi.isoSPI_up.n.line ~> analog_DPDT.switches_no[1] ~> sbi.isoSPI_passthru.n.line
+
+
+    cells[0] ~ adbms6830.cell_stack[0]
+    cells[1] ~ adbms6830.cell_stack[1]
+    cells[2] ~ adbms6830.cell_stack[2]
+    cells[3] ~ adbms6830.cell_stack[3]
+    cells[4] ~ adbms6830.cell_stack[4]
+    cells[5] ~ adbms6830.cell_stack[5]
+    cells[6] ~ adbms6830.cell_stack[6]
+    cells[7] ~ adbms6830.cell_stack[7]
+    cells[8] ~ adbms6830.cell_stack[8]
+    cells[9] ~ adbms6830.cell_stack[9]
+    cells[10] ~ adbms6830.cell_stack[10]
+    cells[11] ~ adbms6830.cell_stack[11]
+    cells[12] ~ adbms6830.cell_stack[12]
+    cells[13] ~ adbms6830.cell_stack[13]
+    cells[14] ~ adbms6830.cell_stack[14]
+    cells[15] ~ adbms6830.cell_stack[15]
+
+    power_hv.lv ~ sbi.cell_power_down.1
+    cells[0].lv ~ sbi.cell_power_down.2
+    cells[0].hv ~ sbi.cell_power_down.3
+    cells[1].lv ~ sbi.cell_power_down.3
+    cells[1].hv ~ sbi.cell_power_down.4
+    cells[2].lv ~ sbi.cell_power_down.4
+    cells[2].hv ~ sbi.cell_power_down.5
+    cells[3].lv ~ sbi.cell_power_down.5
+    cells[3].hv ~ sbi.cell_power_down.6
+    cells[4].lv ~ sbi.cell_power_down.6
+    cells[4].hv ~ sbi.cell_power_down.7
+    cells[5].lv ~ sbi.cell_power_down.7
+    cells[5].hv ~ sbi.cell_power_down.8
+    cells[6].lv ~ sbi.cell_power_down.8
+    cells[6].hv ~ sbi.cell_power_down.9
+    cells[7].lv ~ sbi.cell_power_down.9
+    cells[7].hv ~ sbi.cell_power_down.10
+    cells[8].lv ~ sbi.cell_power_down.10
+    cells[8].hv ~ sbi.cell_power_down.11
+    cells[9].lv ~ sbi.cell_power_down.11
+    cells[9].hv ~ sbi.cell_power_down.12
+    cells[10].lv ~ sbi.cell_power_down.12
+    cells[10].hv ~ sbi.cell_power_down.13
+    cells[11].lv ~ sbi.cell_power_down.13
+    cells[11].hv ~ sbi.cell_power_down.14
+    cells[12].lv ~ sbi.cell_power_down.14
+    cells[12].hv ~ sbi.cell_power_down.15
+    cells[13].lv ~ sbi.cell_power_down.15
+    cells[13].hv ~ sbi.cell_power_down.16
+    cells[14].lv ~ sbi.cell_power_down.16
+    cells[14].hv ~ sbi.cell_power_down.17
+    cells[15].lv ~ sbi.cell_power_down.17
+    cells[15].hv ~ sbi.cell_power_down.18
+    power_hv.hv ~ sbi.cell_power_down.30
+
+    power_hv.lv ~ sbi.cell_sense_down.1
+    cells[0].lv ~ sbi.cell_sense_down.2
+    cells[0].hv ~ sbi.cell_sense_down.3
+    cells[1].lv ~ sbi.cell_sense_down.3
+    cells[1].hv ~ sbi.cell_sense_down.4
+    cells[2].lv ~ sbi.cell_sense_down.4
+    cells[2].hv ~ sbi.cell_sense_down.5
+    cells[3].lv ~ sbi.cell_sense_down.5
+    cells[3].hv ~ sbi.cell_sense_down.6
+    cells[4].lv ~ sbi.cell_sense_down.6
+    cells[4].hv ~ sbi.cell_sense_down.7
+    cells[5].lv ~ sbi.cell_sense_down.7
+    cells[5].hv ~ sbi.cell_sense_down.8
+    cells[6].lv ~ sbi.cell_sense_down.8
+    cells[6].hv ~ sbi.cell_sense_down.9
+    cells[7].lv ~ sbi.cell_sense_down.9
+    cells[7].hv ~ sbi.cell_sense_down.10
+    cells[8].lv ~ sbi.cell_sense_down.10
+    cells[8].hv ~ sbi.cell_sense_down.11
+    cells[9].lv ~ sbi.cell_sense_down.11
+    cells[9].hv ~ sbi.cell_sense_down.12
+    cells[10].lv ~ sbi.cell_sense_down.12
+    cells[10].hv ~ sbi.cell_sense_down.13
+    cells[11].lv ~ sbi.cell_sense_down.13
+    cells[11].hv ~ sbi.cell_sense_down.14
+    cells[12].lv ~ sbi.cell_sense_down.14
+    cells[12].hv ~ sbi.cell_sense_down.15
+    cells[13].lv ~ sbi.cell_sense_down.15
+    cells[13].hv ~ sbi.cell_sense_down.16
+    cells[14].lv ~ sbi.cell_sense_down.16
+    cells[14].hv ~ sbi.cell_sense_down.17
+    cells[15].lv ~ sbi.cell_sense_down.17
+    cells[15].hv ~ sbi.cell_sense_down.18
+    power_hv.hv ~ sbi.cell_sense_down.30
+
+    cells[0].lv.override_net_name = "CELL0"
+    cells[0].hv.override_net_name = "CELL1"
+    cells[1].hv.override_net_name = "CELL2"
+    cells[2].hv.override_net_name = "CELL3"
+    cells[3].hv.override_net_name = "CELL4"
+    cells[4].hv.override_net_name = "CELL5"
+    cells[5].hv.override_net_name = "CELL6"
+    cells[6].hv.override_net_name = "CELL7"
+    cells[7].hv.override_net_name = "CELL8"
+    cells[8].hv.override_net_name = "CELL9"
+    cells[9].hv.override_net_name = "CELL10"
+    cells[10].hv.override_net_name = "CELL11"
+    cells[11].hv.override_net_name = "CELL12"
+    cells[12].hv.override_net_name = "CELL13"
+    cells[13].hv.override_net_name = "CELL14"
+    cells[14].hv.override_net_name = "CELL15"
+    cells[15].hv.override_net_name = "CELL16"
+
+    sbi.isoSPI_passthru.p.line.override_net_name = "ISOpass_P"
+    sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
+
+    atopile_logo = new atopile_logo_25x6mm
+
+module TempSensor:
+    # -40~+125 100mW 10kΩ ±1% 0402 NTC Thermistors ROHS
+    power = new ElectricPower
+    output = new ElectricSignal
+
+    r_top = new Resistor
+    r_top.lcsc_id = "C209959"
+    r_bottom = new Resistor
+    r_bottom.resistance = 10kohm +/- 0.1%
+    r_bottom.package = "0402"
+
+    power.hv ~ r_top.p1
+    r_top.p2 ~ r_bottom.p1
+    power.lv ~ r_bottom.p2
+
+    output.line ~ r_top.p2
+    output.reference.lv ~ power.lv
+
+module StackableBMBInterface:
+    cell_power_up = new HRS_DF40HC_3_0__30DS_0_4V_51_package
+    cell_power_down = new HRS_DF40C_30DP_0_4V_51_package
+
+    cell_sense_up = new HRS_DF40HC_3_0__30DS_0_4V_51_package
+    cell_sense_down = new HRS_DF40C_30DP_0_4V_51_package
+
+    signals_up = new HRS_DF40HC_3_0__30DS_0_4V_51_package
+    signals_down = new HRS_DF40C_30DP_0_4V_51_package
+
+    isoSPI_up = new DifferentialPair
+    isoSPI_up.n.line ~ signals_up.29
+    isoSPI_up.p.line ~ signals_up.30
+    isoSPI_down = new DifferentialPair
+    isoSPI_down.n.line ~ signals_down.29
+    isoSPI_down.p.line ~ signals_down.30
+    isoSPI_passthru = new DifferentialPair
+    isoSPI_passthru.n.line ~ signals_up.27
+    isoSPI_passthru.p.line ~ signals_up.28
+    isoSPI_passthru.n.line ~ signals_down.27
+    isoSPI_passthru.p.line ~ signals_down.28
+
+    gpios = new ElectricSignal[10]
+    gpios[0].line ~ signals_down.10
+    gpios[1].line ~ signals_down.11
+    gpios[2].line ~ signals_down.12
+    gpios[3].line ~ signals_down.13
+    gpios[4].line ~ signals_down.14
+    gpios[5].line ~ signals_down.15
+    gpios[6].line ~ signals_down.16
+    gpios[7].line ~ signals_down.17
+    gpios[8].line ~ signals_down.18
+    gpios[9].line ~ signals_down.19
+
+
+    cell_power_down.1 ~ cell_power_up.1
+    cell_power_down.2 ~ cell_power_up.2
+    cell_power_down.3 ~ cell_power_up.3
+    cell_power_down.4 ~ cell_power_up.4
+    cell_power_down.5 ~ cell_power_up.5
+    cell_power_down.6 ~ cell_power_up.6
+    cell_power_down.7 ~ cell_power_up.7
+    cell_power_down.8 ~ cell_power_up.8
+    cell_power_down.9 ~ cell_power_up.9
+    cell_power_down.10 ~ cell_power_up.10
+    cell_power_down.11 ~ cell_power_up.11
+    cell_power_down.12 ~ cell_power_up.12
+    cell_power_down.13 ~ cell_power_up.13
+    cell_power_down.14 ~ cell_power_up.14
+    cell_power_down.15 ~ cell_power_up.15
+    cell_power_down.16 ~ cell_power_up.16
+    cell_power_down.17 ~ cell_power_up.17
+    cell_power_down.18 ~ cell_power_up.18
+    cell_power_down.19 ~ cell_power_up.19
+    cell_power_down.20 ~ cell_power_up.20
+    cell_power_down.21 ~ cell_power_up.21
+    cell_power_down.22 ~ cell_power_up.22
+    cell_power_down.23 ~ cell_power_up.23
+    cell_power_down.24 ~ cell_power_up.24
+    cell_power_down.25 ~ cell_power_up.25
+    cell_power_down.26 ~ cell_power_up.26
+    cell_power_down.27 ~ cell_power_up.27
+    cell_power_down.28 ~ cell_power_up.28
+    cell_power_down.29 ~ cell_power_up.29
+    cell_power_down.30 ~ cell_power_up.30
+
+    cell_sense_down.1 ~ cell_sense_up.1
+    cell_sense_down.2 ~ cell_sense_up.2
+    cell_sense_down.3 ~ cell_sense_up.3
+    cell_sense_down.4 ~ cell_sense_up.4
+    cell_sense_down.5 ~ cell_sense_up.5
+    cell_sense_down.6 ~ cell_sense_up.6
+    cell_sense_down.7 ~ cell_sense_up.7
+    cell_sense_down.8 ~ cell_sense_up.8
+    cell_sense_down.9 ~ cell_sense_up.9
+    cell_sense_down.10 ~ cell_sense_up.10
+    cell_sense_down.11 ~ cell_sense_up.11
+    cell_sense_down.12 ~ cell_sense_up.12
+    cell_sense_down.13 ~ cell_sense_up.13
+    cell_sense_down.14 ~ cell_sense_up.14
+    cell_sense_down.15 ~ cell_sense_up.15
+    cell_sense_down.16 ~ cell_sense_up.16
+    cell_sense_down.17 ~ cell_sense_up.17
+    cell_sense_down.18 ~ cell_sense_up.18
+    cell_sense_down.19 ~ cell_sense_up.19
+    cell_sense_down.20 ~ cell_sense_up.20
+    cell_sense_down.21 ~ cell_sense_up.21
+    cell_sense_down.22 ~ cell_sense_up.22
+    cell_sense_down.23 ~ cell_sense_up.23
+    cell_sense_down.24 ~ cell_sense_up.24
+    cell_sense_down.25 ~ cell_sense_up.25
+    cell_sense_down.26 ~ cell_sense_up.26
+    cell_sense_down.27 ~ cell_sense_up.27
+    cell_sense_down.28 ~ cell_sense_up.28
+    cell_sense_down.29 ~ cell_sense_up.29
+    cell_sense_down.30 ~ cell_sense_up.30
+```

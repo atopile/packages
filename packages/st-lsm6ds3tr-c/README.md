@@ -14,14 +14,10 @@ STMicroelectronics LSM6DS3TR-C is a system-in-package featuring a 3D digital acc
 ## Usage
 
 ```ato
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
-
 import ElectricPower
 import I2C
 
-from "st-lsm6ds3tr-c.ato" import ST_LSM6DS3TR_C
+from "atopile/st-lsm6ds3tr-c/st-lsm6ds3tr-c.ato" import ST_LSM6DS3TR_C
 
 module Usage:
     """
@@ -44,6 +40,7 @@ module Usage:
     # Connect interfaces
     power_3v3 ~ imu.power
     i2c_bus ~ imu.i2c
+
 ```
 
 ## Contributing

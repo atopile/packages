@@ -32,6 +32,7 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ tof_sensor.i2c
+
 ```
 
 ## Contributing

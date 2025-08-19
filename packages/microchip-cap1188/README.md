@@ -24,7 +24,7 @@ import I2C
 import ElectricPower
 import ElectricLogic
 
-from "microchip-cap1188.ato" import Microchip_CAP1188
+from "atopile/microchip-cap1188/microchip-cap1188.ato" import Microchip_CAP1188
 
 module Usage:
     """
@@ -73,6 +73,7 @@ module Usage:
     # Connect some LEDs (as examples)
     status_led_1 ~ touch_sensor.led_outputs[0]
     status_led_2 ~ touch_sensor.led_outputs[1]
+
 ```
 
 ## Interfaces

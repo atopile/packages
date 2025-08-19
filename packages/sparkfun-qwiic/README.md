@@ -58,6 +58,7 @@ module Usage:
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
 ```
 
 ## Contributing

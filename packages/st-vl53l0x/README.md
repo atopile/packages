@@ -15,9 +15,15 @@ The ST VL53L0X is a Time-of-Flight (ToF) ranging sensor that provides accurate d
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
-from "atopile/interfaces/interfaces.ato" import I2C, ElectricPower, ElectricLogic
-from "st-vl53l0x.ato" import ST_VL53L0X
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+
+from "atopile/st-vl53l0x/st-vl53l0x.ato" import ST_VL53L0X
 
 module Usage:
     """
@@ -46,6 +52,7 @@ module Usage:
     i2c_bus ~ tof_sensor.i2c
     shutdown_control ~ tof_sensor.xshut
     interrupt_pin ~ tof_sensor.gpio1
+
 ```
 
 ## Interfaces
