@@ -3,7 +3,8 @@ import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-import Inductor
+import Electrical
+import can_bridge_by_name
 
 component Murata_Electronics_LQW18CNR56J00D_package:
     # This trait marks this file as auto-generated
@@ -18,9 +19,15 @@ component Murata_Electronics_LQW18CNR56J00D_package:
     pin 2
     pin 1
 
-module Murata_Electronics_LQW18CNR56J00D_driver from Inductor:
+module Murata_Electronics_LQW18CNR56J00D_driver:
     package = new Murata_Electronics_LQW18CNR56J00D_package
-    unnamed[0] ~ package.1
-    unnamed[1] ~ package.2
+    terminal_1 = new Electrical
+    terminal_2 = new Electrical
+
+    terminal_1 ~ package.1
+    terminal_2 ~ package.2
+
     inductance = 560nH +/- 5%
     max_current = 450mA
+
+    trait can_bridge_by_name<input_name="terminal_1", output_name="terminal_2">
