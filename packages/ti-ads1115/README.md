@@ -15,28 +15,44 @@
 ## Usage
 
 ```ato
-import I2C
+#pragma experiment("BRIDGE_CONNECT")
+
 import ElectricPower
+import I2C
+import ElectricSignal
 
 from "atopile/ti-ads1115/ti-ads1115.ato" import TI_ADS1115
 
-module MyProject:
-    # Power and I2C bus
+module Usage:
+    """
+    Minimal usage example for `ti-ads1115`.
+    Demonstrates basic connections for the ADS1115 16-bit ADC.
+    """
+
+    # Power supply
     power_supply = new ElectricPower
+    power_supply.voltage = 3.3V +/- 5%
+
+    # I2C bus
     i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
 
     # ADC instance
     adc = new TI_ADS1115
 
-    # Configure power
-    power_supply.voltage = 3.3V +/- 5%
-
-    # Connect interfaces
+    # Connections
     power_supply ~ adc.power
     i2c_bus ~ adc.i2c
 
     # Configure address (tie ADDR to GND for 0x48 address)
     adc.addressor.address_lines[0].line ~ power_supply.lv
+
+    # Connect ADC inputs
+    analog_inputs = new ElectricSignal[4]
+    analog_inputs[0] ~ adc.inputs[0]
+    analog_inputs[1] ~ adc.inputs[1]
+    analog_inputs[2] ~ adc.inputs[2]
+    analog_inputs[3] ~ adc.inputs[3]
 ```
 
 ## Contributing
