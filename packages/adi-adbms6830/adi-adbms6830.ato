@@ -165,23 +165,23 @@ module ADI_ADBMS6830:
 
     vbat.hv ~> vplus_filter ~> asic_vp.hv
     vbat.lv ~ vplus_filter.reference_shim.lv
-    vbat.hv ~ cell_stack[-1].hv
+    # vbat.hv ~ cell_stack[-1].hv
     vbat.lv ~ cell_stack[0].lv
 
     # --- Decoupling Caps ---
     vreg_cap = new Capacitor
     vreg_cap.package = "0603"
-    vreg_cap.value = 1uF +/- 20%
+    vreg_cap.capacitance = 1uF +/- 20%
     vreg.hv ~> vreg_cap ~> vreg.lv
 
     vref2_cap = new Capacitor
     vref2_cap.package = "0402"
-    vref2_cap.value = 1uF +/- 20%
+    vref2_cap.capacitance = 1uF +/- 20%
     vref2.hv ~> vref2_cap ~> vref2.lv
 
     vref1_cap = new Capacitor
     vref1_cap.package = "0402"
-    vref1_cap.value = 1uF +/- 20%
+    vref1_cap.capacitance = 1uF +/- 20%
     vref1.hv ~> vref1_cap ~> vref1.lv
 
     # --- isoSPI Isolation ---
@@ -245,10 +245,10 @@ module ADI_ADBMS6830:
     iso_a_internal.p.line ~ package.SCKIPA
     iso_a_internal.n.line ~ package.CSBIMA
 
-    spi.sclk ~ package.SCKIPA
-    spi.mosi ~ package.SDI
-    spi.miso ~ package.SDO
-    spi_cs ~ package.CSBIMA
+    spi.sclk.line ~ package.SCKIPA
+    spi.mosi.line ~ package.SDI
+    spi.miso.line ~ package.SDO
+    spi_cs.line ~ package.CSBIMA
 
     # Can use either SPI OR isoSPI on port B, not both. Configured externally by ISOMD signal.
     iso_b_internal.p.line ~ package.IPB
@@ -461,10 +461,9 @@ module ADI_ADBMS6830:
 module Diodes_Incorporated_FZT853TA from BJT:
     package = new Diodes_Incorporated_FZT853TA_package
 
-    signal collector ~ package.C
     collector ~ package.C
-    signal emitter ~ package.E
-    signal base ~ package.B
+    emitter ~ package.E
+    base ~ package.B
 
     doping_type = "NPN"
 

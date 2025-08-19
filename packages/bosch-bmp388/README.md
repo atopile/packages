@@ -13,7 +13,7 @@ import ElectricPower
 import I2C
 import ElectricLogic
 
-from "bosch-bmp388.ato" import Bosch_BMP388
+from "atopile/bosch-bmp388/bosch-bmp388.ato" import Bosch_BMP388
 
 module Usage:
     """

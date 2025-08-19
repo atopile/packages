@@ -15,11 +15,13 @@ A comprehensive atopile package for the Analog Devices ADXL345 3-axis digital ac
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 import ElectricPower
 import I2C
 
-import ADI_ADXL345 from "adi-adxl345.ato"
+from "atopile/adi-adxl345/adi-adxl345.ato" import ADI_ADXL345
 
 module Usage:
     """
@@ -27,22 +29,28 @@ module Usage:
     Shows basic I2C connection with power supply and interrupt usage.
     """
 
-    # Create accelerometer instance
+    # Power rail (3.3 V shared for core & I/O)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+
+    # I2C bus
+    i2c_bus = new I2C
+
+    # Accelerometer instance
     accelerometer = new ADI_ADXL345
 
-    # External power supply (e.g., 3.3V rail)
-    power_3v3 = new ElectricPower
-    assert power_3v3.voltage within 3.0V to 3.6V
+    # Connect required power rails
+    power_3v3 ~ accelerometer.power_vs
+    power_3v3 ~ accelerometer.power_io
 
-    # External I2C bus
-    i2c_bus = new I2C
-    i2c_bus.frequency = 400kHz  # Fast mode I2C
+    # Provide logic reference for the bus
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
 
-    # Connect interfaces
-    power_3v3 ~ accelerometer.power
+    # Connect I2C bus
     i2c_bus ~ accelerometer.i2c
 
-    # I2C address is fixed at 0x53 (SDO pin tied to GND in package)
+    # I2C address is fixed at 0x53 (SDO pin tied to GND)
 ```
 
 ## Hardware Features
