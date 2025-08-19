@@ -17,14 +17,19 @@ The Macroblock MBI5043GP-A is a high-performance 16-channel constant current LED
 ## Usage
 
 ```ato
-import ElectricPower, Resistor, ElectricLogic, SPI
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
-from "macroblock-mbi5043.ato" import Macroblock_MBI5043
+import ElectricPower, Resistor, ElectricLogic
+
+from "atopile/macroblock-mbi5043/macroblock-mbi5043.ato" import Macroblock_MBI5043
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
     Minimal usage example for macroblock-mbi5043.
-    Demonstrates basic LED driver configuration with SPI control.
+    Demonstrates basic LED driver configuration with serial data control.
     """
 
     # --- Components ---
@@ -38,22 +43,23 @@ module Usage:
     assert power_5v.voltage within 4.8V to 5.2V
 
     # --- Control Signals ---
-    spi_controller = new SPI
+    serial_data_input = new ElectricLogic
     """
-    SPI interface from microcontroller to LED driver
+    Serial Data Input - controlled by microcontroller GPIO
     """
+    serial_data_input.reference ~ power_5v
+
+    data_clock = new ElectricLogic
+    """
+    Data Clock - controlled by microcontroller GPIO
+    """
+    data_clock.reference ~ power_5v
 
     latch_enable = new ElectricLogic
     """
     Latch enable signal - controlled by microcontroller GPIO
     """
     latch_enable.reference ~ power_5v
-
-    output_enable = new ElectricLogic
-    """
-    Output enable signal - controlled by microcontroller GPIO
-    """
-    output_enable.reference ~ power_5v
 
     global_clock = new ElectricLogic
     """
@@ -62,30 +68,43 @@ module Usage:
     global_clock.reference ~ power_5v
 
     # --- LED Load Examples ---
-    led_array = new Resistor[16]
+    indicator_leds = new LEDIndicatorBlue[16]
+    for led in indicator_leds:
+        led.current = 10mA +/- 10%
     """
     Example LED load represented as resistors
     In real application, these would be LEDs
     """
-    for led in led_array:
-        led.resistance = 100ohm +/- 5%  # Typical LED + current limiting resistor equivalent
-        led.package = "0603"
-
     # --- Connections ---
     # Power
     led_driver.power ~ power_5v
 
-    # SPI Communication
-    led_driver.spi ~ spi_controller
+    # Serial Communication
+    led_driver.sdi ~ serial_data_input
+    led_driver.dclk ~ data_clock
 
     # Control signals
     led_driver.le ~ latch_enable
-    led_driver.oe ~ output_enable
     led_driver.gclk ~ global_clock
 
     # LED connections
-    for i in range(16):
-        power_5v.hv ~> led_array[i] ~> led_driver.led_outputs[i].line
+    power_5v.hv ~> indicator_leds[0] ~> led_driver.led_outputs[0].line
+    power_5v.hv ~> indicator_leds[1] ~> led_driver.led_outputs[1].line
+    power_5v.hv ~> indicator_leds[2] ~> led_driver.led_outputs[2].line
+    power_5v.hv ~> indicator_leds[3] ~> led_driver.led_outputs[3].line
+    power_5v.hv ~> indicator_leds[4] ~> led_driver.led_outputs[4].line
+    power_5v.hv ~> indicator_leds[5] ~> led_driver.led_outputs[5].line
+    power_5v.hv ~> indicator_leds[6] ~> led_driver.led_outputs[6].line
+    power_5v.hv ~> indicator_leds[7] ~> led_driver.led_outputs[7].line
+    power_5v.hv ~> indicator_leds[8] ~> led_driver.led_outputs[8].line
+    power_5v.hv ~> indicator_leds[9] ~> led_driver.led_outputs[9].line
+    power_5v.hv ~> indicator_leds[10] ~> led_driver.led_outputs[10].line
+    power_5v.hv ~> indicator_leds[11] ~> led_driver.led_outputs[11].line
+    power_5v.hv ~> indicator_leds[12] ~> led_driver.led_outputs[12].line
+    power_5v.hv ~> indicator_leds[13] ~> led_driver.led_outputs[13].line
+    power_5v.hv ~> indicator_leds[14] ~> led_driver.led_outputs[14].line
+    power_5v.hv ~> indicator_leds[15] ~> led_driver.led_outputs[15].line
+
 ```
 
 ## Power Requirements
