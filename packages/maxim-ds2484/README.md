@@ -23,14 +23,10 @@ The DS2484 is a single-channel 1-Wire master with an I2C interface from Maxim In
 
 import ElectricPower
 import I2C
+import ElectricLogic
 
-from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484, OneWire
-
-module TemperatureSensor:
-    """
-    Mock 1-Wire temperature sensor for testing
-    """
-    onewire = new OneWire
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import OneWire
 
 module Usage:
     """
@@ -41,24 +37,18 @@ module Usage:
     # Create bridge instance
     bridge = new Maxim_DS2484
 
-    # Main power supply for the bridge (3.3V or 5V)
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
+    # Power supply (3.3V or 5V)
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 5%
+    power ~ bridge.power
 
-    # External I2C bus
-    i2c_bus = new I2C
-    i2c_bus.frequency = 400kHz
+    # I2C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ bridge.i2c
 
-    # 1-Wire temperature sensor
-    temp_sensor = new TemperatureSensor
-
-    # Connect interfaces
-    power_3v3 ~ bridge.power
-    i2c_bus ~ bridge.i2c
-    bridge.onewire ~ temp_sensor.onewire
-
-    # Set I2C address (default 0x18)
-    bridge.i2c.address = 0x18
+    # 1-Wire interface (would connect to 1-Wire devices)
+    onewire = new OneWire
+    onewire ~ bridge.onewire
 
 ```
 
