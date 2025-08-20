@@ -24,9 +24,6 @@ import ElectricPower
 import I2C
 from "atopile/maxim-max17048/maxim-max17048.ato" import Maxim_MAX17048
 
-module Battery:
-    power = new ElectricPower
-
 module Usage:
     """
     Minimal usage example for Maxim MAX17048 LiPoly/LiIon Fuel Gauge.
@@ -38,20 +35,17 @@ module Usage:
 
     # Power supply (3.3V typical)
     power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
+    assert power_3v3.voltage within 3.3V +/- 5%
     power_3v3 ~ fuel_gauge.power
 
-    # I2C bus
+    # I2C bus (would connect to your MCU)
     i2c_bus = new I2C
-    i2c_bus.address = 0x36
-    i2c_bus.frequency = 400kHz
     i2c_bus ~ fuel_gauge.i2c
 
-    # Battery connections (would connect to actual battery terminals)
+    # Battery interface (would connect to actual battery terminals)
     # Note: In real application, these would connect to your LiPoly/LiIon battery
-    battery = new Battery
-    battery.power ~ fuel_gauge.battery_interface
-
+    battery_interface = new ElectricPower
+    battery_interface ~ fuel_gauge.battery_interface
 ```
 
 ## Contributing
