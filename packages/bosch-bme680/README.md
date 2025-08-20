@@ -9,7 +9,7 @@ The BME680 is a digital 4-in-1 sensor with gas, humidity, pressure and temperatu
 import I2C
 import ElectricPower
 
-from "bosch-bme680.ato" import Bosch_BME680
+from "atopile/bosch-bme680/bosch-bme680.ato" import Bosch_BME680
 
 module Usage:
     """
