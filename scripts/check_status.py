@@ -46,7 +46,7 @@ def build_and_verify(
     # Build
     build_start = time.perf_counter()
     build_proc = subprocess.run(
-        ["ato", "build", "--frozen"] + list(args),
+        ["ato", "build", "--keep-picked-parts"] + list(args),
         cwd=package_dir,
         capture_output=True,
         text=True,
