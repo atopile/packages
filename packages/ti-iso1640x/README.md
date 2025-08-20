@@ -8,7 +8,7 @@ The ISO1640QDWRQ1 is a bidirectional I2C isolator that provides 1500V isolation 
 import I2C
 import ElectricPower
 
-from "atopile/ti-iso1640qdwrq1/ti-iso1640qdwrq1.ato" import TI_ISO1640QDWRQ1
+from "atopile/ti-iso1640x/ti-iso1640x.ato" import TI_ISO1640QDWRQ1
 
 module Usage:
     """
