@@ -14,16 +14,17 @@ import ElectricPower
 import I2C
 
 # --- Package import ---
-from "bosch-bme280.ato" import Bosch_BME280
+from "atopile/bosch-bme280/bosch-bme280.ato" import Bosch_BME280
+
 
 module Usage:
     """
     Minimal usage example for `bosch-bme280`.
     Powers the BME280 from a 3 V 3 rail and places it on an I²C bus at the
-    default 7-bit address (0x76).
+    default address **0x76**.
     """
 
-    # Power rail (3.3 V) – shared by core & I/O
+    # Power rail (3.3 V shared for core & I/O)
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V
 
@@ -33,7 +34,7 @@ module Usage:
     # Sensor instance
     sensor = new Bosch_BME280
 
-    # Connect power rails
+    # Connect required power rails
     power_3v3 ~ sensor.power_core
     power_3v3 ~ sensor.power_io
 
