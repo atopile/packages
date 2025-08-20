@@ -43,12 +43,14 @@ jobs:
 
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
-            Please review this pull request for an atopile pacakge and provide feedback on:
+            Please review this pull request and provide feedback on:
 
             PR Format:
-            - Verify the PR title and description follow the requirements in .github/pull_request_template.md
+            - Verify the PR title starts with the name of the package being updated
 
             Code Review:
+            - Ensure the pacakge follows the rules outlined in .cursor/rules/how_to_build_packages.mdc
+            - Ensure the exact text of the usage.ato file is included in the readme.md file
             - Code quality and best practices
             - Potential bugs or issues
             - Performance considerations
