@@ -28,7 +28,8 @@ import I2C
 import ElectricPower
 import ElectricLogic
 
-from "invensense-icm20948.ato" import ICM20948
+from "atopile/invensense-icm20948/invensense-icm20948.ato" import Invensense_ICM20948
+
 
 module Usage:
     """
@@ -37,7 +38,7 @@ module Usage:
     """
 
     # --- IMU sensor ---
-    imu = new ICM20948
+    imu = new Invensense_ICM20948
 
     # --- Power supplies ---
     power_3v3 = new ElectricPower  # Core power (VDD)
@@ -61,6 +62,7 @@ module Usage:
     i2c_bus ~ imu.i2c
     interrupt_pin ~ imu.interrupt
     frame_sync ~ imu.fsync
+
 ```
 
 ## Interfaces

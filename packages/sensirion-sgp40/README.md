@@ -24,7 +24,7 @@ A comprehensive atopile package for the Sensirion SGP40 digital VOC (Volatile Or
 import ElectricPower
 import I2C
 
-from "sensirion-sgp40.ato" import Sensirion_SGP40
+from "atopile/sensirion-sgp40/sensirion-sgp40.ato" import Sensirion_SGP40
 
 module Usage:
     """
@@ -38,7 +38,7 @@ module Usage:
 
     # I2C bus
     i2c_bus = new I2C
-    i2c_bus.frequency = 400000Hz  # Fast mode I2C
+    i2c_bus.frequency = 400kHz  # Fast mode I2C
 
     # VOC gas sensor instance
     voc_sensor = new Sensirion_SGP40
@@ -52,6 +52,7 @@ module Usage:
 
     # The SGP40 has a fixed I2C address of 0x59
     assert voc_sensor.i2c.address is 0x59
+
 ```
 
 ## Hardware Features

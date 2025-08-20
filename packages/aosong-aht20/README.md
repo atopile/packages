@@ -22,7 +22,7 @@ A comprehensive atopile package for the Aosong AHT20 digital temperature and hum
 import ElectricPower
 import I2C
 
-from "aosong-aht20.ato" import Aosong_AHT20
+from "atopile/aosong-aht20/aosong-aht20.ato" import Aosong_AHT20
 
 module Usage:
     """
@@ -49,6 +49,7 @@ module Usage:
 
     # The AHT20 has a fixed I2C address of 0x38
     assert sensor.i2c.address is 0x38
+
 ```
 
 ## Hardware Features

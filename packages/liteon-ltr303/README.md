@@ -25,6 +25,7 @@ module Usage:
     # I²C bus
     i2c = new I2C
     i2c ~ ambient_light_sensor.i2c
+
 ```
 
 ## Contributing

@@ -16,39 +16,27 @@ The ADXL375 is a small, thin, ultralow power, 3-axis MEMS accelerometer with hig
 ## Usage
 
 ```ato
-#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
 
-import ElectricPower, SPI, I2C
-from "adi-adxl375.ato" import ADI_ADXL375
+from "atopile/adi-adxl375/adi-adxl375.ato" import ADI_ADXL375
 
 module Usage:
-    """
-    Minimal usage example for ADXL375 high-g accelerometer.
-    Shows basic SPI connection with power supply.
-    """
+    """Minimal example for the ADI_ADXL375 accelerometer."""
 
-    # Power supply
-    power_3v3 = new ElectricPower
-    assert power_3v3.voltage within 3.0V to 3.6V
-
-    # SPI bus
-    spi_bus = new SPI
-
-    # I2C bus (alternative interface)
-    i2c_bus = new I2C
-    assert i2c_bus.frequency within 100kHz to 400kHz
-
-    # Accelerometer instance
+    # Sensor instance
     accelerometer = new ADI_ADXL375
 
-    # Connect power
-    power_3v3 ~ accelerometer.power
+    # Power rail
+    power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ accelerometer.power
 
-    # Connect I2C interface
-    i2c_bus ~ accelerometer.i2c
-
-    # Set I2C address (0x53 when ALT pin is low, 0x1D when high)
+    # I²C bus
+    i2c = new I2C
+    i2c ~ accelerometer.i2c
     accelerometer.i2c.address = 0x53
+
 ```
 
 ## Interface Options

@@ -25,7 +25,7 @@ The VEML7700 is a high accuracy ambient light digital 16-bit resolution sensor i
 import ElectricPower
 import I2C
 
-from "vishay-veml7700.ato" import Vishay_VEML7700
+from "atopile/vishay-veml7700/vishay-veml7700.ato" import Vishay_VEML7700
 
 module Usage:
     """
@@ -49,6 +49,7 @@ module Usage:
 
     # Set I²C address (fixed at 0x10)
     assert light_sensor.i2c.address is 0x10
+
 ```
 
 ## Interface Details

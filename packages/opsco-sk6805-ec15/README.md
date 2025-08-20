@@ -24,7 +24,7 @@ The SK6805-EC15 is the smallest member of the SK6805 addressable LED family, fea
 import ElectricPower
 import ElectricLogic
 
-from "opsco-sk6805-ec15.ato" import OPSCO_SK6805_EC15
+from "atopile/opsco-sk6805-ec15/opsco-sk6805-ec15.ato" import OPSCO_SK6805_EC15
 
 module Usage:
     """
@@ -51,6 +51,7 @@ module Usage:
 
     # Chain LEDs in matrix order for high-density display
     data_input ~> led_matrix[0] ~> led_matrix[1] ~> led_matrix[2] ~> led_matrix[3] ~> led_matrix[4] ~> led_matrix[5] ~> led_matrix[6] ~> led_matrix[7] ~> led_matrix[8] ~> led_matrix[9] ~> led_matrix[10] ~> led_matrix[11] ~> led_matrix[12] ~> led_matrix[13] ~> led_matrix[14] ~> led_matrix[15]
+
 ```
 
 ## Technical Specifications

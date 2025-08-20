@@ -21,11 +21,10 @@ The module exposes an I²C interface and bridges a high-side shunt resistor to m
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
-
 import ElectricPower
 import I2C
 
-from "ti-ina238.ato" import TI_INA238
+from "atopile/ti-ina238/ti-ina238.ato" import TI_INA238
 
 module Usage:
     """
@@ -52,6 +51,7 @@ module Usage:
 
     # Address automatically set by addressor (0x40 base address when A0=A1=0)
     # Pull-up resistors are built into the module
+
 ```
 
 ## Interface Details

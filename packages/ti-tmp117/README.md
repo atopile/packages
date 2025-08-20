@@ -24,8 +24,9 @@ The TMP117 is a high-accuracy, low-power, digital temperature sensor with except
 import I2C
 import ElectricPower
 import Resistor
+import ElectricLogic
 
-from "tmp117.ato" import TI_TMP117
+from "atopile/ti-tmp117/ti-tmp117.ato" import TI_TMP117
 
 module Usage:
     """
@@ -44,22 +45,14 @@ module Usage:
     i2c_bus = new I2C
     i2c_bus ~ temp_sensor.i2c
 
-    # I2C pull-up resistors (required for I2C operation)
-    i2c_pullup_scl = new Resistor
-    i2c_pullup_scl.resistance = 4.7kohm +/- 5%
-    i2c_pullup_scl.package = "0402"
-    power_3v3.hv ~> i2c_pullup_scl ~> i2c_bus.scl.line
-
-    i2c_pullup_sda = new Resistor
-    i2c_pullup_sda.resistance = 4.7kohm +/- 5%
-    i2c_pullup_sda.package = "0402"
-    power_3v3.hv ~> i2c_pullup_sda ~> i2c_bus.sda.line
-
-    # I2C address is 0x48 (ADD0 pin tied to GND in module)
-    assert i2c_bus.address is 0x48
+    # Configure address (Possible addresses: 0x48, 0x49, 0x4A, 0x4B)
+    assert temp_sensor.i2c.address is 0x48
 
     # Alert pin is available for temperature limit notifications
     # Can be connected to microcontroller GPIO for interrupt-driven operation
+    alert_pin = new ElectricLogic
+    alert_pin ~ temp_sensor.alert
+
 ```
 
 ## Hardware Features

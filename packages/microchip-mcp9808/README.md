@@ -22,7 +22,7 @@ High-precision digital temperature sensor with user-programmable temperature ale
 import I2C
 import ElectricPower
 
-from "microchip-mcp9808.ato" import Microchip_MCP9808
+from "atopile/microchip-mcp9808/microchip-mcp9808.ato" import Microchip_MCP9808
 
 
 module Usage:
@@ -48,6 +48,7 @@ module Usage:
     sensor.i2c.address = 0x1F
 
     # The alert output is available at sensor.alert if needed
+
 ```
 
 ## Pin Configuration

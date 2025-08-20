@@ -24,7 +24,7 @@ The VCNL4020 is a fully integrated proximity and ambient light sensor with infra
 import ElectricPower
 import I2C
 
-from "vishay-vcnl4020.ato" import Vishay_VCNL4020
+from "atopile/vishay-vcnl4020/vishay-vcnl4020.ato" import Vishay_VCNL4020
 
 module Usage:
     """
@@ -49,6 +49,7 @@ module Usage:
 
     # Set I2C address (fixed for VCNL4020)
     sensor.i2c.address = 0x13
+
 ```
 
 ## Technical Specifications

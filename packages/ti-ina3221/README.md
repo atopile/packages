@@ -25,7 +25,13 @@ The INA3221 is a triple-channel, high-side current and power monitor with an I2C
 import ElectricPower
 import I2C
 
-from "ti-ina3221.ato" import TI_INA3221
+from "atopile/ti-ina3221/ti-ina3221.ato" import TI_INA3221
+
+module Sink:
+    """
+    mock sink device for testing
+    """
+    power = new ElectricPower
 
 module Usage:
     """
@@ -35,6 +41,7 @@ module Usage:
 
     # Create current monitor instance
     current_monitor = new TI_INA3221
+    sinks = new Sink[3]
 
     # Main power supply for the IC (3.3V or 5V)
     power_3v3 = new ElectricPower
@@ -42,29 +49,23 @@ module Usage:
 
     # External I2C bus
     i2c_bus = new I2C
-    i2c_bus.frequency = 400kHz
 
     # Example monitored power rails
-    rail_5v = new ElectricPower
-    rail_5v.voltage = 5V +/- 5%
-
-    rail_12v = new ElectricPower
-    rail_12v.voltage = 12V +/- 5%
-
-    rail_battery = new ElectricPower
-    rail_battery.voltage = 7.4V +/- 10%  # 2S Li-ion battery example
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V +/- 5%
 
     # Connect interfaces
     power_3v3 ~ current_monitor.power
     i2c_bus ~ current_monitor.i2c
 
     # Connect monitored channels (bridgeable)
-    rail_5v ~> current_monitor.channels[0] ~> power_3v3  # Example: 5V rail powering 3.3V system
-    rail_12v ~> current_monitor.channels[1]              # Example: 12V rail monitoring
-    rail_battery ~> current_monitor.channels[2]         # Example: Battery rail monitoring
+    power_5v ~> current_monitor.channels[0] ~> sinks[0].power
+    power_5v ~> current_monitor.channels[1] ~> sinks[1].power
+    power_5v ~> current_monitor.channels[2] ~> sinks[2].power
 
     # Set I2C address (default 0x40 with A0 pin low)
     current_monitor.i2c.address = 0x40
+
 ```
 
 ## Technical Specifications

@@ -20,8 +20,12 @@ This fuel gauge decodes the non-linear battery voltage to calculate accurate cha
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
 
-import ElectricPower, I2C from "atopile/generics/interfaces.ato"
-from "maxim-max17048.ato" import Maxim_MAX17048
+import ElectricPower
+import I2C
+from "atopile/maxim-max17048/maxim-max17048.ato" import Maxim_MAX17048
+
+module Battery:
+    power = new ElectricPower
 
 module Usage:
     """
@@ -45,6 +49,9 @@ module Usage:
 
     # Battery connections (would connect to actual battery terminals)
     # Note: In real application, these would connect to your LiPoly/LiIon battery
+    battery = new Battery
+    battery.power ~ fuel_gauge.battery_interface
+
 ```
 
 ## Contributing

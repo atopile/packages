@@ -34,7 +34,7 @@ Both units share the same I2C bus but are accessed using different slave address
 import ElectricPower
 import I2C
 
-from "st-lsm9ds1.ato" import ST_LSM9DS1
+from "atopile/st-lsm9ds1/st-lsm9ds1.ato" import ST_LSM9DS1
 
 module Usage:
     """
@@ -64,6 +64,7 @@ module Usage:
 
     # I2C address will be 0x6B (default when SDO_A_G pulled high by internal resistor)
     # Magnetometer uses separate address 0x1E on the same I2C bus
+
 ```
 
 ## Pin Configuration

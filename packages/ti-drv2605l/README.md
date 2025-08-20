@@ -25,7 +25,6 @@ Advanced haptic driver IC for Linear Resonant Actuators (LRA) and Eccentric Rota
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
@@ -33,7 +32,7 @@ Advanced haptic driver IC for Linear Resonant Actuators (LRA) and Eccentric Rota
 import ElectricPower
 import I2C
 
-from "ti-drv2605l.ato" import TI_DRV2605L
+from "atopile/ti-drv2605l/ti-drv2605l.ato" import TI_DRV2605L
 
 module Usage:
     """
@@ -64,6 +63,7 @@ module Usage:
 
     # Connect haptic motor/actuator
     haptic_motor ~ haptic_driver.haptic_output
+
 ```
 
 ## External Interfaces

@@ -20,7 +20,7 @@ A comprehensive driver for the NXP PCF8575 remote 16-bit I/O expander for I2C-bu
 #pragma experiment("FOR_LOOP")
 
 import I2C, ElectricPower, ElectricLogic
-from "nxp-pcf8575.ato" import NXP_PCF8575
+from "atopile/nxp-pcf8575/nxp-pcf8575.ato" import NXP_PCF8575
 
 module Usage:
     """
@@ -76,6 +76,7 @@ module Usage:
     button_inputs[5] ~ gpio_expander.gpio[13]
     button_inputs[6] ~ gpio_expander.gpio[14]
     button_inputs[7] ~ gpio_expander.gpio[15]
+
 ```
 
 ## Key Interfaces

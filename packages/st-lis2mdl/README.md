@@ -42,6 +42,7 @@ module Usage:
 
     # Set I2C address
     assert magnetometer.i2c.address is 0x1E
+
 ```
 
 ## Contributing

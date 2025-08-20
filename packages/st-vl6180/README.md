@@ -66,7 +66,7 @@ import ElectricPower
 import ElectricLogic
 import I2C
 
-from "st-vl6180.ato" import ST_VL6180
+from "atopile/st-vl6180/st-vl6180.ato" import ST_VL6180
 
 module Usage:
     """
@@ -113,6 +113,21 @@ module Usage:
     interrupt_pin = new ElectricLogic
     interrupt_pin.reference ~ power_3v3
     interrupt_pin ~ tof_sensor.gpio1
+
+    # --- Usage notes ---
+    # The VL6180 provides:
+    # - Time-of-Flight ranging: 0-100mm typical, up to 600mm possible
+    # - Ambient light sensing: 0-100k lux range
+    # - Independent of target color/reflectance
+    # - Low power: ~1.7mA during ranging at 10Hz
+    #
+    # Key features:
+    # - Default I2C address: 0x29 (can be changed in software)
+    # - GPIO0: Chip enable input / Data ready output
+    # - GPIO1: Programmable interrupt output
+    # - Fast ranging: up to 100Hz measurement rate
+    # - Integrated IR emitter (VCSEL) and photodiode
+
 ```
 
 ## Operation Modes

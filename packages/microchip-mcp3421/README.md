@@ -13,7 +13,7 @@ The Microchip MCP3421 is an 18-bit, single-channel analog-to-digital converter w
 import ElectricPower
 import I2C
 
-from "microchip-mcp3421.ato" import Microchip_MCP3421
+from "atopile/microchip-mcp3421/microchip-mcp3421.ato" import Microchip_MCP3421
 
 module Usage:
     """
@@ -44,6 +44,7 @@ module Usage:
 
     # --- I2C address is fixed at 0x68 ---
     # No address configuration needed
+
 ```
 
 ## Features

@@ -17,26 +17,37 @@ The TPS63020 is a high-efficiency, single-inductor buck-boost converter with 4-A
 ## Usage
 
 ```ato
-import ElectricPower
-from "ti-tps63020.ato" import TPS63020_driver
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
-module MyDesign:
+import ElectricPower
+
+from "atopile/ti-tps63020/ti-tps63020.ato" import TPS63020_driver
+
+module Example:
+    """
+    Example usage of the TPS63020 buck-boost converter
+    """
+
     # Power rails
     power_in = new ElectricPower
     power_3v3 = new ElectricPower
 
-    # Configure input power (e.g., from Li-ion battery)
-    assert power_in.voltage within 3.0V to 4.2V
+    # Configure input power (e.g., from battery)
+    assert power_in.voltage within 2.5V to 5V
 
     # Configure output power
     assert power_3v3.voltage within 3.25V to 3.35V
-    assert power_3v3.max_current within 0A to 2A
+    assert power_3v3.max_current within 0A to 3A
 
     # Create buck-boost converter
     converter = new TPS63020_driver
 
     # Connect power
     power_in ~> converter ~> power_3v3
+
 ```
 
 ## Implementation Details

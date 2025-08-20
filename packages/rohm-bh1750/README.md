@@ -18,7 +18,7 @@ The BH1750 is a digital ambient light sensor with I²C interface that provides a
 import ElectricPower
 import I2C
 
-from "rohm-bh1750.ato" import ROHM_BH1750
+from "atopile/rohm-bh1750/rohm-bh1750.ato" import ROHM_BH1750
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
@@ -42,6 +42,7 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ lux_sensor.i2c
+
 ```
 
 ## Interface Details

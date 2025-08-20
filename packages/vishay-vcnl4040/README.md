@@ -14,9 +14,13 @@ The VCNL4040 is a handy two-in-one sensor with a proximity sensor that works fro
 ## Usage
 
 ```ato
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
 import I2C, ElectricPower, ElectricLogic
 
-from "vishay-vcnl4040.ato" import Vishay_VCNL4040
+from "atopile/vishay-vcnl4040/vishay-vcnl4040.ato" import Vishay_VCNL4040
 
 module Usage:
     """
@@ -40,6 +44,7 @@ module Usage:
     # --- Interrupt connection (optional) ---
     interrupt_line = new ElectricLogic
     interrupt_line ~ sensor.int_pin
+
 ```
 
 ## Technical Specifications

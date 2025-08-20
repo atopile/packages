@@ -26,33 +26,50 @@ fine resolution is required at the low-resistance end.
 
 ## Usage Example
 ```ato
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
+import ElectricPower
+import I2C
+import Electrical
 
-import ElectricPower, I2C, Electrical
-from "maxim-ds1841.ato" import Maxim_DS1841
+from "atopile/maxim-ds1841/maxim-ds1841.ato" import Maxim_DS1841
 
-module Demo:
-    # 3 V3 rail
-    rail_3v3 = new ElectricPower
-    rail_3v3.voltage = 3.3V +/- 5%
+# Example MCU providing I²C bus and reading the wiper voltage with an ADC pin
+module MCU:
+    power = new ElectricPower
+    i2c = new I2C
+    adc_in = new Electrical
 
-    # I²C bus @ 400 kHz, address 0x28 (A1=A0=0)
-    bus = new I2C
-    bus.frequency = 400kHz
-    bus.address = 0x28
+module Usage:
+    """
+    Minimal wiring for the Maxim DS1841 logarithmic digital potentiometer (22 kΩ to 3.7 kΩ) used as a programmable voltage divider.
 
+    1. The potentiometer top end (`RH`) is tied to 3V3, bottom end (`RL`) to GND.
+    2. The wiper (`RW`) is routed to an MCU ADC input so firmware can read the
+       divided voltage and the DS3502 can trim it over I²C.
+    3. Address pins `A1:A0` are left low which selects I²C address 0x28.
+    """
+
+    # MCU with I²C and ADC capabilities
+    mcu = new MCU
+
+    # DS1841 instance
     pot = new Maxim_DS1841
 
-    rail_3v3 ~ pot.power
-    bus     ~ pot.i2c
+    # Shared 3 V3 rail
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
 
-    # Divider configuration: RH = 3 V3, RGND = GND, RW = output
-    rail_3v3.hv ~ pot.potentiometer_high.line   # RH
-    rail_3v3.lv ~ pot.potentiometer_low.line    # RGND
+    # I²C bus (Fast-mode, 400 kHz)
+    i2c_bus = new I2C
+    pot.i2c.address = 0x28  # A1=A0=0 on DS1841
 
-    v_out = new Electrical
-    v_out ~ pot.potentiometer_wiper.line        # RW
+    # Power distribution
+    power_3v3 ~ mcu.power
+    power_3v3 ~ pot.power
+
+    # Connect I²C
+    i2c_bus ~ mcu.i2c
+    i2c_bus ~ pot.i2c
+
 ```
 
 ## License

@@ -23,7 +23,7 @@ The SK6805-EC20 is a compact 2x2mm addressable RGB LED with integrated controlle
 import ElectricPower
 import ElectricLogic
 
-from "opsco-sk6805-ec20.ato" import OPSCO_SK6805_EC20
+from "atopile/opsco-sk6805-ec20/opsco-sk6805-ec20.ato" import OPSCO_SK6805_EC20
 
 module Usage:
     """
@@ -50,6 +50,7 @@ module Usage:
 
     # Chain LEDs together: data flows through each LED
     data_input ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> leds[5] ~> leds[6] ~> leds[7] ~> leds[8] ~> leds[9]
+
 ```
 
 ## Technical Specifications

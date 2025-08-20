@@ -30,6 +30,7 @@ module Usage:
     # I²C bus
     i2c = new I2C
     i2c ~ environment_sensor.i2c
+
 ```
 
 ## Contributing

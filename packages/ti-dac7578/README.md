@@ -21,11 +21,13 @@ Texas Instruments DAC7578 8-Channel 12-Bit Digital-to-Analog Converter with I2C 
 
 ```ato
 #pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 import I2C
 import ElectricPower
 import Resistor
 
-from "ti-dac7578.ato" import TI_DAC7578
+from "atopile/ti-dac7578/ti-dac7578.ato" import TI_DAC7578
 
 module Usage:
     """
@@ -60,6 +62,7 @@ module Usage:
     # To use 0x49 instead, uncomment: dac.i2c.address = 0x49
 
     # DAC outputs can be connected to external circuits
+    # Example: connecting to test points or other analog circuits
     # dac.dac_out_a ~ analog_circuit_input_a
     # dac.dac_out_b ~ analog_circuit_input_b
     # ... etc for channels C through H
@@ -67,6 +70,7 @@ module Usage:
     # Control signals can be connected to microcontroller pins:
     # dac.clear_n ~ microcontroller.gpio_clear
     # dac.ldac_n ~ microcontroller.gpio_ldac
+
 ```
 
 ## Pin Configuration

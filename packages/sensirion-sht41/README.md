@@ -25,7 +25,7 @@ A comprehensive atopile package for the Sensirion SHT41 cost-effective digital t
 import ElectricPower
 import I2C
 
-from "sensirion-sht41.ato" import Sensirion_SHT41
+from "atopile/sensirion-sht41/sensirion-sht41.ato" import Sensirion_SHT41
 
 module Usage:
     """
@@ -52,6 +52,7 @@ module Usage:
 
     # The SHT41A-FD1B has a default I2C address of 0x44
     assert temp_humidity_sensor.i2c.address is 0x44
+
 ```
 
 ## Hardware Features

@@ -48,14 +48,15 @@ The SCD41 has separate power domains:
 ## Usage
 
 ```ato
-#pragma text
+#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 
 import ElectricPower
 import I2C
 import Resistor
 
-from "sensirion-scd41.ato" import Sensirion_SCD41
+from "atopile/sensirion-scd41/sensirion-scd41.ato" import Sensirion_SCD41
 
 module Usage:
     """
@@ -79,20 +80,15 @@ module Usage:
     power_3v3 ~ co2_sensor.power_heater
     i2c_bus ~ co2_sensor.i2c
 
+    # --- Provide I2C bus reference voltage ---
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
     # --- I2C address is fixed at 0x62 ---
-    # No address configuration needed for SCD41
+    co2_sensor.i2c.address = 0x62
 
-    # --- Optional: I2C pull-up resistors ---
-    # Many development boards already include these
-    i2c_pullup_scl = new Resistor
-    i2c_pullup_sda = new Resistor
-    i2c_pullup_scl.resistance = 4.7kohm +/- 5%
-    i2c_pullup_sda.resistance = 4.7kohm +/- 5%
-    i2c_pullup_scl.package = "0402"
-    i2c_pullup_sda.package = "0402"
-
-    power_3v3.hv ~> i2c_pullup_scl ~> i2c_bus.scl.line
-    power_3v3.hv ~> i2c_pullup_sda ~> i2c_bus.sda.line
+    # --- I2C pull-up resistors are included in the sensor module ---
+    # No external pullup resistors needed
 
     # --- Usage notes ---
     # The SCD41 measures:
@@ -105,6 +101,7 @@ module Usage:
     # - Single-shot measurement mode for low power
     # - Automatic baseline correction
     # - No need for external calibration in most applications
+
 ```
 
 ## Operation Modes
