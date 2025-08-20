@@ -1,15 +1,14 @@
+
 #pragma experiment("BRIDGE_CONNECT")
 
 import I2C
 import ElectricPower
-import Electrical
 import Resistor
 import Capacitor
 
-from "i2c_isolator.py" import I2CIsolator
 from "parts/Texas_Instruments_ISO1640QDWRQ1/Texas_Instruments_ISO1640QDWRQ1.ato" import Texas_Instruments_ISO1640QDWRQ1_package
 
-module TI_ISO1640QDWRQ1 from I2CIsolator:
+module TI_ISO1640QDWRQ1:
     """
     Texas Instruments ISO1640QDWRQ1 bidirectional I2C isolator.
 
@@ -31,7 +30,23 @@ module TI_ISO1640QDWRQ1 from I2CIsolator:
     - Decoupling capacitors (100nF 0402) for stable operation
     """
 
-    # Part instance
+    # --- External interfaces ---
+    power_rails = new ElectricPower[2]
+    """
+    Power supply rails for each side of the isolator.
+    - power_rails[0]: Side 1 power supply (2.25V to 5.5V)
+    - power_rails[1]: Side 2 power supply (2.25V to 5.5V)
+    """
+
+    i2cs = new I2C[2]
+    """
+    I2C bus interfaces for each side of the isolator.
+    - i2cs[0]: Side 1 I2C bus interface (isolated)
+    - i2cs[1]: Side 2 I2C bus interface (isolated)
+    """
+
+
+    # --- Part instance ---
     ic = new Texas_Instruments_ISO1640QDWRQ1_package
 
     # --- External interface documentation ---
