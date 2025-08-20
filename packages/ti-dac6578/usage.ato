@@ -4,28 +4,20 @@ import Electrical
 
 from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Complete usage example for TI_DAC6578 DAC."""
 
-    # MCU & DAC
-    mcu = new MCU
+    # DAC
     dac = new TI_DAC6578
 
-    # Shared 3V3 rail
+    # Power supply (3.3V typical)
     power = new ElectricPower
-    power.voltage = 3.3V +/- 5%
-    power ~ mcu.power
+    assert power.voltage within 3.3V +/- 5%
     power ~ dac.power
 
-    # I²C connection
-    mcu.i2c ~ dac.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ dac.i2c
 
     # Note: DAC module includes 4.7k I2C pull-ups internally
 
