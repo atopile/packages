@@ -11,7 +11,7 @@ module Usage:
 
     # 3V3 power supply
     power = new ElectricPower
-    power.voltage = 3.3V
+    assert power.voltage within 3.3V +/- 5%
     power ~ dac.power
 
     # I²C bus
