@@ -7,10 +7,19 @@ paths:
 builds:
   default:
     entry: microchip-mcp4725.ato:Microchip_MCP4725_driver
+    hide_designators: true
     exclude_checks:
       - I2C.requires_pulls
+      - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+      - I2C.requires_pulls
+      - PCB.requires_drc_check
   test:
     entry: microchip-mcp4725.ato:Test
+    hide_designators: true
     exclude_checks:
       - I2C.requires_pulls
       - PCB.requires_drc_check
@@ -20,7 +29,7 @@ builds:
 package:
   identifier: atopile/microchip-mcp4725
   repository: https://github.com/atopile/packages
-  version: "0.1.5"
+  version: "0.1.6"
   authors:
     - name: atopile
       email: hi@atopile.io
