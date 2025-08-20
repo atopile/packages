@@ -42,7 +42,7 @@ module ST_VL53L4CX:
     # --- I²C pull-up resistors ---
     pullups = new Resistor[2]
     for resistor in pullups:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
@@ -50,7 +50,7 @@ module ST_VL53L4CX:
     # --- Logic pull-ups ---
     logic_pullups = new Resistor[2]
     for resistor in logic_pullups:
-        resistor.value = 10kohm +/- 20%
+        resistor.resistance = 10kohm +/- 20%
         resistor.package = "0402"
     power.hv ~> logic_pullups[0] ~> gpio.line
     power.hv ~> logic_pullups[1] ~> shutdown.line
