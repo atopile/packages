@@ -42,6 +42,7 @@ module Usage:
     # - Protocol selection (I2C default)
     # - Dual rail support (VDD/VDDIO internally connected)
     assert sensor.i2c.address is 0x76
+
 ```
 
 ## Features

@@ -24,7 +24,7 @@ import ElectricPower
 import I2C
 import ElectricLogic
 
-from "st-lis3dh.ato" import ST_LIS3DH
+from "atopile/st-lis3dh/st-lis3dh.ato" import ST_LIS3DH
 
 module Usage:
     """
@@ -56,6 +56,11 @@ module Usage:
 
     # Set I²C address to 0x18 (SA0 pulled low)
     assert sensor.i2c.address is 0x18
+
+    # Optional: Connect auxiliary ADC inputs if needed
+    # external_signal1 = new ElectricLogic
+    # external_signal1 ~ sensor.adc1
+
 ```
 
 ## Applications

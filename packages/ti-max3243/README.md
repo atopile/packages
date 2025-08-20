@@ -25,7 +25,7 @@ import ElectricPower, ElectricLogic
 import RS232, UART
 import Resistor, Capacitor
 
-from "ti-max3243.ato" import TI_MAX3243
+from "atopile/ti-max3243/ti-max3243.ato" import TI_MAX3243
 
 from "parts/Ckmtw_D_DMR009PF_D002/Ckmtw_D_DMR009PF_D002.ato" import Ckmtw_D_DMR009PF_D002_package
 from "parts/Ckmtw_D_DMR009PM_D002/Ckmtw_D_DMR009PM_D002.ato" import Ckmtw_D_DMR009PM_D002_package
@@ -78,18 +78,13 @@ module Usage:
     invalid_indicator.reference ~ power_3v3
     invalid_indicator ~ rs232_transceiver.ninvalid
 
-    # DE-9 RS-232 Male connector
     de9_rs232_male = new DE9RS232Male
     de9_rs232_male.rs232 ~ rs232_transceiver.rs232
 
-    # Override net names for cleaner schematic
     power_3v3.hv.override_net_name = "Vin"
     power_3v3.lv.override_net_name = "VGND"
 
 module DE9RS232Female:
-    """
-    DE-9 Female RS-232 connector module
-    """
     package = new Ckmtw_D_DMR009PF_D002_package
     rs232 = new RS232
 
@@ -106,10 +101,8 @@ module DE9RS232Female:
     package.MH1 ~ rs232.reference_shim.lv
     package.MH2 ~ rs232.reference_shim.lv
 
+
 module DE9RS232Male:
-    """
-    DE-9 Male RS-232 connector module
-    """
     package = new Ckmtw_D_DMR009PM_D002_package
     rs232 = new RS232
 
@@ -125,6 +118,7 @@ module DE9RS232Male:
 
     package.MH1 ~ rs232.reference_shim.lv
     package.MH2 ~ rs232.reference_shim.lv
+
 ```
 
 ## Interfaces

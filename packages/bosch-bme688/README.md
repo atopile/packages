@@ -53,6 +53,7 @@ module Usage:
     # - Power filtering (100nF + 10nF caps)
     # - Protocol selection (I2C default)
     assert sensor.i2c.address is 0x77
+
 ```
 
 ## I2C Address Configuration

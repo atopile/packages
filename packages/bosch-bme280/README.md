@@ -47,6 +47,7 @@ module Usage:
 
     # (Optional) Select address – defaults to 0x76 (SDO=0)
     sensor.i2c.address = 0x76
+
 ```
 
 ## Contributing

@@ -25,7 +25,7 @@ import ElectricPower
 import I2C
 import ElectricLogic
 
-from "st-ism330dhcx.ato" import ST_ISM330DHCX
+from "atopile/st-ism330dhcx/st-ism330dhcx.ato" import ST_ISM330DHCX
 
 module Usage:
     """
@@ -57,6 +57,11 @@ module Usage:
 
     # Set I²C address to 0x6A (SA0 pulled low)
     assert sensor.i2c.address is 0x6A
+
+    # Optional: Connect external sensor via auxiliary SPI
+    # external_magnetometer_cs = new ElectricLogic
+    # external_magnetometer_cs ~ sensor.aux_spi_cs
+
 ```
 
 ## Applications

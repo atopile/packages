@@ -23,7 +23,7 @@ The HDC3022 is a digital temperature and humidity sensor from Texas Instruments 
 import ElectricPower
 import I2C
 
-from "ti-hdc3022.ato" import TI_HDC3022
+from "atopile/ti-hdc3022/ti-hdc3022.ato" import TI_HDC3022
 
 module Usage:
     """
@@ -48,6 +48,7 @@ module Usage:
 
     # Set I2C address (default 0x44 with both address pins low)
     temp_humidity_sensor.i2c.address = 0x44
+
 ```
 
 ## Technical Specifications

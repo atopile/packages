@@ -16,7 +16,7 @@ and temperature sensor.
 import ElectricPower
 import I2C
 
-from "atopile/sensirion-scd40/sensirion-scd40.ato" import Sensirion_SCD40
+from "atopile/infineon-dps310/infineon-dps310.ato" import Infineon_DPS310
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
@@ -26,20 +26,21 @@ module MCU:
 
 
 module Usage:
-    """Minimal example for the Sensirion_SCD40 CO₂ sensor."""
+    """Minimal example for the Infineon_DPS310 barometric pressure and altitude sensor."""
 
     # MCU & sensor
     mcu = new MCU
-    co2_sensor = new Sensirion_SCD40
+    pressure_sensor = new Infineon_DPS310
 
     # Shared 3V3 rail
     power = new ElectricPower
     power.voltage = 3.3V
     power ~ mcu.power
-    power ~ co2_sensor.power
+    power ~ pressure_sensor.power
 
     # I²C connection
-    mcu.i2c ~ co2_sensor.i2c
+    mcu.i2c ~ pressure_sensor.i2c
+
 ```
 
 ## Contributing

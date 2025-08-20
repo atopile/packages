@@ -54,6 +54,7 @@ module Usage:
 
     # Configure I²C address to 0x76 (SDO pin will be pulled low via internal pull-down)
     sensor.i2c.address = 0x76
+
 ```
 
 ## Interface Details

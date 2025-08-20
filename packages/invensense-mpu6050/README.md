@@ -11,17 +11,28 @@ This package provides an ato driver that models the device for use in Atopile pr
 
 import ElectricPower
 import I2C
-from "invensense-mpu6050.ato" import Invensense_MPU6050
+from "atopile/invensense-mpu6050/invensense-mpu6050.ato" import Invensense_MPU6050
 
-module Demo:
-    power = new ElectricPower
-    i2c = new I2C
+module Usage:
+    """Minimal usage example for `invensense-mpu6050`.
+    Shows how to wire the IMU to a shared 3V3 power rail and I²C bus.
+    """
 
+    # Shared rails / busses
+    power_3v3 = new ElectricPower
+    i2c_bus = new I2C
+
+    # IMU instance
     imu = new Invensense_MPU6050
 
-    imu.power_core ~ power
-    imu.power_io ~ power
-    imu.i2c ~ i2c
+    # Connections
+    imu.power_core ~ power_3v3
+    imu.power_io ~ power_3v3
+    imu.i2c ~ i2c_bus
+
+    # Configure I²C address (AD0 pulled low => 0x68)
+    i2c_bus.address = 0x68
+
 ```
 
 ## PCB footprints & symbol

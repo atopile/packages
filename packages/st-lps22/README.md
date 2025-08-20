@@ -24,7 +24,7 @@ The LPS22 is an ultra-compact MEMS nano pressure sensor featuring high accuracy 
 import ElectricPower
 import I2C
 
-from "st-lps22.ato" import ST_LPS22
+from "atopile/st-lps22/st-lps22.ato" import ST_LPS22
 
 module Usage:
     """
@@ -43,7 +43,7 @@ module Usage:
 
     # Power supply (3.3V rail)
     power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
+    assert power_3v3.voltage within 3.2V to 3.4V
 
     # Connect power supply
     power_3v3 ~ sensor.power
@@ -54,6 +54,7 @@ module Usage:
 
     # Configure I²C address to 0x5C (SA0 pin will be pulled low)
     sensor.i2c.address = 0x5C
+
 ```
 
 ## Interface Details

@@ -44,6 +44,7 @@ module Usage:
     example_signals[1] ~ harness_saleae_debug_header.channels[1]
     example_signals[2] ~ harness_saleae_debug_header.channels[2]
     example_signals[3] ~ harness_saleae_debug_header.channels[3]
+
 ```
 
 ## Contributing

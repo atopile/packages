@@ -24,7 +24,7 @@ The BQ25185 is a highly integrated 1A single-input, single-cell Li-Ion and Li-Po
 import ElectricPower
 import Resistor
 
-from "ti-bq25185.ato" import TI_BQ25185
+from "atopile/ti-bq25185/ti-bq25185.ato" import TI_BQ25185
 
 module Usage:
     """
@@ -63,6 +63,7 @@ module Usage:
     # Status LEDs can be connected to status_1 and status_2 pins
     # status_1: Fault indication (active low)
     # status_2: Charge status (active low during charging)
+
 ```
 
 ## Hardware Features

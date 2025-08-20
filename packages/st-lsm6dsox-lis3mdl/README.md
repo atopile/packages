@@ -52,7 +52,7 @@ The sensor combines:
 import ElectricPower
 import I2C
 
-from "st-lsm6dsox-lis3mdl.ato" import ST_LSM6DSOX_LIS3MDL
+from "atopile/st-lsm6dsox-lis3mdl/st-lsm6dsox-lis3mdl.ato" import ST_LSM6DSOX_LIS3MDL
 
 module Usage:
     """
@@ -94,6 +94,7 @@ module Usage:
     # - Read accelerometer/gyroscope data from LSM6DSOX at 0x6A/0x6B
     # - Read magnetometer data from LIS3MDL at 0x1C/0x1E
     # - LSM6DSOX can also read LIS3MDL data through its auxiliary interface
+
 ```
 
 ## Pinout

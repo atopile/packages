@@ -40,6 +40,7 @@ module Usage:
 
     # Set I²C address to 0x76 (SDO pulled low)
     assert sensor.i2c.address is 0x76
+
 ```
 
 ## Contributing

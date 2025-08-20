@@ -14,7 +14,8 @@ import ElectricPower
 import I2C
 
 # --- Package import ---
-from "ti-tca6408.ato" import TI_TCA6408
+from "atopile/ti-tca6408/ti-tca6408.ato" import TI_TCA6408
+
 
 module Usage:
     """
@@ -46,6 +47,7 @@ module Usage:
     # Provide logic references
     power_3v3 ~ i2c_bus.scl.reference
     power_3v3 ~ i2c_bus.sda.reference
+
 ```
 
 ## Contributing
