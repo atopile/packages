@@ -1,6 +1,6 @@
-# Lite-On LTR-329ALS-01 Ambient Light Sensor
+# Lite-On LTR-390UV UV Light Sensor
 
-Digital ALS with 16-bit resolution and I²C interface. This package wraps the
+Digital UV sensor with 16-bit resolution and I²C interface. This package wraps the
 hardware connections so you can drop it into your design effortlessly.
 
 ## Usage
@@ -11,28 +11,20 @@ import I2C
 
 from "atopile/liteon-ltr390uv/liteon-ltr390uv.ato" import Liteon_LTR390UV
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the Liteon_LTR390UV UV sensor."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # UV sensor
     uv_sensor = new Liteon_LTR390UV
 
-    # Shared 3V3 rail
+    # Power supply
     power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
+    assert power.voltage within 3.3V +/- 5%
     power ~ uv_sensor.power
 
-    # I²C connection
-    mcu.i2c ~ uv_sensor.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ uv_sensor.i2c
 
 ```
 
