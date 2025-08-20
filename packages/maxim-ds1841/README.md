@@ -32,12 +32,6 @@ import Electrical
 
 from "atopile/maxim-ds1841/maxim-ds1841.ato" import Maxim_DS1841
 
-# Example MCU providing I²C bus and reading the wiper voltage with an ADC pin
-module MCU:
-    power = new ElectricPower
-    i2c = new I2C
-    adc_in = new Electrical
-
 module Usage:
     """
     Minimal wiring for the Maxim DS1841 logarithmic digital potentiometer (22 kΩ to 3.7 kΩ) used as a programmable voltage divider.
@@ -48,27 +42,17 @@ module Usage:
     3. Address pins `A1:A0` are left low which selects I²C address 0x28.
     """
 
-    # MCU with I²C and ADC capabilities
-    mcu = new MCU
-
     # DS1841 instance
     pot = new Maxim_DS1841
 
-    # Shared 3 V3 rail
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
+    # Power supply (3.3V typical)
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 5%
+    power ~ pot.power
 
-    # I²C bus (Fast-mode, 400 kHz)
-    i2c_bus = new I2C
-    pot.i2c.address = 0x28  # A1=A0=0 on DS1841
-
-    # Power distribution
-    power_3v3 ~ mcu.power
-    power_3v3 ~ pot.power
-
-    # Connect I²C
-    i2c_bus ~ mcu.i2c
-    i2c_bus ~ pot.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ pot.i2c
 
 ```
 
