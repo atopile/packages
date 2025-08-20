@@ -5,10 +5,6 @@ The **Maxim Integrated DS3502** is a 128-step (7-bit), non-volatile 10 kΩ digit
 ## Usage
 
 ```ato
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
-
 import ElectricPower
 import I2C
 import Electrical
