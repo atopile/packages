@@ -10,28 +10,20 @@ import I2C
 
 from "atopile/st-lsm6ds3/st-lsm6ds3.ato" import ST_LSM6DS3
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the ST_LSM6DS3 accelerometer."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # Sensor
     accelerometer = new ST_LSM6DS3
 
-    # Shared 3V3 rail
+    # Power supply (3.3V typical)
     power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
+    assert power.voltage within 3.3V +/- 5%
     power ~ accelerometer.power
 
-    # I²C connection
-    mcu.i2c ~ accelerometer.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ accelerometer.i2c
 
 ```
 
