@@ -24,7 +24,7 @@ A comprehensive atopile package for the Sensirion SHT45 high-accuracy digital te
 import ElectricPower
 import I2C
 
-from "sensirion-sht45.ato" import Sensirion_SHT45
+from "atopile/sensirion-sht45/sensirion-sht45.ato" import Sensirion_SHT45
 
 module Usage:
     """
@@ -51,6 +51,7 @@ module Usage:
 
     # The SHT45-AD1F has a default I2C address of 0x44
     assert temp_humidity_sensor.i2c.address is 0x44
+
 ```
 
 ## Hardware Features

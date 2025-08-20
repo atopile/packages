@@ -23,7 +23,7 @@ Supported Pad Types:
 
 ```ato
 #pragma experiment("MODULE_TEMPLATING")
-from "atopile/mounting_holes/MountingHole.py" import MountingHole
+from "MountingHole.py" import MountingHole
 
 module Usage:
     """
@@ -38,6 +38,7 @@ module Usage:
     m2_with_pad.contact ~ m3_top_pad.contact
     m3_top_pad.contact ~ m4_pad_with_vias.contact
     # m6_no_pad has no contact
+
 ```
 
 ## Contributing

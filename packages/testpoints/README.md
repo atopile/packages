@@ -22,8 +22,7 @@ A json file with testpoint data is generated in `build/<build_name>/<build_name>
 
 ```ato
 #pragma experiment("MODULE_TEMPLATING")
-from "atopile/testpoints/TestPoint.py" import TestPoint
-
+from "atopile/testpoints/testpoints.ato" import TestPoint
 module Usage:
     """
     Example of using testpoints
@@ -38,6 +37,7 @@ module Usage:
     basic_testpoint.contact ~ basic_tht_testpoint.contact
     big_smd_testpoint.contact ~ medium_tht_testpoint.contact
     basic_testpoint.contact ~ square_smd_testpoint.contact
+
 ```
 
 ## Contributing

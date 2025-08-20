@@ -11,7 +11,7 @@ This package provides an ato driver that models the device for use in Atopile pr
 
 import ElectricPower
 import I2C
-from "st-lis3mdl.ato" import ST_LIS3MDL
+from "atopile/st-lis3mdl/st-lis3mdl.ato" import ST_LIS3MDL
 
 module Usage:
     """Minimal usage example for `st-lis3mdl`.
@@ -33,6 +33,7 @@ module Usage:
     # Configure I²C address (SA1 pulled low => 0x1C)
     # SA1 pulled high => 0x1E
     assert i2c_bus.address is 0x1C
+
 ```
 
 ## PCB footprints & symbol

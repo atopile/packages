@@ -27,7 +27,7 @@ import I2C
 import ElectricPower
 import Resistor
 
-from "microchip-mcp9601.ato" import Microchip_MCP9601
+from "atopile/microchip-mcp9601/microchip-mcp9601.ato" import Microchip_MCP9601
 
 
 module Usage:
@@ -67,6 +67,7 @@ module Usage:
     # sensor.alert1, sensor.alert2, sensor.alert3, sensor.alert4
     # sensor.oc_alert (open-circuit detection)
     # sensor.sc_alert (short-circuit detection)
+
 ```
 
 ## Practical Implementation

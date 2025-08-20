@@ -25,7 +25,9 @@ The WS2812B-2020 is an ultra-compact addressable RGB LED that integrates control
 import ElectricPower
 import ElectricLogic
 
-from "worldsemi-ws2812b-2020.ato" import Worldsemi_WS2812B_2020, WS2812B_2020_HighDensity_Strip, WS2812B_2020_Matrix
+from "atopile/worldsemi-ws2812b-2020/worldsemi-ws2812b-2020.ato" import Worldsemi_WS2812B_2020
+from "atopile/worldsemi-ws2812b-2020/worldsemi-ws2812b-2020.ato" import WS2812B_2020_HighDensity_Strip
+from "atopile/worldsemi-ws2812b-2020/worldsemi-ws2812b-2020.ato" import WS2812B_2020_Matrix
 
 module Usage:
     """
@@ -76,6 +78,7 @@ module Usage:
     """Data signal for 5×5 LED matrix"""
     matrix_data ~ led_matrix.data_in
     power_5v ~ matrix_data.reference
+
 ```
 
 ## Technical Specifications

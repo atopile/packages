@@ -25,6 +25,7 @@ module Usage:
     power ~ vertical_male.power
     power ~ right_angle_female.power
     power ~ vertical_female.power
+
 ```
 
 ## Contributing

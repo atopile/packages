@@ -3,30 +3,25 @@
 ## Usage
 
 ```ato
-
+import ElectricPower
 import I2C
-import Power
 
 from "atopile/microchip-mcp4725/microchip-mcp4725.ato" import Microchip_MCP4725_driver
 
+module Usage:
+    """Minimal example for the Microchip MCP4725 DAC."""
 
-module Test:
-    # Create 2 DACs
-    dacs = new Microchip_MCP4725_driver[2]
+    # DAC
+    dac = new Microchip_MCP4725_driver
 
-    # Create power and I2C interfaces
+    # 3V3 power supply
     power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ dac.power
+
+    # I²C bus
     i2c = new I2C
-
-    # Connect DACs to power and I2C
-    for dac in dacs:
-        dac.power ~ power
-        dac.i2c ~ i2c
-
-    # Set DAC addresses
-    dacs[0].i2c.address = 0x60
-    dacs[1].i2c.address = 0x61
-
+    i2c ~ dac.i2c
 ```
 
 ## Contributing

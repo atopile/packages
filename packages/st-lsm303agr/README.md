@@ -34,6 +34,7 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ imu.i2c
+
 ```
 
 ## Contributing

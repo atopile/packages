@@ -21,8 +21,8 @@ The LTC4311 is a rise-time accelerator that provides buffered connections for I2
 
 import ElectricPower
 import ElectricLogic
-
-from "ltc4311.ato" import ADI_LTC4311
+import I2C
+from "atopile/adi-ltc4311/adi-ltc4311.ato" import ADI_LTC4311
 
 module Usage:
     """
@@ -39,12 +39,8 @@ module Usage:
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 5%
 
-    # Create signal connections for both sides of the buffer
-    controller_sda = new ElectricLogic
-    controller_scl = new ElectricLogic
-
-    device_sda = new ElectricLogic
-    device_scl = new ElectricLogic
+    # Create I2C bus
+    i2c = new I2C
 
     # Instantiate the LTC4311 I2C accelerator
     i2c_buffer = new ADI_LTC4311
@@ -52,12 +48,9 @@ module Usage:
     # Connect power
     power_3v3 ~ i2c_buffer.power
 
-    # Connect signals through the bidirectional buffers
-    controller_sda ~ i2c_buffer.bus1  # SDA buffering
-    controller_scl ~ i2c_buffer.bus2  # SCL buffering
+    # Connect I2C bus
+    i2c ~ i2c_buffer.i2c
 
-    # Enable the device (tied high for always-on operation)
-    i2c_buffer.enable.line ~ power_3v3.vcc
 ```
 
 ## How It Works

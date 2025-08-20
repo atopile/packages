@@ -18,7 +18,7 @@ The LIS331DLH is a high-performance triple-axis digital accelerometer with selec
 import I2C
 import ElectricPower
 
-from "st-lis331.ato" import ST_LIS331
+from "atopile/st-lis331/st-lis331.ato" import ST_LIS331
 
 module Usage:
     """
@@ -46,6 +46,7 @@ module Usage:
 
     # Connect I2C
     i2c_bus ~ accelerometer.i2c
+
 ```
 
 ## Contributing

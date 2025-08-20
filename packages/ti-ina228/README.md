@@ -26,44 +26,126 @@ The INA228 is a high-precision current and power monitoring IC from Texas Instru
 ```ato
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 import ElectricPower
+import ElectricLogic
 import I2C
-from "ti-ina228.ato" import TI_INA228
+from "atopile/ti-ina228/ti-ina228.ato" import TI_INA228
 
 module Usage:
     """
-    Minimal usage example for TI INA228 power monitor.
+    Comprehensive usage examples for TI INA228 power monitor.
 
-    This example shows how to connect the INA228 to monitor current through
-    a shunt resistor with 3.3V supply and I2C interface.
+    This example demonstrates:
+    - Multiple INA228 devices on a single I2C bus with different addresses
+    - Monitoring various current ranges (100mA to 10A)
+    - Different power rail configurations (3.3V, 5V, 12V, 48V)
     """
 
-    # Power rails
-    supply = new ElectricPower
-    load = new ElectricPower
-    supply.voltage = 3.3V +/- 5%
-
-    # I2C bus
+    # === Shared I2C bus ===
     i2c = new I2C
+    i2c.frequency = 400kHz  # Fast mode
 
-    # Current monitor
-    current_monitor = new TI_INA228
-    current_monitor.max_current = 2A
-    current_monitor.power ~ supply
+    # === Power rails ===
+    # Supply voltage for all INA228 devices (3.3V logic)
+    supply_3v3 = new ElectricPower
+    supply_3v3.voltage = 3.3V +/- 5%
 
-    # Wiring - bridge the current monitor in the power path
-    supply ~> current_monitor ~> load
-    current_monitor.i2c ~ i2c
+    # === Example 1: Low current USB device monitoring (100mA max) ===
+    # USB 5V rail monitoring
+    usb_5v_in = new ElectricPower
+    usb_5v_out = new ElectricPower
+    usb_5v_in.voltage = 5V +/- 10%
 
-    # I2C address configuration
-    # INA228 supports 16 addresses (0x40-0x4F) based on A0/A1 connections:
-    # A0, A1 can each connect to: GND=0, VS=1, SDA=2, SCL=3
-    # Address = 0x40 + (A1_config << 2) + (A0_config << 1)
-    # Examples:
-    # - A0=GND, A1=GND: 0x40 (both pins to ground)
-    # - A0=VS,  A1=GND: 0x42 (A0 to supply, A1 to ground)
-    # - A0=SDA, A1=SCL: 0x4E (A0 to SDA, A1 to SCL)
-    current_monitor.i2c.address = 0x40  # A0=GND, A1=GND configuration
+    usb_monitor = new TI_INA228
+    usb_monitor.max_current = 100mA
+    usb_monitor.power ~ supply_3v3
+    usb_monitor.i2c ~ i2c
+    usb_monitor.i2c.address = 0x40  # A0=GND, A1=GND
+
+    # Insert monitor in USB power path
+    usb_5v_in ~> usb_monitor ~> usb_5v_out
+
+    # === Example 2: Medium current 3.3V rail monitoring (2A max) ===
+    # Main 3.3V system rail
+    main_3v3_in = new ElectricPower
+    main_3v3_out = new ElectricPower
+    main_3v3_in.voltage = 3.3V +/- 5%
+
+    main_3v3_monitor = new TI_INA228
+    main_3v3_monitor.max_current = 2A
+    main_3v3_monitor.power ~ supply_3v3
+    main_3v3_monitor.i2c ~ i2c
+    main_3v3_monitor.i2c.address = 0x41  # A0=VS, A1=GND
+
+    # Insert monitor in 3.3V power path
+    main_3v3_in ~> main_3v3_monitor ~> main_3v3_out
+
+    # === Example 3: High current 12V rail monitoring (5A max) ===
+    # 12V power supply monitoring
+    supply_12v_in = new ElectricPower
+    supply_12v_out = new ElectricPower
+    supply_12v_in.voltage = 12V +/- 5%
+
+    supply_12v_monitor = new TI_INA228
+    supply_12v_monitor.max_current = 5A
+    supply_12v_monitor.power ~ supply_3v3
+    supply_12v_monitor.i2c ~ i2c
+    supply_12v_monitor.i2c.address = 0x42  # A0=SDA, A1=GND
+
+    # Insert monitor in 12V power path
+    supply_12v_in ~> supply_12v_monitor ~> supply_12v_out
+
+    # === Example 4: Very high current motor drive monitoring (10A max) ===
+    # Motor power monitoring
+    motor_pwr_in = new ElectricPower
+    motor_pwr_out = new ElectricPower
+    motor_pwr_in.voltage = 24V +/- 10%
+
+    motor_monitor = new TI_INA228
+    motor_monitor.max_current = 10A
+    motor_monitor.power ~ supply_3v3
+    motor_monitor.i2c ~ i2c
+    motor_monitor.i2c.address = 0x43  # A0=SCL, A1=GND
+
+    # Insert monitor in motor power path
+    motor_pwr_in ~> motor_monitor ~> motor_pwr_out
+
+    # === Example 5: High voltage PoE monitoring (48V, 500mA max) ===
+    # Power over Ethernet monitoring
+    poe_in = new ElectricPower
+    poe_out = new ElectricPower
+    poe_in.voltage = 48V +/- 10%
+
+    poe_monitor = new TI_INA228
+    poe_monitor.max_current = 500mA
+    poe_monitor.power ~ supply_3v3
+    poe_monitor.i2c ~ i2c
+    poe_monitor.i2c.address = 0x44  # A0=GND, A1=VS
+
+    # Insert monitor in PoE power path
+    poe_in ~> poe_monitor ~> poe_out
+
+    # === Example 6: Battery discharge monitoring (3.7V Li-Ion, 3A max) ===
+    # Battery monitoring with alert
+    battery_in = new ElectricPower
+    battery_out = new ElectricPower
+    battery_in.voltage = 3.7V +/- 0.5V  # Li-Ion voltage range
+
+    battery_monitor = new TI_INA228
+    battery_monitor.max_current = 3A
+    battery_monitor.power ~ supply_3v3
+    battery_monitor.i2c ~ i2c
+    battery_monitor.i2c.address = 0x48  # A0=GND, A1=SDA
+
+    # Insert monitor in battery discharge path
+    battery_in ~> battery_monitor ~> battery_out
+
+    # Connect alert output to microcontroller interrupt pin
+    # Note: The INA228 module includes built-in 10k pullup on alert pin
+    mcu_interrupt = new ElectricLogic
+    mcu_interrupt ~ battery_monitor.alert
+
 ```
 
 ## Interface Details

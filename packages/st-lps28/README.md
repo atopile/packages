@@ -23,7 +23,7 @@ Ultra-compact piezoresistive absolute pressure sensor with dual full-scale range
 import I2C
 import ElectricPower
 
-from "st-lps28.ato" import ST_LPS28
+from "atopile/st-lps28/st-lps28.ato" import ST_LPS28
 
 module Usage:
     """
@@ -48,6 +48,7 @@ module Usage:
 
     # Set I2C address (SA0 connected to GND = 0x5C, SA0 connected to VDD = 0x5D)
     assert pressure_sensor.i2c.address is 0x5C
+
 ```
 
 ## Pin Configuration

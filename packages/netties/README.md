@@ -34,7 +34,7 @@ The connect_gnd parameter can be used to connect the power.lv Electricals togeth
 #pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
 
-from "atopile/netties/NetTie.py" import NetTie
+from "NetTie.py" import NetTie
 
 module Usage:
     """
@@ -63,6 +63,7 @@ module Usage:
     # connect power.hv's together
     power_a ~> basic_nettie_hv_connect ~> power_b
     power_a ~> basic_thru_hole_nettie_hv_connect ~> power_b
+
 ```
 
 ## Contributing

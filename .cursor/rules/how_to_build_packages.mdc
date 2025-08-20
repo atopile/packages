@@ -320,3 +320,19 @@ The package should follow the structure that is described in detail. To update a
 * After updating a package, use the MCP tool to inspect the current version that is available on the package registry and be sure to minor rev from the current latest version on the package resistry -> x.y.z and update it to exactly x.y.z+1
 * If a build is failing the frozen build, saying there have been changes to the layout, try running a regular build first, then running a frozen build to see if the issue is resolved.
 * If package verifications is failing because there are warnings in the logs, try running a new build, as sometimes there are one time warnings when a component changes that will go away on the next build.
+* Try to build the package using 'ato build' command or MCP ato build command 1a. If the package builds, then DO NOT update the requires-atopile
+ version in the ato.yaml. Any changes will be considered a minor change, so increment the package version number by adding the following mask to the version: new_version = old_version + 0.0.1 1b.
+ * If the package fails to build, then update the requires-atopile version in the ato.yaml to the version of atopile used to run the build. This is now considered a major revision, so update the package version number according to: new_version = old_version + 0.1.0
+
+* In order for the package to be published, it must pass an "ato build --frozen", which checks that nothing changed since the last build. If this fails, you may need to run a normal build immediately before the frozen build.
+* After build and build --frozen, use the ato package verify command (or MCP tool) to verify that the package passes all the automated tests and is ready to be published. You may need to reiterate through steps 3-5 until the package verification is successful. Use the descriptive errors returned by the package verify command to guide your changes.
+* Open a PR with the changes, name the PR "package-name: LLM Update with 0.11.5", but replace package-name with the name of the package and replace 0.11.5 with the version of the compiler used. Be sure to leave a comment in the description about what was done to update the package. Specifically include information about whether the package build initially with the
+
+## 2.3 Advice & Pointers
+* Try not to make major changes to the packages, we are looking for minor changes if something in the new version of the compiler breaks the existing packages.
+* We care a lot about package stability, this means we care that the pacakges build and pass the package verification check. Be sure that when you open a PR, the code changes still pass the ato build and ato package verify commands.
+* Keep PRs short and to the point. Explain briefly what you saw when you started working on the package, what you fixed in the package (version update from to, dependency upgrades from to, etc), and the current state of the package. PRs should only pertain to one package at a time, and should not have changes for any other packages in the changed files.
+* If the package specified to be update is in the /packages/packages/archive directory, then the first step will be moving it up to the packages/packages directory if there are no naming conflicts. If there are naming conflicts with this operation, please raise a flag and do not proceed.
+## 2.4 Forbidden actions
+* Some changes may necessetate this, but try not to change anything in the /layout directory, as this will then require manual intervention to check that the layout is working properly and slow down the process.
+* Do not make changes to any other packages while updating one package

@@ -17,14 +17,16 @@ The WS2812C is an intelligent control LED integrated light source that incorpora
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import ElectricPower
 import ElectricLogic
 
-from "worldsemi-ws2812c.ato" import Worldsemi_WS2812C, WS2812C_Strip
+from "atopile/worldsemi-ws2812c-5050/worldsemi-ws2812c.ato" import Worldsemi_WS2812C
+from "atopile/worldsemi-ws2812c-5050/worldsemi-ws2812c.ato" import WS2812C_Strip
+from "atopile/worldsemi-ws2812c-5050/worldsemi-ws2812c.ato" import WS2812C_Matrix
 
 module Usage:
     """
@@ -34,7 +36,7 @@ module Usage:
     - Single LED configuration
     - LED strip with multiple LEDs
     - Proper power supply and data connections
-    - Power filtering for stable operation
+    - Matrix example
     """
 
     # --- Single LED Example ---
@@ -61,20 +63,13 @@ module Usage:
     strip_data = new ElectricLogic
     """Data signal for LED strip"""
     strip_data ~ led_strip.data_in
-    power_5v ~ strip_data.reference
 
-    # --- Alternative: Manual LED Chain ---
-    manual_leds = new Worldsemi_WS2812C[5]
+    # Matrix
+    led_matrix = new WS2812C_Matrix
 
-    # Connect power to all LEDs
-    for led in manual_leds:
-        power_5v ~ led.power
+    # Connect power to matrix
+    power_5v ~ led_matrix.power
 
-    # Chain data manually
-    chain_data = new ElectricLogic
-    """Manual chaining data input"""
-    power_5v ~ chain_data.reference
-    chain_data ~> manual_leds[0] ~> manual_leds[1] ~> manual_leds[2] ~> manual_leds[3] ~> manual_leds[4]
 ```
 
 ## Technical Specifications
