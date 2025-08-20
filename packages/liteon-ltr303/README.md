@@ -11,28 +11,20 @@ import I2C
 
 from "atopile/liteon-ltr303/liteon-ltr303.ato" import Liteon_LTR303
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the Liteon_LTR303 ambient light sensor."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # Sensor
     ambient_light_sensor = new Liteon_LTR303
 
-    # Shared 3V3 rail
+    # 3V3 power supply
     power = new ElectricPower
     power.voltage = 3.3V
-    power ~ mcu.power
     power ~ ambient_light_sensor.power
 
-    # I²C connection
-    mcu.i2c ~ ambient_light_sensor.i2c
+    # I²C bus
+    i2c = new I2C
+    i2c ~ ambient_light_sensor.i2c
 
 ```
 
