@@ -36,7 +36,6 @@ module Usage:
     i2c = new I2C
     i2c ~ accelerometer.i2c
     accelerometer.i2c.address = 0x53
-
 ```
 
 ## Interface Options
