@@ -1,43 +1,27 @@
 import ElectricPower
 import I2C
-import Electrical
 
 from "atopile/maxim-ds3502/maxim-ds3502.ato" import Maxim_DS3502
-
-# Example MCU providing I²C bus and reading the wiper voltage with an ADC pin
-module MCU:
-    power = new ElectricPower
-    i2c = new I2C
-    adc_in = new Electrical
 
 module Usage:
     """
     Minimal wiring for the Maxim DS3502 (10 kΩ) used as a programmable voltage divider.
 
     1. The potentiometer top end (`RH`) is tied to 3V3, bottom end (`RL`) to GND.
-    2. The wiper (`RW`) is routed to an MCU ADC input so firmware can read the
+    2. The wiper (`RW`) can be routed to an MCU ADC input so firmware can read the
        divided voltage and the DS3502 can trim it over I²C.
     3. Address pins `A1:A0` are left low which selects I²C address 0x28.
     """
 
-    # MCU with I²C and ADC capabilities
-    mcu = new MCU
-
-    # Shared 3 V3 rail
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
-
-    # I²C bus (Fast-mode, 400 kHz)
-    i2c_bus = new I2C
-    i2c_bus.address = 0x28  # A1=A0=0 on DS3502
-
-    # DS3502 instance
+    # DS3502 digital potentiometer
     pot = new Maxim_DS3502
 
-    # Power distribution
-    power_3v3 ~ mcu.power
-    power_3v3 ~ pot.power
+    # Power supply (3.3V typical)
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 5%
+    power ~ pot.power
 
-    # Connect I²C
-    i2c_bus ~ mcu.i2c
-    i2c_bus ~ pot.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c.address = 0x28  # A1=A0=0 on DS3502
+    i2c ~ pot.i2c
