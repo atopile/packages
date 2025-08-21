@@ -1,14 +1,6 @@
-# Sensirion SCD40 CO₂ Sensor
+# Infineon DPS310 Barometric Pressure Sensor
 
-The SCD4x is Sensirion’s next generation miniature CO2
-sensor. This sensor builds on the photoacoustic sensing
-principle and Sensirion’s patented PAsens® and
-CMOSens® technology to offer high accuracy at an
-unmatched price and smallest form factor. SMD assembly
-allows cost- and space-effective integration of the sensor
-combined with maximal freedom of design. On-chip signal
-compensation is realized with the build-in SHT4x humidity
-and temperature sensor.
+The DPS310 is a miniaturized digital barometric air pressure sensor with ultra-high precision (±0.002 hPa or ±0.02 m) and low current consumption. The sensor provides temperature measurements as well. Both pressure and temperature measurements are available via I²C/SPI interfaces.
 
 ## Usage
 
@@ -18,28 +10,20 @@ import I2C
 
 from "atopile/infineon-dps310/infineon-dps310.ato" import Infineon_DPS310
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the Infineon_DPS310 barometric pressure and altitude sensor."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # Pressure sensor
     pressure_sensor = new Infineon_DPS310
 
-    # Shared 3V3 rail
+    # Power supply (3.3V typical)
     power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
+    assert power.voltage within 3.3V +/- 5%
     power ~ pressure_sensor.power
 
-    # I²C connection
-    mcu.i2c ~ pressure_sensor.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ pressure_sensor.i2c
 
 ```
 
