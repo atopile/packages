@@ -13,14 +13,21 @@ import ElectricPower
 from "atopile/ti-iso1640qdwrq1/ti-iso1640qdwrq1.ato" import TI_ISO1640QDWRQ1
 
 module Microcontroller:
+    """Example microcontroller"""
     i2c = new I2C
     power = new ElectricPower
 
 module Sensor:
+    """Example sensor"""
     i2c = new I2C
     power = new ElectricPower
 
 module Example:
+    """
+    Example usage of ISO1640QDWRQ1 I2C isolator
+    Connect a microcontroller to a sensor via an I2C isolator
+    """
+
     # Components
     micro = new Microcontroller
     sensor = new Sensor
@@ -48,6 +55,7 @@ module Example:
     # Isolated power
     power_iso_3v3 ~ sensor.power
     power_iso_3v3 ~ isolator.power_rails[1]
+
 ```
 
 ## Features

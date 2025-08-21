@@ -27,7 +27,7 @@ import I2C
 import ElectricLogic
 
 # --- Package import ---
-from "st-vl53l1x.ato" import ST_VL53L1X
+from "atopile/st-vl53l1x/st-vl53l1x.ato" import ST_VL53L1X
 
 
 module Usage:
@@ -66,6 +66,7 @@ module Usage:
     # Optional: Connect interrupt pin
     # interrupt_line = new ElectricLogic
     # interrupt_line ~ sensor.gpio1
+
 ```
 
 ## Interface Details

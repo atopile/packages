@@ -22,7 +22,7 @@ High-performance 6-axis inertial measurement unit (IMU) with 3-axis acceleromete
 import ElectricPower
 import I2C
 import ElectricLogic
-from "st-lsm6dso32.ato" import ST_LSM6DSO32
+from "atopile/st-lsm6dso32/st-lsm6dso32.ato" import ST_LSM6DSO32
 
 module Usage:
     """
@@ -67,6 +67,7 @@ module Usage:
     # int_pin = new ElectricLogic
     # int_pin.reference ~ power_3v3
     # int_pin ~ imu.int1
+
 ```
 
 ### Advanced Configurations

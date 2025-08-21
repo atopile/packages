@@ -18,7 +18,7 @@ The DS2482S-800 is an 8-channel I2C-to-1-Wire bus adapter that allows easy conne
 
 import ElectricPower
 import I2C
-from "adi-ds2482s-800.ato" import ADI_DS2482S_800
+from "atopile/adi-ds2482s-800/adi-ds2482s-800.ato" import ADI_DS2482S_800
 
 module Usage:
     """
@@ -43,6 +43,7 @@ module Usage:
     # The 8 1-Wire channels are now available as:
     # ds2482.onewire_channels[0] through ds2482.onewire_channels[7]
     # These can be connected to DS18B20 temperature sensors or other 1-Wire devices
+
 ```
 
 ## Contributing

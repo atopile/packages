@@ -30,6 +30,7 @@ module Usage:
 
     # Bridge connect across the power rail
     power.hv ~> green_led ~> power.lv
+
 ```
 
 ## Contributing

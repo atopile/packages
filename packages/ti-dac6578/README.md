@@ -23,37 +23,48 @@ Texas Instruments DAC6578 8-Channel 10-Bit Digital-to-Analog Converter with I2C 
 ```ato
 import ElectricPower
 import I2C
+import Electrical
 
-from "ti-dac6578.ato" import TI_DAC6578
+from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
+
+module MCU:
+    """Host MCU providing I²C bus and power rail."""
+
+    power = new ElectricPower
+    i2c = new I2C
+
 
 module Usage:
     """Complete usage example for TI_DAC6578 DAC."""
 
+    # MCU & DAC
+    mcu = new MCU
     dac = new TI_DAC6578
 
-    # Connect power supply (3.3V example)
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 5%
-    power_3v3 ~ dac.power
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V +/- 5%
+    power ~ mcu.power
+    power ~ dac.power
 
-    # Connect I2C bus
-    i2c_bus = new I2C
-    i2c_bus.frequency = 400kHz
-    i2c_bus ~ dac.i2c
+    # I²C connection
+    mcu.i2c ~ dac.i2c
 
     # Note: DAC module includes 4.7k I2C pull-ups internally
 
     # Reference voltage (using power supply)
-    dac.vref ~ power_3v3.hv
+    dac.vref ~ power.hv
 
     # DAC outputs can be connected to external circuits
+    # Example: connecting to test points or analog circuits
     # dac.outputs[0] ~ analog_circuit_input_a  # Channel A
     # dac.outputs[1] ~ analog_circuit_input_b  # Channel B
     # ... etc for channels 2-7 (C through H)
 
     # Control signals can be connected to microcontroller pins:
-    # dac.clear_n ~ microcontroller.gpio_clear
-    # dac.ldac_n ~ microcontroller.gpio_ldac
+    # dac.clear_n ~ mcu.gpio_clear
+    # dac.ldac_n ~ mcu.gpio_ldac
+
 ```
 
 ## Pin Configuration

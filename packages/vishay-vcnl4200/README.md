@@ -26,12 +26,12 @@ The VCNL4200 is a high-resolution, long-distance proximity and ambient light sen
 import ElectricPower
 import I2C
 
-from "vishay-vcnl4200.ato" import Vishay_VCNL4200
+from "atopile/vishay-vcnl4200/vishay-vcnl4200.ato" import Vishay_VCNL4200
 
 module Usage:
     """
     Minimal usage example for Vishay VCNL4200 proximity and ambient light sensor.
-    Shows how to connect power supply and I2C bus with configurable address.
+    Shows how to connect power supply and I2C bus.
     """
 
     # Create sensor instance
@@ -49,8 +49,12 @@ module Usage:
     power_3v3 ~ sensor.power
     i2c_bus ~ sensor.i2c
 
-    # Set I2C address (0x51 default with LED_CATHODE to GND)
+    # Set I2C address (fixed for VCNL4200)
     sensor.i2c.address = 0x51
+
+    # LED control is optional - leave unconnected for always-on LED
+    # Connect to microcontroller GPIO to control LED programmatically
+
 ```
 
 ## Technical Specifications

@@ -14,7 +14,8 @@ import ElectricPower
 import I2C
 
 # --- Package import ---
-from "microchip-mcp23017.ato" import Microchip_MCP23017
+from "atopile/microchip-mcp23017/microchip-mcp23017.ato" import Microchip_MCP23017
+
 
 module Usage:
     """
@@ -42,6 +43,7 @@ module Usage:
 
     # (Optional) Explicitly set the expander address – defaults to 0x20
     expander.i2c.address = 0x20
+
 ```
 
 ## Contributing

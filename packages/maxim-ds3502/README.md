@@ -27,37 +27,50 @@ This package wraps the raw IC in a reusable Ato **module** that exposes:
 ## Usage
 
 ```ato
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
+import ElectricPower
+import I2C
+import Electrical
 
-import ElectricPower, I2C, Electrical
-from "maxim-ds3502.ato" import Maxim_DS3502
+from "atopile/maxim-ds3502/maxim-ds3502.ato" import Maxim_DS3502
 
-module Demo:
-    """DS3502 used as programmable divider between 3V3 and GND"""
+# Example MCU providing I²C bus and reading the wiper voltage with an ADC pin
+module MCU:
+    power = new ElectricPower
+    i2c = new I2C
+    adc_in = new Electrical
 
-    # Shared rail
-    rail_3v3 = new ElectricPower
-    rail_3v3.voltage = 3.3V +/- 5%
+module Usage:
+    """
+    Minimal wiring for the Maxim DS3502 (10 kΩ) used as a programmable voltage divider.
 
-    # I²C bus @ 400 kHz, address 0x28 (A1=A0=0)
+    1. The potentiometer top end (`RH`) is tied to 3V3, bottom end (`RL`) to GND.
+    2. The wiper (`RW`) is routed to an MCU ADC input so firmware can read the
+       divided voltage and the DS3502 can trim it over I²C.
+    3. Address pins `A1:A0` are left low which selects I²C address 0x28.
+    """
+
+    # MCU with I²C and ADC capabilities
+    mcu = new MCU
+
+    # Shared 3 V3 rail
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # I²C bus (Fast-mode, 400 kHz)
     i2c_bus = new I2C
-    i2c_bus.frequency = 400kHz
-    i2c_bus.address = 0x28
+    i2c_bus.address = 0x28  # A1=A0=0 on DS3502
 
     # DS3502 instance
     pot = new Maxim_DS3502
 
-    # Connect power and control
-    rail_3v3 ~ pot.power
-    i2c_bus  ~ pot.i2c
+    # Power distribution
+    power_3v3 ~ mcu.power
+    power_3v3 ~ pot.power
 
-    # Wire RH to 3V3, RL to GND, take RW as output
-    rail_3v3.hv ~ pot.potentiometer_high.line   # RH
-    rail_3v3.lv ~ pot.potentiometer_low.line    # RL
+    # Connect I²C
+    i2c_bus ~ mcu.i2c
+    i2c_bus ~ pot.i2c
 
-    divider_out = new Electrical
-    divider_out ~ pot.potentiometer_wiper.line  # RW
 ```
 
 ## LCSC Part Information

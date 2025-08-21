@@ -45,7 +45,7 @@ import ElectricPower
 import ElectricLogic
 import I2C
 
-from "awinic-aw9523.ato" import Awinic_AW9523
+from "atopile/awinic-aw9523/awinic-aw9523.ato" import Awinic_AW9523
 
 module Usage:
     """
@@ -88,6 +88,7 @@ module Usage:
     gpio_expander.gpios[9] ~ button_input[1]
     gpio_expander.gpios[10] ~ button_input[2]
     gpio_expander.gpios[11] ~ button_input[3]
+
 ```
 
 ## Important Notes

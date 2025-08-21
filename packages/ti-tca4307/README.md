@@ -25,7 +25,7 @@ The TCA4307 is a hot-swappable I²C bus buffer designed for I/O card insertion i
 import ElectricPower
 import I2C
 
-from "ti-tca4307.ato" import TI_TCA4307
+from "atopile/ti-tca4307/ti-tca4307.ato" import TI_TCA4307
 
 module Usage:
     """
@@ -54,6 +54,7 @@ module Usage:
 
     # Connect power supply
     power_3v3 ~ buffer.power
+
 ```
 
 ## Interface Details
