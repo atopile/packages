@@ -14,28 +14,22 @@ import I2C
 
 from "atopile/sensirion-sen6x/sensirion-sen6x.ato" import Sensirion_SEN6X
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-    power = new ElectricPower
-    i2c = new I2C
-
 module Usage:
     """Minimal example usage for Sensirion_SEN6X sensor."""
 
-    # Instances
-    mcu = new MCU
+    # Sensor
     environment_sensor = new Sensirion_SEN6X
 
-    # Shared 3.3V rail
+    # 3.3V power supply
     power = new ElectricPower
     power.voltage = 3.3V
-    power ~ mcu.power
     power ~ environment_sensor.power
     # depending on the Sensirion SEN6X model, between 75-200mA can be drawn,
     # might need a dcdc converter or separate LDO
 
-    # I²C connection
-    mcu.i2c ~ environment_sensor.i2c
+    # I²C bus
+    i2c = new I2C
+    i2c ~ environment_sensor.i2c
 
 ```
 
