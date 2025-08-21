@@ -3,25 +3,17 @@ import I2C
 
 from "atopile/st-h3lis331/st-h3lis331.ato" import ST_H3LIS331
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the ST_H3LIS331 accelerometer."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # Accelerometer sensor
     accelerometer = new ST_H3LIS331
 
-    # Shared 3V3 rail
+    # Power supply (3.3V typical)
     power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
+    assert power.voltage within 3.3V +/- 5%
     power ~ accelerometer.power
 
-    # I²C connection
-    mcu.i2c ~ accelerometer.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ accelerometer.i2c
