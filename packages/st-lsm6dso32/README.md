@@ -108,7 +108,7 @@ imu.cs ~ spi_cs_pin         # Connect to SPI chip select
 
 - **Supply voltage**: 1.71V to 3.6V (VDD), 1.62V to 3.6V (VDDIO)
 - **I2C addresses**: 0x6A (SA0 to GND) or 0x6B (SA0 to VDD)
-- **I2C pull-up resistors**: 4.7kΩ ±5% (built-in, optimized for up to 400kHz)
+- **I2C pull-up resistors**: 10kΩ ±5% (built-in, optimized for up to 400kHz)
 - **SPI interface**: Up to 10 MHz
 - **Temperature range**: -40°C to +85°C
 - **Package**: LGA-14 (2.5mm × 3.0mm)
