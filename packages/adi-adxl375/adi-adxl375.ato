@@ -37,11 +37,14 @@ module ADI_ADXL375:
     # --- I²C bus ---
     i2c.sda.reference ~ power_digital
     i2c.scl.reference ~ power_digital
-    addressor = new Addressor<address_bits=1>
-    addressor.address_lines[0].line ~ package.SDO_ALTADDRESS
-    addressor.address_lines[0].reference ~ power_digital
-    assert addressor.base is 0x53
-    assert addressor.address is i2c.address
+
+    # Default I2C address is 0x53, pull alt address line high to change to 0x1D
+    alternate_address = new ElectricLogic
+    alternate_address.line ~ package.SDO_ALTADDRESS
+    alternate_address.reference ~ power_digital
+
+    alternate_address.line ~ alternate_address.reference.lv
+    i2c.address = 0x53
 
     # --- Decoupling capacitors ---
     decoupling_capacitors = new Capacitor[2]
