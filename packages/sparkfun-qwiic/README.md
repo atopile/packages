@@ -21,43 +21,37 @@ import Resistor
 from "atopile/sparkfun-qwiic/sparkfun-qwiic.ato" import QwiicVertical
 from "atopile/sparkfun-qwiic/sparkfun-qwiic.ato" import QwiicHorizontal
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
 
 module Usage:
     """Minimal example showcasing both SparkFun Qwiic connector variants."""
 
-    # MCU & connectors
-    mcu = new MCU
+    # Qwiic connectors
     qwiic_vertical = new QwiicVertical
     qwiic_horizontal = new QwiicHorizontal
 
     # --- I²C bus ---
-    i2c = new I2C
+    # Main I2C bus (would connect to microcontroller in real application)
+    i2c_bus = new I2C
 
-    # Shared 3V3 rail
-    power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
-    power ~ qwiic_vertical.power
-    power ~ qwiic_horizontal.power
+    # Shared 3V3 rail (would come from voltage regulator in real application)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 10%
+    power_3v3 ~ qwiic_vertical.power
+    power_3v3 ~ qwiic_horizontal.power
 
-    # I²C bus wiring
-    i2c ~ qwiic_vertical.i2c
-    i2c ~ qwiic_horizontal.i2c
-    i2c ~ mcu.i2c
+    # I²C bus wiring - daisy chain the Qwiic connectors
+    i2c_bus ~ qwiic_vertical.i2c
+    i2c_bus ~ qwiic_horizontal.i2c
 
     # --- I²C pull-up resistors ---
+    i2c_bus.scl.reference ~ power_3v3
+    i2c_bus.sda.reference ~ power_3v3
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 10k +/- 1%
+        resistor.resistance = 10kohm +/- 1%
         resistor.package = "0402"
-    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
-    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+    i2c_bus.scl.line ~> pullup_resistors[0] ~> power_3v3.hv
+    i2c_bus.sda.line ~> pullup_resistors[1] ~> power_3v3.hv
 
 ```
 
