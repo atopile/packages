@@ -19,7 +19,6 @@ module Usage:
 
     # I²C bus
     i2c_bus = new I2C
-    i2c_bus.address = 0x28  # A1=A0=0 on DS3502
 
     # Power and I²C connections
     power_3v3 ~ pot.power
@@ -28,6 +27,7 @@ module Usage:
     # Wire potentiometer as voltage divider
     power_3v3.hv ~ pot.potentiometer_high.line  # RH to 3V3
     power_3v3.lv ~ pot.potentiometer_low.line   # RL to GND
+    pot.i2c.address = 0x28  # A1=A0=0 on DS3502
 
     # Wiper output
     wiper_out = new Electrical
