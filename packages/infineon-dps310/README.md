@@ -1,46 +1,39 @@
-# Sensirion SCD40 CO₂ Sensor
+# Infineon DPS310 Barometric Pressure and Altitude Sensor
 
-The SCD4x is Sensirion’s next generation miniature CO2
-sensor. This sensor builds on the photoacoustic sensing
-principle and Sensirion’s patented PAsens® and
-CMOSens® technology to offer high accuracy at an
-unmatched price and smallest form factor. SMD assembly
-allows cost- and space-effective integration of the sensor
-combined with maximal freedom of design. On-chip signal
-compensation is realized with the build-in SHT4x humidity
-and temperature sensor.
+The Infineon DPS310 is a miniaturized digital barometric pressure sensor capable of measuring both pressure and temperature. It features high precision and low current consumption, making it ideal for mobile applications, wearables, and IoT devices.
 
 ## Usage
 
 ```ato
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
 import ElectricPower
 import I2C
 
 from "atopile/infineon-dps310/infineon-dps310.ato" import Infineon_DPS310
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
-    """Minimal example for the Infineon_DPS310 barometric pressure and altitude sensor."""
+    """
+    Minimal usage example for infineon-dps310.
+    Infineon DPS310 barometric pressure and altitude sensor with I²C interface.
+    """
 
-    # MCU & sensor
-    mcu = new MCU
+    # DPS310 sensor instance
     pressure_sensor = new Infineon_DPS310
 
-    # Shared 3V3 rail
-    power = new ElectricPower
-    power.voltage = 3.3V
-    power ~ mcu.power
-    power ~ pressure_sensor.power
+    # Shared 3.3V rail
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
 
-    # I²C connection
-    mcu.i2c ~ pressure_sensor.i2c
+    # I²C bus
+    i2c_bus = new I2C
+    i2c_bus.address = 0x76  # SDO pin low
 
+    # Connect power and I²C
+    power_3v3 ~ pressure_sensor.power
+    i2c_bus ~ pressure_sensor.i2c
 ```
 
 ## Contributing
@@ -49,4 +42,4 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).
+This package is provided under the [MIT License](https://opensource.org/license/mit).
