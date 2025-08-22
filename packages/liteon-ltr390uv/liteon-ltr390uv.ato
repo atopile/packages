@@ -54,7 +54,7 @@ module Liteon_LTR390UV:
     decouple = new Capacitor
     decouple.capacitance = 100nF +/- 20%
     decouple.package = "0402"
-    power.vcc ~> decouple ~> power.gnd
+    power.hv ~> decouple ~> power.lv
 
     # --- Interrupt output ---
     interrupt.reference ~ power
