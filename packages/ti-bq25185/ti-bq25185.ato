@@ -67,6 +67,7 @@ module TI_BQ25185:
     """
     Temperature sense/Manual reset (TS_MR) - NTC thermistor connection
     """
+    temp_sense.line.required = True
 
     # --- Configuration parameters ---
     charge_current_limit: current
@@ -123,13 +124,11 @@ module TI_BQ25185:
 
     # --- Charge current setting ---
     # ISET resistor calculation: R_ISET = (300 * k_I * k_R) / I_CHG
-    # where k_I = 1A, k_R = 1000Ω for this device
-    k_factor = 300000  # 300 * 1A * 1000Ω
-
     charge_current_resistor = new Resistor
     charge_current_resistor.package = "0402"
     # Calculate resistance based on desired current
     # R = 300kΩ-A / I_charge
+    charge_current_resistor.resistance = (300 A * 1 ohms) / charge_current_limit
     # For 1A: R = 300kΩ / 1A = 300kΩ (not practical, use lower values)
     # For 500mA: R = 300kΩ / 0.5A = 600kΩ
     # For 100mA: R = 300kΩ / 0.1A = 3MΩ
