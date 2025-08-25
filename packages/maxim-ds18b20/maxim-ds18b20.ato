@@ -1,0 +1,77 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+# --- Standard library imports ---
+import ElectricPower
+import ElectricLogic
+import Electrical
+import Resistor
+import Capacitor
+import requires_pulls
+
+from "parts/Maxim_Integrated_DS18B20U_T_R/Maxim_Integrated_DS18B20U_T_R.ato" import Maxim_Integrated_DS18B20U_T_R_package
+from "parts/UMW_DS18B20_UMW/UMW_DS18B20_UMW.ato" import UMW_DS18B20_UMW_package
+from "parts/UMW_DS18B20Z_UMW/UMW_DS18B20Z_UMW.ato" import UMW_DS18B20Z_UMW_package
+
+module Maxim_DS18B20_driver:
+    """
+    Maxim DS18B20 1-Wire Digital Temperature Sensor TO-92 Package
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply for the DS18B20 (3V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 3V to 5.5V
+
+    data_line = new ElectricLogic
+    """
+    1-Wire data communication line (DQ pin)
+    Requires external 4.7kΩ pull-up resistor to VDD
+    """
+    data_line.required = True
+    data_line.reference ~ power
+
+    # --- Decoupling capacitor ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # TODO: Add requires pullup resistor
+    # trait requires_pulls<pred="data_line.line", required_resistance="4.7kohm">
+
+
+module Maxim_DS18B20U from Maxim_DS18B20_driver:
+    """
+    Maxim DS18B20U 1-Wire Digital Temperature Sensor MSOP-8 Package
+    """
+    package = new Maxim_Integrated_DS18B20U_T_R_package
+
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.DQ ~ data_line.line
+
+module Maxim_DS18B20 from Maxim_DS18B20_driver:
+    """
+    Maxim DS18B20 1-Wire Digital Temperature Sensor TO-92 Package
+    """
+    package = new UMW_DS18B20_UMW_package
+
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.DQ ~ data_line.line
+
+module Maxim_DS18B20Z from Maxim_DS18B20_driver:
+    """
+    Maxim DS18B20Z 1-Wire Digital Temperature Sensor SOIC-8 Package
+    """
+    package = new UMW_DS18B20Z_UMW_package
+
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.DQ ~ data_line.line
