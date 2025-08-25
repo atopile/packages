@@ -94,7 +94,7 @@ These tips should prevent common "footprint not found", "pin X missing", and bui
 
 ## 1.4 Legend
 
-`<latest_atopile_version>`: latest version of ato compiler (`ato --version`)
+`<lowest_atopile_version>`: lowest version of ato compiler package has run with (`ato --version`)
 
 `<manufacturer>`: lower-case, <10 chars
 
@@ -333,6 +333,9 @@ The package should follow the structure that is described in detail. To update a
 * We care a lot about package stability, this means we care that the pacakges build and pass the package verification check. Be sure that when you open a PR, the code changes still pass the ato build and ato package verify commands.
 * Keep PRs short and to the point. Explain briefly what you saw when you started working on the package, what you fixed in the package (version update from to, dependency upgrades from to, etc), and the current state of the package. PRs should only pertain to one package at a time, and should not have changes for any other packages in the changed files.
 * If the package specified to be update is in the /packages/packages/archive directory, then the first step will be moving it up to the packages/packages directory if there are no naming conflicts. If there are naming conflicts with this operation, please raise a flag and do not proceed.
+* Almost all physical values specified in ato should have a tolerance specified. Resistance, capacitance, inductance, voltage, etc. should almost always have a default tolerance.
+* Do not include imports or #pragmas that are not necessary
+* PRs that work on changes should be named `<package_name>`: Updating `<reason_for_updating>` or `<package_name>`: Create .  or similar
 ## 2.4 Forbidden actions
 * Some changes may necessetate this, but try not to change anything in the /layout directory, as this will then require manual intervention to check that the layout is working properly and slow down the process.
 * Do not make changes to any other packages while updating one package

@@ -36,7 +36,7 @@ jobs:
         id: claude-review
         uses: anthropics/claude-code-action@beta
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
           # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
           # model: "claude-opus-4-20250514"
@@ -46,18 +46,18 @@ jobs:
             Please review this pull request for an atopile package and provide feedback on:
 
             PR Format:
-            - Verify the PR title starts with the name of the package being updated
+            - Verify the PR title starts with the name of the package being updated, or if the changes are not related to a package, then the title should start with the section of the codebase being changed, such as "CO" or "DOCS"
 
             Code Review:
-            - Ensure the package follows the rules outlined in @.cursor/rules/how_to_build_packages.mdc
+            - Ensure the package follows the rules and best practices outlined in @.cursor/rules/how_to_build_packages.mdc
             - Ensure the PR is small and focused on a single package change, and doesn't include any unrelated changes
-            - Ensure the exact text of the usage.ato file is included in the readme.md file
+            - Ensure the exact text of the usage.ato file is included in the README.md file
             - Code quality and best practices
-            - Potential bugs or issues
-            - Funcitonality - try to find a datasheet for the main part in the package and check if the part is implemented correctly
+            - Potential bugs or issues, specifically by checking that the intended functionality of the part is implemented correctly. Verify the functionality by consulting the datasheet.
             - Use `ato build`, `ato build --frozen`, and `ato package verify` to check if the package is working correctly
 
-            Be constructive and helpful in your feedback.
+            Be constructive and helpful in your feedback. Brevity is important. Issues are more important than saying what is good.
+            At the top of your comment, list if you have found or think there may be any issues with the PR.
 
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           use_sticky_comment: true
@@ -77,7 +77,7 @@ jobs:
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
 
           # Optional: Add specific tools for running tests or linting
-          allowed_tools: "Bash(pre-commit run --all-files),Bash(uv run pytest*),Bash(uv run ato*)"
+          allowed_tools: "Bash(pre-commit run --all-files),Bash(uv run pytest*),Bash(uv run ato*),Bash(ato*)"
 
           # Optional: Skip review for certain conditions
           # if: |
