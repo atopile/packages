@@ -2,14 +2,13 @@
 
 The **Maxim DS18B20** is a programmable resolution 1-Wire digital thermometer that provides 9-bit to 12-bit Celsius temperature measurements. The DS18B20 communicates over a 1-Wire bus that by definition requires only one data line (and ground) for communication with a central microprocessor. It has an operating temperature range of -55°C to +125°C and is accurate to ±0.5°C over the range of -10°C to +85°C.
 
-* **Operating voltage:** 3.0V to 5.5V
-* **Current consumption:** 1.5mA (active)
-* **Temperature range:** -55°C to +125°C
-* **Accuracy:** ±0.5°C (-10°C to +85°C)
-* **Resolution:** 9-bit to 12-bit (default 12-bit, 0.0625°C)
-* **Communication:** 1-Wire protocol
-* **Package:** MSOP-8
-* **LCSC ID:** **C93246** (part `DS18B20U+T&R`)
+## Build Targets
+
+| Package | Target         |
+|---------|----------------|
+| TO-92   | Maxim_DS18B20  |
+| MSOP-8  | Maxim_DS18B20U |
+| SOIC-8  | Maxim_DS18B20Z |
 
 ## Ato Module Exposed Interfaces
 
