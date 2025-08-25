@@ -1,0 +1,37 @@
+import I2C
+import ElectricPower
+
+from "atopile/ti-iso1640x/ti-iso1640x.ato" import TI_ISO1640QDWRQ1
+
+module Usage:
+    """
+    Example usage of ISO1640QDWRQ1 I2C isolator
+    Connect a microcontroller to a sensor via an I2C isolator
+    """
+
+    # Component
+    isolator = new TI_ISO1640QDWRQ1
+
+    # Power Rails
+    power_3v3 = new ElectricPower
+    power_iso_3v3 = new ElectricPower
+
+    # Set power rail voltages
+    assert power_3v3.voltage within 3.3V +/- 5%
+    assert power_iso_3v3.voltage within 3.3V +/- 5%
+
+    # I2C interfaces (would connect to your microcontroller and sensor)
+    i2c_side1 = new I2C
+    i2c_side2 = new I2C
+
+    # Configure I2C frequency
+    assert i2c_side1.frequency <= 400kHz
+    assert i2c_side2.frequency <= 400kHz
+
+    # I2C Connections
+    i2c_side1 ~ isolator.i2cs[0]
+    i2c_side2 ~ isolator.i2cs[1]
+
+    # Power connections
+    power_3v3 ~ isolator.power_rails[0]
+    power_iso_3v3 ~ isolator.power_rails[1]
