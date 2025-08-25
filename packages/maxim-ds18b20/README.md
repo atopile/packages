@@ -35,7 +35,7 @@ module Usage:
     Minimal usage example for Maxim DS18B20 1-Wire Digital Temperature Sensor.
 
     The DS18B20 is connected to a microcontroller via a single 1-Wire data line.
-    The sensor includes an internal 4.7kΩ pull-up resistor to VDD automatically.
+    The one wire data line requires one external 4.7kΩ pull-up resistor to VDD per bus.
     """
 
     # Power supply (3.3V)
