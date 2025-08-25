@@ -18,7 +18,6 @@ High-performance 6-axis inertial measurement unit (IMU) with 3-axis acceleromete
 ### Basic I2C Configuration
 
 ```ato
-#pragma experiment("TRAITS")
 import ElectricPower
 import I2C
 import ElectricLogic
@@ -58,10 +57,8 @@ module Usage:
 
     # Connect SA0 pin to GND for 0x6A address
     # For 0x6B address, connect to VDD instead
-    ground_ref = new ElectricLogic
-    ground_ref.reference ~ power_3v3
-    ground_ref.line ~ power_3v3.lv  # Connect to ground
-    ground_ref ~ imu.sdo_sa0
+    imu.sdo_sa0.reference ~ power_3v3
+    imu.sdo_sa0.line ~ power_3v3.lv
 
     # Optional: Connect interrupt pin for motion detection
     # int_pin = new ElectricLogic
@@ -111,7 +108,7 @@ imu.cs ~ spi_cs_pin         # Connect to SPI chip select
 
 - **Supply voltage**: 1.71V to 3.6V (VDD), 1.62V to 3.6V (VDDIO)
 - **I2C addresses**: 0x6A (SA0 to GND) or 0x6B (SA0 to VDD)
-- **I2C pull-up resistors**: 4.7kΩ ±5% (built-in, optimized for up to 400kHz)
+- **I2C pull-up resistors**: 10kΩ ±5% (built-in, optimized for up to 400kHz)
 - **SPI interface**: Up to 10 MHz
 - **Temperature range**: -40°C to +85°C
 - **Package**: LGA-14 (2.5mm × 3.0mm)

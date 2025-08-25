@@ -4,6 +4,7 @@
 import ElectricPower
 import ElectricLogic
 import I2C
+import Resistor
 from "atopile/ti-ina228/ti-ina228.ato" import TI_INA228
 
 module Usage:
@@ -24,6 +25,16 @@ module Usage:
     # Supply voltage for all INA228 devices (3.3V logic)
     supply_3v3 = new ElectricPower
     supply_3v3.voltage = 3.3V +/- 5%
+
+    # I2C pullup resistors (required for proper I2C operation)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 4.7kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> supply_3v3.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> supply_3v3.hv
+    i2c.scl.reference ~ supply_3v3
+    i2c.sda.reference ~ supply_3v3
 
     # === Example 1: Low current USB device monitoring (100mA max) ===
     # USB 5V rail monitoring

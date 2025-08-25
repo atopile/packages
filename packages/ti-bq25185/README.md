@@ -18,7 +18,6 @@ The BQ25185 is a highly integrated 1A single-input, single-cell Li-Ion and Li-Po
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 
 import ElectricPower
@@ -58,7 +57,7 @@ module Usage:
     # Charge configuration (default values set by resistors in module)
     # - Input current limit: 500mA (set by 18kΩ ILIM_VSET resistor)
     # - Battery regulation voltage: 4.2V (set by 18kΩ ILIM_VSET resistor)
-    # - Charge current: depends on ISET resistor value
+    charger.charge_current_limit = 500mA +/- 5%
 
     # Status LEDs can be connected to status_1 and status_2 pins
     # status_1: Fault indication (active low)
