@@ -111,6 +111,13 @@ module Usage:
     sbi.isoSPI_down ~ adbms6822.isospi_ports[1]
     sbi.isoSPI_passthru ~ adbms6822.isospi_ports[1]
 
+    # Bridge stack signals so Teensy lines reach the daughter board (6830)
+    sbi.signals_down.1 ~ sbi.signals_up.1
+    sbi.signals_down.2 ~ sbi.signals_up.2
+    sbi.signals_down.3 ~ sbi.signals_up.3
+    sbi.signals_down.4 ~ sbi.signals_up.4
+    sbi.signals_down.8 ~ sbi.signals_up.8
+
     sbi.signals_up.1 ~ teensy.gpio[22]
     sbi.signals_up.2 ~ teensy.gpio[21]
     sbi.signals_up.3 ~ teensy.gpio[20]
