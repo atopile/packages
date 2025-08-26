@@ -9,7 +9,7 @@
 // ISOMD mode select pin routed to Teensy GPIO per usage.ato: Teensy gpio[41]
 #define PIN_ISOMD 41
 
-SPISettings settings(400000, MSBFIRST, SPI_MODE3);
+SPISettings settings(2000000, MSBFIRST, SPI_MODE3);
 
 static void wakeup()
 {
@@ -317,7 +317,7 @@ void readData(uint16_t nCommand, uint8_t *pRxBuf, uint8_t numBytes)
 float convertToVoltage(uint8_t highByte, uint8_t lowByte)
 {
     // Combine highByte and lowByte into a uint16_t
-    uint16_t twoByteValue = (static_cast<uint16_t>(highByte) << 8) | lowByte;
+    int16_t twoByteValue = (static_cast<int16_t>(highByte) << 8) | lowByte;
 
     // Convert the 2-byte value to voltage
     float voltage = 150e-6 * twoByteValue + 1.5;
@@ -328,25 +328,22 @@ void measureVoltages(uint8_t cellVoltageRegisters[])
 {
     // Send ADCV (cells) then ADSV (switch) commands
     sendCommand(ADCV);
-    delay(3);
+    // delay(3);
     sendCommand(ADSV);
 
     // Wait for the ADC to finish
-    delay(20);
+    // delay(50);
+    delay(10);
 
     // Read voltages
-    float cellVoltages[18];
+    float cellVoltages[16];
     uint8_t n = 0;
     // Read cell voltages
     for (int i = 0; i < 6; i++)
     {
         uint8_t data[6];
+        wakeup();
         readData(cellVoltageRegisters[i], data, 6);
-        // Basic sanity: if all zeros, print a warning once
-        if (i == 0 && data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 0 && data[4] == 0 && data[5] == 0)
-        {
-            Serial.println("WARN: Received all 0s from RDCVx. Check SPI wiring/ISOMD/CS timing.");
-        }
         cellVoltages[n] = convertToVoltage(data[1], data[0]);
         cellVoltages[n + 1] = convertToVoltage(data[3], data[2]);
         cellVoltages[n + 2] = convertToVoltage(data[5], data[4]);
@@ -440,7 +437,8 @@ void setup()
     pinMode(TEENSY_SPI_CS, OUTPUT);
     digitalWrite(TEENSY_SPI_CS, HIGH);
     pinMode(PIN_ISOMD, OUTPUT);
-    digitalWrite(PIN_ISOMD, LOW); // Pull ISOMD low for SPI mode
+    // pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(PIN_ISOMD, HIGH); // Pull ISOMD low for SPI mode
     Serial.println("Boot: Teensy SPI init, ISOMD=LOW, attempting ID read...");
     wakeup();
     // Try reading silicon ID a few times at boot
@@ -460,15 +458,37 @@ void setup()
 
 void loop()
 {
-    // SPI pulse test: force SCK/MOSI activity periodically
-    SPI.beginTransaction(settings);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-    uint8_t pattern[16];
-    for (int i = 0; i < 16; ++i)
-        pattern[i] = 0xAA; // 1010...
-    SPI.transfer(pattern, sizeof(pattern));
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    SPI.endTransaction();
-    Serial.println("SPI: sent 16 bytes 0xAA");
+    // for (int attempt = 0; attempt < 5; ++attempt)
+    // {
+    //     wakeup();
+    //     // delay();
+    //     uint8_t id_buf[2] = {0};
+    //     readData(RDSID, id_buf, 6);
+    //     Serial.print("RDSID[attempt ");
+    //     Serial.print(attempt);
+    //     Serial.print("]: 0x");
+    //     Serial.print(id_buf[0], HEX);
+    //     Serial.print(" ");
+    //     Serial.println(id_buf[1], HEX);
+    //     delay(100);
+    // }
+    // Measure CADC (unfiltered)
+    wakeup();
+    uint8_t cellVoltageRegisters[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
+    Serial.print("CADC:  ");
+    measureVoltages(cellVoltageRegisters);
+    // // SPI pulse test: force SCK/MOSI activity periodically
+    // digitalWrite(LED_BUILTIN,HIGH);
+    // SPI.beginTransaction(settings);
+    // digitalWrite(TEENSY_SPI_CS, LOW);
+    // uint8_t pattern[16];
+    // for (int i = 0; i < 16; ++i)
+    // pattern[i] = 0xAA; // 1010...
+    // SPI.transfer(pattern, sizeof(pattern));
+    // digitalWrite(TEENSY_SPI_CS, HIGH);
+    // SPI.endTransaction();
+    // Serial.println("SPI: sent 16 bytes 0xAA");
+    // delay(500);
+    // digitalWrite(LED_BUILTIN,LOW);
     delay(500);
 }
