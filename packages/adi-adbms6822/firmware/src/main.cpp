@@ -5,28 +5,26 @@
 #define TOGGLE_TEST 0
 
 // Teensy 4.1 SPI0: MOSI=11, MISO=12, SCK=13. CS=10 per mapping
-#define TEENSY_SPI_CS 10
+// Teensy 4.1 SPI1: MOSI=26, MISO=1, SCK=27. CS=0 per mapping
+
 // ISOMD mode select pin routed to Teensy GPIO per usage.ato: Teensy gpio[41]
 #define PIN_ISOMD 41
+#define NUM_ASICS 3
+
+constexpr uint8_t CMD_PACKET_BYTES = 2;
+constexpr uint8_t CMD_PACKET_ERROR_CODE_BYTES = 2;
+constexpr uint8_t DATA_PACKET_BYTES = 6;
+constexpr uint8_t DATA_PACKET_ERROR_CODE_BYTES = 2;
+
+SPIClass * const DIRECTION_A_SPI = &SPI;
+constexpr uint8_t DIRECTION_A_CS = 10;
+SPIClass * const DIRECTION_B_SPI = &SPI1;
+constexpr uint8_t DIRECTION_B_CS = 0;
+
+SPIClass *directional_spi = DIRECTION_A_SPI; // SPI pointer, switch SPI direction for daisy chain loop. Defaults to SPI (SPI0), can change to SPI1 to reverse direction
+uint8_t directional_spi_cs = DIRECTION_A_CS; // Change to 0 for reverse SPI direction
 
 SPISettings settings(2000000, MSBFIRST, SPI_MODE3);
-
-static void wakeup()
-{
-    // Common wake-up: CS toggle and preamble bytes
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-    delayMicroseconds(10);
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    delay(2);
-    SPI.beginTransaction(settings);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-    uint8_t pre[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-    SPI.transfer(pre, sizeof(pre));
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    SPI.endTransaction();
-}
 
 // Commands and constants
 #define ADBMS6948_SHIFT_BY_8 ((uint8_t)8u)
@@ -211,6 +209,38 @@ uint16_t calculatePEC10(uint8_t *pDataBuf, uint8_t nLength, boolean bIsRxCmd)
     return ((uint16_t)(nRemainder & 0x3FFu));
 }
 
+void spiTransaction(uint8_t *aCmd, uint8_t numBytes){
+    directional_spi->beginTransaction(settings);
+    digitalWrite(directional_spi_cs, LOW);
+    directional_spi->transfer(aCmd, numBytes);
+    digitalWrite(directional_spi_cs, HIGH);
+    directional_spi->endTransaction();
+}
+
+void wakeup()
+{
+    // Common wake-up: CS toggle and preamble bytes
+    for (int i = 0; i < NUM_ASICS; i++)
+    {
+        Serial.println(directional_spi_cs);
+        delayMicroseconds(200);
+        digitalWrite(directional_spi_cs, HIGH);
+        delayMicroseconds(1);
+        digitalWrite(directional_spi_cs, LOW);
+    }
+    digitalWrite(directional_spi_cs, HIGH);
+    delayMicroseconds(300);
+    // delayMicroseconds(NUM_ASICS);
+    // delay(2);
+    // SPI.beginTransaction(settings);
+    // uint8_t pre[16] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    // digitalWrite(directional_spi_cs, LOW);
+    // uint8_t pre[1] = {0xFF};
+    // spiTransaction(pre, sizeof(pre));
+    // SPI.endTransaction();
+}
+
+
 void sendCommand(uint16_t nCommand)
 {
     uint16_t nCmdPec;
@@ -224,13 +254,7 @@ void sendCommand(uint16_t nCommand)
     aCmd[2] = (uint8_t)(nCmdPec >> ADBMS6948_SHIFT_BY_8);
     aCmd[3] = (uint8_t)(nCmdPec);
 
-    // Start SPI transaction
-    SPI.beginTransaction(settings);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-    SPI.transfer(aCmd, sizeof(aCmd));
-    // End SPI transaction
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    SPI.endTransaction();
+    spiTransaction(aCmd, sizeof(aCmd));
 }
 
 void writeData(uint16_t nCommand, uint8_t *pTxBuf, uint8_t len)
@@ -264,20 +288,16 @@ void writeData(uint16_t nCommand, uint8_t *pTxBuf, uint8_t len)
     aCmd[4 + len + 1] = (uint8_t)(dataPec);
 
     // Start SPI transaction
-    SPI.beginTransaction(settings);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-    SPI.transfer(aCmd, bufferSize);
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    SPI.endTransaction();
+    spiTransaction(aCmd,sizeof(aCmd));
 }
 
 void readData(uint16_t nCommand, uint8_t *pRxBuf, uint8_t numBytes)
 {
     uint16_t nCmdPec;
-    // 4 bytes for command, return bytes, 2 bytes for PEC
-    uint8_t bytesToRead = numBytes + 2;
-    uint8_t bufferSize = 4 + bytesToRead;
+    uint8_t bytesToRead = NUM_ASICS*(DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES);
+    uint8_t bufferSize = CMD_PACKET_BYTES+CMD_PACKET_ERROR_CODE_BYTES+bytesToRead;
     uint8_t aCmd[bufferSize];
+    Serial.println(sizeof(aCmd));
 
     // Populate the command part of the buffer
     aCmd[0] = (uint8_t)((nCommand & 0xFF00u) >> ADBMS6948_SHIFT_BY_8);
@@ -293,19 +313,10 @@ void readData(uint16_t nCommand, uint8_t *pRxBuf, uint8_t numBytes)
     // Fill the rest of the buffer with 0x00
     for (int i = 0; i < bytesToRead; i++)
     {
-        aCmd[4 + i] = 0x00; // Uncomment if necessary
+        aCmd[4 + i] = 0x00;
     }
 
-    // Start SPI transaction
-    SPI.beginTransaction(settings);
-    digitalWrite(TEENSY_SPI_CS, LOW);
-
-    // Send the data
-    SPI.transfer(aCmd, bufferSize);
-
-    // End SPI transaction
-    digitalWrite(TEENSY_SPI_CS, HIGH);
-    SPI.endTransaction();
+    spiTransaction(aCmd, sizeof(aCmd));
 
     // Copy the received data to the pRxBuf
     for (int i = 0; i < numBytes; i++)
@@ -329,17 +340,17 @@ void measureVoltages(uint8_t cellVoltageRegisters[])
     // Send ADCV (cells) then ADSV (switch) commands
     sendCommand(ADCV);
     // delay(3);
-    sendCommand(ADSV);
+    // sendCommand(ADSV);
 
     // Wait for the ADC to finish
     // delay(50);
     delay(10);
 
     // Read voltages
-    float cellVoltages[16];
+    float cellVoltages[16*NUM_ASICS];
     uint8_t n = 0;
     // Read cell voltages
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < sizeof(cellVoltageRegisters); i++)
     {
         uint8_t data[6];
         wakeup();
@@ -351,7 +362,7 @@ void measureVoltages(uint8_t cellVoltageRegisters[])
     }
 
     // Print cell voltages
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16*NUM_ASICS; i++)
     {
         Serial.print(cellVoltages[i], 4);
         Serial.print(" ");
@@ -434,8 +445,11 @@ void setup()
     return;
 #endif
     SPI.begin();
-    pinMode(TEENSY_SPI_CS, OUTPUT);
-    digitalWrite(TEENSY_SPI_CS, HIGH);
+    SPI1.begin();
+    pinMode(10, OUTPUT);
+    pinMode(0, OUTPUT);
+    digitalWrite(10, HIGH);
+    digitalWrite(0, HIGH);
     pinMode(PIN_ISOMD, OUTPUT);
     // pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(PIN_ISOMD, HIGH); // Pull ISOMD low for SPI mode
@@ -458,37 +472,35 @@ void setup()
 
 void loop()
 {
-    // for (int attempt = 0; attempt < 5; ++attempt)
-    // {
-    //     wakeup();
-    //     // delay();
-    //     uint8_t id_buf[2] = {0};
-    //     readData(RDSID, id_buf, 6);
-    //     Serial.print("RDSID[attempt ");
-    //     Serial.print(attempt);
-    //     Serial.print("]: 0x");
-    //     Serial.print(id_buf[0], HEX);
-    //     Serial.print(" ");
-    //     Serial.println(id_buf[1], HEX);
-    //     delay(100);
-    // }
-    // Measure CADC (unfiltered)
-    wakeup();
-    uint8_t cellVoltageRegisters[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
-    Serial.print("CADC:  ");
-    measureVoltages(cellVoltageRegisters);
-    // // SPI pulse test: force SCK/MOSI activity periodically
-    // digitalWrite(LED_BUILTIN,HIGH);
-    // SPI.beginTransaction(settings);
-    // digitalWrite(TEENSY_SPI_CS, LOW);
-    // uint8_t pattern[16];
-    // for (int i = 0; i < 16; ++i)
-    // pattern[i] = 0xAA; // 1010...
-    // SPI.transfer(pattern, sizeof(pattern));
-    // digitalWrite(TEENSY_SPI_CS, HIGH);
-    // SPI.endTransaction();
-    // Serial.println("SPI: sent 16 bytes 0xAA");
-    // delay(500);
-    // digitalWrite(LED_BUILTIN,LOW);
-    delay(500);
+    directional_spi = &SPI;
+    directional_spi_cs = 10;
+    for (int attempt = 0; attempt < 500; ++attempt)
+    {
+        wakeup();
+        uint8_t id_buf[NUM_ASICS*DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES] = {0};
+        readData(RDCFGA, id_buf,sizeof(id_buf));
+        Serial.print("RDCFGAs");
+        for (int i=0; i<sizeof(id_buf); i++){
+            Serial.print("-");
+            Serial.print(id_buf[i], HEX);
+        }
+        Serial.println();
+    }
+    delay(1000);
+
+    directional_spi = &SPI1;
+    directional_spi_cs = 0;
+    for (int attempt = 0; attempt < 500; ++attempt)
+    {
+        wakeup();
+        uint8_t id_buf[NUM_ASICS*DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES] = {0};
+        readData(RDSID, id_buf,sizeof(id_buf));
+        Serial.print("RDSIDs");
+        for (int i=0; i<sizeof(id_buf); i++){
+            Serial.print("-");
+            Serial.print(id_buf[i], HEX);
+        }
+        Serial.println();
+    }
+    delay(1000);
 }
