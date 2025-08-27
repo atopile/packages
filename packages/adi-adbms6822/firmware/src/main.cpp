@@ -1,15 +1,14 @@
 #include <Arduino.h>
 // Teensy SPI (hardware SPI0)
 #include <SPI.h>
-
-#define TOGGLE_TEST 0
+#include <vector>
 
 // Teensy 4.1 SPI0: MOSI=11, MISO=12, SCK=13. CS=10 per mapping
 // Teensy 4.1 SPI1: MOSI=26, MISO=1, SCK=27. CS=0 per mapping
 
 // ISOMD mode select pin routed to Teensy GPIO per usage.ato: Teensy gpio[41]
-#define PIN_ISOMD 41
-#define NUM_ASICS 3
+constexpr uint8_t NUM_ASICS = 1;
+constexpr uint8_t CHANNELS_PER_ASIC = 16;
 
 constexpr uint8_t CMD_PACKET_BYTES = 2;
 constexpr uint8_t CMD_PACKET_ERROR_CODE_BYTES = 2;
@@ -24,7 +23,7 @@ constexpr uint8_t DIRECTION_B_CS = 0;
 SPIClass *directional_spi = DIRECTION_A_SPI; // SPI pointer, switch SPI direction for daisy chain loop. Defaults to SPI (SPI0), can change to SPI1 to reverse direction
 uint8_t directional_spi_cs = DIRECTION_A_CS; // Change to 0 for reverse SPI direction
 
-SPISettings settings(2000000, MSBFIRST, SPI_MODE3);
+SPISettings settings(1000000, MSBFIRST, SPI_MODE3);
 
 // Commands and constants
 #define ADBMS6948_SHIFT_BY_8 ((uint8_t)8u)
@@ -105,6 +104,11 @@ SPISettings settings(2000000, MSBFIRST, SPI_MODE3);
 #define RDPWMA ((uint16_t)0x0022u)
 #define WRPWMB ((uint16_t)0x0021u)
 #define RDPWMB ((uint16_t)0x0023u)
+
+// Voltage measurment register groups
+uint8_t cellVoltageRegisters[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
+uint8_t cellVoltageRegistersFiltered[] = {RDFCA, RDFCB, RDFCC, RDFCD, RDFCE, RDFCF};
+uint8_t switchVoltageRegisters[] = {RDSVA, RDSVB, RDSVC, RDSVD, RDSVE, RDSVF};
 
 /* Pre-computed CRC15 Table */
 static const uint16_t Adbms6948_Crc15Table[256] =
@@ -220,12 +224,11 @@ void spiTransaction(uint8_t *aCmd, uint8_t numBytes){
 void wakeup()
 {
     // Common wake-up: CS toggle and preamble bytes
-    for (int i = 0; i < NUM_ASICS; i++)
+    for (int i = 0; i < NUM_ASICS*2; i++)
     {
-        Serial.println(directional_spi_cs);
         delayMicroseconds(200);
         digitalWrite(directional_spi_cs, HIGH);
-        delayMicroseconds(1);
+        delayMicroseconds(10);
         digitalWrite(directional_spi_cs, LOW);
     }
     digitalWrite(directional_spi_cs, HIGH);
@@ -297,7 +300,6 @@ void readData(uint16_t nCommand, uint8_t *pRxBuf, uint8_t numBytes)
     uint8_t bytesToRead = NUM_ASICS*(DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES);
     uint8_t bufferSize = CMD_PACKET_BYTES+CMD_PACKET_ERROR_CODE_BYTES+bytesToRead;
     uint8_t aCmd[bufferSize];
-    Serial.println(sizeof(aCmd));
 
     // Populate the command part of the buffer
     aCmd[0] = (uint8_t)((nCommand & 0xFF00u) >> ADBMS6948_SHIFT_BY_8);
@@ -335,39 +337,42 @@ float convertToVoltage(uint8_t highByte, uint8_t lowByte)
     return voltage;
 }
 
-void measureVoltages(uint8_t cellVoltageRegisters[])
+void measureVoltages(float *voltageRxBuf, const uint8_t registers[], size_t registersCount)
 {
     // Send ADCV (cells) then ADSV (switch) commands
+    wakeup();
     sendCommand(ADCV);
     // delay(3);
     // sendCommand(ADSV);
 
-    // Wait for the ADC to finish
-    // delay(50);
-    delay(10);
+    delay(5);
 
-    // Read voltages
-    float cellVoltages[16*NUM_ASICS];
-    uint8_t n = 0;
     // Read cell voltages
-    for (int i = 0; i < sizeof(cellVoltageRegisters); i++)
+    uint8_t outIndex = 0;
+    for (size_t reg_num = 0; reg_num < registersCount; reg_num++)
     {
-        uint8_t data[6];
+        outIndex = reg_num * 3;
+        // Read full frame per ASIC: data + PEC (6 + 2 bytes)
+        uint8_t data[(DATA_PACKET_BYTES + DATA_PACKET_ERROR_CODE_BYTES) * NUM_ASICS];
         wakeup();
-        readData(cellVoltageRegisters[i], data, 6);
-        cellVoltages[n] = convertToVoltage(data[1], data[0]);
-        cellVoltages[n + 1] = convertToVoltage(data[3], data[2]);
-        cellVoltages[n + 2] = convertToVoltage(data[5], data[4]);
-        n += 3;
+        readData(registers[reg_num], data, sizeof(data));
+        for (uint8_t asic = 0; asic < NUM_ASICS; asic++)
+        {
+            const uint8_t base = asic * (DATA_PACKET_BYTES + DATA_PACKET_ERROR_CODE_BYTES);
+            if (outIndex < CHANNELS_PER_ASIC)
+            {
+                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex] = convertToVoltage(data[base + 1], data[base + 0]);
+            }
+            if (outIndex + 1 < CHANNELS_PER_ASIC)
+            {
+                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex + 1] = convertToVoltage(data[base + 3], data[base + 2]);
+            }
+            if (outIndex + 2 < CHANNELS_PER_ASIC)
+            {
+                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex + 2] = convertToVoltage(data[base + 5], data[base + 4]);
+            }
+        }
     }
-
-    // Print cell voltages
-    for (int i = 0; i < 16*NUM_ASICS; i++)
-    {
-        Serial.print(cellVoltages[i], 4);
-        Serial.print(" ");
-    }
-    Serial.println();
 }
 
 void measureAuxVoltages(uint8_t auxRegisters[])
@@ -438,69 +443,35 @@ void balanceCells(uint8_t balancePWMs[8], uint8_t timeout)
 void setup()
 {
     Serial.begin(115200);
-    while (!Serial && millis() < 1000)
-    {
-    }
-#if TOGGLE_TEST
-    return;
-#endif
-    SPI.begin();
-    SPI1.begin();
-    pinMode(10, OUTPUT);
-    pinMode(0, OUTPUT);
-    digitalWrite(10, HIGH);
-    digitalWrite(0, HIGH);
-    pinMode(PIN_ISOMD, OUTPUT);
-    // pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(PIN_ISOMD, HIGH); // Pull ISOMD low for SPI mode
-    Serial.println("Boot: Teensy SPI init, ISOMD=LOW, attempting ID read...");
-    wakeup();
-    // Try reading silicon ID a few times at boot
-    for (int attempt = 0; attempt < 5; ++attempt)
-    {
-        uint8_t id_buf[2] = {0};
-        readData(RDSID, id_buf, 2);
-        Serial.print("RDSID[attempt ");
-        Serial.print(attempt);
-        Serial.print("]: 0x");
-        Serial.print(id_buf[0], HEX);
-        Serial.print(" ");
-        Serial.println(id_buf[1], HEX);
-        delay(10);
-    }
+    DIRECTION_A_SPI->begin();
+    DIRECTION_B_SPI->begin();
+    pinMode(DIRECTION_A_CS,OUTPUT);
+    pinMode(DIRECTION_B_CS,OUTPUT);
+    digitalWrite(DIRECTION_A_CS,HIGH);
+    digitalWrite(DIRECTION_B_CS,HIGH);
+
 }
 
 void loop()
 {
-    directional_spi = &SPI;
-    directional_spi_cs = 10;
-    for (int attempt = 0; attempt < 500; ++attempt)
-    {
-        wakeup();
-        uint8_t id_buf[NUM_ASICS*DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES] = {0};
-        readData(RDCFGA, id_buf,sizeof(id_buf));
-        Serial.print("RDCFGAs");
-        for (int i=0; i<sizeof(id_buf); i++){
-            Serial.print("-");
-            Serial.print(id_buf[i], HEX);
-        }
-        Serial.println();
-    }
-    delay(1000);
+    directional_spi = DIRECTION_A_SPI;
+    directional_spi_cs = DIRECTION_A_CS;
+    
+    float voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
+    measureVoltages(voltage_measurements,cellVoltageRegisters,sizeof(cellVoltageRegisters));
 
-    directional_spi = &SPI1;
-    directional_spi_cs = 0;
-    for (int attempt = 0; attempt < 500; ++attempt)
+    Serial.print("Voltages: ");
     {
-        wakeup();
-        uint8_t id_buf[NUM_ASICS*DATA_PACKET_BYTES+DATA_PACKET_ERROR_CODE_BYTES] = {0};
-        readData(RDSID, id_buf,sizeof(id_buf));
-        Serial.print("RDSIDs");
-        for (int i=0; i<sizeof(id_buf); i++){
-            Serial.print("-");
-            Serial.print(id_buf[i], HEX);
+        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
+        {
+            Serial.print(voltage_measurements[i], 4);
+            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
+            {
+                Serial.print(" ");
+            }
         }
-        Serial.println();
     }
-    delay(1000);
+    Serial.println();
+    delay(500);
+    
 }
