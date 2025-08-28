@@ -40,6 +40,7 @@ module Usage:
     power.voltage = 3.3V +/- 5%
 
     analog_switch = new Texas_Instruments_TS5A22362DGSR
+    power ~ analog_switch.power
 
     input_signals = new Electrical[2]
     output_signals = new Electrical[2]
