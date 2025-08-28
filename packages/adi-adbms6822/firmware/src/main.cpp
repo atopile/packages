@@ -7,7 +7,7 @@
 // Teensy 4.1 SPI1: MOSI=26, MISO=1, SCK=27. CS=0 per mapping
 
 // ISOMD mode select pin routed to Teensy GPIO per usage.ato: Teensy gpio[41]
-constexpr uint8_t NUM_ASICS = 1;
+constexpr uint8_t NUM_ASICS = 2;
 constexpr uint8_t CHANNELS_PER_ASIC = 16;
 
 constexpr uint8_t CMD_PACKET_BYTES = 2;
@@ -339,41 +339,67 @@ float convertToVoltage(uint8_t highByte, uint8_t lowByte)
 
 void measureVoltages(float *voltageRxBuf, const uint8_t registers[], size_t registersCount)
 {
-    // Send ADCV (cells) then ADSV (switch) commands
-    wakeup();
-    sendCommand(ADCV);
-    // delay(3);
-    // sendCommand(ADSV);
-
-    delay(5);
-
     // Read cell voltages
     uint8_t outIndex = 0;
     for (size_t reg_num = 0; reg_num < registersCount; reg_num++)
     {
-        outIndex = reg_num * 3;
-        // Read full frame per ASIC: data + PEC (6 + 2 bytes)
-        uint8_t data[(DATA_PACKET_BYTES + DATA_PACKET_ERROR_CODE_BYTES) * NUM_ASICS];
+        outIndex=reg_num*3;
+        uint8_t data[DATA_PACKET_BYTES*NUM_ASICS];
         wakeup();
         readData(registers[reg_num], data, sizeof(data));
         for (uint8_t asic = 0; asic < NUM_ASICS; asic++)
         {
-            const uint8_t base = asic * (DATA_PACKET_BYTES + DATA_PACKET_ERROR_CODE_BYTES);
-            if (outIndex < CHANNELS_PER_ASIC)
-            {
-                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex] = convertToVoltage(data[base + 1], data[base + 0]);
-            }
-            if (outIndex + 1 < CHANNELS_PER_ASIC)
-            {
-                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex + 1] = convertToVoltage(data[base + 3], data[base + 2]);
-            }
-            if (outIndex + 2 < CHANNELS_PER_ASIC)
-            {
-                voltageRxBuf[CHANNELS_PER_ASIC * asic + outIndex + 2] = convertToVoltage(data[base + 5], data[base + 4]);
-            }
+            if (outIndex < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex] = convertToVoltage(data[6*asic+1], data[6*asic]); }
+            if (outIndex+1 < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex+1] = convertToVoltage(data[6*asic+3], data[6*asic+2]); }
+            if (outIndex+2 < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex+2] = convertToVoltage(data[6*asic+5], data[6*asic+4]); }
         }
     }
 }
+
+void measure_primary_voltages(float primary_voltage_measurements[]) // need to call ADSV then wait for conversion then poll
+{
+    wakeup();
+    sendCommand(ADCV);
+
+    delay(20);
+    measureVoltages(primary_voltage_measurements,cellVoltageRegisters,sizeof(cellVoltageRegisters));
+
+    Serial.print("Primary: ");
+    {
+        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
+        {
+            Serial.print(primary_voltage_measurements[i], 4);
+            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
+            {
+                Serial.print(" ");
+            }
+        }
+    }
+    Serial.println();
+}
+
+void measure_secondary_voltages(float secondary_voltage_measurements[]) // need to call ADSV then wait for conversion then poll
+{
+    wakeup();
+    sendCommand(ADSV);
+
+    delay(20);
+    measureVoltages(secondary_voltage_measurements,switchVoltageRegisters,sizeof(switchVoltageRegisters));
+
+    Serial.print("Secondary: ");
+    {
+        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
+        {
+            Serial.print(secondary_voltage_measurements[i], 4);
+            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
+            {
+                Serial.print(" ");
+            }
+        }
+    }
+    Serial.println();
+}
+
 
 void measureAuxVoltages(uint8_t auxRegisters[])
 {
@@ -456,22 +482,20 @@ void loop()
 {
     directional_spi = DIRECTION_A_SPI;
     directional_spi_cs = DIRECTION_A_CS;
-    
-    float voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
-    measureVoltages(voltage_measurements,cellVoltageRegisters,sizeof(cellVoltageRegisters));
 
-    Serial.print("Voltages: ");
-    {
-        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
-        {
-            Serial.print(voltage_measurements[i], 4);
-            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
-            {
-                Serial.print(" ");
-            }
-        }
-    }
+    uint8_t rx_buf[6*NUM_ASICS];
+    readData(RDSID,rx_buf,sizeof(rx_buf));
+
+    for (int i = 0; i < sizeof(rx_buf); i++) Serial.print(rx_buf[i], HEX), Serial.print(' ');
     Serial.println();
+    
+    float primary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
+    float secondary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
+
+    
+    measure_primary_voltages(primary_voltage_measurements);
+    delay(10);
+    measure_secondary_voltages(secondary_voltage_measurements);
     delay(500);
     
 }
