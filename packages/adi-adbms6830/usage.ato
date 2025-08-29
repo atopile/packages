@@ -6,6 +6,7 @@
 from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
 
 from "parts/Liansheng_BH_00019/Liansheng_BH_00019.ato" import Liansheng_BH_00019_package
@@ -132,7 +133,7 @@ module Usage:
     power_5v.hv ~> switch_resistors[0] ~> SPDT.switch_no ~> _passthru_enable.line
     power_5v.lv ~> switch_resistors[1] ~> SPDT.switch_nc ~> _passthru_enable.line
 
-    led_passthru = new LEDIndicatorBlue
+    led_passthru = new LEDIndicatorGreen
     led_passthru.current = 0.5mA to 1mA
     _passthru_enable.line ~> led_passthru ~> power_5v.lv
 
