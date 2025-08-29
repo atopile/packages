@@ -2,6 +2,8 @@
 
 The ADI ADBMS6822 is a dual isoSPI transceiver IC designed for isolated SPI communication in battery management systems and other high-voltage applications. This package provides a complete driver module with configurable SPI modes, power management, and dual differential isoSPI interfaces.
 
+For a guide on getting started with this transceiver checkout: https://blog.atopile.io/p/getting-started-with-adbms6830
+
 ## Key Features
 
 - Dual SPI interfaces (configurable as controller or peripheral)
