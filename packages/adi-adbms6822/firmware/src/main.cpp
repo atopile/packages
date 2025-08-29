@@ -463,7 +463,7 @@ void pwmBalanceCells(uint8_t balancePWMs[8], uint8_t timeout)
     uint8_t cfgb_data[6];
     wakeup();
     readData(RDCFGB, cfgb_data, 6);
-    
+
     // Modify the DCTO value, set 4th byte to timeout
     cfgb_data[3] = (uint8_t)((cfgb_data[3] & 0xC0u) | (timeout & 0x3Fu));
     // Set the bleed mask bits (DCCx) in the last two bytes of CFGB
@@ -483,7 +483,7 @@ void dccBalanceCells(uint8_t bleedmask[2])
         pwma_data[i] = noBalancePWMs[i];
     }
     writeData(WRPWMA, pwma_data, 6);
-    
+
     // put the last 2 bytes into pwmb_data
     uint8_t pwmb_data[6];
     for (int i = 0; i < 2; i++)
@@ -501,7 +501,7 @@ void dccBalanceCells(uint8_t bleedmask[2])
     uint8_t cfgb_data[6];
     wakeup();
     readData(RDCFGB, cfgb_data, 6);
-    
+
     // Modify the DCTO value, set 4th byte to timeout
     cfgb_data[3] = (uint8_t)((cfgb_data[3] & 0xC0u) | (0x00 & 0x3Fu));
     // Set the bleed mask bits (DCCx) in the last two bytes of CFGB
@@ -520,7 +520,7 @@ void setup()
     pinMode(DIRECTION_B_CS,OUTPUT);
     digitalWrite(DIRECTION_A_CS,HIGH);
     digitalWrite(DIRECTION_B_CS,HIGH);
-    
+
     directional_spi = DIRECTION_A_SPI;
     directional_spi_cs = DIRECTION_A_CS;
     // pwmBalanceCells(halfBalancePWMs,1);
@@ -529,29 +529,29 @@ void setup()
 
 void loop()
 {
-    
+
     // uint8_t rx_buf[6*NUM_ASICS];
     // wakeup();
     // readData(RDSID,rx_buf,sizeof(rx_buf));
-    
+
     // for (int i = 0; i < sizeof(rx_buf); i++) Serial.print(rx_buf[i], HEX), Serial.print(' ');
     // Serial.println();
     // delay(10);
-    
+
     float primary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
     measure_primary_voltages(primary_voltage_measurements);
     serialPrintArray("PRIM",primary_voltage_measurements,3);
     // float secondary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
     // measure_secondary_voltages(secondary_voltage_measurements);
     // serialPrintArray("SEC",secondary_voltage_measurements,3);
-    
+
     // float primary_gpio_measurements[NUM_ASICS*GPIO_PER_ASIC];
     // measure_primary_gpio_voltages(primary_gpio_measurements);
     // float secondary_gpio_measurements[NUM_ASICS*GPIO_PER_ASIC];
     // measure_secondary_gpio_voltages(secondary_gpio_measurements);
 
-    
+
     // measure_secondary_voltages(secondary_voltage_measurements);
-    
+
     delay(100);
 }
