@@ -7,8 +7,9 @@
 // Teensy 4.1 SPI1: MOSI=26, MISO=1, SCK=27. CS=0 per mapping
 
 // ISOMD mode select pin routed to Teensy GPIO per usage.ato: Teensy gpio[41]
-constexpr uint8_t NUM_ASICS = 2;
+constexpr uint8_t NUM_ASICS = 1;
 constexpr uint8_t CHANNELS_PER_ASIC = 16;
+constexpr uint8_t GPIO_PER_ASIC = 10;
 
 constexpr uint8_t CMD_PACKET_BYTES = 2;
 constexpr uint8_t CMD_PACKET_ERROR_CODE_BYTES = 2;
@@ -96,6 +97,12 @@ SPISettings settings(1000000, MSBFIRST, SPI_MODE3);
 #define RDAUXC ((uint16_t)0x001Bu)
 #define RDAUXD ((uint16_t)0x001Fu)
 
+// AUX Registers Secondary
+#define RDRAXA ((uint16_t)0x001Cu)
+#define RDRAXB ((uint16_t)0x001Du)
+#define RDRAXC ((uint16_t)0x001Eu)
+#define RDRAXD ((uint16_t)0x0025u)
+
 // ID Register
 #define RDSID ((uint16_t)0x002C)
 
@@ -109,6 +116,25 @@ SPISettings settings(1000000, MSBFIRST, SPI_MODE3);
 uint8_t cellVoltageRegisters[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
 uint8_t cellVoltageRegistersFiltered[] = {RDFCA, RDFCB, RDFCC, RDFCD, RDFCE, RDFCF};
 uint8_t switchVoltageRegisters[] = {RDSVA, RDSVB, RDSVC, RDSVD, RDSVE, RDSVF};
+uint8_t primaryGpioRegisters[] = {RDAUXA, RDAUXB, RDAUXC, RDAUXD};
+uint8_t secondaryGpioRegisters[] = {RDRAXA, RDRAXB, RDRAXC, RDRAXD};
+
+uint8_t fullBalancePWMs[8] = {
+    0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF
+};
+uint8_t halfBalancePWMs[8] = {
+    0x88, 0x88, 0x88, 0x88,
+    0x88, 0x88, 0x88, 0x88
+};
+uint8_t noBalancePWMs[8] = {
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00
+};
+uint8_t bleedMaskAll[2] = {0xFF, 0xFF};
+uint8_t bleedMaskOdd[2] = {0x55, 0x55};
+uint8_t bleedMaskEven[2] = {0xAA, 0xAA};
+uint8_t bleedMaskNone[2] = {0x00, 0x00};
 
 /* Pre-computed CRC15 Table */
 static const uint16_t Adbms6948_Crc15Table[256] =
@@ -224,14 +250,13 @@ void spiTransaction(uint8_t *aCmd, uint8_t numBytes){
 void wakeup()
 {
     // Common wake-up: CS toggle and preamble bytes
-    for (int i = 0; i < NUM_ASICS*2; i++)
+    for (int i = 0; i < NUM_ASICS+1; i++)
     {
+        digitalWrite(directional_spi_cs, LOW);
         delayMicroseconds(200);
         digitalWrite(directional_spi_cs, HIGH);
         delayMicroseconds(10);
-        digitalWrite(directional_spi_cs, LOW);
     }
-    digitalWrite(directional_spi_cs, HIGH);
     delayMicroseconds(300);
     // delayMicroseconds(NUM_ASICS);
     // delay(2);
@@ -241,6 +266,24 @@ void wakeup()
     // uint8_t pre[1] = {0xFF};
     // spiTransaction(pre, sizeof(pre));
     // SPI.endTransaction();
+}
+
+template <typename T, size_t N>
+void serialPrintArray(const char* label, const T (&arr)[N], int precision = -1) {
+    Serial.print(label);
+    Serial.print(": ");
+
+    for (size_t i = 0; i < N; ++i) {
+        if (precision >= 0) {
+            Serial.print(arr[i], precision);
+        } else {
+            Serial.print(arr[i]);
+        }
+        if (i + 1 < N) {
+            Serial.print(" ");
+        }
+    }
+    Serial.println();
 }
 
 
@@ -337,7 +380,7 @@ float convertToVoltage(uint8_t highByte, uint8_t lowByte)
     return voltage;
 }
 
-void measureVoltages(float *voltageRxBuf, const uint8_t registers[], size_t registersCount)
+void measureVoltages(float *voltageRxBuf, const uint8_t registers[], size_t registersCount, size_t countPerAsic)
 {
     // Read cell voltages
     uint8_t outIndex = 0;
@@ -349,9 +392,9 @@ void measureVoltages(float *voltageRxBuf, const uint8_t registers[], size_t regi
         readData(registers[reg_num], data, sizeof(data));
         for (uint8_t asic = 0; asic < NUM_ASICS; asic++)
         {
-            if (outIndex < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex] = convertToVoltage(data[6*asic+1], data[6*asic]); }
-            if (outIndex+1 < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex+1] = convertToVoltage(data[6*asic+3], data[6*asic+2]); }
-            if (outIndex+2 < CHANNELS_PER_ASIC) { voltageRxBuf[CHANNELS_PER_ASIC*asic+outIndex+2] = convertToVoltage(data[6*asic+5], data[6*asic+4]); }
+            if (outIndex < countPerAsic) { voltageRxBuf[countPerAsic*asic+outIndex] = convertToVoltage(data[6*asic+1], data[6*asic]); }
+            if (outIndex+1 < countPerAsic) { voltageRxBuf[countPerAsic*asic+outIndex+1] = convertToVoltage(data[6*asic+3], data[6*asic+2]); }
+            if (outIndex+2 < countPerAsic) { voltageRxBuf[countPerAsic*asic+outIndex+2] = convertToVoltage(data[6*asic+5], data[6*asic+4]); }
         }
     }
 }
@@ -362,20 +405,7 @@ void measure_primary_voltages(float primary_voltage_measurements[]) // need to c
     sendCommand(ADCV);
 
     delay(20);
-    measureVoltages(primary_voltage_measurements,cellVoltageRegisters,sizeof(cellVoltageRegisters));
-
-    Serial.print("Primary: ");
-    {
-        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
-        {
-            Serial.print(primary_voltage_measurements[i], 4);
-            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
-            {
-                Serial.print(" ");
-            }
-        }
-    }
-    Serial.println();
+    measureVoltages(primary_voltage_measurements,cellVoltageRegisters,sizeof(cellVoltageRegisters),CHANNELS_PER_ASIC);
 }
 
 void measure_secondary_voltages(float secondary_voltage_measurements[]) // need to call ADSV then wait for conversion then poll
@@ -384,55 +414,30 @@ void measure_secondary_voltages(float secondary_voltage_measurements[]) // need 
     sendCommand(ADSV);
 
     delay(20);
-    measureVoltages(secondary_voltage_measurements,switchVoltageRegisters,sizeof(switchVoltageRegisters));
-
-    Serial.print("Secondary: ");
-    {
-        for (size_t i = 0; i < NUM_ASICS*CHANNELS_PER_ASIC; ++i)
-        {
-            Serial.print(secondary_voltage_measurements[i], 4);
-            if (i + 1 < NUM_ASICS*CHANNELS_PER_ASIC)
-            {
-                Serial.print(" ");
-            }
-        }
-    }
-    Serial.println();
+    measureVoltages(secondary_voltage_measurements,switchVoltageRegisters,sizeof(switchVoltageRegisters),CHANNELS_PER_ASIC);
 }
 
-
-void measureAuxVoltages(uint8_t auxRegisters[])
+void measure_primary_gpio_voltages(float primary_gpio_voltage_measurements[]) // need to call ADSV then wait for conversion then poll
 {
-    // Measure command
+    wakeup();
     sendCommand(ADAX);
+
     delay(20);
-
-    // Read AUX registers
-    float auxVoltages[10];
-    uint8_t n = 0;
-
-    for (int i = 0; i < 3; i++)
-    {
-        uint8_t data[6];
-        readData(auxRegisters[i], data, 6);
-        auxVoltages[n] = convertToVoltage(data[1], data[0]);
-        auxVoltages[n + 1] = convertToVoltage(data[3], data[2]);
-        auxVoltages[n + 2] = convertToVoltage(data[5], data[4]);
-        n += 3;
-    }
-
-    // Print AUX voltages
-    Serial.print("AUX:   ");
-    for (int i = 0; i < 9; i++)
-    {
-        Serial.print(auxVoltages[i], 4);
-        Serial.print(" ");
-    }
-    Serial.println();
+    measureVoltages(primary_gpio_voltage_measurements,primaryGpioRegisters,sizeof(primaryGpioRegisters),GPIO_PER_ASIC);
 }
 
-void balanceCells(uint8_t balancePWMs[8], uint8_t timeout)
+void measure_secondary_gpio_voltages(float secondary_gpio_voltage_measurements[]) // need to call ADSV then wait for conversion then poll
 {
+    wakeup();
+    sendCommand(ADAX2);
+
+    delay(20);
+    measureVoltages(secondary_gpio_voltage_measurements,secondaryGpioRegisters,sizeof(secondaryGpioRegisters),GPIO_PER_ASIC);
+}
+
+void pwmBalanceCells(uint8_t balancePWMs[8], uint8_t timeout)
+{
+    wakeup();
     // Write the balance PWMs
     uint8_t pwma_data[6];
     for (int i = 0; i < 6; i++)
@@ -445,24 +450,64 @@ void balanceCells(uint8_t balancePWMs[8], uint8_t timeout)
     uint8_t pwmb_data[6];
     for (int i = 0; i < 2; i++)
     {
-        pwmb_data[i] = balancePWMs[i + 6];
+        pwmb_data[i] = balancePWMs[6 + i];
     }
-
     // fill the rest with 0xFF
     for (int i = 2; i < 6; i++)
     {
         pwmb_data[i] = 0xFF;
     }
+    wakeup();
     writeData(WRPWMB, pwmb_data, 6);
 
-    // Set the balance timeout
-
-    // Read the CFGB register
     uint8_t cfgb_data[6];
+    wakeup();
     readData(RDCFGB, cfgb_data, 6);
-
+    
     // Modify the DCTO value, set 4th byte to timeout
-    cfgb_data[3] = timeout;
+    cfgb_data[3] = (uint8_t)((cfgb_data[3] & 0xC0u) | (timeout & 0x3Fu));
+    // Set the bleed mask bits (DCCx) in the last two bytes of CFGB
+    cfgb_data[4] = bleedMaskNone[0];
+    cfgb_data[5] = bleedMaskNone[1];
+    wakeup();
+    writeData(WRCFGB, cfgb_data, 6);
+}
+
+void dccBalanceCells(uint8_t bleedmask[2])
+{
+    wakeup();
+    // Write the balance PWMs
+    uint8_t pwma_data[6];
+    for (int i = 0; i < 6; i++)
+    {
+        pwma_data[i] = noBalancePWMs[i];
+    }
+    writeData(WRPWMA, pwma_data, 6);
+    
+    // put the last 2 bytes into pwmb_data
+    uint8_t pwmb_data[6];
+    for (int i = 0; i < 2; i++)
+    {
+        pwmb_data[i] = noBalancePWMs[6 + i];
+    }
+    // fill the rest with 0xFF
+    for (int i = 2; i < 6; i++)
+    {
+        pwmb_data[i] = 0xFF;
+    }
+    wakeup();
+    writeData(WRPWMB, pwmb_data, 6);
+
+    uint8_t cfgb_data[6];
+    wakeup();
+    readData(RDCFGB, cfgb_data, 6);
+    
+    // Modify the DCTO value, set 4th byte to timeout
+    cfgb_data[3] = (uint8_t)((cfgb_data[3] & 0xC0u) | (0x00 & 0x3Fu));
+    // Set the bleed mask bits (DCCx) in the last two bytes of CFGB
+    cfgb_data[4] = bleedmask[0];
+    cfgb_data[5] = bleedmask[1];
+    wakeup();
     writeData(WRCFGB, cfgb_data, 6);
 }
 
@@ -475,27 +520,38 @@ void setup()
     pinMode(DIRECTION_B_CS,OUTPUT);
     digitalWrite(DIRECTION_A_CS,HIGH);
     digitalWrite(DIRECTION_B_CS,HIGH);
-
+    
+    directional_spi = DIRECTION_A_SPI;
+    directional_spi_cs = DIRECTION_A_CS;
+    // pwmBalanceCells(halfBalancePWMs,1);
+    // dccBalanceCells(bleedMaskOdd);
 }
 
 void loop()
 {
-    directional_spi = DIRECTION_A_SPI;
-    directional_spi_cs = DIRECTION_A_CS;
-
-    uint8_t rx_buf[6*NUM_ASICS];
-    readData(RDSID,rx_buf,sizeof(rx_buf));
-
-    for (int i = 0; i < sizeof(rx_buf); i++) Serial.print(rx_buf[i], HEX), Serial.print(' ');
-    Serial.println();
+    
+    // uint8_t rx_buf[6*NUM_ASICS];
+    // wakeup();
+    // readData(RDSID,rx_buf,sizeof(rx_buf));
+    
+    // for (int i = 0; i < sizeof(rx_buf); i++) Serial.print(rx_buf[i], HEX), Serial.print(' ');
+    // Serial.println();
+    // delay(10);
     
     float primary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
-    float secondary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
+    measure_primary_voltages(primary_voltage_measurements);
+    serialPrintArray("PRIM",primary_voltage_measurements,3);
+    // float secondary_voltage_measurements[NUM_ASICS*CHANNELS_PER_ASIC];
+    // measure_secondary_voltages(secondary_voltage_measurements);
+    // serialPrintArray("SEC",secondary_voltage_measurements,3);
+    
+    // float primary_gpio_measurements[NUM_ASICS*GPIO_PER_ASIC];
+    // measure_primary_gpio_voltages(primary_gpio_measurements);
+    // float secondary_gpio_measurements[NUM_ASICS*GPIO_PER_ASIC];
+    // measure_secondary_gpio_voltages(secondary_gpio_measurements);
 
     
-    measure_primary_voltages(primary_voltage_measurements);
-    delay(10);
-    measure_secondary_voltages(secondary_voltage_measurements);
-    delay(500);
+    // measure_secondary_voltages(secondary_voltage_measurements);
     
+    delay(100);
 }
