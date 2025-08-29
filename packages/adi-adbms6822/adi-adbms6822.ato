@@ -2,7 +2,14 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-import SPI, ElectricPower, Resistor, Capacitor, Electrical, DifferentialPair, ElectricSignal, ElectricLogic
+import SPI
+import ElectricPower
+import Resistor
+import Capacitor
+import Electrical
+import DifferentialPair
+import ElectricSignal
+import ElectricLogic
 
 from "parts/Analog_Devices_ADBMS6822WCCSZ_RL/Analog_Devices_ADBMS6822WCCSZ_RL.ato" import Analog_Devices_ADBMS6822WCCSZ_RL_package
 from "adi-adbms6822-configurator.py" import ADI_ADBMS6822_Configurator
@@ -205,3 +212,20 @@ module ADI_ADBMS6822:
     xcvrmd_2.line ~ package.XCVRMD2
     rto_1.line ~ package.RTO
     rto_2.line ~ package.RTO2
+
+    # --- isoSPI termination network ---
+    isoSPI_termination_resistors = new Resistor[4]
+    for resistor in isoSPI_termination_resistors:
+        resistor.resistance = 50ohm +/- 10%
+        resistor.package = "0402"
+    isoSPI_dc_bias_caps = new Capacitor[2]
+    for cap in isoSPI_dc_bias_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    iso_1_termination_midpoint = new Electrical
+    iso_2_termination_midpoint = new Electrical
+    isospi_ports[0].p.line ~> isoSPI_termination_resistors[0] ~> iso_1_termination_midpoint; iso_1_termination_midpoint ~> isoSPI_termination_resistors[1] ~> isospi_ports[0].n.line
+    iso_1_termination_midpoint ~> isoSPI_dc_bias_caps[0] ~> vdd_iso_spi_power.lv
+    isospi_ports[1].p.line ~> isoSPI_termination_resistors[2] ~> iso_2_termination_midpoint; iso_2_termination_midpoint ~> isoSPI_termination_resistors[3] ~> isospi_ports[1].n.line
+    iso_2_termination_midpoint ~> isoSPI_dc_bias_caps[1] ~> vdd_iso_spi_power.lv
