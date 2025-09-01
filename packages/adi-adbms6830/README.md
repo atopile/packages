@@ -13,6 +13,8 @@ For a guide on getting started with this chip checkout: https://blog.atopile.io/
 from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
 
 from "parts/Liansheng_BH_00019/Liansheng_BH_00019.ato" import Liansheng_BH_00019_package
 from "parts/XFCN_PZ254V_11_02P/XFCN_PZ254V_11_02P.ato" import XFCN_PZ254V_11_02P_package
@@ -20,7 +22,6 @@ from "parts/HCTL_PM254_2_10_S_8_5/HCTL_PM254_2_10_S_8_5.ato" import HCTL_PM254_2
 from "parts/HRS_DF40HC_3_0__30DS_0_4V_51/HRS_DF40HC_3_0__30DS_0_4V_51.ato" import HRS_DF40HC_3_0__30DS_0_4V_51_package
 from "parts/HRS_DF40C_30DP_0_4V_51/HRS_DF40C_30DP_0_4V_51.ato" import HRS_DF40C_30DP_0_4V_51_package
 from "parts/SHOU_HAN_MSK12C02_HB/SHOU_HAN_MSK12C02_HB.ato" import SHOU_HAN_MSK12C02_HB
-from "parts/Texas_Instruments_TS5A22362DGSR/Texas_Instruments_TS5A22362DGSR.ato" import Texas_Instruments_TS5A22362DGSR
 
 import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider, DifferentialPair, ElectricLogic
 
@@ -131,6 +132,7 @@ module Usage:
     switch_resistors[0].resistance = 100ohm +/- 5%
     switch_resistors[1].resistance = 10kohm +/- 5%
 
+    power_5v ~ analog_DPDT.power
 
     _passthru_enable = new ElectricLogic
     _passthru_enable ~ analog_DPDT.enables[0]
@@ -138,7 +140,7 @@ module Usage:
     power_5v.hv ~> switch_resistors[0] ~> SPDT.switch_no ~> _passthru_enable.line
     power_5v.lv ~> switch_resistors[1] ~> SPDT.switch_nc ~> _passthru_enable.line
 
-    led_passthru = new LEDIndicatorBlue
+    led_passthru = new LEDIndicatorGreen
     led_passthru.current = 0.5mA to 1mA
     _passthru_enable.line ~> led_passthru ~> power_5v.lv
 
@@ -370,4 +372,5 @@ module StackableBMBInterface:
     cell_sense_down.28 ~ cell_sense_up.28
     cell_sense_down.29 ~ cell_sense_up.29
     cell_sense_down.30 ~ cell_sense_up.30
+
 ```
