@@ -11,6 +11,8 @@ from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
+from "atopile/ti-ads1115/ti-ads1115.ato" import TI_ADS1115
 
 from "parts/Nextron_Z_231012820106/Nextron_Z_231012820106.ato" import Nextron_Z_231012820106_package
 from "parts/DIBO_DB125_3_81_2P_BK_S/DIBO_DB125_3_81_2P_BK_S.ato" import DIBO_DB125_3_81_2P_BK_S_package
@@ -24,6 +26,7 @@ module Usage:
     usb_c_connector = new USBCConn
     gpio_dac = new TI_DAC6578
     sbi = new StackableBMBInterface
+    adcs = new TI_ADS1115[2]
 
     # --- External Interfaces ---
     power_5v = new ElectricPower
@@ -52,7 +55,8 @@ module Usage:
     teensy.power ~ power_5v
     teensy.power_3v3 ~ power_3v3
     stack_power.lv ~ power_3v3.lv
-
+    adcs[0].power ~ power_5v
+    adcs[1].power ~ power_5v
 
     # --- Comms Connections ---
     teensy.spi[0] ~ adbms6822.spi[0]
@@ -60,6 +64,12 @@ module Usage:
     teensy.spi[1] ~ adbms6822.spi[1]
     teensy.chip_select[1] ~ adbms6822.spi_cs[1]
     teensy.usb_device ~ usb_c_connector.usb2
+    teensy.i2c[0] ~ adcs[0].i2c
+    teensy.i2c[0] ~ adcs[1].i2c
+
+    # --- I2C Addresses ---
+    adcs[0].i2c.address = 0x48
+    adcs[1].i2c.address = 0x49
 
 
     # --- GPIO DAC Connections ---
@@ -111,26 +121,16 @@ module Usage:
     sbi.isoSPI_down ~ adbms6822.isospi_ports[1]
     sbi.isoSPI_passthru ~ adbms6822.isospi_ports[1]
 
-    sbi.signals_up.1 ~ teensy.gpio[22]
-    sbi.signals_up.2 ~ teensy.gpio[21]
-    sbi.signals_up.3 ~ teensy.gpio[20]
-    sbi.signals_up.4 ~ teensy.gpio[17]
-    sbi.signals_up.5 ~ teensy.gpio[16]
-    sbi.signals_up.6 ~ teensy.gpio[15]
-    sbi.signals_up.7 ~ teensy.gpio[14]
-    sbi.signals_up.8 ~ teensy.gpio[41]
-    sbi.signals_up.9 ~ teensy.gpio[40]
+    # --- ADC Connections ---
+    sbi.signals_up.6 ~ adcs[0].inputs[0].line # ADBMS6830 VREG
+    sbi.signals_up.7 ~ adcs[0].inputs[1].line # ADBMS6830 VREF2
+    sbi.signals_up.8 ~ adcs[0].inputs[2].line # ADBMS6830 ISOMD
+    sbi.signals_up.9 ~ adcs[0].inputs[3].line # ADBMS6830 VREG_DRIVE
 
-    sbi.signals_up.10 ~ teensy.gpio[39]
-    sbi.signals_up.11 ~ teensy.gpio[38]
-    sbi.signals_up.12 ~ teensy.gpio[35]
-    sbi.signals_up.13 ~ teensy.gpio[34]
-    sbi.signals_up.14 ~ teensy.gpio[33]
-    sbi.signals_up.15 ~ teensy.gpio[28]
-    sbi.signals_up.16 ~ teensy.gpio[29]
-    sbi.signals_up.17 ~ teensy.gpio[30]
-    sbi.signals_up.18 ~ teensy.gpio[31]
-    sbi.signals_up.19 ~ teensy.gpio[32]
+    sbi.signals_up.10 ~ adcs[1].inputs[0].line # ADBMS6830 GPIO0
+    sbi.signals_up.11 ~ adcs[1].inputs[1].line # ADBMS6830 GPIO1
+    sbi.signals_up.12 ~ adcs[1].inputs[2].line # ADBMS6830 GPIO2
+    sbi.signals_up.13 ~ adcs[1].inputs[3].line # ADBMS6830 GPIO3
 
     cellsim_connector = new Nextron_Z_231012820106_package
     stack_power.lv ~ cellsim_connector.19
