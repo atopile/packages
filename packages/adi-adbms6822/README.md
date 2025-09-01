@@ -129,26 +129,33 @@ module Usage:
     sbi.isoSPI_down ~ adbms6822.isospi_ports[1]
     sbi.isoSPI_passthru ~ adbms6822.isospi_ports[1]
 
-    sbi.signals_up.1 ~ teensy.gpio[22]
-    sbi.signals_up.2 ~ teensy.gpio[21]
-    sbi.signals_up.3 ~ teensy.gpio[20]
-    sbi.signals_up.4 ~ teensy.gpio[17]
-    sbi.signals_up.5 ~ teensy.gpio[16]
-    sbi.signals_up.6 ~ teensy.gpio[15]
-    sbi.signals_up.7 ~ teensy.gpio[14]
-    sbi.signals_up.8 ~ teensy.gpio[41]
-    sbi.signals_up.9 ~ teensy.gpio[40]
+    # Bridge stack signals so Teensy lines reach the daughter board (6830)
+    sbi.signals_down.1 ~ sbi.signals_up.1
+    sbi.signals_down.2 ~ sbi.signals_up.2
+    sbi.signals_down.3 ~ sbi.signals_up.3
+    sbi.signals_down.4 ~ sbi.signals_up.4
+    sbi.signals_down.8 ~ sbi.signals_up.8
 
-    sbi.signals_up.10 ~ teensy.gpio[39]
-    sbi.signals_up.11 ~ teensy.gpio[38]
-    sbi.signals_up.12 ~ teensy.gpio[35]
-    sbi.signals_up.13 ~ teensy.gpio[34]
-    sbi.signals_up.14 ~ teensy.gpio[33]
-    sbi.signals_up.15 ~ teensy.gpio[28]
-    sbi.signals_up.16 ~ teensy.gpio[29]
-    sbi.signals_up.17 ~ teensy.gpio[30]
-    sbi.signals_up.18 ~ teensy.gpio[31]
-    sbi.signals_up.19 ~ teensy.gpio[32]
+    sbi.signals_up.1 ~ teensy.gpio[22].line
+    sbi.signals_up.2 ~ teensy.gpio[21].line
+    sbi.signals_up.3 ~ teensy.gpio[20].line
+    sbi.signals_up.4 ~ teensy.gpio[17].line
+    sbi.signals_up.5 ~ teensy.gpio[16].line
+    sbi.signals_up.6 ~ teensy.gpio[15].line
+    sbi.signals_up.7 ~ teensy.gpio[14].line
+    sbi.signals_up.8 ~ teensy.gpio[41].line
+    sbi.signals_up.9 ~ teensy.gpio[40].line
+
+    sbi.signals_up.10 ~ teensy.gpio[39].line
+    sbi.signals_up.11 ~ teensy.gpio[38].line
+    sbi.signals_up.12 ~ teensy.gpio[35].line
+    sbi.signals_up.13 ~ teensy.gpio[34].line
+    sbi.signals_up.14 ~ teensy.gpio[33].line
+    sbi.signals_up.15 ~ teensy.gpio[28].line
+    sbi.signals_up.16 ~ teensy.gpio[29].line
+    sbi.signals_up.17 ~ teensy.gpio[30].line
+    sbi.signals_up.18 ~ teensy.gpio[31].line
+    sbi.signals_up.19 ~ teensy.gpio[32].line
 
     cellsim_connector = new Nextron_Z_231012820106_package
     stack_power.lv ~ cellsim_connector.19
