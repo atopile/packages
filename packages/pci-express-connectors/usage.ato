@@ -1,0 +1,60 @@
+# Usage examples for PCI Express Board Edge Connectors
+
+import ElectricPower
+
+from "pci-express-connectors.ato" import PCIe_X1
+from "pci-express-connectors.ato" import PCIe_X4
+from "pci-express-connectors.ato" import PCIe_X8
+from "pci-express-connectors.ato" import PCIe_X16
+
+module Usage:
+    """
+    Example usage of PCIe board edge connectors
+    Shows how to use each connector type in a design
+    """
+
+    # Example 1: Simple PCIe x1 card
+    pcie_x1_card = new PCIe_X1
+    """PCIe x1 connector for single-lane expansion card"""
+
+    # Example 2: PCIe x4 card (e.g., NVMe SSD)
+    pcie_x4_card = new PCIe_X4
+    """PCIe x4 connector for quad-lane expansion card"""
+
+    # Example 3: PCIe x8 card (e.g., high-performance network card)
+    pcie_x8_card = new PCIe_X8
+    """PCIe x8 connector for octal-lane expansion card"""
+
+    # Example 4: PCIe x16 card (e.g., graphics card)
+    pcie_x16_card = new PCIe_X16
+    """PCIe x16 connector for 16-lane expansion card"""
+
+    # Power supply connections (example)
+    main_12v = new ElectricPower
+    """Main +12V power supply"""
+    main_3v3 = new ElectricPower
+    """Main +3.3V power supply"""
+    main_3v3_aux = new ElectricPower
+    """Auxiliary +3.3V power supply (always-on)"""
+
+    # Connect power supplies to all PCIe connectors
+    main_12v ~ pcie_x1_card.power.v12
+    main_3v3 ~ pcie_x1_card.power.v3_3
+    main_3v3_aux ~ pcie_x1_card.power.v3_3_aux
+
+    main_12v ~ pcie_x4_card.power.v12
+    main_3v3 ~ pcie_x4_card.power.v3_3
+    main_3v3_aux ~ pcie_x4_card.power.v3_3_aux
+
+    main_12v ~ pcie_x8_card.power.v12
+    main_3v3 ~ pcie_x8_card.power.v3_3
+    main_3v3_aux ~ pcie_x8_card.power.v3_3_aux
+
+    main_12v ~ pcie_x16_card.power.v12
+    main_3v3 ~ pcie_x16_card.power.v3_3
+    main_3v3_aux ~ pcie_x16_card.power.v3_3_aux
+
+    # Example power supply constraints
+    assert main_12v.voltage within 11.4V to 12.6V  # ±5% tolerance
+    assert main_3v3.voltage within 3.135V to 3.465V  # ±5% tolerance
+    assert main_3v3_aux.voltage within 3.135V to 3.465V  # ±5% tolerance

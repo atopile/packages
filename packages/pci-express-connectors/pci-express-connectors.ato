@@ -1,0 +1,591 @@
+# PCI Express Board Edge Connectors
+# Standard PCIe x1, x4, x8, and x16 edge connectors for expansion cards
+
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower, ElectricLogic, I2C, DifferentialPair, JTAG
+
+from "parts/PCIexpress_x1_package/PCIexpress_x1.ato" import PCIexpress_x1
+from "parts/PCIexpress_x4_package/PCIexpress_x4.ato" import PCIexpress_x4
+from "parts/PCIexpress_x8_package/PCIexpress_x8.ato" import PCIexpress_x8
+from "parts/PCIexpress_x16_package/PCIexpress_x16.ato" import PCIexpress_x16
+
+interface PCIe_Power:
+    """
+    PCIe power interface for board edge connectors
+    """
+    v12 = new ElectricPower  # +12V power rail
+    v3_3 = new ElectricPower  # +3.3V power rail
+    v3_3_aux = new ElectricPower  # +3.3V auxiliary power rail
+
+interface PCIe_Signals:
+    """
+    PCIe signal interface for control and configuration
+    """
+    prsnt1 = new ElectricLogic  # Present detect 1
+    prsnt2 = new ElectricLogic  # Present detect 2 (optional)
+    perst = new ElectricLogic   # PCI Express reset
+    wake = new ElectricLogic    # Wake signal
+    clkreq = new ElectricLogic  # Clock request signal (optional)
+    refclk_p = new ElectricLogic  # Reference clock positive
+    refclk_n = new ElectricLogic  # Reference clock negative
+
+interface PCIe_Lane:
+    """
+    Single PCIe differential lane (transmit and receive pair)
+    """
+    tx = new DifferentialPair  # Transmit differential pair
+    rx = new DifferentialPair  # Receive differential pair
+
+module PCIe_X1:
+    """
+    PCIe x1 board edge connector module
+    Provides 1 PCIe lane with power and control signals
+    """
+
+    # External interfaces
+    power = new PCIe_Power
+    """PCIe power interface"""
+
+    signals = new PCIe_Signals
+    """PCIe control and configuration signals"""
+
+    lane0 = new PCIe_Lane
+    """PCIe lane 0 differential signals"""
+
+    jtag = new JTAG
+    """JTAG interface"""
+
+    smbus = new I2C
+    """SMBus interface (I2C compatible)"""
+
+    # Physical connector
+    connector = new PCIexpress_x1
+
+    # Pin connections in connector order (based on official PCIe specification)
+    # A-side pins
+    connector.A1 ~ signals.prsnt1.line      # PRSNT1#
+    connector.A2 ~ power.v12.hv             # +12V
+    connector.A3 ~ power.v12.hv             # +12V
+    connector.A4 ~ power.v12.lv             # Ground
+    connector.A5 ~ jtag.tck.line            # TCK
+    connector.A6 ~ jtag.tdi.line            # TDI
+    connector.A7 ~ jtag.tdo.line            # TDO
+    connector.A8 ~ jtag.tms.line            # TMS
+    connector.A9 ~ power.v3_3.hv            # +3.3V
+    connector.A10 ~ power.v3_3.hv           # +3.3V
+    connector.A11 ~ signals.perst.line      # PERST#
+    # Key notch
+    connector.A12 ~ power.v12.lv            # Ground
+    connector.A13 ~ signals.refclk_p.line   # REFCLK+
+    connector.A14 ~ signals.refclk_n.line   # REFCLK-
+    connector.A15 ~ power.v12.lv            # Ground
+    connector.A16 ~ lane0.rx.p.line         # HSIp(0) - Lane 0 receive data +
+    connector.A17 ~ lane0.rx.n.line         # HSIn(0) - Lane 0 receive data -
+    connector.A18 ~ power.v12.lv            # Ground
+
+    # B-side pins
+    connector.B1 ~ power.v12.hv             # +12V
+    connector.B2 ~ power.v12.hv             # +12V
+    connector.B3 ~ power.v12.hv             # +12V
+    connector.B4 ~ power.v12.lv             # Ground
+    connector.B5 ~ smbus.scl.line           # SMCLK
+    connector.B6 ~ smbus.sda.line           # SMDAT
+    connector.B7 ~ power.v12.lv             # Ground
+    connector.B8 ~ power.v3_3.hv            # +3.3V
+    connector.B9 ~ jtag.n_trst.line         # TRST#
+    connector.B10 ~ power.v3_3_aux.hv       # +3.3V aux
+    connector.B11 ~ signals.wake.line       # WAKE#
+    # Key notch
+    # connector.B12 ~ signals.clkreq.line   # CLKREQ# (Clock Request Signal - optional)
+    connector.B13 ~ power.v12.lv            # Ground
+    connector.B14 ~ lane0.tx.p.line         # HSOp(0) - Lane 0 transmit data +
+    connector.B15 ~ lane0.tx.n.line         # HSOn(0) - Lane 0 transmit data -
+    connector.B16 ~ power.v12.lv            # Ground
+    connector.B17 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B18 ~ power.v12.lv            # Ground
+
+    # Power rail connections
+    power.v3_3.lv ~ power.v12.lv; power.v3_3_aux.lv ~ power.v12.lv
+
+    # Set power references
+    for sig in [signals.prsnt1, signals.prsnt2, signals.perst, signals.wake, signals.refclk_p, signals.refclk_n]:
+        sig.reference ~ power.v3_3
+
+    lane0.rx.reference_shim ~ power.v3_3; lane0.tx.reference_shim ~ power.v3_3
+
+    jtag.reference_shim ~ power.v3_3
+
+    jtag.vtref ~ power.v3_3
+
+    smbus.reference_shim ~ power.v3_3
+
+module PCIe_X4:
+    """
+    PCIe x4 board edge connector module
+    Provides 4 PCIe lanes with power and control signals
+    """
+
+    # External interfaces
+    power = new PCIe_Power
+    """PCIe power interface"""
+
+    signals = new PCIe_Signals
+    """PCIe control and configuration signals"""
+
+    lanes = new PCIe_Lane[4]
+    """PCIe lanes 0-3 differential signals"""
+
+    jtag = new JTAG
+    """JTAG interface"""
+
+    smbus = new I2C
+    """SMBus interface (I2C compatible)"""
+
+    # Physical connector
+    connector = new PCIexpress_x4
+
+    # Pin connections in connector order
+    # A-side pins
+    connector.A1 ~ signals.prsnt1.line      # ~PRSNT1
+    connector.A2 ~ power.v12.hv             # +12V
+    connector.A3 ~ power.v12.hv             # +12V
+    connector.A4 ~ power.v12.lv             # GND
+    connector.A5 ~ jtag.tck.line            # TCK
+    connector.A6 ~ jtag.tdi.line            # TDI
+    connector.A7 ~ jtag.tdo.line            # TDO
+    connector.A8 ~ jtag.tms.line            # TMS
+    connector.A9 ~ power.v3_3.hv            # +3.3V
+    connector.A10 ~ power.v3_3.hv           # +3.3V
+    connector.A11 ~ signals.perst.line      # ~PERST
+    # Notch
+    connector.A12 ~ power.v12.lv            # GND
+    connector.A13 ~ signals.refclk_p.line   # REFCLK+
+    connector.A14 ~ signals.refclk_n.line   # REFCLK-
+    connector.A15 ~ power.v12.lv            # GND
+    connector.A16 ~ lanes[0].rx.p.line      # PERp0
+    connector.A17 ~ lanes[0].rx.n.line      # PERn0
+    connector.A18 ~ power.v12.lv            # GND
+    # connector.A19                       # Reserved (no connection)
+    connector.A20 ~ power.v12.lv            # Ground
+    connector.A21 ~ lanes[1].rx.p.line      # HSIp(1) - Lane 1 receive data +
+    connector.A22 ~ lanes[1].rx.n.line      # HSIn(1) - Lane 1 receive data -
+    connector.A23 ~ power.v12.lv            # Ground
+    connector.A24 ~ power.v12.lv            # Ground
+    connector.A25 ~ lanes[2].rx.p.line      # HSIp(2) - Lane 2 receive data +
+    connector.A26 ~ lanes[2].rx.n.line      # HSIn(2) - Lane 2 receive data -
+    connector.A27 ~ power.v12.lv            # Ground
+    connector.A28 ~ power.v12.lv            # Ground
+    connector.A29 ~ lanes[3].rx.p.line      # HSIp(3) - Lane 3 receive data +
+    connector.A30 ~ lanes[3].rx.n.line      # HSIn(3) - Lane 3 receive data -
+    connector.A31 ~ power.v12.lv            # Ground
+    # connector.A32                       # Reserved (no connection)
+
+    # B-side pins
+    connector.B1 ~ power.v12.hv             # +12V
+    connector.B2 ~ power.v12.hv             # +12V
+    connector.B3 ~ power.v12.hv             # +12V
+    connector.B4 ~ power.v12.lv             # GND
+    connector.B5 ~ smbus.scl.line           # SMCLK
+    connector.B6 ~ smbus.sda.line           # SMDAT
+    connector.B7 ~ power.v12.lv             # GND
+    connector.B8 ~ power.v3_3.hv            # +3.3V
+    connector.B9 ~ jtag.n_trst.line         # TRST#
+    connector.B10 ~ power.v3_3_aux.hv       # +3.3V_aux
+    connector.B11 ~ signals.wake.line       # ~WAKE
+    # Key notch
+    # connector.B12 ~ signals.clkreq.line   # CLKREQ# (Clock Request Signal - optional)
+    connector.B13 ~ power.v12.lv            # Ground
+    connector.B14 ~ lanes[0].tx.p.line      # HSOp(0) - Lane 0 transmit data +
+    connector.B15 ~ lanes[0].tx.n.line      # HSOn(0) - Lane 0 transmit data -
+    connector.B16 ~ power.v12.lv            # Ground
+    connector.B17 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B18 ~ power.v12.lv            # Ground
+    connector.B19 ~ lanes[1].tx.p.line      # HSOp(1) - Lane 1 transmit data +
+    connector.B20 ~ lanes[1].tx.n.line      # HSOn(1) - Lane 1 transmit data -
+    connector.B21 ~ power.v12.lv            # Ground
+    connector.B22 ~ power.v12.lv            # Ground
+    connector.B23 ~ lanes[2].tx.p.line      # HSOp(2) - Lane 2 transmit data +
+    connector.B24 ~ lanes[2].tx.n.line      # HSOn(2) - Lane 2 transmit data -
+    connector.B25 ~ power.v12.lv            # Ground
+    connector.B26 ~ power.v12.lv            # Ground
+    connector.B27 ~ lanes[3].tx.p.line      # HSOp(3) - Lane 3 transmit data +
+    connector.B28 ~ lanes[3].tx.n.line      # HSOn(3) - Lane 3 transmit data -
+    connector.B29 ~ power.v12.lv            # Ground
+    # connector.B30                         # PWRBRK# (Power Brake - optional)
+    connector.B31 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B32 ~ power.v12.lv            # Ground
+
+    # Power rail connections
+    power.v3_3.lv ~ power.v12.lv; power.v3_3_aux.lv ~ power.v12.lv
+
+    # Set power references
+    for sig in [signals.prsnt1, signals.prsnt2, signals.perst, signals.wake, signals.refclk_p, signals.refclk_n]:
+        sig.reference ~ power.v3_3
+
+    for lane in lanes:
+        lane.rx.p.reference_shim ~ power.v3_3; lane.rx.n.reference_shim ~ power.v3_3; lane.tx.p.reference_shim ~ power.v3_3; lane.tx.n.reference_shim ~ power.v3_3
+
+    jtag.reference_shim ~ power.v3_3
+
+    jtag.vtref ~ power.v3_3
+
+    smbus.reference_shim ~ power.v3_3
+
+module PCIe_X8:
+    """
+    PCIe x8 board edge connector module
+    Provides 8 PCIe lanes with power and control signals
+    """
+
+    # External interfaces
+    power = new PCIe_Power
+    """PCIe power interface"""
+
+    signals = new PCIe_Signals
+    """PCIe control and configuration signals"""
+
+    lanes = new PCIe_Lane[8]
+    """PCIe lanes 0-7 differential signals"""
+
+    jtag = new JTAG
+    """JTAG interface"""
+
+    smbus = new I2C
+    """SMBus interface (I2C compatible)"""
+
+    # Physical connector
+    connector = new PCIexpress_x8
+
+    # Pin connections in connector order (based on official PCIe specification)
+    # A-side pins (1-49)
+    connector.A1 ~ signals.prsnt1.line      # PRSNT1#
+    connector.A2 ~ power.v12.hv             # +12V
+    connector.A3 ~ power.v12.hv             # +12V
+    connector.A4 ~ power.v12.lv             # Ground
+    connector.A5 ~ jtag.tck.line            # TCK
+    connector.A6 ~ jtag.tdi.line            # TDI
+    connector.A7 ~ jtag.tdo.line            # TDO
+    connector.A8 ~ jtag.tms.line            # TMS
+    connector.A9 ~ power.v3_3.hv            # +3.3V
+    connector.A10 ~ power.v3_3.hv           # +3.3V
+    connector.A11 ~ signals.perst.line      # PERST#
+    # Key notch
+    connector.A12 ~ power.v12.lv            # Ground
+    connector.A13 ~ signals.refclk_p.line   # REFCLK+
+    connector.A14 ~ signals.refclk_n.line   # REFCLK-
+    connector.A15 ~ power.v12.lv            # Ground
+    connector.A16 ~ lanes[0].rx.p.line      # HSIp(0) - Lane 0 receive data +
+    connector.A17 ~ lanes[0].rx.n.line      # HSIn(0) - Lane 0 receive data -
+    connector.A18 ~ power.v12.lv            # Ground
+    # connector.A19                       # Reserved (no connection)
+    connector.A20 ~ power.v12.lv            # Ground
+    connector.A21 ~ lanes[1].rx.p.line      # HSIp(1) - Lane 1 receive data +
+    connector.A22 ~ lanes[1].rx.n.line      # HSIn(1) - Lane 1 receive data -
+    connector.A23 ~ power.v12.lv            # Ground
+    connector.A24 ~ power.v12.lv            # Ground
+    connector.A25 ~ lanes[2].rx.p.line      # HSIp(2) - Lane 2 receive data +
+    connector.A26 ~ lanes[2].rx.n.line      # HSIn(2) - Lane 2 receive data -
+    connector.A27 ~ power.v12.lv            # Ground
+    connector.A28 ~ power.v12.lv            # Ground
+    connector.A29 ~ lanes[3].rx.p.line      # HSIp(3) - Lane 3 receive data +
+    connector.A30 ~ lanes[3].rx.n.line      # HSIn(3) - Lane 3 receive data -
+    connector.A31 ~ power.v12.lv            # Ground
+    # connector.A32                       # Reserved (no connection)
+    # connector.A33                       # Reserved (no connection)
+    connector.A34 ~ power.v12.lv            # Ground
+    connector.A35 ~ lanes[4].rx.p.line      # HSIp(4) - Lane 4 receive data +
+    connector.A36 ~ lanes[4].rx.n.line      # HSIn(4) - Lane 4 receive data -
+    connector.A37 ~ power.v12.lv            # Ground
+    connector.A38 ~ power.v12.lv            # Ground
+    connector.A39 ~ lanes[5].rx.p.line      # HSIp(5) - Lane 5 receive data +
+    connector.A40 ~ lanes[5].rx.n.line      # HSIn(5) - Lane 5 receive data -
+    connector.A41 ~ power.v12.lv            # Ground
+    connector.A42 ~ power.v12.lv            # Ground
+    connector.A43 ~ lanes[6].rx.p.line      # HSIp(6) - Lane 6 receive data +
+    connector.A44 ~ lanes[6].rx.n.line      # HSIn(6) - Lane 6 receive data -
+    connector.A45 ~ power.v12.lv            # Ground
+    connector.A46 ~ power.v12.lv            # Ground
+    connector.A47 ~ lanes[7].rx.p.line      # HSIp(7) - Lane 7 receive data +
+    connector.A48 ~ lanes[7].rx.n.line      # HSIn(7) - Lane 7 receive data -
+    connector.A49 ~ power.v12.lv            # Ground
+
+    # B-side pins (1-49)
+    connector.B1 ~ power.v12.hv             # +12V
+    connector.B2 ~ power.v12.hv             # +12V
+    connector.B3 ~ power.v12.hv             # +12V
+    connector.B4 ~ power.v12.lv             # Ground
+    connector.B5 ~ smbus.scl.line           # SMCLK
+    connector.B6 ~ smbus.sda.line           # SMDAT
+    connector.B7 ~ power.v12.lv             # Ground
+    connector.B8 ~ power.v3_3.hv            # +3.3V
+    connector.B9 ~ jtag.n_trst.line         # TRST#
+    connector.B10 ~ power.v3_3_aux.hv       # +3.3V aux
+    connector.B11 ~ signals.wake.line       # WAKE#
+    # Key notch
+    # connector.B12 ~ signals.clkreq.line   # CLKREQ# (Clock Request Signal - optional)
+    connector.B13 ~ power.v12.lv            # Ground
+    connector.B14 ~ lanes[0].tx.p.line      # HSOp(0) - Lane 0 transmit data +
+    connector.B15 ~ lanes[0].tx.n.line      # HSOn(0) - Lane 0 transmit data -
+    connector.B16 ~ power.v12.lv            # Ground
+    connector.B17 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B18 ~ power.v12.lv            # Ground
+    connector.B19 ~ lanes[1].tx.p.line      # HSOp(1) - Lane 1 transmit data +
+    connector.B20 ~ lanes[1].tx.n.line      # HSOn(1) - Lane 1 transmit data -
+    connector.B21 ~ power.v12.lv            # Ground
+    connector.B22 ~ power.v12.lv            # Ground
+    connector.B23 ~ lanes[2].tx.p.line      # HSOp(2) - Lane 2 transmit data +
+    connector.B24 ~ lanes[2].tx.n.line      # HSOn(2) - Lane 2 transmit data -
+    connector.B25 ~ power.v12.lv            # Ground
+    connector.B26 ~ power.v12.lv            # Ground
+    connector.B27 ~ lanes[3].tx.p.line      # HSOp(3) - Lane 3 transmit data +
+    connector.B28 ~ lanes[3].tx.n.line      # HSOn(3) - Lane 3 transmit data -
+    connector.B29 ~ power.v12.lv            # Ground
+    # connector.B30                         # PWRBRK# (Power Brake - optional)
+    connector.B31 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B32 ~ power.v12.lv            # Ground
+    connector.B33 ~ lanes[4].tx.p.line      # HSOp(4) - Lane 4 transmit data +
+    connector.B34 ~ lanes[4].tx.n.line      # HSOn(4) - Lane 4 transmit data -
+    connector.B35 ~ power.v12.lv            # Ground
+    connector.B36 ~ power.v12.lv            # Ground
+    connector.B37 ~ lanes[5].tx.p.line      # HSOp(5) - Lane 5 transmit data +
+    connector.B38 ~ lanes[5].tx.n.line      # HSOn(5) - Lane 5 transmit data -
+    connector.B39 ~ power.v12.lv            # Ground
+    connector.B40 ~ power.v12.lv            # Ground
+    connector.B41 ~ lanes[6].tx.p.line      # HSOp(6) - Lane 6 transmit data +
+    connector.B42 ~ lanes[6].tx.n.line      # HSOn(6) - Lane 6 transmit data -
+    connector.B43 ~ power.v12.lv            # Ground
+    connector.B44 ~ power.v12.lv            # Ground
+    connector.B45 ~ lanes[7].tx.p.line      # HSOp(7) - Lane 7 transmit data +
+    connector.B46 ~ lanes[7].tx.n.line      # HSOn(7) - Lane 7 transmit data -
+    connector.B47 ~ power.v12.lv            # Ground
+    connector.B48 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B49 ~ power.v12.lv            # Ground
+
+    # Power rail connections
+    power.v3_3.lv ~ power.v12.lv; power.v3_3_aux.lv ~ power.v12.lv
+
+    # Set power references
+    for sig in [signals.prsnt1, signals.prsnt2, signals.perst, signals.wake, signals.refclk_p, signals.refclk_n]:
+        sig.reference ~ power.v3_3
+
+    for lane in lanes:
+        lane.rx.p.reference_shim ~ power.v3_3; lane.rx.n.reference_shim ~ power.v3_3; lane.tx.p.reference_shim ~ power.v3_3; lane.tx.n.reference_shim ~ power.v3_3
+
+    jtag.reference_shim ~ power.v3_3
+
+    jtag.vtref ~ power.v3_3
+
+    smbus.reference_shim ~ power.v3_3
+
+module PCIe_X16:
+    """
+    PCIe x16 board edge connector module
+    Provides 16 PCIe lanes with power and control signals
+    """
+
+    # External interfaces
+    power = new PCIe_Power
+    """PCIe power interface"""
+
+    signals = new PCIe_Signals
+    """PCIe control and configuration signals"""
+
+    lanes = new PCIe_Lane[16]
+    """PCIe lanes 0-15 differential signals"""
+
+    jtag = new JTAG
+    """JTAG interface"""
+
+    smbus = new I2C
+    """SMBus interface (I2C compatible)"""
+
+    # Physical connector
+    connector = new PCIexpress_x16
+
+    # Pin connections in connector order (based on official PCIe specification)
+    # A-side pins (1-82)
+    connector.A1 ~ signals.prsnt1.line      # PRSNT1#
+    connector.A2 ~ power.v12.hv             # +12V
+    connector.A3 ~ power.v12.hv             # +12V
+    connector.A4 ~ power.v12.lv             # Ground
+    connector.A5 ~ jtag.tck.line            # TCK
+    connector.A6 ~ jtag.tdi.line            # TDI
+    connector.A7 ~ jtag.tdo.line            # TDO
+    connector.A8 ~ jtag.tms.line            # TMS
+    connector.A9 ~ power.v3_3.hv            # +3.3V
+    connector.A10 ~ power.v3_3.hv           # +3.3V
+    connector.A11 ~ signals.perst.line      # PERST#
+    # Key notch
+    connector.A12 ~ power.v12.lv            # Ground
+    connector.A13 ~ signals.refclk_p.line   # REFCLK+
+    connector.A14 ~ signals.refclk_n.line   # REFCLK-
+    connector.A15 ~ power.v12.lv            # Ground
+    connector.A16 ~ lanes[0].rx.p.line      # HSIp(0) - Lane 0 receive data +
+    connector.A17 ~ lanes[0].rx.n.line      # HSIn(0) - Lane 0 receive data -
+    connector.A18 ~ power.v12.lv            # Ground
+    # connector.A19                       # Reserved (no connection)
+    connector.A20 ~ power.v12.lv            # Ground
+    connector.A21 ~ lanes[1].rx.p.line      # HSIp(1) - Lane 1 receive data +
+    connector.A22 ~ lanes[1].rx.n.line      # HSIn(1) - Lane 1 receive data -
+    connector.A23 ~ power.v12.lv            # Ground
+    connector.A24 ~ power.v12.lv            # Ground
+    connector.A25 ~ lanes[2].rx.p.line      # HSIp(2) - Lane 2 receive data +
+    connector.A26 ~ lanes[2].rx.n.line      # HSIn(2) - Lane 2 receive data -
+    connector.A27 ~ power.v12.lv            # Ground
+    connector.A28 ~ power.v12.lv            # Ground
+    connector.A29 ~ lanes[3].rx.p.line      # HSIp(3) - Lane 3 receive data +
+    connector.A30 ~ lanes[3].rx.n.line      # HSIn(3) - Lane 3 receive data -
+    connector.A31 ~ power.v12.lv            # Ground
+    # connector.A32                       # Reserved (no connection)
+    # connector.A33                       # Reserved (no connection)
+    connector.A34 ~ power.v12.lv            # Ground
+    connector.A35 ~ lanes[4].rx.p.line      # HSIp(4) - Lane 4 receive data +
+    connector.A36 ~ lanes[4].rx.n.line      # HSIn(4) - Lane 4 receive data -
+    connector.A37 ~ power.v12.lv            # Ground
+    connector.A38 ~ power.v12.lv            # Ground
+    connector.A39 ~ lanes[5].rx.p.line      # HSIp(5) - Lane 5 receive data +
+    connector.A40 ~ lanes[5].rx.n.line      # HSIn(5) - Lane 5 receive data -
+    connector.A41 ~ power.v12.lv            # Ground
+    connector.A42 ~ power.v12.lv            # Ground
+    connector.A43 ~ lanes[6].rx.p.line      # HSIp(6) - Lane 6 receive data +
+    connector.A44 ~ lanes[6].rx.n.line      # HSIn(6) - Lane 6 receive data -
+    connector.A45 ~ power.v12.lv            # Ground
+    connector.A46 ~ power.v12.lv            # Ground
+    connector.A47 ~ lanes[7].rx.p.line      # HSIp(7) - Lane 7 receive data +
+    connector.A48 ~ lanes[7].rx.n.line      # HSIn(7) - Lane 7 receive data -
+    connector.A49 ~ power.v12.lv            # Ground
+    # connector.A50                       # Reserved (no connection)
+    connector.A51 ~ power.v12.lv            # Ground
+    connector.A52 ~ lanes[8].rx.p.line      # HSIp(8) - Lane 8 receive data +
+    connector.A53 ~ lanes[8].rx.n.line      # HSIn(8) - Lane 8 receive data -
+    connector.A54 ~ power.v12.lv            # Ground
+    connector.A55 ~ power.v12.lv            # Ground
+    connector.A56 ~ lanes[9].rx.p.line      # HSIp(9) - Lane 9 receive data +
+    connector.A57 ~ lanes[9].rx.n.line      # HSIn(9) - Lane 9 receive data -
+    connector.A58 ~ power.v12.lv            # Ground
+    connector.A59 ~ power.v12.lv            # Ground
+    connector.A60 ~ lanes[10].rx.p.line     # HSIp(10) - Lane 10 receive data +
+    connector.A61 ~ lanes[10].rx.n.line     # HSIn(10) - Lane 10 receive data -
+    connector.A62 ~ power.v12.lv            # Ground
+    connector.A63 ~ power.v12.lv            # Ground
+    connector.A64 ~ lanes[11].rx.p.line     # HSIp(11) - Lane 11 receive data +
+    connector.A65 ~ lanes[11].rx.n.line     # HSIn(11) - Lane 11 receive data -
+    connector.A66 ~ power.v12.lv            # Ground
+    connector.A67 ~ power.v12.lv            # Ground
+    connector.A68 ~ lanes[12].rx.p.line     # HSIp(12) - Lane 12 receive data +
+    connector.A69 ~ lanes[12].rx.n.line     # HSIn(12) - Lane 12 receive data -
+    connector.A70 ~ power.v12.lv            # Ground
+    connector.A71 ~ power.v12.lv            # Ground
+    connector.A72 ~ lanes[13].rx.p.line     # HSIp(13) - Lane 13 receive data +
+    connector.A73 ~ lanes[13].rx.n.line     # HSIn(13) - Lane 13 receive data -
+    connector.A74 ~ power.v12.lv            # Ground
+    connector.A75 ~ power.v12.lv            # Ground
+    connector.A76 ~ lanes[14].rx.p.line     # HSIp(14) - Lane 14 receive data +
+    connector.A77 ~ lanes[14].rx.n.line     # HSIn(14) - Lane 14 receive data -
+    connector.A78 ~ power.v12.lv            # Ground
+    connector.A79 ~ power.v12.lv            # Ground
+    connector.A80 ~ lanes[15].rx.p.line     # HSIp(15) - Lane 15 receive data +
+    connector.A81 ~ lanes[15].rx.n.line     # HSIn(15) - Lane 15 receive data -
+    connector.A82 ~ power.v12.lv            # Ground
+
+    # B-side pins (1-82)
+    connector.B1 ~ power.v12.hv             # +12V
+    connector.B2 ~ power.v12.hv             # +12V
+    connector.B3 ~ power.v12.hv             # +12V
+    connector.B4 ~ power.v12.lv             # Ground
+    connector.B5 ~ smbus.scl.line           # SMCLK
+    connector.B6 ~ smbus.sda.line           # SMDAT
+    connector.B7 ~ power.v12.lv             # Ground
+    connector.B8 ~ power.v3_3.hv            # +3.3V
+    connector.B9 ~ jtag.n_trst.line         # TRST#
+    connector.B10 ~ power.v3_3_aux.hv       # +3.3V aux
+    connector.B11 ~ signals.wake.line       # WAKE#
+    # Key notch
+    # connector.B12 ~ signals.clkreq.line   # CLKREQ# (Clock Request Signal - optional)
+    connector.B13 ~ power.v12.lv            # Ground
+    connector.B14 ~ lanes[0].tx.p.line      # HSOp(0) - Lane 0 transmit data +
+    connector.B15 ~ lanes[0].tx.n.line      # HSOn(0) - Lane 0 transmit data -
+    connector.B16 ~ power.v12.lv            # Ground
+    connector.B17 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B18 ~ power.v12.lv            # Ground
+    connector.B19 ~ lanes[1].tx.p.line      # HSOp(1) - Lane 1 transmit data +
+    connector.B20 ~ lanes[1].tx.n.line      # HSOn(1) - Lane 1 transmit data -
+    connector.B21 ~ power.v12.lv            # Ground
+    connector.B22 ~ power.v12.lv            # Ground
+    connector.B23 ~ lanes[2].tx.p.line      # HSOp(2) - Lane 2 transmit data +
+    connector.B24 ~ lanes[2].tx.n.line      # HSOn(2) - Lane 2 transmit data -
+    connector.B25 ~ power.v12.lv            # Ground
+    connector.B26 ~ power.v12.lv            # Ground
+    connector.B27 ~ lanes[3].tx.p.line      # HSOp(3) - Lane 3 transmit data +
+    connector.B28 ~ lanes[3].tx.n.line      # HSOn(3) - Lane 3 transmit data -
+    connector.B29 ~ power.v12.lv            # Ground
+    # connector.B30                         # PWRBRK# (Power Brake - optional)
+    connector.B31 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B32 ~ power.v12.lv            # Ground
+    connector.B33 ~ lanes[4].tx.p.line      # HSOp(4) - Lane 4 transmit data +
+    connector.B34 ~ lanes[4].tx.n.line      # HSOn(4) - Lane 4 transmit data -
+    connector.B35 ~ power.v12.lv            # Ground
+    connector.B36 ~ power.v12.lv            # Ground
+    connector.B37 ~ lanes[5].tx.p.line      # HSOp(5) - Lane 5 transmit data +
+    connector.B38 ~ lanes[5].tx.n.line      # HSOn(5) - Lane 5 transmit data -
+    connector.B39 ~ power.v12.lv            # Ground
+    connector.B40 ~ power.v12.lv            # Ground
+    connector.B41 ~ lanes[6].tx.p.line      # HSOp(6) - Lane 6 transmit data +
+    connector.B42 ~ lanes[6].tx.n.line      # HSOn(6) - Lane 6 transmit data -
+    connector.B43 ~ power.v12.lv            # Ground
+    connector.B44 ~ power.v12.lv            # Ground
+    connector.B45 ~ lanes[7].tx.p.line      # HSOp(7) - Lane 7 transmit data +
+    connector.B46 ~ lanes[7].tx.n.line      # HSOn(7) - Lane 7 transmit data -
+    connector.B47 ~ power.v12.lv            # Ground
+    connector.B48 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B49 ~ power.v12.lv            # Ground
+    connector.B50 ~ lanes[8].tx.p.line      # HSOp(8) - Lane 8 transmit data +
+    connector.B51 ~ lanes[8].tx.n.line      # HSOn(8) - Lane 8 transmit data -
+    connector.B52 ~ power.v12.lv            # Ground
+    connector.B53 ~ power.v12.lv            # Ground
+    connector.B54 ~ lanes[9].tx.p.line      # HSOp(9) - Lane 9 transmit data +
+    connector.B55 ~ lanes[9].tx.n.line      # HSOn(9) - Lane 9 transmit data -
+    connector.B56 ~ power.v12.lv            # Ground
+    connector.B57 ~ power.v12.lv            # Ground
+    connector.B58 ~ lanes[10].tx.p.line     # HSOp(10) - Lane 10 transmit data +
+    connector.B59 ~ lanes[10].tx.n.line     # HSOn(10) - Lane 10 transmit data -
+    connector.B60 ~ power.v12.lv            # Ground
+    connector.B61 ~ power.v12.lv            # Ground
+    connector.B62 ~ lanes[11].tx.p.line     # HSOp(11) - Lane 11 transmit data +
+    connector.B63 ~ lanes[11].tx.n.line     # HSOn(11) - Lane 11 transmit data -
+    connector.B64 ~ power.v12.lv            # Ground
+    connector.B65 ~ power.v12.lv            # Ground
+    connector.B66 ~ lanes[12].tx.p.line     # HSOp(12) - Lane 12 transmit data +
+    connector.B67 ~ lanes[12].tx.n.line     # HSOn(12) - Lane 12 transmit data -
+    connector.B68 ~ power.v12.lv            # Ground
+    connector.B69 ~ power.v12.lv            # Ground
+    connector.B70 ~ lanes[13].tx.p.line     # HSOp(13) - Lane 13 transmit data +
+    connector.B71 ~ lanes[13].tx.n.line     # HSOn(13) - Lane 13 transmit data -
+    connector.B72 ~ power.v12.lv            # Ground
+    connector.B73 ~ power.v12.lv            # Ground
+    connector.B74 ~ lanes[14].tx.p.line     # HSOp(14) - Lane 14 transmit data +
+    connector.B75 ~ lanes[14].tx.n.line     # HSOn(14) - Lane 14 transmit data -
+    connector.B76 ~ power.v12.lv            # Ground
+    connector.B77 ~ power.v12.lv            # Ground
+    connector.B78 ~ lanes[15].tx.p.line     # HSOp(15) - Lane 15 transmit data +
+    connector.B79 ~ lanes[15].tx.n.line     # HSOn(15) - Lane 15 transmit data -
+    connector.B80 ~ power.v12.lv            # Ground
+    connector.B81 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B82 ~ power.v12.lv            # Ground
+
+    # Power rail connections
+    power.v3_3.lv ~ power.v12.lv; power.v3_3_aux.lv ~ power.v12.lv
+
+    # Set power references
+    for sig in [signals.prsnt1, signals.prsnt2, signals.perst, signals.wake, signals.refclk_p, signals.refclk_n]:
+        sig.reference ~ power.v3_3
+
+    for lane in lanes:
+        lane.rx.p.reference_shim ~ power.v3_3; lane.rx.n.reference_shim ~ power.v3_3; lane.tx.p.reference_shim ~ power.v3_3; lane.tx.n.reference_shim ~ power.v3_3
+
+    jtag.reference_shim ~ power.v3_3
+
+    jtag.vtref ~ power.v3_3
+
+    smbus.reference_shim ~ power.v3_3
