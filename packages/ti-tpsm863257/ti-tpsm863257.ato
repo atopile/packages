@@ -1,0 +1,113 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import ResistorVoltageDivider
+import has_single_electric_reference_shared
+
+from "regulators.ato" import AdjustableRegulator
+from "parts/TEXAS_INSTRUMENTS_TPSM863257RDXR/TEXAS_INSTRUMENTS_TPSM863257RDXR.ato" import TEXAS_INSTRUMENTS_TPSM863257RDXR_package
+
+module TPSM863257 from AdjustableRegulator:
+    """
+    TI TPSM863257 Synchronous Buck Module
+    3V to 17V input voltage range
+    0.6V to 5.5V output voltage range
+    Up to 3A continuous current
+    1.2MHz switching frequency, FCCM mode
+    Integrated inductor and MOSFETs
+    """
+
+    # --- External interfaces ---
+    enable = new ElectricLogic
+    """
+    Enable pin. Drive high to turn on, low to turn off.
+    Has internal pulldown resistor, but module includes pullup for default-on operation.
+    Connect to override enable/disable control.
+    """
+
+    power_good = new ElectricLogic
+    """
+    Power-good open drain output. Can be left floating.
+    """
+
+    # --- Parameters ---
+    assert power_in.voltage within 3V to 17V
+    assert power_out.voltage within 0.6V to 5.5V
+    assert power_out.max_current <= 3A
+    assert reference_voltage is 0.6V +/- 1%
+
+    # Ensure buck converter constraint (input > output)
+    assert power_in.voltage >= power_out.voltage
+
+    # --- Package ---
+    package = new TEXAS_INSTRUMENTS_TPSM863257RDXR_package
+
+    # --- Input decoupling capacitors ---
+    # Recommended by datasheet for input supply filtering
+    input_caps = new Capacitor[2]
+    for cap in input_caps:
+        cap.capacitance = 10uF +/- 20%
+        cap.temperature_coefficient = "X7R"
+        cap.max_voltage = 25V to 50V
+        cap.package = "0805"
+
+    # Connect input capacitors in parallel
+    for cap in input_caps:
+        power_in.hv ~> cap ~> power_in.lv
+
+    # --- Output decoupling capacitors ---
+    # Recommended output capacitance for stability and ripple reduction
+    output_caps = new Capacitor[2]
+    for cap in output_caps:
+        cap.capacitance = 22uF +/- 20%
+        cap.temperature_coefficient = "X7R"
+        assert cap.max_voltage >= power_out.voltage * 2
+        cap.package = "0805"
+
+    # Connect output capacitors in parallel
+    for cap in output_caps:
+        power_out.hv ~> cap ~> power_out.lv
+
+    # --- Feedback voltage divider ---
+    # For adjustable output voltage
+    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm
+    feedback_divider.r_top.package = "R0402"
+    feedback_divider.r_bottom.package = "R0402"
+
+    # Connect feedback divider
+    power_out ~ feedback_divider.power
+
+    # --- Power connections ---
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.PGND
+    power_out.hv ~ package.VOUT
+    power_out.lv ~ package.PGND
+
+    # --- Enable pullup resistor ---
+    # Enable by default with pullup resistor (overcomes internal pulldown)
+    enable_pullup = new Resistor
+    enable_pullup.resistance = 10kohm +/- 5%
+    enable_pullup.package = "R0402"
+    power_in.hv ~> enable_pullup ~> package.EN
+
+    # --- Control connections ---
+    enable.line ~ package.EN
+    enable.reference ~ power_in
+
+    power_good.line ~ package.PG
+    power_good.reference ~ power_out
+
+    # Feedback connection
+    feedback_divider.output.line ~ package.FB
+
+    # SW pin is internal switching node - do not connect (leave floating as per datasheet)
+
+    # --- Shared reference trait ---
+    trait has_single_electric_reference_shared<gnd_only=True>
