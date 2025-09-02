@@ -3,7 +3,7 @@
 import ElectricPower
 
 from "pci-express-connectors.ato" import PCIe_X1, PCIe_X4, PCIe_X8, PCIe_X16
-from "pci-express-connectors.ato" import PCIe_X1_Socket
+from "pci-express-connectors.ato" import PCIe_X1_Socket, PCIe_X4_X8_Socket, PCIe_X16_Socket
 
 module Usage:
     """
@@ -30,6 +30,14 @@ module Usage:
     # Example 5: PCIe x1 socket (motherboard/host side)
     pcie_x1_socket = new PCIe_X1_Socket
     """PCIe x1 socket connector for motherboard/host side"""
+
+    # Example 6: PCIe x4/x8 socket (motherboard/host side)
+    pcie_x4_x8_socket = new PCIe_X4_X8_Socket
+    """PCIe x4/x8 socket connector for motherboard/host side"""
+
+    # Example 7: PCIe x16 socket (motherboard/host side)
+    pcie_x16_socket = new PCIe_X16_Socket
+    """PCIe x16 socket connector for motherboard/host side"""
 
     # Power supply connections (example)
     main_12v = new ElectricPower
@@ -59,6 +67,14 @@ module Usage:
     main_12v ~ pcie_x1_socket.power.v12
     main_3v3 ~ pcie_x1_socket.power.v3_3
     main_3v3_aux ~ pcie_x1_socket.power.v3_3_aux
+
+    main_12v ~ pcie_x4_x8_socket.power.v12
+    main_3v3 ~ pcie_x4_x8_socket.power.v3_3
+    main_3v3_aux ~ pcie_x4_x8_socket.power.v3_3_aux
+
+    main_12v ~ pcie_x16_socket.power.v12
+    main_3v3 ~ pcie_x16_socket.power.v3_3
+    main_3v3_aux ~ pcie_x16_socket.power.v3_3_aux
 
     # Example power supply constraints
     assert main_12v.voltage within 11.4V to 12.6V  # ±5% tolerance
