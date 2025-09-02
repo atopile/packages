@@ -2,8 +2,8 @@
 
 import ElectricPower
 
-from "pci-express-connectors.ato" import PCIe_X1, PCIe_X4, PCIe_X8, PCIe_X16
-from "pci-express-connectors.ato" import PCIe_X1_Socket, PCIe_X4_X8_Socket, PCIe_X16_Socket
+from "pci-express-connectors.ato" import PCIe_X1_Edge, PCIe_X4_Edge, PCIe_X8_Edge, PCIe_X16_Edge
+from "pci-express-connectors.ato" import PCIe_X1_Socket, PCIe_X4_Socket, PCIe_X8_Socket, PCIe_X16_Socket
 
 module Usage:
     """
@@ -11,31 +11,35 @@ module Usage:
     Shows how to use each connector type in a design
     """
 
-    # Example 1: Simple PCIe x1 card
-    pcie_x1_card = new PCIe_X1
-    """PCIe x1 connector for single-lane expansion card"""
+        # Example 1: Simple PCIe x1 card
+    pcie_x1_card = new PCIe_X1_Edge
+    """PCIe x1 edge connector for single-lane expansion card"""
 
     # Example 2: PCIe x4 card (e.g., NVMe SSD)
-    pcie_x4_card = new PCIe_X4
-    """PCIe x4 connector for quad-lane expansion card"""
+    pcie_x4_card = new PCIe_X4_Edge
+    """PCIe x4 edge connector for quad-lane expansion card"""
 
     # Example 3: PCIe x8 card (e.g., high-performance network card)
-    pcie_x8_card = new PCIe_X8
-    """PCIe x8 connector for octal-lane expansion card"""
+    pcie_x8_card = new PCIe_X8_Edge
+    """PCIe x8 edge connector for octal-lane expansion card"""
 
     # Example 4: PCIe x16 card (e.g., graphics card)
-    pcie_x16_card = new PCIe_X16
-    """PCIe x16 connector for 16-lane expansion card"""
+    pcie_x16_card = new PCIe_X16_Edge
+    """PCIe x16 edge connector for 16-lane expansion card"""
 
     # Example 5: PCIe x1 socket (motherboard/host side)
     pcie_x1_socket = new PCIe_X1_Socket
     """PCIe x1 socket connector for motherboard/host side"""
 
-    # Example 6: PCIe x4/x8 socket (motherboard/host side)
-    pcie_x4_x8_socket = new PCIe_X4_X8_Socket
-    """PCIe x4/x8 socket connector for motherboard/host side"""
+    # Example 6: PCIe x4 socket (motherboard/host side)
+    pcie_x4_socket = new PCIe_X4_Socket
+    """PCIe x4 socket connector for motherboard/host side"""
 
-    # Example 7: PCIe x16 socket (motherboard/host side)
+    # Example 7: PCIe x8 socket (motherboard/host side)
+    pcie_x8_socket = new PCIe_X8_Socket
+    """PCIe x8 socket connector for motherboard/host side"""
+
+    # Example 8: PCIe x16 socket (motherboard/host side)
     pcie_x16_socket = new PCIe_X16_Socket
     """PCIe x16 socket connector for motherboard/host side"""
 
@@ -68,9 +72,13 @@ module Usage:
     main_3v3 ~ pcie_x1_socket.power.v3_3
     main_3v3_aux ~ pcie_x1_socket.power.v3_3_aux
 
-    main_12v ~ pcie_x4_x8_socket.power.v12
-    main_3v3 ~ pcie_x4_x8_socket.power.v3_3
-    main_3v3_aux ~ pcie_x4_x8_socket.power.v3_3_aux
+    main_12v ~ pcie_x4_socket.power.v12
+    main_3v3 ~ pcie_x4_socket.power.v3_3
+    main_3v3_aux ~ pcie_x4_socket.power.v3_3_aux
+
+    main_12v ~ pcie_x8_socket.power.v12
+    main_3v3 ~ pcie_x8_socket.power.v3_3
+    main_3v3_aux ~ pcie_x8_socket.power.v3_3_aux
 
     main_12v ~ pcie_x16_socket.power.v12
     main_3v3 ~ pcie_x16_socket.power.v3_3
