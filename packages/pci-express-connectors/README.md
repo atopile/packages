@@ -1,6 +1,6 @@
 # PCI Express Board Edge Connectors
 
-Standard PCIe x1, x4, x8, and x16 board edge connectors for expansion cards. These connectors provide the physical interface for PCIe expansion cards to connect to motherboards or other host systems.
+Standard PCIe x1, x4, x8, and x16 board edge connectors for expansion cards, plus female/socket connectors for motherboard/host systems. These connectors provide the complete physical interface ecosystem for PCIe expansion cards and host systems.
 
 ## Features
 
@@ -14,7 +14,9 @@ Standard PCIe x1, x4, x8, and x16 board edge connectors for expansion cards. The
 
 ## Available Connectors
 
-### PCIe_X1
+### Board Edge Connectors (Card Side)
+
+#### PCIe_X1
 
 - **1 lane** (2 differential pairs)
 - **18 pins per side** (36 total)
@@ -38,10 +40,31 @@ Standard PCIe x1, x4, x8, and x16 board edge connectors for expansion cards. The
 - **82 pins per side** (164 total)
 - **Applications**: Graphics cards, high-end accelerators, multi-port network cards
 
+### Socket Connectors (Motherboard/Host Side)
+
+#### PCIe_X1_Socket
+
+- **1 lane** (2 differential pairs)
+- **36 pins total** (same electrical as edge connector)
+- **Applications**: Motherboard PCIe x1 slots
+
+#### PCIe_X4_X8_Socket
+
+- **Up to 8 lanes** (configurable for x4 or x8)
+- **64 pins total**
+- **Applications**: Motherboard PCIe x4/x8 slots
+
+#### PCIe_X16_Socket
+
+- **16 lanes** (32 differential pairs)
+- **164 pins total**
+- **Applications**: Motherboard PCIe x16 slots for graphics cards
+
 ## Usage
 
 ```ato
 from "atopile/pci-express-connectors/pci-express-connectors.ato" import PCIe_X1, PCIe_X4, PCIe_X8, PCIe_X16
+from "atopile/pci-express-connectors/pci-express-connectors.ato" import PCIe_X1_Socket
 
 module Usage:
     """
@@ -64,6 +87,10 @@ module Usage:
     # Example 4: PCIe x16 card (e.g., graphics card)
     pcie_x16_card = new PCIe_X16
     """PCIe x16 connector for 16-lane expansion card"""
+
+    # Example 5: PCIe x1 socket (motherboard/host side)
+    pcie_x1_socket = new PCIe_X1_Socket
+    """PCIe x1 socket connector for motherboard/host side"""
 
     # Power supply connections (example)
     main_12v = new ElectricPower
@@ -89,6 +116,10 @@ module Usage:
     main_12v ~ pcie_x16_card.power.v12
     main_3v3 ~ pcie_x16_card.power.v3_3
     main_3v3_aux ~ pcie_x16_card.power.v3_3_aux
+
+    main_12v ~ pcie_x1_socket.power.v12
+    main_3v3 ~ pcie_x1_socket.power.v3_3
+    main_3v3_aux ~ pcie_x1_socket.power.v3_3_aux
 
     # Example power supply constraints
     assert main_12v.voltage within 11.4V to 12.6V  # ±5% tolerance

@@ -10,6 +10,11 @@ from "parts/PCIexpress_x4_package/PCIexpress_x4.ato" import PCIexpress_x4
 from "parts/PCIexpress_x8_package/PCIexpress_x8.ato" import PCIexpress_x8
 from "parts/PCIexpress_x16_package/PCIexpress_x16.ato" import PCIexpress_x16
 
+# Female/Socket connectors
+from "parts/XKB_Connection_X3113WVS_36_9TV01/XKB_Connection_X3113WVS_36_9TV01.ato" import XKB_Connection_X3113WVS_36_9TV01_package
+from "parts/UMAX_3183_10111P1T/UMAX_3183_10111P1T.ato" import UMAX_3183_10111P1T_package
+from "parts/FOXCONN_2EG08217_D2D_DF/FOXCONN_2EG08217_D2D_DF.ato" import FOXCONN_2EG08217_D2D_DF_package
+
 interface PCIe_Power:
     """
     PCIe power interface for board edge connectors
@@ -583,6 +588,92 @@ module PCIe_X16:
 
     for lane in lanes:
         lane.rx.p.reference_shim ~ power.v3_3; lane.rx.n.reference_shim ~ power.v3_3; lane.tx.p.reference_shim ~ power.v3_3; lane.tx.n.reference_shim ~ power.v3_3
+
+    jtag.reference_shim ~ power.v3_3
+
+    jtag.vtref ~ power.v3_3
+
+    smbus.reference_shim ~ power.v3_3
+
+
+# Female/Socket Connector Modules
+
+module PCIe_X1_Socket:
+    """
+    PCIe x1 female/socket connector module
+    Provides 1 PCIe lane with power and control signals for motherboard/host side
+    """
+
+    # External interfaces (same as edge connector)
+    power = new PCIe_Power
+    """PCIe power interface"""
+
+    signals = new PCIe_Signals
+    """PCIe control and configuration signals"""
+
+    lane0 = new PCIe_Lane
+    """PCIe lane 0 differential signals"""
+
+    jtag = new JTAG
+    """JTAG interface"""
+
+    smbus = new I2C
+    """SMBus interface (I2C compatible)"""
+
+    # Physical connector
+    connector = new XKB_Connection_X3113WVS_36_9TV01_package
+
+    # Pin connections in connector order (same electrical layout as edge connector)
+    # A-side pins
+    connector.A1 ~ signals.prsnt1.line      # PRSNT1#
+    connector.A2 ~ power.v12.hv             # +12V
+    connector.A3 ~ power.v12.hv             # +12V
+    connector.A4 ~ power.v12.lv             # Ground
+    connector.A5 ~ jtag.tck.line            # TCK
+    connector.A6 ~ jtag.tdi.line            # TDI
+    connector.A7 ~ jtag.tdo.line            # TDO
+    connector.A8 ~ jtag.tms.line            # TMS
+    connector.A9 ~ power.v3_3.hv            # +3.3V
+    connector.A10 ~ power.v3_3.hv           # +3.3V
+    connector.A11 ~ signals.perst.line      # PERST#
+    # Key notch
+    connector.A12 ~ power.v12.lv            # Ground
+    connector.A13 ~ signals.refclk_p.line   # REFCLK+
+    connector.A14 ~ signals.refclk_n.line   # REFCLK-
+    connector.A15 ~ power.v12.lv            # Ground
+    connector.A16 ~ lane0.rx.p.line         # HSIp(0) - Lane 0 receive data +
+    connector.A17 ~ lane0.rx.n.line         # HSIn(0) - Lane 0 receive data -
+    connector.A18 ~ power.v12.lv            # Ground
+
+    # B-side pins
+    connector.B1 ~ power.v12.hv             # +12V
+    connector.B2 ~ power.v12.hv             # +12V
+    connector.B3 ~ power.v12.hv             # +12V
+    connector.B4 ~ power.v12.lv             # Ground
+    connector.B5 ~ smbus.scl.line           # SMCLK
+    connector.B6 ~ smbus.sda.line           # SMDAT
+    connector.B7 ~ power.v12.lv             # Ground
+    connector.B8 ~ power.v3_3.hv            # +3.3V
+    connector.B9 ~ jtag.n_trst.line         # TRST#
+    connector.B10 ~ power.v3_3_aux.hv       # +3.3V aux
+    connector.B11 ~ signals.wake.line       # WAKE#
+    # Key notch
+    # connector.B12 ~ signals.clkreq.line   # CLKREQ# (Clock Request Signal - optional)
+    connector.B13 ~ power.v12.lv            # Ground
+    connector.B14 ~ lane0.tx.p.line         # HSOp(0) - Lane 0 transmit data +
+    connector.B15 ~ lane0.tx.n.line         # HSOn(0) - Lane 0 transmit data -
+    connector.B16 ~ power.v12.lv            # Ground
+    connector.B17 ~ signals.prsnt2.line     # PRSNT2#
+    connector.B18 ~ power.v12.lv            # Ground
+
+    # Power rail connections
+    power.v3_3.lv ~ power.v12.lv; power.v3_3_aux.lv ~ power.v12.lv
+
+    # Set power references
+    for sig in [signals.prsnt1, signals.prsnt2, signals.perst, signals.wake, signals.refclk_p, signals.refclk_n]:
+        sig.reference ~ power.v3_3
+
+    lane0.rx.reference_shim ~ power.v3_3; lane0.tx.reference_shim ~ power.v3_3
 
     jtag.reference_shim ~ power.v3_3
 
