@@ -24,12 +24,11 @@ import has_part_removed
 import can_bridge_by_name
 import has_single_electric_reference_shared
 
-from "atopile/buttons/buttons.ato" import VerticalButton
-
 from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package
 from "parts/Winbond_Elec_W25Q128JVSIQ/Winbond_Elec_W25Q128JVSIQ.ato" import Winbond_Elec_W25Q128JVSIQ_package
-from "parts/Yangxing_Tech_X322512MSB4SI/Yangxing_Tech_X322512MSB4SI.ato" import Yangxing_Tech_X322512MSB4SI_package
+from "parts/Abracon_LLC_ABM8_272_T3/Abracon_LLC_ABM8_272_T3.ato" import Abracon_LLC_ABM8_272_T3_package
 from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_package
+from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
 
 module Raspberry_Pi_RP2040:
     """
@@ -102,8 +101,8 @@ module Raspberry_Pi_RP2040:
     qspi = new MultiSPI<data_lane_count=4>
 
     # --- Components ---
-    reset_switch = new _SwitchWithLowPassFilter
-    boot_switch = new _SwitchWithLowPassFilter
+    reset_switch = new _TactileSwitch
+    boot_switch = new _TactileSwitch
     crystal_oscillator = new _CrystalOscillator
     qspi_flash = new _QSPIFlash
     red_led = new _RedIndicatorLED
@@ -239,13 +238,6 @@ module Raspberry_Pi_RP2040:
     package.GPIO28_ADC2 ~ gpio[28].line
     package.GPIO29_ADC3 ~ gpio[29].line
 
-    # --- Custom net names ---
-    usb.usb_if.d.p.line.override_net_name = "USB_P"
-    usb.usb_if.d.n.line.override_net_name = "USB_N"
-    _package_usb.usb_if.d.p.line.override_net_name = "RP_USB_P"
-    _package_usb.usb_if.d.n.line.override_net_name = "RP_USB_N"
-    power.hv.override_net_name = "3V3"
-
     # --- References ---
     # connect all grounds
     trait has_single_electric_reference_shared<gnd_only=True>
@@ -288,7 +280,7 @@ module _Crystal:
     """
     Crystal oscillator
     """
-    package = new Yangxing_Tech_X322512MSB4SI_package
+    package = new Abracon_LLC_ABM8_272_T3_package
 
     input = new Electrical
     output = new Electrical
@@ -296,8 +288,8 @@ module _Crystal:
 
     trait can_bridge_by_name<input_name="input", output_name="output">
 
-    input ~ package.OSC1
-    output ~ package.OSC2
+    input ~ package.1
+    output ~ package.3
     gnd ~ package.GND
 
 module _CrystalOscillator:
@@ -362,20 +354,18 @@ module _RedIndicatorLED:
     input.line ~ led_package.A
     input.reference.lv ~> current_limiting_resistor ~> led_package.K
 
-module _SwitchWithLowPassFilter:
+module _TactileSwitch:
     """
-    A switch (push = low, release = high), with a low-pass filter.
+    A tactile switch (push = low, release = high), with pull-up resistor.
     """
+    package = new ALPSALPINE_SKRPACE010_package
     output = new ElectricLogic
+    pull_up_resistor = new Resistor
+    pull_up_resistor.resistance = 10kohm +/- 10%
+    pull_up_resistor.package = "0402"
 
-    switch = new VerticalButton
-    filter = new FilterElectricalRC
-
-    filter.resistor.resistance = 10kohm +/- 10%
-    filter.resistor.package = "0402"
-    filter.capacitor.capacitance = 1uF +/- 20%
-    filter.capacitor.package = "0402"
-    output.reference.lv ~> switch ~> output.line
-    filter.in_.line ~ output.reference.hv
-    filter.in_.reference ~ output.reference
-    filter.out ~ output
+    output.line ~> pull_up_resistor ~> output.reference.hv
+    output.line ~ package.1
+    output.line ~ package.2
+    output.reference.lv ~ package.3
+    output.reference.lv ~ package.4

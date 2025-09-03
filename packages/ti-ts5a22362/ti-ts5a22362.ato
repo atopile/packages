@@ -1,0 +1,45 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import has_single_electric_reference_shared
+from "switch.py" import Switch
+
+from "parts/Texas_Instruments_TS5A22362DGSR/Texas_Instruments_TS5A22362DGSR.ato" import Texas_Instruments_TS5A22362DGSR_package
+
+
+module Texas_Instruments_TS5A22362DGSR:
+    package = new Texas_Instruments_TS5A22362DGSR_package
+    power = new ElectricPower
+    switches_no = new Switch[2]
+    switches_nc = new Switch[2]
+    enables = new ElectricLogic[2]
+
+    power.required = True
+    assert power.voltage within 2.3V to 5.5V
+
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+
+    enables[0].line ~ package.IN1
+    enables[1].line ~ package.IN2
+
+    switches_no[0].unnamed[0] ~ package.NO1
+    switches_no[0].unnamed[1] ~ package.COM1
+    switches_no[1].unnamed[0] ~ package.NO2
+    switches_no[1].unnamed[1] ~ package.COM2
+
+    switches_nc[0].unnamed[0] ~ package.NC1
+    switches_nc[0].unnamed[1] ~ package.COM1
+    switches_nc[1].unnamed[0] ~ package.COM2
+    switches_nc[1].unnamed[1] ~ package.NC2
+
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100nF +/- 20%
+    bypass_cap.package = "0402"
+
+    power.hv ~> bypass_cap ~> power.lv
+
+    trait has_single_electric_reference_shared<gnd_only=True>
