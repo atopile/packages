@@ -8,20 +8,15 @@ A 0.91" 128x32 OLED display with I²C interface.
 import ElectricPower
 import I2C
 
-from "atopile/allvision-oled128x32/allvision_oled128x32.ato" import OLED12832
-
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
+from "atopile/allvision-oled128x32/allvision-oled128x32.ato" import OLED12832
 
 
 module Usage:
     """Minimal example for the OLED12832."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # Dummy MCU & sensor
+    micro_power = new ElectricPower
+    micro_i2c = new I2C
     display = new OLED12832
 
     # Shared 3V3 rail
@@ -29,12 +24,12 @@ module Usage:
     power_3v3.voltage = 3.3V
     power_5v = new ElectricPower
     power_5v.voltage = 5V
-    power_3v3 ~ mcu.power
+    power_3v3 ~ micro_power
     power_5v ~ display.power_5v
     power_3v3 ~ display.power_3v3
 
     # I²C connection
-    mcu.i2c ~ display.i2c
+    micro_i2c ~ display.i2c
 ```
 
 ## Contributing
