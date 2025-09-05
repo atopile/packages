@@ -1,0 +1,25 @@
+requires-atopile: ^0.12.2
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: raspberry-rp2354b.ato:Raspberry_Pi_RP2354B
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/raspberry-rp2354b
+  repository: https://github.com/atopile/packages
+  version: 0.2.4
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: The RP2354B microcontroller from RaspberryPi
+  license: MIT
