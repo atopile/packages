@@ -63,8 +63,8 @@ jobs:
       - run: ato build
         working-directory: ${{ matrix.package }}
 
-      # - run: ato package verify -s
-      #   working-directory: ${{ matrix.package }}
+      - run: ato package verify -s
+        working-directory: ${{ matrix.package }}
 
       - uses: atopile/publish-package@v1
         name: Publish package
