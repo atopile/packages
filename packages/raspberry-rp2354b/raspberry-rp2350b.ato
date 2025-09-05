@@ -29,9 +29,9 @@ from "parts/Abracon_LLC_ABM8_272_T3/Abracon_LLC_ABM8_272_T3.ato" import Abracon_
 from "parts/Hubei_KENTO_Elec_KT_0603R/Hubei_KENTO_Elec_KT_0603R.ato" import Hubei_KENTO_Elec_KT_0603R_package
 from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
 
-module Raspberry_Pi_RP2040:
+module Raspberry_Pi_RP2354B:
     """
-    Raspberry Pi RP2040 microcontroller
+    Raspberry Pi RP2354B microcontroller
     """
     package = new Raspberry_Pi_RP2354B_package
 
@@ -103,13 +103,11 @@ module Raspberry_Pi_RP2040:
     reset_switch = new _TactileSwitch
     boot_switch = new _TactileSwitch
     crystal_oscillator = new _CrystalOscillator
-    qspi_flash = new _QSPIFlash
     red_led = new _RedIndicatorLED
     usb_termination = new _USBTermination
 
     # --- Connections ---
     # power
-    power ~ qspi_flash.power
     power ~ _io_power
     power ~ _adc_power
     power ~ _usb_phy_power
@@ -138,15 +136,11 @@ module Raspberry_Pi_RP2040:
     # usb termination
     usb ~> usb_termination ~> _package_usb
 
-    # qspi
-    qspi ~> qspi_flash.qspi
-
     # indicator led
     red_led.input ~ gpio[25]
 
     # reset and boot switches
     reset_switch.output ~ reset
-    boot_switch.output ~ qspi.chip_select
 
     # factory test enable
     _factory_test_enable ~ power.lv
