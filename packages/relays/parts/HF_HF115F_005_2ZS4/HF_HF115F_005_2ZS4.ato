@@ -1,0 +1,42 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import Electrical
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+from "atopile/relays/relays.ato" import RelayDPDT
+
+component HF_HF115F_005_2ZS4_package:
+    """HF115F/005-2ZS4"""
+
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    trait is_auto_generated<system="ato_part", source="easyeda:C9226", date="2025-09-05T00:11:34.474943+00:00", checksum="0ee3b00286ec589162b822c850ea804c9d1a6020289c5dd04c5a1494fbfefd03">
+
+    trait is_atomic_part<manufacturer="HF", partnumber="HF115F/005-2ZS4", footprint="RELAY-TH_HF115F-024-2ZS4.kicad_mod", symbol="HF115F_005-2ZS4.kicad_sym", model="RELAY-TH_L29.0-W12.7-H15.7.step">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C9226", manufacturer="HF", partno="HF115F/005-2ZS4">
+    trait has_designator_prefix<prefix="Relay">
+
+    # pins
+    pin 1
+    pin 2
+    pin 3
+    pin 4
+    pin 5
+    pin 6
+    pin 7
+    pin 8
+
+module RelayDPDT8A5V from RelayDPDT:
+    package = new HF_HF115F_005_2ZS4_package
+    package.1 ~> coil ~> package.2
+
+    # Switch 0
+    package.5 ~> switch_nc[0] ~> package.3
+    package.5 ~> switch_no[0] ~> package.7
+
+    # Switch 1
+    package.6 ~> switch_nc[1] ~> package.4
+    package.6 ~> switch_no[1] ~> package.8
