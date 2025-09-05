@@ -19,7 +19,7 @@ A comprehensive driver for the NXP PCF8574 remote 8-bit I/O expander for I2C-bus
 #pragma experiment("FOR_LOOP")
 
 import I2C, ElectricPower, ElectricLogic
-from "nxp-pcf8574.ato" import NXP_PCF8574
+from "atopile/nxp-pcf8574/nxp-pcf8574.ato" import NXP_PCF8574
 
 module Usage:
     """
@@ -67,6 +67,7 @@ module Usage:
     button_inputs[1] ~ gpio_expander.gpio[5]
     button_inputs[2] ~ gpio_expander.gpio[6]
     button_inputs[3] ~ gpio_expander.gpio[7]
+
 ```
 
 ## Key Interfaces

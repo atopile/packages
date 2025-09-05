@@ -21,7 +21,7 @@ The TCA8418 is a versatile I2C-controlled keypad matrix scanner and GPIO expande
 import I2C
 import ElectricPower
 
-from "ti-tca8418.ato" import TI_TCA8418
+from "atopile/ti-tca8418/ti-tca8418.ato" import TI_TCA8418
 
 module Usage:
     """
@@ -48,6 +48,7 @@ module Usage:
     # GPIO row pins are available as keypad_controller.gpio_rows[0] through gpio_rows[7]
     # GPIO column pins are available as keypad_controller.gpio_cols[0] through gpio_cols[9]
     # Interrupt pin is available as keypad_controller.interrupt
+
 ```
 
 ## Pin Configuration

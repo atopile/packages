@@ -31,7 +31,7 @@ A comprehensive driver for the Microchip EMC2101 temperature monitoring and PWM 
 #pragma experiment("BRIDGE_CONNECT")
 
 import I2C, ElectricPower, ElectricLogic
-from "microchip-emc2101.ato" import Microchip_EMC2101
+from "atopile/microchip-emc2101/microchip-emc2101.ato" import Microchip_EMC2101
 
 module Usage:
     """
@@ -62,6 +62,7 @@ module Usage:
 
     # Connect fan PWM output
     fan_pwm_signal ~ temp_controller.pwm_out
+
 ```
 
 ### Optional Interfaces

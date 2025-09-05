@@ -24,7 +24,7 @@ The DS2484 is a single-channel 1-Wire master with an I2C interface from Maxim In
 import ElectricPower
 import I2C
 
-from "maxim-ds2484.ato" import Maxim_DS2484, OneWire
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484, OneWire
 
 module TemperatureSensor:
     """
@@ -59,6 +59,7 @@ module Usage:
 
     # Set I2C address (default 0x18)
     bridge.i2c.address = 0x18
+
 ```
 
 ## Technical Specifications

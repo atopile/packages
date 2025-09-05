@@ -22,7 +22,7 @@ Driver for the NXP PCT2075 I²C temperature sensor and thermal watchdog. This di
 import ElectricPower
 import I2C
 
-from "nxp-pct2075.ato" import NXP_PCT2075
+from "atopile/nxp-pct2075/nxp-pct2075.ato" import NXP_PCT2075
 
 module Usage:
     """
@@ -44,6 +44,7 @@ module Usage:
 
     # Set I²C address (default 0x48 with all address pins low)
     sensor.i2c.address = 0x48
+
 ```
 
 ## I²C Address Configuration

@@ -1,0 +1,123 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import SPI, ElectricPower, Resistor, Capacitor, ElectricLogic, ElectricSignal
+
+from "parts/MBI_MBI5043GP_A/MBI_MBI5043GP_A.ato" import MBI_MBI5043GP_A_package
+
+module Macroblock_MBI5043:
+    """
+    16-Channel Constant Current LED Sink Driver
+
+    The MBI5043GP-A is designed for LED display applications requiring
+    precise constant current control. Features 16 independent current
+    sink outputs with excellent current accuracy and regulation.
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    5V power supply for the LED driver IC
+    """
+    power.required = True
+    assert power.voltage within 4.5V to 5.5V
+
+    sdi = new ElectricLogic
+    """
+    Serial Data Input
+    """
+    sdi.line.required = True
+    sdi.reference ~ power
+
+    sdo = new ElectricLogic
+    """
+    Serial Data Output
+    """
+    sdo.line.required = True
+    sdo.reference ~ power
+
+    dclk = new ElectricLogic
+    """
+    Serial Data Clock
+    """
+    dclk.line.required = True
+    dclk.reference ~ power
+
+    le = new ElectricLogic
+    """
+    Latch Enable signal - transfers shift register data to output latches
+    Data is latched when LE transitions from high to low
+    """
+    le.reference ~ power
+
+    gclk = new ElectricLogic
+    """
+    Global Clock for PWM control
+    Used for controlling LED brightness through PWM modulation
+    """
+    gclk.reference ~ power
+
+    # LED Output Channels
+    led_outputs = new ElectricLogic[16]
+    """
+    16 constant current sink outputs for driving LEDs
+    Each output can sink 5-45A as set by external resistor
+    """
+    for output in led_outputs:
+        output.reference ~ power
+
+    # Current Setting
+    rext_resistor = new Resistor
+    """
+    External resistor to set the output current for all channels
+    Typical values: 700Ω for 20mA
+    """
+    # Let the system pick any available resistor for now
+    rext_resistor.package = "0402"
+    digital_current_gain = 1.0
+    output_current = 45mA +/- 2%
+    assert rext_resistor.resistance within (((0.61V*digital_current_gain)/output_current)*23)
+
+    # --- Power supply decoupling ---
+    bypass_capacitor = new Capacitor
+    bypass_capacitor.capacitance = 100nF +/- 20%
+    bypass_capacitor.package = "0402"
+
+    # --- Package ---
+    package = new MBI_MBI5043GP_A_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    power.hv ~> bypass_capacitor ~> power.lv
+
+    # SPI interface connections
+    package.SDI ~ sdi.line
+    package.SDO ~ sdo.line
+    package.DCLK ~ dclk.line
+
+    # Control signal connections
+    package.LE ~ le.line
+    package.GCLK ~ gclk.line
+
+    # LED output connections
+    led_outputs[0].line ~ package.OUT0
+    led_outputs[1].line ~ package.OUT1
+    led_outputs[2].line ~ package.OUT2
+    led_outputs[3].line ~ package.OUT3
+    led_outputs[4].line ~ package.OUT4
+    led_outputs[5].line ~ package.OUT5
+    led_outputs[6].line ~ package.OUT6
+    led_outputs[7].line ~ package.OUT7
+    led_outputs[8].line ~ package.OUT8
+    led_outputs[9].line ~ package.OUT9
+    led_outputs[10].line ~ package.OUT10
+    led_outputs[11].line ~ package.OUT11
+    led_outputs[12].line ~ package.OUT12
+    led_outputs[13].line ~ package.OUT13
+    led_outputs[14].line ~ package.OUT14
+    led_outputs[15].line ~ package.OUT15
+
+    # Current setting resistor connection
+    package.REXT ~> rext_resistor ~> package.GND

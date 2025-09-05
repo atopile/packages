@@ -13,7 +13,7 @@ The TI ADS7830 is an 8-bit, 8-channel analog-to-digital converter with an I²C i
 import ElectricPower
 import I2C
 
-from "ti-ads7830.ato" import TI_ADS7830
+from "atopile/ti-ads7830/ti-ads7830.ato" import TI_ADS7830
 
 module Usage:
     """
@@ -38,6 +38,7 @@ module Usage:
 
     # --- Set I2C address (optional - default is 0x48) ---
     # i2c_bus.address = 0x48
+
 ```
 
 ## Contributing

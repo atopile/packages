@@ -1,0 +1,30 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+
+from "ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
+
+module Usage:
+    """
+    Usage example for Texas Instruments TS5A22362DGSR
+    """
+
+    power = new ElectricPower
+    power.voltage = 3.3V +/- 5%
+
+    analog_switch = new Texas_Instruments_TS5A22362DGSR
+    power ~ analog_switch.power
+
+    input_signals = new Electrical[2]
+    output_signals = new Electrical[2]
+
+    # Connect signals via switches
+    input_signals[0] ~> analog_switch.switches_no[0] ~> output_signals[0]
+    input_signals[1] ~> analog_switch.switches_no[1] ~> output_signals[1]
+
+    # Enable control - active high
+    enables = new ElectricLogic[2]
+    enables[0] ~ analog_switch.enables[0]
+    enables[1] ~ analog_switch.enables[1]

@@ -24,7 +24,7 @@ import ElectricPower
 import I2C
 
 # --- Package import ---
-from "sensirion-sht40.ato" import SHT40_driver
+from "atopile/sensirion-sht40/sensirion-sht40.ato" import Sensirion_SHT40
 
 
 module Usage:
@@ -36,13 +36,13 @@ module Usage:
 
     # Power rail (3.3 V)
     power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V
+    assert power_3v3.voltage within 3.2V to 3.4V
 
     # I²C bus
     i2c_bus = new I2C
 
     # Sensor instance
-    sensor = new SHT40_driver
+    sensor = new Sensirion_SHT40
 
     # Connect required power rail
     power_3v3 ~ sensor.power
@@ -56,6 +56,7 @@ module Usage:
 
     # Address is fixed at 0x44 (no configuration needed)
     sensor.i2c.address = 0x44
+
 ```
 
 ## Interface Details

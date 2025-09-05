@@ -7,50 +7,11 @@ import ElectricSignal, Electrical, Resistor, SPI, I2C, UART, USB2_0
 
 import has_single_electric_reference_shared
 
-from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package
-from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package
+from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package # C3294462
+from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package # C2897424
 
-module SaleaeHeader:
-    """
-    Supports legacy designs with headers.
-    """
-    header = new HCTL_PZ254_2_04_S_package
-    channels = new ElectricSignal[4]
-    gnd = new Electrical
-
-    saleae_debug_header = new SaleaeHeaderVertical
-    gnd ~ saleae_debug_header.channels[0].reference_shim.lv
-
-    for channel in channels:
-        gnd ~ channel.reference.gnd
-
-    channels[0] ~ saleae_debug_header.channels[0]
-    channels[1] ~ saleae_debug_header.channels[1]
-    channels[2] ~ saleae_debug_header.channels[2]
-    channels[3] ~ saleae_debug_header.channels[3]
-
-    for channel in channels:
-        assert channel.reference.voltage within -25V to 25V
-
-    # SPI
-    spi = new SPI
-    spi_cs = new ElectricSignal
-    spi.mosi ~ channels[0]
-    spi.miso ~ channels[1]
-    spi.sclk ~ channels[2]
-    spi_cs ~ channels[3]
-
-    # I2C
-    i2c = new I2C
-    i2c.scl ~ channels[0]
-    i2c.sda ~ channels[1]
-    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
-
-    # UART
-    uart = new UART
-    uart.base_uart.tx ~ channels[2]
-    uart.base_uart.rx ~ channels[3]
-    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
+module SaleaeHeader from SaleaeHeaderRightAngle_2:
+    pass
 
 module SaleaeHeaderVertical:
     package = new HCTL_PZ254_2_04_S_package

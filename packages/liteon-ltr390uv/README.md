@@ -9,7 +9,7 @@ hardware connections so you can drop it into your design effortlessly.
 import ElectricPower
 import I2C
 
-from "atopile/liteon-ltr329/liteon-ltr329.ato" import Liteon_LTR329
+from "atopile/liteon-ltr390uv/liteon-ltr390uv.ato" import Liteon_LTR390UV
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
@@ -19,20 +19,21 @@ module MCU:
 
 
 module Usage:
-    """Minimal example for the Liteon_LTR329 ambient light sensor."""
+    """Minimal example for the Liteon_LTR390UV UV sensor."""
 
     # MCU & sensor
     mcu = new MCU
-    ambient_light_sensor = new Liteon_LTR329
+    uv_sensor = new Liteon_LTR390UV
 
     # Shared 3V3 rail
     power = new ElectricPower
     power.voltage = 3.3V
     power ~ mcu.power
-    power ~ ambient_light_sensor.power
+    power ~ uv_sensor.power
 
     # I²C connection
-    mcu.i2c ~ ambient_light_sensor.i2c
+    mcu.i2c ~ uv_sensor.i2c
+
 ```
 
 ## Contributing

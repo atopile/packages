@@ -35,7 +35,7 @@ jobs:
           packages=$(scripts/discover-changed-packages.sh "${{ github.event_name }}" "$base_ref")
           echo "packages=$packages" >> "$GITHUB_OUTPUT"
 
-  test-and-publish:
+  build-verify-publish:
     permissions:
       contents: read
       packages: read
@@ -63,6 +63,9 @@ jobs:
       - run: ato build
         working-directory: ${{ matrix.package }}
 
+      # - run: ato package verify -s
+      #   working-directory: ${{ matrix.package }}
+
       - uses: atopile/publish-package@v1
         name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -71,3 +74,17 @@ jobs:
           skip-duplicate-versions: true
           package-version: "" # Use the embedded version key
           ato-config: ${{ matrix.package }}/ato.yaml
+
+  verify-matrix:
+    runs-on: ubuntu-latest
+    needs: [build-verify-publish]
+    if: always()
+    steps:
+      - name: Fail if any matrix job failed
+        run: |
+          echo "matrix result: ${{ needs.build-verify-publish.result }}"
+          if [ "${{ needs.build-verify-publish.result }}" != "success" ] && [ "${{ needs.build-verify-publish.result }}" != "skipped" ]; then
+            echo "One or more matrix jobs failed."
+            exit 1
+          fi
+          echo "All matrix jobs passed."

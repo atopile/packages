@@ -1,8 +1,7 @@
-#pragma experiment("TRAITS")
 import ElectricPower
 import I2C
 import ElectricLogic
-from "st-lsm6dso32.ato" import ST_LSM6DSO32
+from "atopile/st-lsm6dso32/st-lsm6dso32.ato" import ST_LSM6DSO32
 
 module Usage:
     """
@@ -38,10 +37,8 @@ module Usage:
 
     # Connect SA0 pin to GND for 0x6A address
     # For 0x6B address, connect to VDD instead
-    ground_ref = new ElectricLogic
-    ground_ref.reference ~ power_3v3
-    ground_ref.line ~ power_3v3.lv  # Connect to ground
-    ground_ref ~ imu.sdo_sa0
+    imu.sdo_sa0.reference ~ power_3v3
+    imu.sdo_sa0.line ~ power_3v3.lv
 
     # Optional: Connect interrupt pin for motion detection
     # int_pin = new ElectricLogic

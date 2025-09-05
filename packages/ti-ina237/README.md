@@ -22,7 +22,8 @@ High-precision digital power monitor with 16-bit delta-sigma ADC designed for cu
 import I2C
 import ElectricPower
 import ElectricLogic
-from "ti-ina237.ato" import TI_INA237
+import Resistor
+from "atopile/ti-ina237/ti-ina237.ato" import TI_INA237
 
 module Usage:
     """
@@ -61,6 +62,7 @@ module Usage:
     # Set I2C address to 0x40 (base address when A1=0, A0=0)
     # Address pins will be pulled down internally or externally
     power_monitor.i2c.address = 0x40
+
 ```
 
 ## Contributing
