@@ -5,8 +5,8 @@ paths:
   layout: ./layouts
 
 builds:
-  low_side_nfet_switch:
-    entry: relays.ato:LowSideNFETSwitch
+  default:
+    entry: relays.ato:LogicLevelRelaySPDT3A5V
     hide_designators: true
 
   # Power Relays
@@ -93,6 +93,11 @@ builds:
   LogicLevelRelaySPDT1A24V:
     entry: relays.ato:LogicLevelRelaySPDT1A24V
     exclude_checks: ["PCB.requires_drc_check"]
+    hide_designators: true
+
+  # Utils
+  low_side_nfet_switch:
+    entry: relays.ato:LowSideNFETSwitch
     hide_designators: true
 
 package:
