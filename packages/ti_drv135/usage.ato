@@ -1,0 +1,24 @@
+"""Example usage of the ti-drv135 package."""
+
+import ElectricPower
+import ElectricSignal
+import DifferentialPair
+
+from "ti_drv135.ato" import TI_DRV135
+
+module UsageExample:
+
+    pos_power = new ElectricPower
+    pos_power.voltage = 10V to 11V
+    neg_power = new ElectricPower
+    neg_power.voltage = -11V to -10V
+    input_signal = new ElectricSignal
+    output_force = new DifferentialPair
+    output_sense = new DifferentialPair
+
+    line_driver = new TI_DRV135
+    line_driver.positive_power ~ pos_power
+    line_driver.negative_power ~ neg_power
+    line_driver.input_signal ~ input_signal
+    line_driver.output_force ~ output_force
+    line_driver.output_sense ~ output_sense
