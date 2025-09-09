@@ -41,6 +41,8 @@ jobs:
       packages: read
       id-token: write
     runs-on: ubuntu-latest
+    env:
+      GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -61,7 +63,9 @@ jobs:
         working-directory: ${{ matrix.package }}
 
       - name: Mark workspace as safe for git
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE/${{ matrix.package }}"
 
       - run: ato build
         working-directory: ${{ matrix.package }}
