@@ -75,14 +75,32 @@ jobs:
           package-version: "" # Use the embedded version key
           ato-config: ${{ matrix.package }}/ato.yaml
 
-      - name: Upload build logs
+      - name: Archive build logs
+        id: archive_logs
         if: always()
+        run: |
+          pkg="${{ matrix.package }}"
+          logs_dir="$pkg/build/logs"
+          mkdir -p artifacts
+          safe_pkg=$(echo "$pkg" | tr '/' '-')
+          artifact_name="build-logs-$safe_pkg-${{ github.run_id }}-${{ github.run_attempt }}"
+          archive="artifacts/$artifact_name.zip"
+          if [ -d "$logs_dir" ]; then
+            zip -r "$archive" "$logs_dir" -q
+            echo "archive_path=$archive" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          else
+            echo "No logs directory at $logs_dir"
+            echo "archive_path=" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload build logs
+        if: always() && steps.archive_logs.outputs.archive_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-${{ matrix.package }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ matrix.package }}/build/logs/**
-            ${{ matrix.package }}/build/**/*.log
+          name: ${{ steps.archive_logs.outputs.artifact_name }}
+          path: ${{ steps.archive_logs.outputs.archive_path }}
           if-no-files-found: warn
           retention-days: 14
 
