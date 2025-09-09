@@ -60,8 +60,13 @@ jobs:
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - run: ato build
         working-directory: ${{ matrix.package }}
+        env:
+          GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
