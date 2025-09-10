@@ -1,5 +1,8 @@
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/rohm-bh1750/rohm-bh1750.ato" import ROHM_BH1750
 
@@ -9,6 +12,7 @@ module MCU:
     power = new ElectricPower
     i2c = new I2C
 
+    trait has_part_removed
 
 module Usage:
     """Minimal example for the ROHM_BH1750 lux sensor."""

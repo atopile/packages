@@ -15,8 +15,11 @@ The BH1750 is a digital ambient light sensor with I²C interface that provides a
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/rohm-bh1750/rohm-bh1750.ato" import ROHM_BH1750
 
@@ -26,6 +29,7 @@ module MCU:
     power = new ElectricPower
     i2c = new I2C
 
+    trait has_part_removed
 
 module Usage:
     """Minimal example for the ROHM_BH1750 lux sensor."""
