@@ -5,28 +5,27 @@ paths:
   layout: ./layouts
 
 builds:
+  default:
+    entry: espressif-esp32-c3-mini.ato:ESP32_C3_MINI_1
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
   esp32_c3_mini_1_driver:
-    entry: esp32_c3_mini.ato:ESP32_C3_MINI_1_driver
+    entry: espressif-esp32-c3-mini.ato:ESP32_C3_MINI_1
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  esp32_c3_mini_1_driver_example:
-    entry: esp32_c3_mini.ato:ESP32_C3_MINI_1_driver_example
-    hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
   esp32_c3_wroom_02_driver:
-    entry: esp32_c3_wroom.ato:ESP32_C3_WROOM_02_driver
-    hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-  esp32_c3_wroom_02_driver_example:
-    entry: esp32_c3_wroom.ato:ESP32_C3_WROOM_02_driver_example
+    entry: espressif-esp32-c3-wroom.ato:ESP32_C3_WROOM_02
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/espressif-esp32-c3
   repository: https://github.com/atopile/packages
-  version: 0.1.5
+  version: 0.2.0
   authors:
     - name: atopile
       email: hi@atopile.io

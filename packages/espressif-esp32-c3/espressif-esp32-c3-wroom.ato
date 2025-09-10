@@ -27,7 +27,7 @@ import has_single_electric_reference_shared
 from "atopile/buttons/buttons.ato" import Button
 from "atopile/buttons/buttons.ato" import VerticalButton
 
-from "esp32_c3.ato" import ESP32_C3_model
+from "espressif-esp32-c3.ato" import ESP32_C3_model
 
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_N4/Espressif_Systems_ESP32_C3_WROOM_02_N4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_N4_package
 from "parts/Espressif_Systems_ESP32_C3_WROOM_02_H4/Espressif_Systems_ESP32_C3_WROOM_02_H4.ato" import Espressif_Systems_ESP32_C3_WROOM_02_H4_package
@@ -132,7 +132,7 @@ module ESP32_C3_WROOM_02U_N4_model from ESP32_C3_WROOM_02_base_model:
 #     """
 #     package -> Espressif_Systems_ESP32_C3_WROOM_02U_H4_package
 
-module ESP32_C3_WROOM_02_driver:
+module ESP32_C3_WROOM_02:
     """
     Reference driver for ESP32-C3-WROOM-02 series of modules
     """
@@ -232,30 +232,3 @@ module ESP32_C3_WROOM_02_driver:
     for res in boot_mode_resistors:
         res.resistance = 10kohm +/- 1%
         res.package = "R0402"
-
-module ESP32_C3_WROOM_02_driver_example:
-    """
-    Example of how to use the driver for ESP32-C3-WROOM-02 modules
-    """
-    mcu_module = new ESP32_C3_WROOM_02_driver
-    # mcu_module.esp32_c3 -> ESP32_C3_WROOM_02_H4_model # choose another variant if you want
-
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V +/- 10%
-    power_3v3 ~ mcu_module.power
-
-    i2c = new I2C
-    mcu_module.i2c ~ i2c
-    # I2C pull-up resistors
-    pullup_resistors = new Resistor[2]
-    for res in pullup_resistors:
-        res.resistance = 10kohm +/- 1%
-        res.package = "R0402"
-    i2c.sda.reference.hv ~> pullup_resistors[0] ~> i2c.sda.line
-    i2c.scl.reference.hv ~> pullup_resistors[1] ~> i2c.scl.line
-
-    spi = new SPI
-    mcu_module.spi ~ spi
-
-    i2s = new I2S
-    mcu_module.i2s ~ i2s
