@@ -46,7 +46,7 @@ def build_and_verify(
     # Build
     build_start = time.perf_counter()
     build_proc = subprocess.run(
-        ["ato", "build", "--keep-picked-parts"] + list(args),
+        ["ato", "build", "--frozen"] + list(args),
         cwd=package_dir,
         capture_output=True,
         text=True,
@@ -60,30 +60,19 @@ def build_and_verify(
     verify_rc: int | None = None
     verify_stdout: str | None = None
     verify_stderr: str | None = None
-    if build_success:
-        publish_proc = subprocess.run(
-            ["ato", "package", "publish"],
-            cwd=package_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        publish_rc = publish_proc.returncode
-        publish_stdout = publish_proc.stdout
-        publish_stderr = publish_proc.stderr
-        publish_success = publish_rc == 0
+    # if build_success:
 
-        verify_proc = subprocess.run(
-            ["ato", "package", "verify"],
-            cwd=package_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        verify_rc = verify_proc.returncode
-        verify_stdout = verify_proc.stdout
-        verify_stderr = verify_proc.stderr
-        verify_success = verify_rc == 0
+    verify_proc = subprocess.run(
+        ["ato", "package", "verify", "-s"],
+        cwd=package_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    verify_rc = verify_proc.returncode
+    verify_stdout = verify_proc.stdout
+    verify_stderr = verify_proc.stderr
+    verify_success = verify_rc == 0
 
     return (
         package_name,
