@@ -16,7 +16,8 @@ This package includes:
 
 import Ethernet, ElectricPower, ElectricLogic, Electrical
 
-from "rj45-connectors.ato" import RJ45_Vertical_SMD, RJ45_Horizontal_TH_Magnetics
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Vertical_SMD
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 
 module Usage:
     """
