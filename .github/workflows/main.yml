@@ -59,28 +59,12 @@ jobs:
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
       - uses: atopile/setup-atopile@v1.6
-        with:
-          working-directory: ${{ matrix.package }}
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - name: Debug git repository structure
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          echo "Matrix package: ${{ matrix.package }}"
-          echo "Contents of current directory:"
-          ls -la
-          echo "Looking for .git directory:"
-          find . -name ".git" -type d 2>/dev/null || echo "No .git directory found"
-          echo "Git status from current directory:"
-          git status 2>&1 || echo "Git command failed from current directory"
-          echo "Git status from GITHUB_WORKSPACE:"
-          (cd "$GITHUB_WORKSPACE" && git status 2>&1) || echo "Git command failed from GITHUB_WORKSPACE"
-        working-directory: ${{ matrix.package }}
-
-      - run: ato build
-        working-directory: ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }}
+        env:
+          GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
