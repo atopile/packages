@@ -60,7 +60,7 @@ module MySwitch:
 import ElectricPower
 import Resistor
 
-from "realtek-rtl8305nb.ato" import Realtek_RTL8305NB
+from "atopile/realtek-rtl8305nb/realtek-rtl8305nb.ato" import Realtek_RTL8305NB
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 from "atopile/espressif-esp32-c3/esp32_c3_mini.ato" import ESP32_C3_MINI_1_driver
 from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
@@ -70,7 +70,10 @@ from "atopile/opsco-sk6805-side/opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
 from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
-from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen, LEDIndicatorYellow, LEDIndicatorRed, LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorYellow
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
@@ -255,6 +258,7 @@ module Usage:
     debug_header.headers[1].channels[1] ~ esp32.i2c.sda       # I2C SDA (GPIO5)
     debug_header.headers[1].channels[2] ~ esp32.gpio[4]       # Switch reset (GPIO4)
     debug_header.headers[1].channels[3] ~ esp32.gpio[20]      # Loop detection (GPIO20)
+
 
 ```
 
