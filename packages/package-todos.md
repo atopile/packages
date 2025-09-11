@@ -1,9 +1,9 @@
 Packages:
 adi-ad5693r - Done
-adi-adbms6822 - Failed Review
-adi-adbms6830 - Needs Work (package verify failed - warning logs not empty)
+adi-adbms6822
+adi-adbms6830 - Reviewed
 adi-adxl345 - Reviewed
-adi-adxl375 - Needs Work (package verify failed - missing usage build target)
+adi-adxl375
 adi-ds2482s-800 - Reviewed
 adi-ltc4311 - Done
 adi-ltc4316 - Done
@@ -54,19 +54,19 @@ nxp-pcf8575 - Done
 nxp-pct2075 - Done
 nxp-pn5321 - Done
 opsco-sk6805-ec15 - Done
-st-h3lis331 - Done
-st-ldk220 - Done
-st-lsm303agr - Done
-st-lsm6ds3 - Done
-st-vl53l4cd - Done
-st-vl53l4cx - Done
+st-h3lis331
+st-ldk220
+st-lsm303agr
+st-lsm6ds3
+st-vl53l4cd
+st-vl53l4cx
 opsco-sk6805-ec20 - Done
 opsco-sk6805-side - Done
-pjrc-teensy_4_1 - Done
-ti-dac6578 - Done
+pjrc-teensy-4-1 - Reviewed
+ti-dac6578
 usb-connectors - Done
-raspberry-rp2040 - Done
-realtek-rtl8305nb - Done
+raspberry-rp2040
+realtek-rtl8305nb
 
 # Process - Worker
 

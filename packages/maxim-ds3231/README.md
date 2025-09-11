@@ -3,6 +3,7 @@
 This package provides an Atopile driver for the **Maxim Integrated DS3231** extremely-accurate I²C real-time clock.
 
 Features:
+
 - Built-in 32.768 kHz crystal and temperature-compensated oscillator
 - Battery-backed time-keeping (VBAT pin)
 - 236 B SRAM, two alarms, square-wave output
@@ -10,6 +11,7 @@ Features:
 - Fixed 7-bit I²C address `0x68`
 
 ## Usage
+
 ```ato
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
@@ -67,7 +69,9 @@ module Usage:
 ```
 
 ## Contributing
+
 Pull requests are welcome — feel free to improve the model, add examples, or refine parameters.
 
 ## License
+
 MIT

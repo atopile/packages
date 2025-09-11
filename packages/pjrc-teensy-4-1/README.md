@@ -93,10 +93,11 @@ module EthernetConnector:
 
     ethernet.led_speed.reference.lv ~ connector.14 # GND
     ethernet.led_speed.reference.lv ~ connector.13 # GND
-
 ```
 
 ## Contributing
+```
+
 
 Contributions are welcome! Feel free to open issues or pull requests.
 
