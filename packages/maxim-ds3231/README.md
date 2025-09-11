@@ -12,15 +12,19 @@ Features:
 ## Usage
 ```ato
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import ElectricPower
 import I2C
 import ElectricLogic
+import has_part_removed
 from "atopile/maxim-ds3231/maxim-ds3231.ato" import Maxim_DS3231
 from "parts/Q_J_CR1220_2/Q_J_CR1220_2.ato" import Q_J_CR1220_2_package
 
 module MCU:
     """Host microcontroller providing I²C bus and 3.3 V rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     i2c = new I2C
@@ -60,7 +64,6 @@ module Usage:
 
     # Connect backup rail to RTC
     backup_rail ~ rtc.backup_power
-
 ```
 
 ## Contributing
