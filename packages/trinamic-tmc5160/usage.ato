@@ -1,29 +1,3 @@
-# Trinamic TMC5160 High-Performance Stepper Motor Driver
-
-Advanced stepper motor controller IC with integrated MOSFET drivers, SPI interface, and comprehensive motion control features. The TMC5160 combines high-performance motor control with advanced features like stallGuard, coolStep, and dcStep for optimal motor performance.
-
-## Features
-
-- **Integrated MOSFET drivers**: Up to 1.4A RMS motor current (3A peak)
-- **SPI interface**: High-speed communication and configuration
-- **Advanced motion control**: stallGuard, coolStep, dcStep, and spreadCycle
-- **Voltage supply range**: 8V to 60V motor supply, 3.0V to 5.5V logic supply
-- **Microstepping**: Up to 256 microsteps per full step
-- **Diagnostic outputs**: Real-time status and error reporting
-- **Current sensing**: Integrated current sense for closed-loop control
-- **Thermal protection**: Overtemperature protection and thermal shutdown
-
-## Package Information
-
-- **Manufacturer**: Trinamic Motion Control GmbH
-- **Part Number**: TMC5160A-TA-T
-- **JLCPCB Part**: C516354
-- **Package**: TQFP-48-EP (7x7mm)
-- **Operating Temperature**: -40°C to +125°C
-
-## Usage
-
-```ato
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
@@ -275,48 +249,3 @@ module Theoretical_MOSFET from MOSFET:
     The TECH_PUBLIC_AO4882 package has two MOSFETs, so we can connect
     theoretical mosfets to the package to capture indended behavior.
     """
-
-```
-
-## Power Supply Requirements
-
-The TMC5160 requires multiple power supplies:
-
-- **power**: Main logic supply (3.0V to 5.5V, typically 3.3V)
-- **power_io**: I/O supply (3.0V to 5.5V, typically 3.3V)
-- **power_analog**: Analog supply (3.0V to 5.5V, typically 3.3V)
-- **power_motor**: Motor supply (8V to 60V, typically 12V or 24V)
-
-## Interfaces
-
-### SPI Communication
-- **spi**: Standard SPI interface for register access and configuration
-- **chip_select**: Active-low chip select signal
-
-### Motor Outputs
-- **motor_a_high/motor_a_low**: Phase A motor connections
-- **motor_b_high/motor_b_low**: Phase B motor connections
-
-### Control Signals
-- **enable**: Driver enable (active low)
-- **clk**: Clock input for microstepping
-- **diag0/diag1**: Diagnostic outputs
-
-### Current Sensing
-- **sense_a/sense_b**: Current sense outputs for each phase
-
-## Advanced Features
-
-- **stallGuard**: Sensorless stall detection
-- **coolStep**: Automatic current reduction based on load
-- **dcStep**: Automatic speed control
-- **spreadCycle**: High-precision chopper algorithm
-- **Integrated charge pump**: For high-side gate driver supply
-
-## Contributing
-
-Contributions are welcome! Feel free to open issues or pull requests.
-
-## License
-
-This package is provided under the [MIT License](https://opensource.org/license/mit).

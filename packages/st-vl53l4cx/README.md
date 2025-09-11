@@ -8,13 +8,17 @@ Packaged in a tiny 4.4 × 2.4 mm **LGA-12** module.
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/st-vl53l4cx/st-vl53l4cx.ato" import ST_VL53L4CX
 
 module MCU:
     """Host MCU providing 3 V rail and I²C bus."""
+    trait has_part_removed
     power = new ElectricPower
     i2c = new I2C
 

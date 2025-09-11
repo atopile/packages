@@ -5,12 +5,16 @@ paths:
   layout: ./layouts
 
 builds:
+  dev-board:
+    entry: trinamic-tmc5160-dev-board.ato:Trinamic_TMC5160_Dev_Board
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
   default:
     entry: trinamic-tmc5160.ato:Trinamic_TMC5160
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  dev-board:
-    entry: trinamic-tmc5160-dev-board.ato:Trinamic_TMC5160_Dev_Board
+  usage:
+    entry: usage.ato:Usage
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
