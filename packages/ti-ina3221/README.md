@@ -24,6 +24,7 @@ The INA3221 is a triple-channel, high-side current and power monitor with an I2C
 
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/ti-ina3221/ti-ina3221.ato" import TI_INA3221
 
@@ -32,6 +33,7 @@ module Sink:
     mock sink device for testing
     """
     power = new ElectricPower
+    trait has_part_removed
 
 module Usage:
     """
