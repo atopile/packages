@@ -91,13 +91,18 @@ module Usage:
     teensy.i2c[0] ~ adcs[0].i2c
     teensy.i2c[0] ~ adcs[1].i2c
 
-    # --- I2C Pullups ---
-    # I2C pullups are provided by the TI DAC6578 module (4.7kohm +/- 1%)
-
     # --- I2C Addresses ---
     adcs[0].i2c.address = 0x48
     adcs[1].i2c.address = 0x49
 
+    # --- I2C Pull-up Resistors ---
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 4.7kohm +/- 1%
+        pullup.package = "0402"
+
+    teensy.i2c[0].scl.line ~> i2c_pullups[0] ~> power_3v3.hv
+    teensy.i2c[0].sda.line ~> i2c_pullups[1] ~> power_3v3.hv
 
     # --- GPIO DAC Connections ---
     gpio_dac.i2c ~ teensy.i2c[0]
