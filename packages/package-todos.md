@@ -1,25 +1,24 @@
 Packages:
 adi-ad5693r - Done
-adi-adbms6822 - Done
-adi-adbms6830 - Done
-adi-adxl345 - Done
-adi-adxl375 - Done
-adi-ds2482s-800 - Done
+adi-adbms6822 - Failed Review
+adi-adbms6830 - Needs Work (package verify failed - warning logs not empty)
+adi-adxl345 - Reviewed
+adi-adxl375 - Needs Work (package verify failed - missing usage build target)
+adi-ds2482s-800 - Reviewed
 adi-ltc4311 - Done
 adi-ltc4316 - Done
-allvision-oled128x32 - Done
-ams-tsl2591 - Done
-aosong-aht20 - Done
-archive
-audio
-awinic-aw9523 - Done
-bosch-bme280 - Done
-bosch-bme680 - Done
-bosch-bme688 - Done
-bosch-bmp280 - Done
-bosch-bmp388 - Done
-diodes-inc-74lvc1t45dw-7 - Done
-espressif-esp32-c3 - Done
+allvision-oled128x32 - Reviewed
+ams-tsl2591 - Reviewed
+aosong-aht20 - Reviewed
+audio - In Progress
+awinic-aw9523 - Reviewed
+bosch-bme280 - Reviewed
+bosch-bme680 - Reviewed
+bosch-bme688 - Reviewed
+bosch-bmp280 - Reviewed
+bosch-bmp388 - Reviewed
+diodes-inc-74lvc1t45dw-7 - Reviewed
+espressif-esp32-c3 - In Review
 indicator-leds - Done
 infineon-dps310 - Done
 invensense-icm20948 - Done
@@ -39,38 +38,37 @@ maxim-max17048 - Done
 memsic-mmc5603 - Done
 microchip-24lc32 - Done
 microchip-cap1188 - Done
-microchip-emc2101
-microchip-mcp23017
-microchip-mcp3421
-microchip-mcp4725
-microchip-mcp4728
-microchip-mcp9601
-microchip-mcp9808
+microchip-emc2101 - Done
+microchip-mcp23017 - Done
+microchip-mcp3421 - Done
+microchip-mcp4725 - Done
+microchip-mcp4728 - Done
+microchip-mcp9601 - Done
+microchip-mcp9808 - Done
 rohm-bh1750 - Done
-microphones
+microphones - In Progress
 mounting_holes
 netties
-nxp-pcf8574
-nxp-pcf8575
-nxp-pct2075
-nxp-pn5321
-opsco-sk6805-ec15
+nxp-pcf8574 - Done
+nxp-pcf8575 - Done
+nxp-pct2075 - Done
+nxp-pn5321 - Done
+opsco-sk6805-ec15 - Done
 st-h3lis331 - Done
 st-ldk220 - Done
 st-lsm303agr - Done
 st-lsm6ds3 - Done
 st-vl53l4cd - Done
 st-vl53l4cx - Done
-opsco-sk6805-ec20
-opsco-sk6805-side
-pci-express-connectors
+opsco-sk6805-ec20 - Done
+opsco-sk6805-side - Done
 pjrc-teensy_4_1 - Done
 ti-dac6578 - Done
 usb-connectors - Done
-raspberry-rp2040
-realtek-rtl8305nb
+raspberry-rp2040 - Done
+realtek-rtl8305nb - Done
 
-# Process:
+# Process - Worker
 
 0. Find a package that has not been started above, then mark it as started
 1. Run `ato build --frozen`, if no warnings and passes, skip to 4.
@@ -81,11 +79,12 @@ realtek-rtl8305nb
 6. If there are changes, bump the version by +0.0.1
 7. Mark as done above
 
-# Reviewer
+# Process - Reviewer
 
-If a package is d
-
-If you get stuck, mark the package as 'need help'e,
+0. Find a package that has not been marked 'Done', then mark it as In Review
+1. Run `ato build --frozen`
+2. Run `ato package verify -s`
+3. If both pass, marks 'Reviewed' - if it fails, mark as 'Failed Review'
 
 # Notes
 

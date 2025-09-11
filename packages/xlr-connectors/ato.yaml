@@ -1,0 +1,30 @@
+requires-atopile: "^0.11.5"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: xlr-connectors.ato:XLR_Male_PC_Mount
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  female:
+    entry: xlr-connectors.ato:XLR_Female_PC_Mount
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/xlr-connectors
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/xlr-connectors/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "XLR connectors; Male; Female; PCB Mount; Audio; Microphone; DMX; 3-pin; Professional; Through-hole"
+  license: MIT

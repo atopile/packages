@@ -23,6 +23,8 @@ Supported Pad Types:
 
 ```ato
 #pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("TRAITS")
+import has_part_removed
 from "MountingHole.py" import MountingHole
 
 module Usage:
@@ -34,6 +36,9 @@ module Usage:
     m6_no_pad = new MountingHole<metric_screw_size="M6", pad_type="NoPad">
     m3_top_pad = new MountingHole<metric_screw_size="M3", pad_type="Pad_TopOnly">
     m4_pad_with_vias = new MountingHole<metric_screw_size="M4", pad_type="Pad_Via">
+
+    # Mounting holes don't have parts to pick
+    trait has_part_removed
 
     m2_with_pad.contact ~ m3_top_pad.contact
     m3_top_pad.contact ~ m4_pad_with_vias.contact

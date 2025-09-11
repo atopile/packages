@@ -1,0 +1,26 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("TRAITS")
+import has_part_removed
+
+from "MountingHole.py" import MountingHole
+
+module MountingHoleModule:
+    """
+    Mounting hole component for PCB assembly.
+
+    Mounting holes are used to secure PCBs to enclosures or mounting hardware.
+    They support various screw sizes and pad configurations.
+
+    Features:
+    - Configurable metric screw sizes (M2, M3, M4, M6, etc.)
+    - Multiple pad types (Pad, NoPad, Pad_TopOnly, Pad_Via)
+    - Proper hole sizing for different screw types
+    - Optional electrical connection
+    """
+
+    # Mounting holes don't have parts to pick
+    trait has_part_removed
+
+    # This is a placeholder module that re-exports the MountingHole class
+    # The actual implementation is in MountingHole.py
+    pass

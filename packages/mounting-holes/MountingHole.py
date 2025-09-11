@@ -38,6 +38,7 @@ class MountingHole(Module):
     designator_prefix = L.f_field(F.has_designator_prefix)(
         F.has_designator_prefix.Prefix.H
     )
+    has_part_removed: F.has_part_removed
 
     def footprint_name(self) -> str:
         # e.g. MountingHole_2.7mm_M2.5_Pad_TopOnly

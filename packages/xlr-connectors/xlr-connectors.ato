@@ -1,0 +1,80 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import ElectricLogic
+import Electrical
+import DifferentialPair
+
+from "parts/Neutrik_NC3MAAH/Neutrik_NC3MAAH.ato" import Neutrik_NC3MAAH_package
+from "parts/Neutrik_NCJ6FA_H/Neutrik_NCJ6FA_H.ato" import Neutrik_NCJ6FA_H_package
+
+module XLR_Male_PC_Mount:
+    """
+    Male XLR 3-pin PCB mount connector (Neutrik NC3MAAH)
+
+    Standard XLR connector for professional audio applications.
+    Designed for direct PCB mounting with through-hole pins.
+    Supports balanced audio signals with ground, hot, and cold connections.
+    Pin 1: Ground/Shield, Pin 2: Hot (+), Pin 3: Cold (-)
+    """
+
+    # --- External interfaces ---
+    audio = new DifferentialPair
+    """
+    Balanced audio differential pair interface
+    """
+
+    ground = new Electrical
+    """
+    Ground/shield connection for audio reference and EMI protection
+    """
+
+    # --- Package ---
+    package = new Neutrik_NC3MAAH_package
+
+    # --- Package connections ---
+    # Standard XLR pinout for audio applications
+    ground ~ package.1              # Pin 1: Ground/Shield
+    audio.p.line ~ package.2        # Pin 2: Hot (positive phase)
+    audio.n.line ~ package.3        # Pin 3: Cold (negative phase)
+
+    # Connect differential pair reference to ground
+    audio.p.reference.lv ~ ground
+    audio.n.reference.lv ~ ground
+
+
+module XLR_Female_PC_Mount:
+    """
+    Female XLR 3-pin PCB mount connector (Neutrik NCJ6FA-H)
+
+    Standard XLR connector for professional audio applications.
+    Designed for direct PCB mounting with through-hole pins.
+    Supports balanced audio signals with ground, hot, and cold connections.
+    Pin 1: Ground/Shield, Pin 2: Hot (+), Pin 3: Cold (-)
+    """
+
+    # --- External interfaces ---
+    audio = new DifferentialPair
+    """
+    Balanced audio differential pair interface
+    """
+
+    ground = new Electrical
+    """
+    Ground/shield connection for audio reference and EMI protection
+    """
+
+    # --- Package ---
+    package = new Neutrik_NCJ6FA_H_package
+
+    # --- Package connections ---
+    # Standard XLR pinout for audio applications
+    ground ~ package.1              # Pin 1: Ground/Shield
+    audio.p.line ~ package.2        # Pin 2: Hot (positive phase)
+    audio.n.line ~ package.3        # Pin 3: Cold (negative phase)
+
+    # Connect differential pair reference to ground
+    audio.p.reference.lv ~ ground
+    audio.n.reference.lv ~ ground

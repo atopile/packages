@@ -17,8 +17,11 @@ For a guide on getting started with this transceiver checkout: https://blog.atop
 
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 
-import DifferentialPair, ElectricPower, Resistor
+import DifferentialPair
+import ElectricPower
+import Resistor
 
 from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
@@ -26,10 +29,9 @@ from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
 from "atopile/adi-adbms6830/usage.ato" import StackableBMBInterface
 from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
-from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
-from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
+from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
 from "atopile/ti-ads1115/ti-ads1115.ato" import TI_ADS1115
 
 from "parts/Nextron_Z_231012820106/Nextron_Z_231012820106.ato" import Nextron_Z_231012820106_package
@@ -82,8 +84,24 @@ module Usage:
     teensy.spi[1] ~ adbms6822.spi[1]
     teensy.chip_select[1] ~ adbms6822.spi_cs[1]
     teensy.usb_device ~ usb_c_connector.usb2
-    teensy.i2c[0] ~ adcs[0].i2c
-    teensy.i2c[0] ~ adcs[1].i2c
+    # Create a shared I2C bus
+    i2c_bus = new I2C
+    teensy.i2c[0] ~ i2c_bus
+    adcs[0].i2c ~ i2c_bus
+    adcs[1].i2c ~ i2c_bus
+    gpio_dac.i2c ~ i2c_bus
+
+    # --- I2C Pullups ---
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 10kohm +/- 10%
+        pullup.package = "0402"
+
+    # Connect pullups to the shared I2C bus
+    power_3v3.hv ~> i2c_pullups[0] ~> i2c_bus.scl.line
+    power_3v3.hv ~> i2c_pullups[1] ~> i2c_bus.sda.line
+    i2c_bus.scl.reference ~ power_3v3
+    i2c_bus.sda.reference ~ power_3v3
 
     # --- I2C Addresses ---
     adcs[0].i2c.address = 0x48
@@ -91,7 +109,6 @@ module Usage:
 
 
     # --- GPIO DAC Connections ---
-    gpio_dac.i2c ~ teensy.i2c[0]
     gpio_dac.clear_n ~ teensy.gpio[2]
     gpio_dac.ldac_n ~ teensy.gpio[3]
 
@@ -275,7 +292,6 @@ module Usage:
     cells[14].hv.override_net_name = "CELL15"
     cells[15].hv.override_net_name = "CELL16"
 
-    atopile_logo = new atopile_logo_25x6mm
 
 ```
 
@@ -292,6 +308,7 @@ All power rails are marked as required and include built-in bypass capacitors.
 ## Configuration
 
 The module includes automatic configuration through the `ADI_ADBMS6822_Configurator` which sets up:
+
 - SPI mode selection (controller/peripheral)
 - Clock phase and polarity settings
 - Transceiver operating modes

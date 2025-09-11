@@ -5,14 +5,19 @@ paths:
   layout: ./layouts
 
 builds:
+  default:
+    entry: mounting-holes.ato:MountingHoleModule
+    exclude_checks: ["PCB.requires_drc_check"]
+    hide_designators: true
   usage:
     entry: usage.ato:Usage
+    exclude_checks: ["PCB.requires_drc_check"]
     hide_designators: true
 
 package:
   identifier: atopile/mounting-holes
   repository: https://github.com/atopile/packages
-  version: "0.1.0"
+  version: "0.1.1"
   authors:
     - name: atopile
       email: hi@atopile.com

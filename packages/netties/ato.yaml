@@ -5,6 +5,10 @@ paths:
   layout: ./layouts
 
 builds:
+  default:
+    entry: netties.ato:NetTieModule
+    exclude_checks: ["PCB.requires_drc_check"]
+    hide_designators: true
   usage:
     entry: usage.ato:Usage
     exclude_checks: ["PCB.requires_drc_check"]
@@ -13,7 +17,7 @@ builds:
 package:
   identifier: atopile/netties
   repository: https://github.com/atopile/packages
-  version: "0.1.0"
+  version: "0.1.1"
   authors:
     - name: atopile
       email: hi@atopile.com
