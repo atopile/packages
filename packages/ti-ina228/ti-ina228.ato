@@ -74,8 +74,8 @@ module TI_INA228:
     # --- I2C pullup resistors ---
     pullup_scl = new Resistor
     pullup_sda = new Resistor
-    pullup_scl.resistance = 10kohm +/- 20%
-    pullup_sda.resistance = 10kohm +/- 20%
+    pullup_scl.resistance = 10kohm +/- 5%
+    pullup_sda.resistance = 10kohm +/- 5%
     pullup_scl.package = "0402"
     pullup_sda.package = "0402"
     i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.vcc
@@ -92,7 +92,7 @@ module TI_INA228:
 
     # Alert pullup resistor (required for open-drain output)
     alert_pullup = new Resistor
-    alert_pullup.resistance = 10kohm +/- 20%
+    alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
     alert.line ~> alert_pullup ~> alert.reference.vcc
 
