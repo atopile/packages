@@ -5,7 +5,11 @@ paths:
   layout: ./layouts
 
 builds:
-  default:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  horizontal:
     entry: rj45-connectors.ato:RJ45_Horizontal_TH_Magnetics
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
@@ -13,8 +17,12 @@ builds:
     entry: rj45-connectors.ato:RJ45_Vertical_SMD
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  usage:
-    entry: usage.ato:Usage
+  recessed:
+    entry: rj45-connectors.ato:RJ45_Recessed_SMD
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  default:
+    entry: rj45-connectors.ato:RJ45_Horizontal_TH_Magnetics
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 

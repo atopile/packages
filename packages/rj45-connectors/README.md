@@ -18,6 +18,7 @@ import Ethernet, ElectricPower, ElectricLogic, Electrical
 
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Vertical_SMD
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Recessed_SMD
 
 module Usage:
     """
@@ -55,6 +56,14 @@ module Usage:
     # For the magnetics connector, you can connect directly to an Ethernet PHY:
     # phy.ethernet ~ rj45_horizontal.ethernet
     # For the vertical SMD, you would typically need external transformers
+
+    rj45_recessed = new RJ45_Recessed_SMD
+    rj45_recessed.ethernet.led_link.reference ~ power_3v3
+    rj45_recessed.ethernet.led_speed.reference ~ power_3v3
+
+    # Connect shield to ground
+    rj45_recessed.shield ~ power_3v3.lv
+
 ```
 
 ## Contributing
