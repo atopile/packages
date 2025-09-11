@@ -10,16 +10,9 @@ import LED
 
 from "atopile/issi-is31fl3731/issi-is31fl3731.ato" import ISSI_IS31FL3731
 
-module MCU:
-    """Host microcontroller providing I²C and 3.3 V rail."""
-    power = new ElectricPower
-    i2c = new I2C
-    irq = new ElectricLogic
-
 module Usage:
     """Minimal usage example for ISSI_IS31FL3731 LED matrix driver."""
 
-    mcu = new MCU
     led_driver = new ISSI_IS31FL3731
     row_0_led = new LED[8]
     # ... more rows ...
@@ -27,14 +20,15 @@ module Usage:
     # power
     power = new ElectricPower
     power.voltage = 3.3V
-    power ~ mcu.power
     power ~ led_driver.power
 
     # I²C connection
-    mcu.i2c ~ led_driver.i2c
+    i2c_bus = new I2C
+    i2c_bus ~ led_driver.i2c
 
     # Interrupt line (optional)
-    led_driver.interrupt ~ mcu.irq
+    interrupt_line = new ElectricLogic
+    led_driver.interrupt ~ interrupt_line
 
     # leds
     for led in row_0_led:
