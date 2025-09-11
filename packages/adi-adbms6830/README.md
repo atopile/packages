@@ -11,7 +11,7 @@ For a guide on getting started with this chip checkout: https://blog.atopile.io/
 #pragma experiment("TRAITS")
 
 from "atopile/adi-adbms6830/adi-adbms6830.ato" import ADI_ADBMS6830
-# from "atopile/logos/logos.ato" import atopile_logo_25x6mm
+from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
@@ -259,8 +259,8 @@ module Usage:
     sbi.isoSPI_passthru.p.line.override_net_name = "ISOpass_P"
     sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
 
-    # atopile_logo = new atopile_logo_25x6mm
-    # trait has_part_removed
+    atopile_logo = new atopile_logo_25x6mm
+    trait has_part_removed
 
 module TempSensor:
     # -40~+125 100mW 10kΩ ±1% 0402 NTC Thermistors ROHS
