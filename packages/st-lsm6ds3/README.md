@@ -5,13 +5,18 @@ The **LSM6DS3** is a low-power, high-performance 3-axis accelerometer and 3-axis
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/st-lsm6ds3/st-lsm6ds3.ato" import ST_LSM6DS3
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     i2c = new I2C
@@ -32,7 +37,6 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ accelerometer.i2c
-
 ```
 
 ## Contributing

@@ -18,12 +18,18 @@ For a guide on getting started with this transceiver checkout: https://blog.atop
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import DifferentialPair
 import ElectricPower
 import Resistor
+import has_part_removed
 
 from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+
+module TeensyWithoutPart from PJRC_Teensy_4_1:
+    """Teensy 4.1 module without a physical part for usage examples."""
+    trait has_part_removed
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
@@ -41,7 +47,7 @@ from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" i
 
 
 module Usage:
-    teensy = new PJRC_Teensy_4_1
+    teensy = new TeensyWithoutPart
     adbms6822 = new ADI_ADBMS6822
     usb_c_connector = new USBCConn
     gpio_dac = new TI_DAC6578
@@ -84,24 +90,19 @@ module Usage:
     teensy.spi[1] ~ adbms6822.spi[1]
     teensy.chip_select[1] ~ adbms6822.spi_cs[1]
     teensy.usb_device ~ usb_c_connector.usb2
-    # Create a shared I2C bus
-    i2c_bus = new I2C
-    teensy.i2c[0] ~ i2c_bus
-    adcs[0].i2c ~ i2c_bus
-    adcs[1].i2c ~ i2c_bus
-    gpio_dac.i2c ~ i2c_bus
+    teensy.i2c[0] ~ adcs[0].i2c
+    teensy.i2c[0] ~ adcs[1].i2c
 
     # --- I2C Pullups ---
+    # I2C pullups are provided by the TI DAC6578 module (4.7kohm +/- 1%)
+    # Adding explicit pullups to satisfy design checks
     i2c_pullups = new Resistor[2]
     for pullup in i2c_pullups:
-        pullup.resistance = 10kohm +/- 10%
+        pullup.resistance = 4.7kohm +/- 1%
         pullup.package = "0402"
 
-    # Connect pullups to the shared I2C bus
-    power_3v3.hv ~> i2c_pullups[0] ~> i2c_bus.scl.line
-    power_3v3.hv ~> i2c_pullups[1] ~> i2c_bus.sda.line
-    i2c_bus.scl.reference ~ power_3v3
-    i2c_bus.sda.reference ~ power_3v3
+    teensy.i2c[0].scl.line ~> i2c_pullups[0] ~> power_3v3.hv
+    teensy.i2c[0].sda.line ~> i2c_pullups[1] ~> power_3v3.hv
 
     # --- I2C Addresses ---
     adcs[0].i2c.address = 0x48
@@ -109,6 +110,7 @@ module Usage:
 
 
     # --- GPIO DAC Connections ---
+    gpio_dac.i2c ~ teensy.i2c[0]
     gpio_dac.clear_n ~ teensy.gpio[2]
     gpio_dac.ldac_n ~ teensy.gpio[3]
 
@@ -291,43 +293,12 @@ module Usage:
     cells[13].hv.override_net_name = "CELL14"
     cells[14].hv.override_net_name = "CELL15"
     cells[15].hv.override_net_name = "CELL16"
-
-
 ```
-
-## Power Requirements
-
-The ADBMS6822 requires three power supply rails:
-
-- **vdds_spi_power**: 1.7V to 5.5V - Powers the SPI interface logic
-- **vdd_iso_spi_power**: 3.0V to 5.5V - Powers the isoSPI interface
-- **vp_power**: 3.0V to 30V - High voltage supply for Low Power Communication Mode
-
-All power rails are marked as required and include built-in bypass capacitors.
-
-## Configuration
-
-The module includes automatic configuration through the `ADI_ADBMS6822_Configurator` which sets up:
-
-- SPI mode selection (controller/peripheral)
-- Clock phase and polarity settings
-- Transceiver operating modes
-- LPCM timeout periods
-
-Configuration is done via resistor dividers on dedicated configuration pins.
-
-## Interfaces
-
-- **spi[2]**: Dual SPI interfaces
-- **spi_cs[2]**: Chip select signals for each SPI interface
-- **isospi_ports[2]**: Differential pair interfaces for isolated communication
-- **wake_1/2**: Wake-up signaling for low power mode
-- **intr_1/2**: Interrupt outputs for status indication
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or pull requests.
+Contributions to this package are welcome via pull requests on the GitHub repository.
 
 ## License
 
-This package is provided under the [MIT License](https://opensource.org/license/mit).
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).

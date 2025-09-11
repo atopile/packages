@@ -7,13 +7,18 @@ This package exposes a fully-connected `ST_LSM303AGR` driver module that bundles
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/st-lsm303agr/st-lsm303agr.ato" import ST_LSM303AGR
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     i2c = new I2C
@@ -34,7 +39,6 @@ module Usage:
 
     # I²C connection
     mcu.i2c ~ imu.i2c
-
 ```
 
 ## Contributing
