@@ -1,11 +1,17 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import DifferentialPair
 import ElectricPower
 import Resistor
+import has_part_removed
 
 from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
+
+module TeensyWithoutPart from PJRC_Teensy_4_1:
+    """Teensy 4.1 module without a physical part for usage examples."""
+    trait has_part_removed
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
@@ -23,7 +29,7 @@ from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" i
 
 
 module Usage:
-    teensy = new PJRC_Teensy_4_1
+    teensy = new TeensyWithoutPart
     adbms6822 = new ADI_ADBMS6822
     usb_c_connector = new USBCConn
     gpio_dac = new TI_DAC6578
@@ -70,7 +76,7 @@ module Usage:
     teensy.i2c[0] ~ adcs[1].i2c
 
     # --- I2C Pullups ---
-    # Note: I2C pullups are already provided by the TI DAC6578 module
+    # I2C pullups are provided by the TI DAC6578 module (4.7kohm +/- 1%)
 
     # --- I2C Addresses ---
     adcs[0].i2c.address = 0x48

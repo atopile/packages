@@ -1,12 +1,12 @@
 Packages:
-adi-ad5693r - Done
+adi-ad5693r - Reviewed
 adi-adbms6822
 adi-adbms6830 - Reviewed
 adi-adxl345 - Reviewed
 adi-adxl375
 adi-ds2482s-800 - Reviewed
-adi-ltc4311 - Done
-adi-ltc4316 - Done
+adi-ltc4311 - Reviewed
+adi-ltc4316 - Reviewed
 allvision-oled128x32 - Reviewed
 ams-tsl2591 - Reviewed
 aosong-aht20 - Reviewed
@@ -19,54 +19,68 @@ bosch-bmp280 - Reviewed
 bosch-bmp388 - Reviewed
 diodes-inc-74lvc1t45dw-7 - Reviewed
 espressif-esp32-c3 - In Review
-indicator-leds - Done
-infineon-dps310 - Done
-invensense-icm20948 - Done
-invensense-mpu6050 - Done
-issi-is31fl3731 - Done
-liteon-ltr303 - Done
-liteon-ltr329 - Done
-liteon-ltr390uv - Done
+indicator-leds - Reviewed
+infineon-dps310 - Reviewed (version warning)
+invensense-icm20948 - Reviewed (version warning)
+invensense-mpu6050 - Reviewed
+issi-is31fl3731 - Reviewed
+liteon-ltr303 - Reviewed
+liteon-ltr329 - Reviewed
+liteon-ltr390uv - Reviewed
 logos
-macroblock-mbi5043 - Done
-maxim-ds1841 - Done
-maxim-ds18b20 - Done
-maxim-ds2484 - Done
-maxim-ds3231 - Done
-maxim-ds3502 - Done
-maxim-max17048 - Done
-memsic-mmc5603 - Done
-microchip-24lc32 - Done
-microchip-cap1188 - Done
-microchip-emc2101 - Done
-microchip-mcp23017 - Done
-microchip-mcp3421 - Done
-microchip-mcp4725 - Done
-microchip-mcp4728 - Done
-microchip-mcp9601 - Done
-microchip-mcp9808 - Done
-rohm-bh1750 - Done
+macroblock-mbi5043 - Reviewed
+maxim-ds1841 - Reviewed
+maxim-ds18b20 - Reviewed
+maxim-ds2484 - Reviewed (shadowing warnings)
+maxim-ds3231 - Reviewed
+maxim-ds3502 - Reviewed
+maxim-max17048 - Failed Review (warning logs)
+memsic-mmc5603 - Reviewed
+microchip-24lc32 - Reviewed
+microchip-cap1188 - Reviewed
+microchip-emc2101 - Reviewed
+microchip-mcp23017 - Reviewed
+microchip-mcp3421 - Reviewed
+microchip-mcp4725 - Reviewed
+microchip-mcp4728 - Reviewed
+microchip-mcp9601 - Reviewed
+microchip-mcp9808 - Reviewed
+rohm-bh1750 - Failed Review (README mismatch)
 microphones - In Progress
 mounting_holes
 netties
-nxp-pcf8574 - Done
-nxp-pcf8575 - Done
-nxp-pct2075 - Done
-nxp-pn5321 - Done
-opsco-sk6805-ec15 - Done
+nxp-pcf8574 - Reviewed
+nxp-pcf8575 - Reviewed
+nxp-pct2075 - Reviewed
+nxp-pn5321 - Reviewed
+opsco-sk6805-ec15 - Reviewed
 st-h3lis331
 st-ldk220
 st-lsm303agr
 st-lsm6ds3
 st-vl53l4cd
 st-vl53l4cx
-opsco-sk6805-ec20 - Done
-opsco-sk6805-side - Done
+opsco-sk6805-ec20 - Reviewed
+opsco-sk6805-side - Reviewed
 pjrc-teensy-4-1 - Reviewed
 ti-dac6578
-usb-connectors - Done
+usb-connectors - Reviewed
 raspberry-rp2040
 realtek-rtl8305nb
+
+Failing in CI:
+
+build-verify-publish (packages/rohm-bh1750)
+build-verify-publish (packages/st-h3lis331)
+build-verify-publish (packages/st-ldk220)
+build-verify-publish (packages/st-lsm303agr)
+build-verify-publish (packages/st-lsm6ds3)
+build-verify-publish (packages/st-vl53l4cd)
+build-verify-publish (packages/st-vl53l4cx)
+build-verify-publish (packages/ti-dac6578)
+
+Pipeline:
+Started -> Done -> In Review -> Reviewed
 
 # Process - Worker
 
