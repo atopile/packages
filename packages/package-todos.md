@@ -1,12 +1,12 @@
 Packages to fix
 build-verify-publish (packages/adi-adbms6822) - Reviewed
 build-verify-publish (packages/adi-adxl375) - Reviewed
-build-verify-publish (packages/maxim-ds2484) - Done
+build-verify-publish (packages/maxim-ds2484) - Reviewed
 build-verify-publish (packages/maxim-max17048) - Reviewed
-build-verify-publish (packages/rohm-bh1750) - Done
-build-verify-publish (packages/st-h3lis331) - Done
-build-verify-publish (packages/st-ldk220) - Done
-build-verify-publish (packages/st-lsm303agr) - Done
+build-verify-publish (packages/rohm-bh1750) - Reviewed
+build-verify-publish (packages/st-h3lis331) - Reviewed
+build-verify-publish (packages/st-ldk220) - Reviewed
+build-verify-publish (packages/st-lsm303agr) - Reviewed
 build-verify-publish (packages/st-lsm6ds3) - Reviewed
 build-verify-publish (packages/st-vl53l4cd) - Reviewed
 build-verify-publish (packages/st-vl53l4cx) - Reviewed
