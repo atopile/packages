@@ -24,7 +24,8 @@ The DS2484 is a single-channel 1-Wire master with an I2C interface from Maxim In
 import ElectricPower
 import I2C
 
-from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484, OneWire
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import OneWire
 
 module Usage:
     """
@@ -45,6 +46,7 @@ module Usage:
 
     # 1-Wire bus for connecting 1-Wire devices
     onewire_bus = new OneWire
+    onewire_bus.reference ~ power_3v3
 
     # Connect interfaces
     power_3v3 ~ bridge.power

@@ -44,8 +44,6 @@ from "parts/Nextron_Z_231012820106/Nextron_Z_231012820106.ato" import Nextron_Z_
 from "parts/DIBO_DB125_3_81_2P_BK_S/DIBO_DB125_3_81_2P_BK_S.ato" import DIBO_DB125_3_81_2P_BK_S_package
 from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" import XKB_Connectivity_SK_3245S_L1_B_package
 
-
-
 module Usage:
     teensy = new TeensyWithoutPart
     adbms6822 = new ADI_ADBMS6822
@@ -95,14 +93,6 @@ module Usage:
 
     # --- I2C Pullups ---
     # I2C pullups are provided by the TI DAC6578 module (4.7kohm +/- 1%)
-    # Adding explicit pullups to satisfy design checks
-    i2c_pullups = new Resistor[2]
-    for pullup in i2c_pullups:
-        pullup.resistance = 4.7kohm +/- 1%
-        pullup.package = "0402"
-
-    teensy.i2c[0].scl.line ~> i2c_pullups[0] ~> power_3v3.hv
-    teensy.i2c[0].sda.line ~> i2c_pullups[1] ~> power_3v3.hv
 
     # --- I2C Addresses ---
     adcs[0].i2c.address = 0x48

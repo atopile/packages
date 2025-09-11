@@ -1,8 +1,8 @@
 # ST LSM303AGR – 3-Axis Accelerometer + 3-Axis Magnetometer (eCompass)
 
-The **LSM303AGR** is a miniature system-in-package from STMicroelectronics that combines a high-precision 3-axis accelerometer with a 3-axis magnetometer, providing a complete *eCompass* solution in a single 3 mm × 3 mm LGA-12 package.
+The **LSM303AGR** is a miniature system-in-package from STMicroelectronics that combines a high-precision 3-axis accelerometer with a 3-axis magnetometer, providing a complete _eCompass_ solution in a single 3 mm × 3 mm LGA-12 package.
 
-This package exposes a fully-connected `ST_LSM303AGR` driver module that bundles the bare IC together with the required decoupling capacitors, I²C pull-ups and address-selection resistor.  It can be dropped straight into your design; just connect an `I2C` bus and an `ElectricPower` rail.
+This package exposes a fully-connected `ST_LSM303AGR` driver module that bundles the bare IC together with the required decoupling capacitors, I²C pull-ups and address-selection resistor. It can be dropped straight into your design; just connect an `I2C` bus and an `ElectricPower` rail.
 
 ## Usage
 

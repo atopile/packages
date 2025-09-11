@@ -61,6 +61,7 @@ assert ldo.power_out.voltage is 1.8V +/- 5%
 ## Pin Configuration
 
 The module handles all pin connections internally:
+
 - **IN**: Input voltage
 - **GND**: Ground reference
 - **EN**: Enable (connected to input voltage for always-on operation)
