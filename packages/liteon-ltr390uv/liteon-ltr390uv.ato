@@ -44,7 +44,7 @@ module Liteon_LTR390UV:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
@@ -58,7 +58,7 @@ module Liteon_LTR390UV:
     # --- Interrupt output ---
     interrupt.reference ~ power
     interrupt_pullup = new Resistor
-    interrupt_pullup.value = 10k +/- 1%
+    interrupt_pullup.resistance = 10kohm +/- 1%
     interrupt_pullup.package = "0402"
     interrupt.line ~> interrupt_pullup ~> power.hv
 
