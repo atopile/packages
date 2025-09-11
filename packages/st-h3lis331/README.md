@@ -11,8 +11,11 @@ and it is capable of measuring accelerations with output data rates from 0.5 Hz 
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/st-h3lis331/st-h3lis331.ato" import ST_H3LIS331
 
@@ -21,6 +24,8 @@ module MCU:
 
     power = new ElectricPower
     i2c = new I2C
+
+    trait has_part_removed
 
 
 module Usage:

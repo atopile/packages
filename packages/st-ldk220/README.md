@@ -17,8 +17,11 @@ The LDK220M-R is a 200mA adjustable low-dropout voltage regulator with low quies
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
+
 import ElectricPower
+import has_part_removed
 
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 
@@ -27,6 +30,8 @@ module MCU:
 
     power = new ElectricPower
     assert power.voltage is 3.3V +/- 5%
+
+    trait has_part_removed
 
 
 module Usage:
