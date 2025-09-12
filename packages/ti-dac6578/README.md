@@ -34,6 +34,8 @@ module MCU:
     """Host MCU providing I²C bus and power rail."""
     trait has_part_removed
 
+    trait has_part_removed
+
     power = new ElectricPower
     i2c = new I2C
 
@@ -89,6 +91,7 @@ The DAC6578 I²C address is fixed at **0x4C** in this implementation.
 ## Design Philosophy
 
 This package follows these design principles:
+
 - **Integrated I²C pull-ups**: 4.7kΩ pull-up resistors are included in the module for convenience.
 - **External reference voltage**: The `vref` interface allows connection to external precision voltage references for better accuracy.
 - **Array-based outputs**: All 8 DAC channels are accessible via a single `outputs[8]` array for cleaner code.

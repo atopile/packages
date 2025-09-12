@@ -24,18 +24,13 @@ The DS2484 is a single-channel 1-Wire master with an I2C interface from Maxim In
 import ElectricPower
 import I2C
 
-from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484, OneWire
-
-module TemperatureSensor:
-    """
-    Mock 1-Wire temperature sensor for testing
-    """
-    onewire = new OneWire
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import Maxim_DS2484
+from "atopile/maxim-ds2484/maxim-ds2484.ato" import OneWire
 
 module Usage:
     """
     Minimal usage example for Maxim DS2484 1-Wire to I2C bridge.
-    Shows how to connect power supply, I2C bus, and 1-Wire devices.
+    Shows how to connect power supply, I2C bus, and 1-Wire interface.
     """
 
     # Create bridge instance
@@ -49,17 +44,17 @@ module Usage:
     i2c_bus = new I2C
     i2c_bus.frequency = 400kHz
 
-    # 1-Wire temperature sensor
-    temp_sensor = new TemperatureSensor
+    # 1-Wire bus for connecting 1-Wire devices
+    onewire_bus = new OneWire
+    onewire_bus.reference ~ power_3v3
 
     # Connect interfaces
     power_3v3 ~ bridge.power
     i2c_bus ~ bridge.i2c
-    bridge.onewire ~ temp_sensor.onewire
+    onewire_bus ~ bridge.onewire
 
     # Set I2C address (default 0x18)
     bridge.i2c.address = 0x18
-
 ```
 
 ## Technical Specifications
@@ -77,9 +72,9 @@ module Usage:
 
 The DS2484 supports four different I2C addresses that can be selected using external components:
 
-| Configuration | I2C Address | Method |
-|---------------|-------------|--------|
-| Default       | 0x18        | No external components |
+| Configuration | I2C Address | Method                          |
+| ------------- | ----------- | ------------------------------- |
+| Default       | 0x18        | No external components          |
 | Option 1      | 0x19        | External resistor configuration |
 | Option 2      | 0x1A        | External resistor configuration |
 | Option 3      | 0x1B        | External resistor configuration |
@@ -88,20 +83,21 @@ Note: This package implementation defaults to 0x18 for simplicity.
 
 ## Pin Configuration
 
-| Pin | Name | Description |
-|-----|------|-------------|
-| 1   | IO   | 1-Wire Bus I/O |
-| 2   | GND  | Ground |
-| 3   | SCL  | I2C Serial Clock |
-| 4   | SDA  | I2C Serial Data |
+| Pin | Name | Description                |
+| --- | ---- | -------------------------- |
+| 1   | IO   | 1-Wire Bus I/O             |
+| 2   | GND  | Ground                     |
+| 3   | SCL  | I2C Serial Clock           |
+| 4   | SDA  | I2C Serial Data            |
 | 5   | SLPZ | Sleep Control (active low) |
-| 6   | VDD  | Supply Voltage |
+| 6   | VDD  | Supply Voltage             |
 
 ## 1-Wire Interface
 
 The DS2484 provides a complete 1-Wire master interface with the following capabilities:
 
 ### Supported 1-Wire Operations
+
 - **Reset and Presence Detect**: Automatic 1-Wire bus reset and slave detection
 - **Byte Read/Write**: 8-bit data transactions
 - **Bit Read/Write**: Single-bit operations for precise control
@@ -109,6 +105,7 @@ The DS2484 provides a complete 1-Wire master interface with the following capabi
 - **Strong Pullup**: For parasite-powered devices during EEPROM operations
 
 ### 1-Wire Bus Characteristics
+
 - **Standard Speed**: 15.4kbps (default)
 - **Overdrive Speed**: 125kbps (optional)
 - **Bus Recovery**: Automatic recovery from bus faults
@@ -119,11 +116,13 @@ The DS2484 provides a complete 1-Wire master interface with the following capabi
 The DS2484 provides several I2C registers for configuration and operation:
 
 ### Status Registers
+
 - **Status Register**: Device and 1-Wire bus status
 - **Data Register**: Read/write data buffer
 - **Configuration Register**: Device configuration settings
 
 ### Command Set
+
 - **Device Reset**: Software reset of the DS2484
 - **Set Read Pointer**: Select register for reading
 - **Write Configuration**: Configure device parameters
@@ -154,33 +153,39 @@ The DS2484 features a low-power sleep mode for battery-powered applications:
 ## Example 1-Wire Devices
 
 ### Temperature Sensors
+
 - **DS18B20**: Programmable resolution digital thermometer
 - **DS18S20**: High-precision digital thermometer
 - **DS1822**: Econo digital thermometer
 
 ### Memory Devices
+
 - **DS24B33**: 4kb EEPROM with SHA-1 authentication
 - **DS28E01**: 1kb EEPROM with SHA-1 engine
 - **DS2431**: 1kb EEPROM
 
 ### Real-Time Clocks
+
 - **DS1921**: Thermochron temperature logger
 - **DS1922**: Hygrochron temperature/humidity logger
 
 ## Design Considerations
 
 ### PCB Layout
+
 - Keep 1-Wire traces as short as possible
 - Use adequate pullup resistor (typically 2.2kΩ)
 - Place decoupling capacitors close to VDD pin
 - Avoid routing 1-Wire signals near high-speed digital lines
 
 ### Power Supply
+
 - Ensure stable power supply within specified range
 - Use both bulk (1µF) and high-frequency (100nF) decoupling
 - Consider power supply noise in sensitive applications
 
 ### 1-Wire Bus Length
+
 - Maximum cable length depends on cable characteristics
 - Typical installations support 100-300 meters
 - Use twisted pair cable for longer distances

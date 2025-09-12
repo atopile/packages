@@ -11,29 +11,20 @@ import I2C
 
 from "atopile/microchip-24lc32/microchip-24lc32.ato" import Microchip_24LC32
 
-module MCU:
-    """Host MCU providing I²C bus and power rail."""
-
-    power = new ElectricPower
-    i2c = new I2C
-
-
 module Usage:
     """Minimal example for the Microchip 24LC32 EEPROM."""
 
-    # MCU & sensor
-    mcu = new MCU
+    # EEPROM instance
     eeprom = new Microchip_24LC32
 
-    # Shared 3V3 rail
+    # Power rail
     power = new ElectricPower
     power.voltage = 3.3V
-    power ~ mcu.power
     power ~ eeprom.power
 
-    # I²C connection
-    mcu.i2c ~ eeprom.i2c
-
+    # I²C bus
+    i2c = new I2C
+    i2c ~ eeprom.i2c
 ```
 
 ## Contributing
