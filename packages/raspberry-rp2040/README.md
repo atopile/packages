@@ -11,22 +11,47 @@ This is the Raspberry Pi RP2040 microcontroller.
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 import ElectricPower
 import I2C
 import USB2_0
 import Resistor
 import LDO
+import has_part_removed
 
 from "atopile/raspberry-rp2040/raspberry-rp2040.ato" import Raspberry_Pi_RP2040
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 
 from "parts/SHOU_HAN_TYPE_C_16PIN_2MD_073/SHOU_HAN_TYPE_C_16PIN_2MD_073.ato" import SHOU_HAN_TYPE_C_16PIN_2MD_073_package
 
+module Usage:
+    """Minimal example for the Raspberry Pi RP2040 microcontroller"""
+
+    # MCU & sensor
+    mcu = new Raspberry_Pi_RP2040
+    sensor = new Sensor
+    usb = new USBCConnector
+    ldo = new LDK220M_R
+
+    # power
+    power_3v3 = new ElectricPower
+    usb.usb.usb_if.buspower ~> ldo ~> power_3v3
+    mcu.power ~ power_3v3
+    sensor.power ~ power_3v3
+
+    # usb data
+    usb.usb ~ mcu.usb
+
+    # I²C connection
+    mcu.i2c ~ sensor.i2c
+
+
 module Sensor:
     """Simplified sensor with I²C interface"""
 
     power = new ElectricPower
     i2c = new I2C
+    trait has_part_removed
 
 module USBCConnector:
     """Simplified USB-C connector"""
@@ -49,26 +74,6 @@ module USBCConnector:
     usb.usb_if.buspower.lv ~> cc_resistor[0] ~> package.CC1
     usb.usb_if.buspower.lv ~> cc_resistor[1] ~> package.CC2
 
-module Usage:
-    """Minimal example for the Raspberry Pi RP2040 microcontroller"""
-
-    # MCU & sensor
-    mcu = new Raspberry_Pi_RP2040
-    sensor = new Sensor
-    usb = new USBCConnector
-    ldo = new LDK220M_R
-
-    # power
-    power_3v3 = new ElectricPower
-    usb.usb.usb_if.buspower ~> ldo ~> power_3v3
-    mcu.power ~ power_3v3
-    sensor.power ~ power_3v3
-
-    # usb data
-    usb.usb ~ mcu.usb
-
-    # I²C connection
-    mcu.i2c ~ sensor.i2c
 
 ```
 

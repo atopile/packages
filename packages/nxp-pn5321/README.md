@@ -3,13 +3,17 @@
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import DifferentialPair
 import I2C
+import has_part_removed
 
 from "atopile/nxp-pn5321/nxp-pn5321.ato" import NXP_PN5321_driver
 
 module Antenna:
+    trait has_part_removed
     input = new DifferentialPair
 
 module Usage:

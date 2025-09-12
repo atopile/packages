@@ -26,6 +26,7 @@ from "parts/SHOU_HAN_MSK12C02_HB/SHOU_HAN_MSK12C02_HB.ato" import SHOU_HAN_MSK12
 import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider, DifferentialPair, ElectricLogic
 
 import can_bridge_by_name
+import has_part_removed
 
 ## DF40 3mm stack Connectors:
 # 10P: C5623558 (2.5), C424635
@@ -125,7 +126,9 @@ module Usage:
 
     # ISOSPI loopback switch
     SPDT = new SHOU_HAN_MSK12C02_HB # 1x2~3
+    trait has_part_removed
     analog_DPDT = new Texas_Instruments_TS5A22362DGSR
+    trait has_part_removed
     switch_resistors = new Resistor[2]
     for switch_resistor in switch_resistors:
         switch_resistor.package = "0402"
@@ -257,6 +260,7 @@ module Usage:
     sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
 
     atopile_logo = new atopile_logo_25x6mm
+    trait has_part_removed
 
 module TempSensor:
     # -40~+125 100mW 10kΩ ±1% 0402 NTC Thermistors ROHS

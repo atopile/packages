@@ -3,24 +3,27 @@
 ## Usage
 
 ```ato
-from "atopile/espressif-esp32-c3/esp32_c3_mini.ato" import ESP32_C3_MINI_1_driver
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
-module App:
-    """
-    Example of how to use the driver for ESP32-C3-MINI-1 modules
-    """
-    mcu = new ESP32_C3_MINI_1_driver
-    # mcu.esp32_module -> ESP32_C3_MINI_1_model # choose another variant if you want
+import ElectricPower
+import Resistor
+import I2C
+import SPI
+import I2S
 
+from "atopile/espressif-esp32-c3/espressif-esp32-c3-mini.ato" import ESP32_C3_MINI_1
+from "atopile/espressif-esp32-c3/espressif-esp32-c3-wroom.ato" import ESP32_C3_WROOM_02
+
+module Usage:
+
+    # Interfaces
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 10%
-    power_3v3 ~ mcu.power
-
-    # below are some sensible defaults. These interfaces can be muxed to any GPIO.
     i2c = new I2C
-    mcu.esp32_module.i2c ~ i2c
-    mcu.esp32_module.gpio[6] ~ mcu.esp32_module.i2c.scl
-    mcu.esp32_module.gpio[5] ~ mcu.esp32_module.i2c.sda
+    spi = new SPI
+    i2s = new I2S
+
     # I2C pull-up resistors
     pullup_resistors = new Resistor[2]
     for res in pullup_resistors:
@@ -29,17 +32,25 @@ module App:
     i2c.sda.reference.hv ~> pullup_resistors[0] ~> i2c.sda.line
     i2c.scl.reference.hv ~> pullup_resistors[1] ~> i2c.scl.line
 
-    spi = new SPI
-    mcu.esp32_module.spi ~ spi
-    mcu.esp32_module.gpio[10] ~ mcu.esp32_module.spi.sclk
-    mcu.esp32_module.gpio[7] ~ mcu.esp32_module.spi.mosi
-    mcu.esp32_module.gpio[8] ~ mcu.esp32_module.spi.miso
+    """
+    Example of how to use the driver for ESP32-C3-MINI-1 modules
+    """
+    mini_module = new ESP32_C3_MINI_1
+    power_3v3 ~ mini_module.power
+    mini_module.i2c ~ i2c
+    mini_module.spi ~ spi
+    mini_module.i2s ~ i2s
 
-    i2s = new I2S
-    mcu.esp32_module.i2s ~ i2s
-    mcu.esp32_module.gpio[18] ~ mcu.esp32_module.i2s.ws
-    mcu.esp32_module.gpio[1] ~ mcu.esp32_module.i2s.sd
-    mcu.esp32_module.gpio[0] ~ mcu.esp32_module.i2s.sck
+    """
+    Example of how to use the driver for ESP32-C3-WROOM-02 modules
+    """
+    wroom_module = new ESP32_C3_WROOM_02
+
+    power_3v3 ~ wroom_module.power
+    wroom_module.i2c ~ i2c
+    wroom_module.spi ~ spi
+    wroom_module.i2s ~ i2s
+
 ```
 
 ## Contributing
