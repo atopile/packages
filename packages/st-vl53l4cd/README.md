@@ -18,11 +18,10 @@ from "atopile/st-vl53l4cd/st-vl53l4cd.ato" import ST_VL53L4CD
 
 module MCU:
     """Host MCU providing 3 V rail and I²C bus."""
-
-    trait has_part_removed
-
     power = new ElectricPower
     i2c = new I2C
+
+    trait has_part_removed
 
 module Usage:
     """Minimal usage example for the ST_VL53L4CD sensor."""
