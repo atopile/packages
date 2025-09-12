@@ -10,8 +10,9 @@ import Resistor
 
 from "parts/HCTL_HC_RJ45_055_7/HCTL_HC_RJ45_055_7.ato" import HCTL_HC_RJ45_055_7_package
 from "parts/HANRUN_HR911130A/HANRUN_HR911130A.ato" import HANRUN_HR911130A_package
+from "parts/Ckmtw_R_RJ45S08P_C000/Ckmtw_R_RJ45S08P_C000.ato" import Ckmtw_R_RJ45S08P_C000_package
 
-module RJ45_Vertical_SMD:
+module RJ45_Recessed_SMD:
     """
     Vertical SMD RJ45 connector without magnetics (HCTL HC-RJ45-055-7)
 
@@ -48,6 +49,67 @@ module RJ45_Vertical_SMD:
     # Shield connections (grounded via LED reference)
     shield ~ package.9
     shield ~ package.10
+    ethernet.led_link.reference.lv ~ shield
+
+module RJ45_Vertical_SMD:
+    """
+    Vertical SMD RJ45 connector without magnetics (HCTL HC-RJ45-055-7)
+
+    Standard 8P8C RJ45 jack for Ethernet connections. This is a basic connector
+    without integrated magnetics, suitable for use with external transformers
+    or direct PHY connections.
+    """
+
+    # --- External interfaces ---
+    ethernet = new Ethernet
+    """
+    Ethernet interface (100BASE-TX uses 2 pairs, 1000BASE-T uses all 4)
+    """
+
+    shield = new Electrical
+    """
+    Shield connection for EMI protection
+    """
+
+    # --- Package ---
+    package = new Ckmtw_R_RJ45S08P_C000_package
+
+
+    # --- Internal components ---
+    led_link_resistor = new Resistor
+    """
+    Current limiting resistor for link LED
+    """
+
+    led_activity_resistor = new Resistor
+    """
+    Current limiting resistor for activity LED
+    """
+
+    # --- Package connections ---
+    # Standard T568B wiring
+    ethernet.pairs[0].p.line ~ package.1  # TX+ (Orange/White)
+    ethernet.pairs[0].n.line ~ package.2  # TX- (Orange)
+    ethernet.pairs[1].p.line ~ package.3  # RX+ (Green/White)
+    ethernet.pairs[2].p.line ~ package.4  # Unused+ (Blue)
+    ethernet.pairs[2].n.line ~ package.5  # Unused- (Blue/White)
+    ethernet.pairs[1].n.line ~ package.6  # RX- (Green)
+    ethernet.pairs[3].p.line ~ package.7  # Unused+ (Brown/White)
+    ethernet.pairs[3].n.line ~ package.8  # Unused- (Brown)
+
+    # LED connections with current limiting resistors (based on CM5 implementation)
+    # Link LED: logic -> resistor -> anode(pin 11), cathode(pin 12) -> ground
+    # Activity LED: logic -> resistor -> anode(pin 14), cathode(pin 13) -> ground
+    ethernet.led_link.line ~> led_link_resistor ~> package.Gpos       # Link LED with resistor
+    ethernet.led_speed.line ~> led_activity_resistor ~> package.Ypos   # Activity LED with resistor
+
+    # Connect LED ground references to LED cathodes
+    ethernet.led_link.reference.lv ~ package.Gneg     # Link LED cathode
+    ethernet.led_speed.reference.lv ~ package.Yneg # Activity LED cathode
+
+    # Shield connections (grounded via LED reference)
+    shield ~ package.S
+    shield ~ package.S
     ethernet.led_link.reference.lv ~ shield
 
 

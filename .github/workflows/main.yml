@@ -41,6 +41,8 @@ jobs:
       packages: read
       id-token: write
     runs-on: ubuntu-latest
+    env:
+      GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -50,18 +52,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # FIXME: handle deps properly
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
       - uses: atopile/setup-atopile@v1.6
         with:
-          working-directory: ${{ matrix.package }}
+          ato-config: ${{ matrix.package }}/ato.yaml
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build
-        working-directory: ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }}
+        env:
+          GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
@@ -74,6 +79,35 @@ jobs:
           skip-duplicate-versions: true
           package-version: "" # Use the embedded version key
           ato-config: ${{ matrix.package }}/ato.yaml
+
+      - name: Archive build logs
+        id: archive_logs
+        if: always()
+        run: |
+          pkg="${{ matrix.package }}"
+          logs_dir="$pkg/build/logs"
+          mkdir -p artifacts
+          safe_pkg=$(echo "$pkg" | tr '/' '-')
+          artifact_name="build-logs-$safe_pkg-${{ github.run_id }}-${{ github.run_attempt }}"
+          archive="artifacts/$artifact_name.zip"
+          if [ -d "$logs_dir" ]; then
+            zip -r "$archive" "$logs_dir" -q
+            echo "archive_path=$archive" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          else
+            echo "No logs directory at $logs_dir"
+            echo "archive_path=" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload build logs
+        if: always() && steps.archive_logs.outputs.archive_path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.archive_logs.outputs.artifact_name }}
+          path: ${{ steps.archive_logs.outputs.archive_path }}
+          if-no-files-found: warn
+          retention-days: 14
 
   verify-matrix:
     runs-on: ubuntu-latest

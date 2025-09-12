@@ -53,10 +53,10 @@ module TI_TPS563201 from AdjustableRegulator:
     input_caps = new Capacitor[3]
     for cap in input_caps[:2]:
         cap.capacitance = 10uF +/- 20%
-        cap.package = "C0805"
+        cap.package = "0805"
 
     input_caps[2].capacitance = 100nF +/- 20%
-    input_caps[2].package = "C0402"
+    input_caps[2].package = "0402"
 
     # Connect Input Caps
     for cap in input_caps:
@@ -67,14 +67,14 @@ module TI_TPS563201 from AdjustableRegulator:
     output_caps = new Capacitor[3]
     for cap in output_caps:
         cap.capacitance = 10uF +/- 20%
-        cap.package = "C0805"
+        cap.package = "0805"
         power_out.vcc ~> cap ~> power_out.gnd
 
 
     # Bootstrap cap
     bootstrap_cap = new Capacitor
     bootstrap_cap.capacitance = 100nF +/- 20%
-    bootstrap_cap.package = "C0402"
+    bootstrap_cap.package = "0402"
     bootstrap_cap.max_voltage = 10V to 30V
     package.VBST ~> bootstrap_cap ~> package.SW
 
@@ -82,7 +82,7 @@ module TI_TPS563201 from AdjustableRegulator:
     inductor = new Inductor
     inductor.inductance = 2.2uH +/- 30%
     assert inductor.max_current >= 3A
-    inductor.package = "SMD4x4mm"
+    inductor.package = "SMD5x5mm"
     package.SW ~> inductor ~> power_out.vcc
 
     # Enable
@@ -92,5 +92,5 @@ module TI_TPS563201 from AdjustableRegulator:
     # Default Enabled (pull-up)
     enable_resistor = new Resistor
     enable_resistor.resistance = 10kohm +/- 5%
-    enable_resistor.package = "R0402"
+    enable_resistor.package = "0402"
     package.EN ~> enable_resistor ~> power_in.vcc

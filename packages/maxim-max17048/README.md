@@ -22,9 +22,15 @@ This fuel gauge decodes the non-linear battery voltage to calculate accurate cha
 
 import ElectricPower
 import I2C
+import has_part_removed
 from "atopile/maxim-max17048/maxim-max17048.ato" import Maxim_MAX17048
 
 module Battery:
+    """
+    Conceptual battery module for usage examples.
+    In real applications, this would represent the actual LiPoly/LiIon battery.
+    """
+    trait has_part_removed
     power = new ElectricPower
 
 module Usage:
@@ -51,7 +57,6 @@ module Usage:
     # Note: In real application, these would connect to your LiPoly/LiIon battery
     battery = new Battery
     battery.power ~ fuel_gauge.battery_interface
-
 ```
 
 ## Contributing
