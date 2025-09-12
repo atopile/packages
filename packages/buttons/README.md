@@ -1,6 +1,6 @@
-# Buttons
+# Buttons - Momentary Switches
 
-Simple momentary switches that can be used to bridge connections in your circuits.
+Simple momentary switches that can be used to bridge connections in circuits.
 
 ## Usage
 
@@ -12,8 +12,8 @@ import Electrical
 import ElectricPower
 import Resistor
 
-from "buttons.ato" import VerticalButton
-from "buttons.ato" import HorizontalButton
+from "atopile/buttons/buttons.ato" import VerticalButton
+from "atopile/buttons/buttons.ato" import HorizontalButton
 
 module Usage:
     """
@@ -61,7 +61,6 @@ module Usage:
     # Connections: signal pulled low by resistor, pulled high by button
     power.lv ~> pulldown_resistor ~> pulldown_signal
     pulldown_signal ~> btn_pulldown ~> power.hv
-
 ```
 
 ## Contributing
