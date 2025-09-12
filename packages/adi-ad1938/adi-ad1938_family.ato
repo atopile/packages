@@ -1,0 +1,122 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+
+import Electrical
+
+from "parts/Analog_Devices_AD1938WBSTZ_RL/Analog_Devices_AD1938WBSTZ_RL.ato" import Analog_Devices_AD1938WBSTZ_RL_package
+
+module Analog_Devices_AD1938_package_family:
+    """
+    Common base package module for Analog Devices AD1938 series.
+    """
+
+    specific_package = new Analog_Devices_AD1938WBSTZ_RL_package
+
+    # pins
+    ABCLK = new Electrical
+    ADC1LN = new Electrical
+    ADC1LP = new Electrical
+    ADC1RN = new Electrical
+    ADC1RP = new Electrical
+    ADC2LN = new Electrical
+    ADC2LP = new Electrical
+    ADC2RN = new Electrical
+    ADC2RP = new Electrical
+    AGND = new Electrical[5]
+    ALRCLK = new Electrical
+    ASDATA1 = new Electrical
+    ASDATA2 = new Electrical
+    AVDD = new Electrical[4]
+    CCLK = new Electrical
+    CIN = new Electrical
+    CM = new Electrical
+    COUT = new Electrical
+    DBCLK = new Electrical
+    DGND = new Electrical[2]
+    DLRCLK = new Electrical
+    DSDATA1 = new Electrical
+    DSDATA2 = new Electrical
+    DSDATA3 = new Electrical
+    DSDATA4 = new Electrical
+    DVDD = new Electrical[1]
+    FILTR = new Electrical
+    LF = new Electrical
+    MCLKI_XI = new Electrical
+    MCLKO_XO = new Electrical
+    OL1 = new Electrical
+    OL2 = new Electrical
+    OL3 = new Electrical
+    OL4 = new Electrical
+    OR1 = new Electrical
+    OR2 = new Electrical
+    OR3 = new Electrical
+    OR4 = new Electrical
+    nCLATCH = new Electrical
+    nPD_nRST = new Electrical
+
+    # pinmap
+    specific_package.21 ~ ABCLK
+    specific_package.40 ~ ADC1LN
+    specific_package.39 ~ ADC1LP
+    specific_package.42 ~ ADC1RN
+    specific_package.41 ~ ADC1RP
+    specific_package.44 ~ ADC2LN
+    specific_package.43 ~ ADC2LP
+    specific_package.46 ~ ADC2RN
+    specific_package.45 ~ ADC2RP
+    specific_package.1 ~ AGND[0]
+    specific_package.4 ~ AGND[1]
+    specific_package.32 ~ AGND[2]
+    specific_package.34 ~ AGND[3]
+    specific_package.36 ~ AGND[4]
+    specific_package.22 ~ ALRCLK
+    specific_package.20 ~ ASDATA1
+    specific_package.19 ~ ASDATA2
+    specific_package.5 ~ AVDD[0]
+    specific_package.33 ~ AVDD[1]
+    specific_package.37 ~ AVDD[2]
+    specific_package.48 ~ AVDD[3]
+    specific_package.26 ~ CCLK
+    specific_package.23 ~ CIN
+    specific_package.38 ~ CM
+    specific_package.24 ~ COUT
+    specific_package.17 ~ DBCLK
+    specific_package.12 ~ DGND[0]
+    specific_package.25 ~ DGND[1]
+    specific_package.18 ~ DLRCLK
+    specific_package.16 ~ DSDATA1
+    specific_package.15 ~ DSDATA2
+    specific_package.14 ~ DSDATA3
+    specific_package.11 ~ DSDATA4
+    specific_package.13 ~ DVDD[0]
+    specific_package.35 ~ FILTR
+    specific_package.47 ~ LF
+    specific_package.2 ~ MCLKI_XI
+    specific_package.3 ~ MCLKO_XO
+    specific_package.28 ~ OL1
+    specific_package.30 ~ OL2
+    specific_package.6 ~ OL3
+    specific_package.8 ~ OL4
+    specific_package.29 ~ OR1
+    specific_package.31 ~ OR2
+    specific_package.7 ~ OR3
+    specific_package.9 ~ OR4
+    specific_package.27 ~ nCLATCH
+    specific_package.10 ~ nPD_nRST
+
+    # TODO replace with Net if #1226 is merged
+    N_AGND = new Electrical
+    N_AVDD = new Electrical
+    N_DGND = new Electrical
+    N_DVDD = new Electrical
+
+    for dup in AGND:
+        dup ~> N_AGND
+    for dup in AVDD:
+        dup ~> N_AVDD
+    for dup in DGND:
+        dup ~> N_DGND
+    for dup in DVDD:
+        dup ~> N_DVDD

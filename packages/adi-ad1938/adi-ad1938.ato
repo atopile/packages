@@ -1,0 +1,170 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+import ElectricPower
+import I2S
+import Capacitor
+import MultiCapacitor
+import Resistor
+import SPI
+import DifferentialPair
+import ElectricLogic
+import Electrical
+import can_bridge_by_name
+import Inductor
+
+from "atopile/adi-ad1938/adi-ad1938_model.ato" import Analog_Devices_AD1938_model
+
+
+module _PLLFilter:
+    input = new Electrical
+    output = new Electrical
+
+    trait can_bridge_by_name
+
+    r = new Resistor
+    c1 = new Capacitor
+    c2 = new Capacitor
+
+    assert r.resistance within 562ohm +/- 10%
+    assert c1.capacitance within 5.6nF +/- 10%
+    assert c2.capacitance within 390pF +/- 10%
+
+    r.package = "0402"
+    c1.package = "0402"
+    c2.package = "0402"
+
+    input ~> r ~> c1 ~> output
+    input ~> c2 ~> output
+
+module _VoltageReferenceDecoupling:
+    input = new Electrical
+    output = new Electrical
+
+    trait can_bridge_by_name
+
+    c = new Capacitor
+    c_bulk = new Capacitor
+
+    assert c.capacitance within 100nF +/- 10%
+    assert c_bulk.capacitance within 47uF +/- 20%
+
+    c.package = "0402"
+    c_bulk.max_voltage = 35V +/- 10%
+
+    input ~> c ~> output
+    input ~> c_bulk ~> output
+
+module Analog_Devices_AD1938_driver:
+    """
+    Analog Devices AD1938WBSTZ-RL is a high performance,
+    single-chip codec with 4x ADC inputs and 8x DAC outputs
+
+    - PLL generated or direct master clock
+    - Low EMI design
+    - 108 dB DAC/107 dB ADC dynamic range and SNR
+    - -94 dB THD + N
+    - 3.3 V single supply
+    - Tolerance for 5 V logic inputs
+    - Supports 24 bits and 8 kHz to 192 kHz sample rates
+    - 4x Differential ADC input
+    - 8x Single-ended DAC output
+    - Log volume control with autoramp function
+    - SPI controllable for flexibility
+    - Software-controllable clickless mute
+    - Software power-down
+    - Right-justified, left-justified, I2
+    - S-justified, and TDM modes
+    - Master and slave modes up to 16-channel input/output
+    - 48-lead LQFP package
+    - Qualified for automotive applications
+    """
+    model = new Analog_Devices_AD1938_model
+
+    # --- External interfaces ---
+    # power
+    power = new ElectricPower
+    """
+    Main power input, will also be used to derive the analog power from.
+    """
+    power.required = True
+    assert power.voltage within 3.3V +/- 10%
+
+    # Passthrough from model
+    reset_disable = new ElectricLogic
+    """
+    Reset disable input (active low)
+    Used to disable or reset the device.
+    """
+    reset_disable.required = True
+    reset_disable ~ model.reset_disable
+    reset_pulldown = new Resistor
+    reset_pulldown.package = "0402"
+    reset_pulldown.resistance = 100kohm +/- 10%
+    reset_disable.line ~> reset_pulldown ~> reset_disable.reference.lv
+
+    pll_clock_in = new ElectricLogic
+    """
+    MCLKI/XI, Master clock input for PLL. Either of the LRCLK inputs can also be used
+    for the PLL master clock instead of this input.
+    """
+    pll_clock_in.line ~ model.pll_clock_in
+    # pll_clock_in.required = True # TODO: one of the clock options should be used
+
+    # --- Internal interfaces ---
+    _power_analog_filtered = new ElectricPower
+
+    # --- Components and connections ---
+    choke = new Inductor
+    choke.package = "0805"
+    #choke.inductance = 100uH +/- 10%
+    choke.dc_resistance = 300mohm +/- 10%
+    power.hv ~> choke ~> _power_analog_filtered.hv
+    power.lv ~> _power_analog_filtered.lv
+    _power_analog_filtered ~> model.power_analog
+    power ~ model.power_io
+
+    # pllfilter
+    pll_filter = new _PLLFilter
+    model.pll_filter ~> pll_filter ~> model.power_analog.lv
+
+    #TODO: is optional. probably want to use a dsp or other logic clock source
+    ## oscillator
+    #oscillator_driver = new _OscillatorDriver
+    #model.xtal_in ~> oscillator_driver ~> model.xtal_out
+    #oscillator_driver.ground ~ power.lv
+
+    # Decoupling caps
+    # TODO verify pin neighbours with chip
+    common_mode_decoupling = new _VoltageReferenceDecoupling
+    model.package.CM ~> common_mode_decoupling ~> model.power_analog.lv
+    voltage_reference_decoupling = new _VoltageReferenceDecoupling
+    model.package.FILTR ~> voltage_reference_decoupling ~> model.power_analog.lv
+
+    decoupling_power_analog = new MultiCapacitor<count=4>
+    model.power_analog.hv ~> decoupling_power_analog ~> model.power_analog.lv
+    model.package.AVDD[0] ~> decoupling_power_analog.capacitors[0] ~> model.package.AGND[0]
+    model.package.AVDD[1] ~> decoupling_power_analog.capacitors[1] ~> model.package.AGND[1]
+    model.package.AVDD[2] ~> decoupling_power_analog.capacitors[2] ~> model.package.AGND[2]
+    model.package.AVDD[3] ~> decoupling_power_analog.capacitors[3] ~> model.package.AGND[3]
+    for c in decoupling_power_analog.capacitors:
+        c.package = "0402"
+        c.capacitance = 100nF +/- 10%
+
+    decoupling_bulk_power_analog = new Capacitor
+    model.package.AVDD[0] ~> decoupling_bulk_power_analog ~> model.package.AGND[0]
+    decoupling_bulk_power_analog.package = "0805"
+    decoupling_bulk_power_analog.capacitance = 10uF +/- 20%
+
+    decoupling_power_io = new MultiCapacitor<count=1>
+    model.power_io.hv ~> decoupling_power_io ~> model.power_io.lv
+    model.package.DVDD[0] ~> decoupling_power_io.capacitors[0] ~> model.package.DGND[0]
+    for c in decoupling_power_io.capacitors:
+        c.package = "0402"
+        c.capacitance = 100nF +/- 10%
+
+    decoupling_bulk_power_io = new Capacitor
+    decoupling_bulk_power_io.package = "0805"
+    decoupling_bulk_power_io.capacitance = 10uF +/- 20%
+    model.power_io.hv ~> decoupling_bulk_power_io ~> model.power_io.lv
