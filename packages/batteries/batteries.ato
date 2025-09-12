@@ -1,0 +1,50 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+
+module Battery:
+    """
+    Base battery module providing common battery characteristics.
+
+    This module defines the fundamental parameters and interfaces
+    that all battery types should have.
+    """
+
+    # --- Parameters ---
+    voltage: V
+    """Battery nominal voltage"""
+
+    capacity: Ah
+    """Battery capacity in ampere-hours"""
+
+    discharge_current_max: A
+    """Maximum safe discharge current"""
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Battery power output interface
+    """
+    power.required = True
+    assert power.voltage is voltage
+
+module BatteryPrimary from Battery:
+    """
+    Primary (non-rechargeable) battery module.
+
+    Primary batteries cannot be recharged and are designed
+    for single-use applications.
+    """
+    pass
+
+module BatterySecondary from Battery:
+    """
+    Secondary (rechargeable) battery module.
+
+    Secondary batteries can be charged and discharged multiple times,
+    making them suitable for reusable applications.
+    """
+
+    charge_current_max: A
+    """Maximum safe charging current"""
