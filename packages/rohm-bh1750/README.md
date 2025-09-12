@@ -15,13 +15,18 @@ The BH1750 is a digital ambient light sensor with I²C interface that provides a
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import I2C
+import has_part_removed
 
 from "atopile/rohm-bh1750/rohm-bh1750.ato" import ROHM_BH1750
 
 module MCU:
     """Host MCU providing I²C bus and power rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     i2c = new I2C
@@ -48,23 +53,27 @@ module Usage:
 ## Interface Details
 
 ### I²C Communication
+
 - **Fixed Address**: 0x23 (7-bit addressing)
 - **Bus Speed**: Standard mode (100 kHz) and Fast mode (400 kHz)
 - **Built-in Pull-ups**: 10kΩ resistors on SCL and SDA lines
 - **Address Pin**: ADDR pin connected to GND through 10kΩ resistor
 
 ### Power Supply
+
 - **Operating Voltage**: 2.4V to 3.6V
 - **Current Consumption**: 0.12 mA active, 0.01 mA standby
 - **Decoupling**: Built-in 100nF capacitor for stable operation
 
 ### Light Measurement
+
 - **Measurement Range**: 1 to 65535 lux
 - **Resolution**: 16-bit digital output
 - **Accuracy**: ±20% typical
 - **Response Time**: Fast ambient light detection
 
 ### DVI Pin
+
 - **Low-pass Filter**: Built-in RC filter for DVI pin
 - **Filter Components**: 1kΩ resistor and 0.1µF capacitor
 - **Purpose**: Noise reduction for stable operation

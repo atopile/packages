@@ -18,12 +18,17 @@ The LDK220M-R is a 200mA adjustable low-dropout voltage regulator with low quies
 
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
 import ElectricPower
+import has_part_removed
 
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 
 module MCU:
     """Host MCU providing power rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     assert power.voltage is 3.3V +/- 5%
@@ -41,7 +46,6 @@ module Usage:
 
     # Shared 3V3 rail
     some_input_power ~> ldo ~> mcu.power
-
 ```
 
 ## Output Voltage Configuration
@@ -57,6 +61,7 @@ assert ldo.power_out.voltage is 1.8V +/- 5%
 ## Pin Configuration
 
 The module handles all pin connections internally:
+
 - **IN**: Input voltage
 - **GND**: Ground reference
 - **EN**: Enable (connected to input voltage for always-on operation)

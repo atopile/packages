@@ -191,10 +191,8 @@ module ESP32_C3_WROOM_02:
     # components
     boot_switch = new Button
     boot_pullup_resistor = new Resistor
-    boot_debounce_capacitor = new Capacitor
     reset_switch = new Button
     reset_pullup_resistor = new Resistor
-    reset_debounce_capacitor = new Capacitor
     decoupling_capacitor_bulk = new Capacitor
     decoupling_capacitor_small = new Capacitor
     boot_mode_resistors = new Resistor[2]
@@ -206,12 +204,10 @@ module ESP32_C3_WROOM_02:
     power.lv ~> boot_switch ~> gpio[9].line
     power.hv ~> boot_pullup_resistor ~> esp32_c3.gpio[9].line
     boot_switch -> VerticalButton
-    boot_switch.input ~> boot_debounce_capacitor ~> boot_switch.output
 
     power.lv ~> reset_switch ~> esp32_c3.enable.line
     power.hv ~> reset_pullup_resistor ~> esp32_c3.enable.line
     reset_switch -> VerticalButton
-    reset_switch.input ~> reset_debounce_capacitor ~> reset_switch.output
 
     gpio[2].line ~> boot_mode_resistors[0] ~> power.hv
     gpio[8].line ~> boot_mode_resistors[1] ~> power.hv
@@ -221,10 +217,6 @@ module ESP32_C3_WROOM_02:
     decoupling_capacitor_bulk.package = "C0603"
     decoupling_capacitor_small.capacitance = 100nF +/- 10%
     decoupling_capacitor_small.package = "C0402"
-    boot_debounce_capacitor.capacitance = 100nF +/- 10%
-    boot_debounce_capacitor.package = "C0402"
-    reset_debounce_capacitor.capacitance = 1uF +/- 10%
-    reset_debounce_capacitor.package = "C0402"
     reset_pullup_resistor.resistance = 10kohm +/- 1%
     reset_pullup_resistor.package = "R0402"
     boot_pullup_resistor.resistance = 5.1kohm +/- 1%
