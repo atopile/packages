@@ -55,7 +55,7 @@ module Usage:
     usb_5v_in.voltage = 5V +/- 10%
 
     usb_monitor = new TI_INA228
-    usb_monitor.max_current = 100mA
+    usb_monitor.max_current = 500mA
     usb_monitor.power ~ supply_3v3
     i2c = new I2C
     usb_monitor.i2c ~ i2c
@@ -135,7 +135,7 @@ module Usage:
     battery_in.voltage = 3.7V +/- 0.5V  # Li-Ion voltage range
 
     battery_monitor = new TI_INA228
-    battery_monitor.max_current = 3A
+    battery_monitor.max_current = 2A
     battery_monitor.power ~ supply_3v3
     i2c5 = new I2C
     battery_monitor.i2c ~ i2c5
