@@ -1,33 +1,27 @@
 #pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
 
-import DifferentialPair
-import ElectricPower
-import Resistor
-import has_part_removed
+import DifferentialPair, ElectricPower, Resistor
 
 from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
-
-module TeensyWithoutPart from PJRC_Teensy_4_1:
-    """Teensy 4.1 module without a physical part for usage examples."""
-    trait has_part_removed
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
 from "atopile/adi-adbms6830/usage.ato" import StackableBMBInterface
 from "atopile/ti-dac6578/ti-dac6578.ato" import TI_DAC6578
+from "atopile/logos/logos.ato" import atopile_logo_25x6mm
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
-from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
+from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
 from "atopile/ti-ads1115/ti-ads1115.ato" import TI_ADS1115
 
 from "parts/Nextron_Z_231012820106/Nextron_Z_231012820106.ato" import Nextron_Z_231012820106_package
 from "parts/DIBO_DB125_3_81_2P_BK_S/DIBO_DB125_3_81_2P_BK_S.ato" import DIBO_DB125_3_81_2P_BK_S_package
 from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" import XKB_Connectivity_SK_3245S_L1_B_package
 
+
+
 module Usage:
-    teensy = new TeensyWithoutPart
+    teensy = new PJRC_Teensy_4_1
     adbms6822 = new ADI_ADBMS6822
     usb_c_connector = new USBCConn
     gpio_dac = new TI_DAC6578
@@ -262,3 +256,5 @@ module Usage:
     cells[13].hv.override_net_name = "CELL14"
     cells[14].hv.override_net_name = "CELL15"
     cells[15].hv.override_net_name = "CELL16"
+
+    atopile_logo = new atopile_logo_25x6mm
