@@ -19,6 +19,7 @@ import Ethernet, ElectricPower, ElectricLogic, Electrical
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Vertical_SMD
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Recessed_SMD
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics_8Port
 
 module Usage:
     """
@@ -63,6 +64,10 @@ module Usage:
 
     # Connect shield to ground
     rj45_recessed.shield ~ power_3v3.lv
+
+    rj45_8port = new RJ45_Horizontal_TH_Magnetics_8Port
+    # Connect shield to ground
+    rj45_8port.shield ~ power_3v3.lv
 
 ```
 
