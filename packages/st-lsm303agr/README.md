@@ -23,6 +23,7 @@ module MCU:
     power = new ElectricPower
     i2c = new I2C
 
+    trait has_part_removed
 
 module Usage:
     """Minimal example for the ST_LSM303AGR accelerometer."""

@@ -26,7 +26,7 @@ import ElectricPower
 
 from "atopile/ti-tps63020/ti-tps63020.ato" import TPS63020_driver
 
-module Example:
+module Usage:
     """
     Example usage of the TPS63020 buck-boost converter
     """
