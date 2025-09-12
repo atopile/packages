@@ -11,16 +11,21 @@ import Resistor
 import SPI
 import DifferentialPair
 import has_single_electric_reference_shared
+import has_part_removed
 
-from "ad1938_family.ato" import Analog_Devices_AD1938_package_family
+from "atopile/adi-ad1938/adi-ad1938_family.ato" import Analog_Devices_AD1938_package_family
 
 module _DAC_channel:
     analog_left = new ElectricSignal
     analog_right = new ElectricSignal
 
+    trait has_part_removed
+
 module _ADC_channel:
     analog_left = new DifferentialPair
     analog_right = new DifferentialPair
+
+    trait has_part_removed
 
 module Analog_Devices_AD1938_model:
     package = new Analog_Devices_AD1938_package_family

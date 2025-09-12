@@ -6,29 +6,38 @@ This package provides a driver for the AD1938 audio DAC/ADC (CODEC) with 4 diffe
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+
 import I2S
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import SPI
+import has_part_removed
 
-from "ad1938.ato" import Analog_Devices_AD1938_driver
+from "atopile/adi-ad1938/adi-ad1938.ato" import Analog_Devices_AD1938_driver
 
 module Microcontroller:
     spi = new SPI
     i2s = new I2S[2]
     gpio = new ElectricLogic
 
+    trait has_part_removed
+
 module Amplifier:
     analog_input_left = new ElectricSignal
     analog_input_right = new ElectricSignal
 
+    trait has_part_removed
+
 module ClockSource:
     clock_out = new ElectricLogic
 
-module Example:
+    trait has_part_removed
+
+module Usage:
     """
     AD1938 Example
     """
@@ -59,7 +68,27 @@ module Example:
     amp.analog_input_right ~ dac_adc.model.dac_channels[0].analog_right
 
     # clock
-    clock_source.clock_out ~ dac_adc.model.pll_clock_in
+    clock_source.clock_out.line ~ dac_adc.model.pll_clock_in
+
+    # override net names
+    dac_adc.model.dac_channels[0].analog_left.line.override_net_name = "dac_0_left"
+    dac_adc.model.dac_channels[0].analog_right.line.override_net_name = "dac_0_right"
+    dac_adc.model.dac_channels[1].analog_left.line.override_net_name = "dac_1_left"
+    dac_adc.model.dac_channels[1].analog_right.line.override_net_name = "dac_1_right"
+    dac_adc.model.dac_channels[2].analog_left.line.override_net_name = "dac_2_left"
+    dac_adc.model.dac_channels[2].analog_right.line.override_net_name = "dac_2_right"
+    dac_adc.model.dac_channels[3].analog_left.line.override_net_name = "dac_3_left"
+    dac_adc.model.dac_channels[3].analog_right.line.override_net_name = "dac_3_right"
+
+    dac_adc.model.adc_channels[0].analog_left.p.line.override_net_name = "adc_0_left_P"
+    dac_adc.model.adc_channels[0].analog_left.n.line.override_net_name = "adc_0_left_N"
+    dac_adc.model.adc_channels[0].analog_right.p.line.override_net_name = "adc_0_right_P"
+    dac_adc.model.adc_channels[0].analog_right.n.line.override_net_name = "adc_0_right_N"
+    dac_adc.model.adc_channels[1].analog_left.p.line.override_net_name = "adc_1_left_P"
+    dac_adc.model.adc_channels[1].analog_left.n.line.override_net_name = "adc_1_left_N"
+    dac_adc.model.adc_channels[1].analog_right.p.line.override_net_name = "adc_1_right_P"
+    dac_adc.model.adc_channels[1].analog_right.n.line.override_net_name = "adc_1_right_N"
+
 ```
 
 ## Development notes
