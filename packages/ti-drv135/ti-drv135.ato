@@ -6,6 +6,7 @@ import ElectricPower
 import ElectricSignal
 import DifferentialPair
 import Capacitor
+import Diode
 
 from "parts/Texas_Instruments_DRV135UA_2K5/Texas_Instruments_DRV135UA_2K5.ato" import Texas_Instruments_DRV135UA_2K5_package
 
@@ -71,3 +72,51 @@ module TI_DRV135:
     package.VOneg ~ output_force.n.line
     package.SENSEpos ~ output_sense.p.line
     package.SENSEneg ~ output_sense.n.line
+
+module TI_DRV135_driver:
+
+    # --- External interfaces ---
+    audio_in = new ElectricSignal
+    audio_out = new DifferentialPair
+    pos_power = new ElectricPower
+    pos_power.voltage = 4.5V to 18V
+    neg_power = new ElectricPower
+    neg_power.voltage = -18V to -4.5V
+
+    line_driver_ic = new TI_DRV135
+    line_driver_ic.positive_power ~ pos_power
+    line_driver_ic.negative_power ~ neg_power
+
+    # --- Input Decoupling ---
+    input_decoupling_capacitor = new Capacitor
+    input_decoupling_capacitor.package = "0603"
+    input_decoupling_capacitor.capacitance = 10uF +/- 20%
+    assert input_decoupling_capacitor.max_voltage >= 20V
+    audio_in.line ~> input_decoupling_capacitor ~> line_driver_ic.input_signal.line
+
+    # --- Output Decoupling ---
+    decoupling_capacitors = new Capacitor[2]
+    for capacitor in decoupling_capacitors:
+        capacitor.package = "0805"
+        capacitor.capacitance = 22uF +/- 20%
+        assert capacitor.max_voltage >= 20V
+    line_driver_ic.output_force.p.line ~> decoupling_capacitors[0] ~> audio_out.p.line
+    line_driver_ic.output_force.n.line ~> decoupling_capacitors[1] ~> audio_out.n.line
+
+    # --- Sense Decoupling Caps ---
+    sense_decoupling_capacitors = new Capacitor[2]
+    for capacitor in sense_decoupling_capacitors:
+        capacitor.package = "0603"
+        capacitor.capacitance = 10uF +/- 20%
+        assert capacitor.max_voltage >= 20V
+    line_driver_ic.output_sense.p.line ~> sense_decoupling_capacitors[0] ~> line_driver_ic.output_force.p.line
+    line_driver_ic.output_sense.n.line ~> sense_decoupling_capacitors[1] ~> line_driver_ic.output_force.n.line
+
+    # --- Output Protection ---
+    clamp_diodes = new Diode[4]
+    for diode in clamp_diodes:
+        diode.lcsc_id = "C12744"
+    line_driver_ic.output_force.p.line ~> clamp_diodes[0] ~> line_driver_ic.positive_power.hv
+    line_driver_ic.negative_power.lv ~> clamp_diodes[1] ~> line_driver_ic.output_force.p.line
+    line_driver_ic.output_force.n.line ~> clamp_diodes[2] ~> line_driver_ic.positive_power.hv
+    line_driver_ic.negative_power.lv ~> clamp_diodes[3] ~> line_driver_ic.output_force.n.line
