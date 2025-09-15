@@ -5,21 +5,16 @@
 ```ato
 from "atopile/rpi-cm5/rpi-cm5.ato" import RPI_CM5
 
-from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
-from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
+import ElectricPower
 
 module Usage:
     """Usage example for the Raspberry Pi CM5 module"""
 
     cm5 = new RPI_CM5
 
-    # Connectors
-    usbc_connector = new USB2_0TypeCHorizontalConnector
-    rj45_connector = new RJ45_Horizontal_TH_Magnetics
+    power_5v = new ElectricPower
+    power_5v ~ cm5.power_5v
 
-    usbc_connector.usb ~ cm5.usb2
-    usbc_connector.usb.usb_if.buspower ~ cm5.power_5v
-    rj45_connector.ethernet ~ cm5.ethernet
 ```
 
 ## Overview
