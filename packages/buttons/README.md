@@ -61,6 +61,7 @@ module Usage:
     # Connections: signal pulled low by resistor, pulled high by button
     power.lv ~> pulldown_resistor ~> pulldown_signal
     pulldown_signal ~> btn_pulldown ~> power.hv
+
 ```
 
 ## Contributing
