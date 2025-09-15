@@ -11,9 +11,7 @@ Base battery modules providing common battery characteristics for primary and se
 import ElectricPower
 import has_part_removed
 
-from "atopile/batteries/batteries.ato" import Battery
-from "atopile/batteries/batteries.ato" import BatteryPrimary
-from "atopile/batteries/batteries.ato" import BatterySecondary
+from "atopile/batteries/batteries.ato" import EMB_BATTERY_LP402535
 
 module Load:
     """Example load that draws power from battery"""
@@ -26,14 +24,8 @@ module Usage:
     Shows how to use different battery types with their characteristics.
     """
 
-    # Example primary battery (non-rechargeable)
-    primary_battery = new BatteryPrimary
-    primary_battery.voltage = 3.7V
-    primary_battery.capacity = 2.5Ah
-    primary_battery.discharge_current_max = 1A
-
     # Example secondary battery (rechargeable)
-    secondary_battery = new BatterySecondary
+    secondary_battery = new EMB_BATTERY_LP402535
     secondary_battery.voltage = 3.7V
     secondary_battery.capacity = 2.0Ah
     secondary_battery.discharge_current_max = 2A
@@ -41,11 +33,10 @@ module Usage:
 
     # Example loads
     load1 = new Load
-    load2 = new Load
 
     # Connect batteries to loads
-    primary_battery.power ~ load1.power
-    secondary_battery.power ~ load2.power
+    secondary_battery.power ~ load1.power
+
 ```
 
 ## Contributing
