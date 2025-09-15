@@ -100,17 +100,19 @@ module STUSB4500_driver:
     power_vbus.lv ~ power_1v2.lv
     power_vbus.lv ~ power_2v7.lv
 
-    decoupling_caps = new Capacitor[2]
+    decoupling_caps = new Capacitor[3]
     for cap in decoupling_caps:
         cap.capacitance = 1uF +/- 20%
         cap.package = "0402"
     power_2v7.hv ~> decoupling_caps[0] ~> power_2v7.lv
     power_1v2.hv ~> decoupling_caps[1] ~> power_1v2.lv
+    power_vbus.hv ~> decoupling_caps[2] ~> power_vbus.lv
+    assert decoupling_caps[2].max_voltage >= 20V
 
     vbus_cap = new Capacitor
-    vbus_cap.capacitance = 4.7uF +/- 20%
+    vbus_cap.capacitance = 2.2uF +/- 20%
     assert vbus_cap.max_voltage >= 40V
-    vbus_cap.package = "0805"
+    vbus_cap.package = "0603"
     power_vbus.lv ~> vbus_cap ~> power_vbus.hv
 
     vsink_cap = new Capacitor
@@ -159,6 +161,9 @@ module STUSB4500_driver:
     vsink_mosfet = new MOSFET
     vsink_mosfet.lcsc_id = "C471913"
     vsink_mosfet.channel_type = "P_CHANNEL"
+    vbus_mosfet = new MOSFET
+    vbus_mosfet.lcsc_id = "C471913"
+    vbus_mosfet.channel_type = "P_CHANNEL"
     vsink_gate_r = new Resistor
     vsink_gate_r.resistance = 22kohm +/- 1%
     vsink_gate_r.package = "0402"
@@ -173,10 +178,12 @@ module STUSB4500_driver:
     vsink_gate_snub_c.package = "0402"
 
     # --- Pass FET connections ---
-    power_vbus.hv ~ vsink_mosfet.source
+    power_vbus.hv ~ vbus_mosfet.drain
+    vbus_mosfet.source ~ vsink_mosfet.source
+    vbus_mosfet.gate ~ vsink_mosfet.gate
     power_vsink.hv ~ vsink_mosfet.drain
     vsink_mosfet.gate ~> vsink_gate_r ~> package.VBUS_EN_SNK
-    power_vbus.hv ~> vsink_gate_pullup ~> vsink_mosfet.gate
+    vbus_mosfet.source ~> vsink_gate_pullup ~> vsink_mosfet.gate
     vsink_mosfet.gate ~> vsink_gate_snub_r ~> vsink_gate_snub_c ~> power_vsink.hv
 
     reset_pulldown = new Resistor
@@ -204,16 +211,17 @@ module STUSB4500_driver:
     package.EP ~ power_vbus.lv
 
 
-module STUSB4500 from STUSB4500_driver:
+module STUSB4500_USBC_Connector:
+    driver = new STUSB4500_driver
     usb_connector = new USB2_0TypeCHorizontalConnector
-    usb_connector.usb.usb_if.buspower ~ power_vbus
+    usb_connector.usb.usb_if.buspower ~ driver.power_vbus
 
     # USB2
-    usb_connector.usb ~ usb2
+    usb_connector.usb ~ driver.usb2
 
     # CC
-    cc1 ~ usb_connector.connector.cc[0]
-    cc2 ~ usb_connector.connector.cc[1]
+    driver.cc1 ~ usb_connector.connector.cc[0]
+    driver.cc2 ~ usb_connector.connector.cc[1]
 
 module STMicroelectronics_ESDA25P35_1U1M from Diode:
     lcsc_id = "C1974707"

@@ -5,8 +5,12 @@ paths:
   layout: ./layouts
 
 builds:
+  stusb4500-usbc-connector:
+    entry: st-stusb4500.ato:STUSB4500_USBC_Connector
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
   default:
-    entry: st-stusb4500.ato:STUSB4500
+    entry: st-stusb4500.ato:STUSB4500_driver
     exclude_checks: [PCB.requires_drc_check]
     hide_designators: true
   usage:
@@ -17,7 +21,7 @@ builds:
 package:
   identifier: atopile/st-stusb4500
   repository: https://github.com/atopile/packages
-  version: 0.1.5
+  version: 0.2.0
   authors:
   - name: atopile
     email: hi@atopile.io
