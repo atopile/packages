@@ -2,7 +2,9 @@
 #pragma experiment("TRAITS")
 
 import ElectricPower
-import has_part_removed
+
+from "parts/MOLEX_532610271/MOLEX_532610271.ato" import MOLEX_532610271_package
+from "parts/EEMB_BATTERY_LP402535/EEMB_BATTERY_LP402535.ato" import EMB_BATTERY_LP402535_package
 
 module Battery:
     """
@@ -30,8 +32,6 @@ module Battery:
     power.required = True
     assert power.voltage is voltage
 
-    trait has_part_removed
-
 module BatteryPrimary from Battery:
     """
     Primary (non-rechargeable) battery module.
@@ -39,7 +39,6 @@ module BatteryPrimary from Battery:
     Primary batteries cannot be recharged and are designed
     for single-use applications.
     """
-    pass
 
 module BatterySecondary from Battery:
     """
@@ -51,3 +50,29 @@ module BatterySecondary from Battery:
 
     charge_current_max: A
     """Maximum safe charging current"""
+
+module EMB_BATTERY_LP402535_model from BatterySecondary:
+    """
+    LP402535 is a 3.6V lithium-ion battery with a capacity of 320mAh.
+    """
+    package = new EMB_BATTERY_LP402535_package
+
+    assert charge_current_max <= 320mA
+    assert discharge_current_max <= 640mA
+    assert voltage within 2.750V to 4.200V
+    assert capacity within 300mAh to 320mAh
+
+module EMB_BATTERY_LP402535:
+    """
+    LP402535 driver.
+    """
+    model = new EMB_BATTERY_LP402535_model
+    connector = new MOLEX_532610271_package
+
+    power = new ElectricPower
+
+    power ~ model.power
+    power.hv ~ connector.2
+    power.lv ~ connector.1
+    power.lv ~ connector.3
+    power.lv ~ connector.4
