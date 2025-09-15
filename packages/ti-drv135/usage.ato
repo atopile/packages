@@ -1,0 +1,61 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+"""Example usage of the ti-drv135 package."""
+
+import ElectricPower
+import ElectricSignal
+import DifferentialPair
+import Capacitor
+import TVS
+import Diode
+
+from "atopile/ti-drv135/ti-drv135.ato" import TI_DRV135
+from "parts/TECH_PUBLIC_PESD12VV1BL/TECH_PUBLIC_PESD12VV1BL.ato" import TECH_PUBLIC_PESD12VV1BL_package
+
+module UsageExample:
+
+    audio_out = new DifferentialPair
+
+    pos_power = new ElectricPower
+    pos_power.voltage = 10V to 11V
+    neg_power = new ElectricPower
+    neg_power.voltage = -11V to -10V
+    input_signal = new ElectricSignal
+
+    line_driver = new TI_DRV135
+    line_driver.positive_power ~ pos_power
+    line_driver.negative_power ~ neg_power
+    line_driver.input_signal ~ input_signal
+
+    # --- Output Decoupling ---
+    decoupling_capacitors = new Capacitor[2]
+    for capacitor in decoupling_capacitors:
+        capacitor.package = "0805"
+        capacitor.capacitance = 22uF +/- 20%
+        assert capacitor.max_voltage >= 20V
+    line_driver.output_force.p.line ~> decoupling_capacitors[0] ~> audio_out.p.line
+    line_driver.output_force.n.line ~> decoupling_capacitors[1] ~> audio_out.n.line
+
+    # --- Sense Decoupling Caps ---
+    sense_decoupling_capacitors = new Capacitor[2]
+    for capacitor in sense_decoupling_capacitors:
+        capacitor.package = "0603"
+        capacitor.capacitance = 10uF +/- 20%
+        assert capacitor.max_voltage >= 20V
+    line_driver.output_sense.p.line ~> sense_decoupling_capacitors[0] ~> line_driver.output_force.p.line
+    line_driver.output_sense.n.line ~> sense_decoupling_capacitors[1] ~> line_driver.output_force.n.line
+
+    # --- Output Protection ---
+    # TVS OR rail clamp diodes.
+    tvs_diode = new TECH_PUBLIC_PESD12VV1BL_package
+    line_driver.output_force.p.line ~ tvs_diode.1
+    line_driver.output_force.n.line ~ tvs_diode.2
+
+    clamp_diodes = new Diode[4]
+    for diode in clamp_diodes:
+        diode.lcsc_id = "C12744"
+    line_driver.output_force.p.line ~> clamp_diodes[0] ~> line_driver.positive_power.hv
+    line_driver.negative_power.lv ~> clamp_diodes[1] ~> line_driver.output_force.p.line
+    line_driver.output_force.n.line ~> clamp_diodes[2] ~> line_driver.positive_power.hv
+    line_driver.negative_power.lv ~> clamp_diodes[3] ~> line_driver.output_force.n.line

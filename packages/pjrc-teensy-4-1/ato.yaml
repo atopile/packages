@@ -1,0 +1,33 @@
+requires-atopile: ^0.10.14
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: pjrc-teensy-4-1.ato:PJRC_Teensy_4_1
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/pjrc-teensy-4-1
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/pjrc-teensy-4-1/README.md
+  version: 0.1.1
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: PJRC; Teensy; Teensy 4.1; Arduino; MCU; ARM Cortex-M7; 600MHz;
+  license: MIT
+dependencies:
+  - type: registry
+    identifier: atopile/usb-connectors
+    release: 0.2.2
+  - type: registry
+    identifier: atopile/buttons
+    release: 0.2.4

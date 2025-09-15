@@ -1,41 +1,49 @@
-requires-atopile: "^0.9.0"
-
+requires-atopile: ^0.9.0
 paths:
-  src: "."
+  src: .
   layout: ./layouts
-
 builds:
+  default:
+    entry: microphones.ato:Microphone
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
   knowles_sph0641lu4h_1:
     entry: knowles_sph0641lu4h_1.ato:Knowles_SPH0641LU4H_1
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   tdk_invensense_ics_43434:
     entry: tdk_invensense_ics_43434.ato:TDK_InvenSense_ICS_43434
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   tdk_invensense_mmict390200012:
     entry: tdk_mmict390200012.ato:TDK_InvenSense_MMICT390200012
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   linkmems_lmd2718t261_oa1:
     entry: linkmems_lmd2718t261_oa1.ato:LinkMems_LMD2718T261_OA1
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   linkmems_lma3722t421_oa5:
     entry: linkmems_lma3722t421_oa5.ato:LinkMems_LMA3722T421_OA5
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/microphones
   repository: https://github.com/atopile/packages
-  version: "0.2.0"
+  version: 0.2.1
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: A collection of microphones with digital (PMD, I2S) and analog interfaces.
   license: MIT

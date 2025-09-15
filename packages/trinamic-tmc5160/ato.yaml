@@ -1,16 +1,20 @@
-requires-atopile: "^0.10.8"
+requires-atopile: "^0.12.4"
 
 paths:
   src: ./
   layout: ./layouts
 
 builds:
+  dev-board:
+    entry: trinamic-tmc5160-dev-board.ato:Trinamic_TMC5160_Dev_Board
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
   default:
     entry: trinamic-tmc5160.ato:Trinamic_TMC5160
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  dev-board:
-    entry: trinamic-tmc5160-dev-board.ato:Trinamic_TMC5160_Dev_Board
+  usage:
+    entry: usage.ato:Usage
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
@@ -18,7 +22,7 @@ package:
   identifier: atopile/trinamic-tmc5160
   repository: https://github.com/atopile/packages
   homepage: https://github.com/atopile/packages/blob/main/packages/trinamic-tmc5160/README.md
-  version: "0.1.0"
+  version: "0.1.1"
   authors:
     - name: atopile
       email: hi@atopile.io
