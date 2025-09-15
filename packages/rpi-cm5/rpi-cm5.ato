@@ -13,7 +13,7 @@ import HDMI
 
 from "parts/HRS_DF40C_100DS_0_4V_51/HRS_DF40C_100DS_0_4V_51.ato" import HRS_DF40C_100DS_0_4V_51_package
 from "parts/Sinhoo_SMTSO2515CTJ/Sinhoo_SMTSO2515CTJ.ato" import Sinhoo_SMTSO2515CTJ_package
-
+from "parts/cm5/cm5.ato" import CM5_package
 
 module RPI_CM5:
     """
@@ -47,6 +47,9 @@ module RPI_CM5:
     fan_pwm = new ElectricLogic
     ethernet_sync = new ElectricLogic
     eeprom_wp = new ElectricLogic
+
+    # CM5 model
+    cm5_package = new CM5_package
 
     # GPIO
     gpios = new ElectricLogic[28]
