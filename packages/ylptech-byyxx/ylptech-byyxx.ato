@@ -1,0 +1,116 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower, Regulator
+import Capacitor
+
+module BYYXXS_2WR2 from Regulator:
+    """
+    YLPTEC isolated 2W DC-DC converter module.
+
+    This module provides a complete isolated DC-DC converter solution with
+    input/output capacitors. Default configuration is 24V input to 5V output.
+    Can be specialized to other output voltages by changing the package.
+
+    Usage:
+    - Connect power_in to input supply (typically 24V)
+    - Connect power_out to load
+    - Specialize converter: my_regulator.package -> _B2405_package for 5V output
+    """
+    # --- External interfaces ---
+    power_in.required = True
+    """
+    Input power supply (typically 24V for standard YLPTEC converters)
+    """
+
+    power_out.required = True
+    """
+    Output power rail (voltage depends on package variant)
+    """
+
+    # --- Internal components ---
+    package = new _BYYXX_package
+    package -> _B2405_package # Default to 5V output
+    package.power_in ~ power_in
+    package.power_out ~ power_out
+
+    # Input/output capacitors for stable operation
+    input_cap = new Capacitor
+    input_cap.capacitance = 2.2uF +/- 10%
+    input_cap.package = "C0805"
+    power_in ~ input_cap.power
+
+    output_cap = new Capacitor
+    output_cap.capacitance = 10uF +/- 10%
+    output_cap.package = "C0805"
+    power_out ~ output_cap.power
+
+
+component _BYYXX_package:
+    """
+    Generic YLPTEC isolated converter component.
+
+    Pin mapping:
+    - Pin 1: Input VCC
+    - Pin 2: Input GND
+    - Pin 4: Output GND
+    - Pin 6: Output VCC
+
+    Specialize with specific voltage variants:
+    - _B2405_package: 24V input, 5V output
+    - _B2409_package: 24V input, 9V output
+    - _B2424_package: 24V input, 24V output
+    - _B0505_package: 5V input, 5V output
+    """
+
+    # --- Power interfaces ---
+    power_in = new ElectricPower
+    power_in.vcc ~ pin 1
+    power_in.gnd ~ pin 2
+    power_in.required = True
+
+    power_out = new ElectricPower
+    power_out.vcc ~ pin 6
+    power_out.gnd ~ pin 4
+    power_out.required = True
+
+component _B2405_package from _BYYXX_package:
+    """24V input, 5V output, 2W isolated DC-DC converter"""
+    lcsc_id = "C5369484"
+    assert power_in.voltage within 21.6V to 26.4V  # ±10% of 24V
+    assert power_out.voltage within 4.75V to 5.25V  # ±5% of 5V
+
+component _B2409_package from _BYYXX_package:
+    """24V input, 9V output, 2W isolated DC-DC converter"""
+    lcsc_id = "C7428336"
+    assert power_in.voltage within 21.6V to 26.4V  # ±10% of 24V
+    assert power_out.voltage within 8.55V to 9.45V  # ±5% of 9V
+
+component _B2424_package from _BYYXX_package:
+    """24V input, 24V output, 2W isolated DC-DC converter"""
+    lcsc_id = "C2992386"
+    assert power_in.voltage within 21.6V to 26.4V  # ±10% of 24V
+    assert power_out.voltage within 22.8V to 25.2V  # ±5% of 24V
+
+component _B0505_package from _BYYXX_package:
+    """5V input, 5V output, 2W isolated DC-DC converter"""
+    lcsc_id = "C5369473"
+    assert power_in.voltage within 4.5V to 5.5V  # ±10% of 5V
+    assert power_out.voltage within 4.75V to 5.25V  # ±5% of 5V
+
+
+module Test:
+    """
+    Simple test module demonstrating the default YLPTEC converter.
+    """
+
+    # Create a single regulator with default 24V to 5V configuration
+    regulator = new BYYXXS_2WR2
+
+    # Create power rails
+    power_input = new ElectricPower
+    power_output = new ElectricPower
+
+    # Connect the regulator
+    power_input ~ regulator.power_in
+    regulator.power_out ~ power_output

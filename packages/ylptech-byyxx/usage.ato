@@ -1,0 +1,21 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import BYYXXS_2WR2
+
+module Usage:
+    """
+    Minimal usage example for ylptech-byyxx.
+    Shows how to use the YLPTEC isolated DC-DC converter.
+    """
+
+    # Create the regulator
+    regulator = new BYYXXS_2WR2
+
+    # Create power rails
+    power_24v = new ElectricPower
+    power_5v = new ElectricPower
+
+    # Connect the regulator between the rails
+    power_24v ~> regulator ~> power_5v
