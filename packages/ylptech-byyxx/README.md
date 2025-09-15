@@ -1,35 +1,31 @@
-# Relays
+# YLPTEC BYYXX Isolated DC-DC Converters
 
-Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
+YLPTEC isolated 2W DC-DC converter modules with multiple input/output voltage options. These modules provide galvanic isolation and include input/output capacitors and status LED.
 
 ## Usage
 
 ```ato
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import ElectricPower
-
 from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import BYYXXS_2WR2
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2405_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2409_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2424_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B0505_package
 
-module Test:
+module Usage:
+    """
+    Minimal usage example for ylptech-byyxx.
+    Shows how to use the YLPTEC isolated DC-DC converter.
+    """
 
-    # Create 4 regulators, each with a different package
-    regulators = new BYYXXS_2WR2[4]
-    regulators[0].package -> _B2405_package
-    # regulators[1].package -> _B2409_package # currently missing lcsc data :(
-    regulators[2].package -> _B2424_package
-    regulators[3].package -> _B0505_package
+    # Create the regulator
+    regulator = new BYYXXS_2WR2
 
-    # Create power interfaces
-    power_in = new ElectricPower
-    power_out = new ElectricPower
+    # Create power rails
+    power_24v = new ElectricPower
+    power_5v = new ElectricPower
 
-    # Example connection
-    power_in ~> regulators[0] ~> power_out
-
+    # Connect the regulator between the rails
+    power_24v ~> regulator ~> power_5v
 ```
 
 ## Contributing
