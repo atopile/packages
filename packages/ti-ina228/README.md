@@ -43,24 +43,10 @@ module Usage:
     - Different power rail configurations (3.3V, 5V, 12V, 48V)
     """
 
-    # === Shared I2C bus ===
-    i2c = new I2C
-    i2c.frequency = 400kHz  # Fast mode
-
     # === Power rails ===
     # Supply voltage for all INA228 devices (3.3V logic)
     supply_3v3 = new ElectricPower
     supply_3v3.voltage = 3.3V +/- 5%
-
-    # I2C pullup resistors (required for proper I2C operation)
-    i2c_pullups = new Resistor[2]
-    for r in i2c_pullups:
-        r.resistance = 4.7kohm +/- 5%
-        r.package = "0402"
-    i2c.scl.line ~> i2c_pullups[0] ~> supply_3v3.hv
-    i2c.sda.line ~> i2c_pullups[1] ~> supply_3v3.hv
-    i2c.scl.reference ~ supply_3v3
-    i2c.sda.reference ~ supply_3v3
 
     # === Example 1: Low current USB device monitoring (100mA max) ===
     # USB 5V rail monitoring
@@ -69,8 +55,9 @@ module Usage:
     usb_5v_in.voltage = 5V +/- 10%
 
     usb_monitor = new TI_INA228
-    usb_monitor.max_current = 100mA
+    usb_monitor.max_current = 500mA
     usb_monitor.power ~ supply_3v3
+    i2c = new I2C
     usb_monitor.i2c ~ i2c
     usb_monitor.i2c.address = 0x40  # A0=GND, A1=GND
 
@@ -86,7 +73,8 @@ module Usage:
     main_3v3_monitor = new TI_INA228
     main_3v3_monitor.max_current = 2A
     main_3v3_monitor.power ~ supply_3v3
-    main_3v3_monitor.i2c ~ i2c
+    i2c1 = new I2C
+    main_3v3_monitor.i2c ~ i2c1
     main_3v3_monitor.i2c.address = 0x41  # A0=VS, A1=GND
 
     # Insert monitor in 3.3V power path
@@ -101,7 +89,8 @@ module Usage:
     supply_12v_monitor = new TI_INA228
     supply_12v_monitor.max_current = 5A
     supply_12v_monitor.power ~ supply_3v3
-    supply_12v_monitor.i2c ~ i2c
+    i2c2 = new I2C
+    supply_12v_monitor.i2c ~ i2c2
     supply_12v_monitor.i2c.address = 0x42  # A0=SDA, A1=GND
 
     # Insert monitor in 12V power path
@@ -116,7 +105,8 @@ module Usage:
     motor_monitor = new TI_INA228
     motor_monitor.max_current = 10A
     motor_monitor.power ~ supply_3v3
-    motor_monitor.i2c ~ i2c
+    i2c3 = new I2C
+    motor_monitor.i2c ~ i2c3
     motor_monitor.i2c.address = 0x43  # A0=SCL, A1=GND
 
     # Insert monitor in motor power path
@@ -131,7 +121,8 @@ module Usage:
     poe_monitor = new TI_INA228
     poe_monitor.max_current = 500mA
     poe_monitor.power ~ supply_3v3
-    poe_monitor.i2c ~ i2c
+    i2c4 = new I2C
+    poe_monitor.i2c ~ i2c4
     poe_monitor.i2c.address = 0x44  # A0=GND, A1=VS
 
     # Insert monitor in PoE power path
@@ -144,9 +135,10 @@ module Usage:
     battery_in.voltage = 3.7V +/- 0.5V  # Li-Ion voltage range
 
     battery_monitor = new TI_INA228
-    battery_monitor.max_current = 3A
+    battery_monitor.max_current = 2A
     battery_monitor.power ~ supply_3v3
-    battery_monitor.i2c ~ i2c
+    i2c5 = new I2C
+    battery_monitor.i2c ~ i2c5
     battery_monitor.i2c.address = 0x48  # A0=GND, A1=SDA
 
     # Insert monitor in battery discharge path

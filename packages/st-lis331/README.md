@@ -37,8 +37,9 @@ module Usage:
 
     # I2C bus
     i2c_bus = new I2C
-    i2c_bus.address = 0x19  # Default address (SDO/SA0 = 1 with internal pull-up)
     i2c_bus.frequency = 400kHz
+
+    accelerometer.i2c.address = 0x19
 
     # Connect power
     power_3v3 ~ accelerometer.power

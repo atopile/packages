@@ -1047,13 +1047,14 @@
         (property "checksum" "8d68d527d57fa8b5746111ea7d2ad9e90b0d2b621af4767e7302876b8ade5ac3"
             (at 0 0 0)
             (layer "User.9")
-            (hide yes)
+            (hide no)
             (uuid "996c1aa4-0a64-4ea8-a8c4-6367a1b7a086")
             (effects
                 (font
                     (size 0.125 0.125)
                     (thickness 0.01875)
                 )
+                (hide yes)
             )
         )
         (property "__atopile_lib_fp_hash__" "9148b801-0250-25a9-93ff-5a75ad69d050"
@@ -1130,6 +1131,16 @@
         )
         (attr smd)
         (fp_line
+            (start -1.58 -0.83)
+            (end -1.58 -1.58)
+            (stroke
+                (width 0.15)
+                (type solid)
+            )
+            (layer "F.SilkS")
+            (uuid "1be11daa-ac85-4e7e-bc0d-eb12128427c4")
+        )
+        (fp_line
             (start -1.58 -1.58)
             (end -1.33 -1.58)
             (stroke
@@ -1140,14 +1151,24 @@
             (uuid "355cc239-78ce-402d-8e0e-5e9f94bfbe0d")
         )
         (fp_line
-            (start -1.58 -0.83)
-            (end -1.58 -1.58)
+            (start 1.58 -0.83)
+            (end 1.58 -1.58)
             (stroke
                 (width 0.15)
                 (type solid)
             )
             (layer "F.SilkS")
-            (uuid "1be11daa-ac85-4e7e-bc0d-eb12128427c4")
+            (uuid "812f7577-7bfc-4cd6-9dd2-620a2fc50910")
+        )
+        (fp_line
+            (start 1.58 -1.58)
+            (end 1.33 -1.58)
+            (stroke
+                (width 0.15)
+                (type solid)
+            )
+            (layer "F.SilkS")
+            (uuid "2e3c266b-891e-4c27-a6bf-8bab704db43d")
         )
         (fp_line
             (start -1.58 0.83)
@@ -1170,26 +1191,6 @@
             (uuid "c12530d8-a6dc-46eb-affd-54176a017eae")
         )
         (fp_line
-            (start 1.58 -1.58)
-            (end 1.33 -1.58)
-            (stroke
-                (width 0.15)
-                (type solid)
-            )
-            (layer "F.SilkS")
-            (uuid "2e3c266b-891e-4c27-a6bf-8bab704db43d")
-        )
-        (fp_line
-            (start 1.58 -0.83)
-            (end 1.58 -1.58)
-            (stroke
-                (width 0.15)
-                (type solid)
-            )
-            (layer "F.SilkS")
-            (uuid "812f7577-7bfc-4cd6-9dd2-620a2fc50910")
-        )
-        (fp_line
             (start 1.58 0.83)
             (end 1.58 1.58)
             (stroke
@@ -1210,15 +1211,15 @@
             (uuid "0b52bb01-c53d-424d-b7db-3482ea80bc02")
         )
         (fp_circle
-            (center -1 2.01)
-            (end -0.93 2.01)
+            (center -1.5 1.5)
+            (end -1.47 1.5)
             (stroke
-                (width 0.15)
+                (width 0.06)
                 (type solid)
             )
             (fill no)
-            (layer "F.SilkS")
-            (uuid "57688df7-ad0b-463c-a23c-edb7cab1f709")
+            (layer "F.Fab")
+            (uuid "5314e426-0b7f-4c97-9bdb-b6bd77c63cbe")
         )
         (fp_circle
             (center -1 1.8)
@@ -1232,15 +1233,15 @@
             (uuid "2262eeb7-c928-4052-9002-199e96cb3609")
         )
         (fp_circle
-            (center -1.5 1.5)
-            (end -1.47 1.5)
+            (center -1 2.01)
+            (end -0.93 2.01)
             (stroke
-                (width 0.06)
+                (width 0.15)
                 (type solid)
             )
             (fill no)
-            (layer "F.Fab")
-            (uuid "5314e426-0b7f-4c97-9bdb-b6bd77c63cbe")
+            (layer "F.SilkS")
+            (uuid "57688df7-ad0b-463c-a23c-edb7cab1f709")
         )
         (fp_text user "${REFERENCE}"
             (at 0 -5.34 0)
@@ -1260,6 +1261,19 @@
             (at 0 0 0)
             (layer "F.Fab")
             (uuid "1bef5423-85b8-4b96-9d7c-a2626a78fb18")
+            (effects
+                (font
+                    (size 1 1)
+                    (thickness 0.15)
+                )
+                (hide yes)
+            )
+            (unlocked no)
+        )
+        (fp_text user "${REFERENCE}"
+            (at 0 -5.34 0)
+            (layer "F.SilkS")
+            (uuid "d5a9bc7b-6811-4b37-9ad2-5f9ad85a3fc5")
             (effects
                 (font
                     (size 1 1)
@@ -1314,35 +1328,35 @@
         (pad "7" smd rect
             (at 1.34 0 0)
             (size 0.6 0.28)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 8 "SDO_SA0")
             (uuid "af590c49-7878-4cf4-af49-9685d367da78")
         )
         (pad "8" smd rect
             (at 1.34 -0.5 0)
             (size 0.6 0.28)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 10 "CS")
             (uuid "ce8bf8e0-3135-4b63-b63a-7f07e45b8d26")
         )
         (pad "9" smd rect
             (at 1 -1.34 0)
             (size 0.28 0.6)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 5 "INT2")
             (uuid "214e30f1-47af-4b80-9e26-b75592c7e4e7")
         )
         (pad "10" smd rect
             (at 0.5 -1.34 0)
             (size 0.28 0.6)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 6 "Reserved")
             (uuid "49f27c76-b38f-46de-91a8-176e72577fc2")
         )
         (pad "11" smd rect
             (at 0 -1.34 0)
             (size 0.28 0.6)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 11 "INT1")
             (uuid "e21a1d57-37f4-4539-b0f9-4a0de465dd9f")
         )
@@ -1370,7 +1384,7 @@
         (pad "15" smd rect
             (at -1.34 0 0)
             (size 0.6 0.28)
-            (layers "F.Cu" "F.Mask" "F.Paste")
+            (layers "F.Cu" "F.Paste" "F.Mask")
             (net 6 "Reserved")
             (uuid "0ba28c16-efd8-46ea-b059-089e7859d11a")
         )
@@ -1381,7 +1395,6 @@
             (net 9 "GND")
             (uuid "c1bb3e6b-a094-4003-a160-9b51bc3c7da9")
         )
-        (embedded_fonts no)
         (model "${KIPRJMOD}/../../parts/STMicroelectronics_H3LIS331DLTR/LGA-16_L3.0-W3.0-P0.50-TL.step"
             (offset
                 (xyz 0 0 0)
@@ -2627,6 +2640,6 @@
     )
     (group "accelerometer"
         (uuid "0481063e-b178-4e21-b183-3cd8ee2ad5cf")
-        (members "87f59758-a1dc-4f2d-8003-54507b8ec5f7" "49affcd8-95fd-4e43-b01b-ddbba46037bf" "e635cf2f-5968-483e-b039-bf6445233c53" "785efd69-4cc9-48f5-bb31-21265b5ad016" "e127783a-7230-4eaf-8489-20e1e5bb4fe8" "fea0aa46-f7e8-4ac7-9494-536954ea4a96" "b481e7cf-1dc7-4c25-8019-be32a246c230" "340f51c7-e0b1-4c52-8c0e-8952d1c1aa5b" "c6895c10-e1b7-48d7-97a3-1ef53380300c" "b0ee9736-ed4b-4654-b031-8f830be8588d" "778e3aaa-1d24-4128-8f21-ba2238bae30d" "10b623ee-df45-41e1-b2e2-151f5e0530e5" "41096778-75c4-41b4-8352-1a45b36d5e05" "c1fc5ef0-3f59-4fda-b75c-9f536def3322" "a2d3af3d-f99a-41f4-aa77-5b8c59553ad2" "eaf268d6-7bbe-4b6d-be7d-129c648e855c" "beda17fb-28e7-44c7-9855-38861e0a7b7a" "c6b67b66-35b8-42e4-8aa5-fba937356550" "4a21566f-b3b9-4b32-922d-e1ea527d95e9" "29e5088b-b0cc-496b-8ce5-ac8269df7300" "2672147f-3309-4316-b4d1-40644ab7c086" "f94df067-ce08-4621-a10e-ddf2bf373013" "f7b9286f-b974-4b81-9d85-b16bb0b53119" "2e85a3ad-248b-4ed5-aac1-223e166ab028" "ad11f565-385c-4762-8f41-86f54d2c3b6a" "2c3b4c15-0932-4f55-9607-dd1cab6d0d72" "3d304153-5a14-4efc-be0e-e2254642524b" "1cc8a8f3-9492-4982-980f-17c9f29c205b" "7ce4730f-27a5-457c-96de-97dfcd6bb61b" "fe93396c-4f88-45f5-a17b-03475d00f27f" "45c38987-d298-4a26-91cf-63924642524b" "ac39b431-efb2-4dc7-a039-f9684b216e40" "d5176ea1-8d01-4f0b-982a-2e26dcaab17f" "d65eb284-53dc-4708-b60d-d21b4f7a0105" "0375c7e0-cbbf-46dc-9d42-94304dba4990" "bf562e5f-ddf7-40e6-ac28-8922c605fe7a" "2ae9be8c-edc2-4384-a5c5-36e3afb2b0d4" "221dc74b-c16c-4c8e-947c-320be8268106" "1cc0d300-015f-407a-a9ec-8cd9289292c4" "c70a1f64-752d-469f-9006-09d3c742326e" "c0949335-3506-44c9-8564-6c1f4642524b" "b2768ac6-ba8b-43c8-932c-86ced994a367" "0cdd523b-3c30-4d46-a57a-c20ecf5aa4b5" "60601b10-7316-4fd4-92b4-c31bee7e094b" "a4cca675-e58b-46e5-af96-3d15e18b9161" "7e2b150a-33d4-430a-bdbc-e0ab4db3bc32" "48c6db3d-35dd-4d8a-85e6-f539e112fb91" "66e693c0-edaa-41e1-b1de-b05bab987757" "49f52eab-d90c-4db9-adc2-87134642524b" "6506e308-9636-4474-a714-8fa68d119d34" "5d24e01e-f15a-455c-ba4a-ba124642524b" "4a39e252-edd9-4b6b-8914-f8df4642524b" "10cdeab8-45cd-4414-9dc7-277548de4fbb" "6b6aedf8-27e1-4559-a2bb-ccbafbead26f" "6ae01a91-913d-4e1f-bf76-b93635f7d26b" "a5832f5b-c819-439d-beec-09139ad062a0" "a3112fa1-0dfe-4d92-9b56-5bfff2d59b5a" "95e30211-1c04-40f9-9665-9c5e91c01cc2" "b04a221d-0cf0-4bad-b09c-53bd7b1a352a" "5f46f911-2d3c-4b29-91dd-f9a43d2aa7aa" "a2a199a3-cacd-4b68-a19b-df649a6f4933" "ebd75065-2edc-488e-84e5-bfaed51eb5b2" "fb3e7731-398a-41ae-9d0c-58eb4cadaf01" "9dd07742-96ee-488f-923a-18c6fba88479" "c8e5cca7-c1eb-4180-aa15-3fb19d5f89d5" "01e2522d-5b32-430d-b3ea-403c30ac7ada" "4e574f66-502f-4e9f-95a0-4f4f86793a2f" "a091c2c4-f6dd-43fe-b699-81bb893b0038" "9b027f3b-11e0-445f-a930-708fbf02f197" "63762aa4-d54e-4ebf-b846-9cc5620d5527" "a8dc359d-582a-4959-93af-e5c9daaf72c7" "687cd7ba-4462-4638-ad60-e535d00f797e" "68479798-3c46-4fcc-9009-201b4642524b" "d4dc7e53-9aa8-4648-ab97-ea9bea52ad84" "a6a1abc9-dbfb-4399-bc4e-eae967c4f88d" "2fd25e03-8bb9-4e19-9e3b-e9223d6142a7" "4b6e84e2-e62e-48d1-a073-88dcdf6a0287")
+        (members "fea0aa46-f7e8-4ac7-9494-536954ea4a96" "4b6e84e2-e62e-48d1-a073-88dcdf6a0287" "3d304153-5a14-4efc-be0e-e2254642524b" "d5176ea1-8d01-4f0b-982a-2e26dcaab17f" "a6a1abc9-dbfb-4399-bc4e-eae967c4f88d" "b481e7cf-1dc7-4c25-8019-be32a246c230" "340f51c7-e0b1-4c52-8c0e-8952d1c1aa5b" "c6b67b66-35b8-42e4-8aa5-fba937356550" "60601b10-7316-4fd4-92b4-c31bee7e094b" "9dd07742-96ee-488f-923a-18c6fba88479" "4e574f66-502f-4e9f-95a0-4f4f86793a2f" "10cdeab8-45cd-4414-9dc7-277548de4fbb" "2e85a3ad-248b-4ed5-aac1-223e166ab028" "6ae01a91-913d-4e1f-bf76-b93635f7d26b" "29e5088b-b0cc-496b-8ce5-ac8269df7300" "5f46f911-2d3c-4b29-91dd-f9a43d2aa7aa" "d65eb284-53dc-4708-b60d-d21b4f7a0105" "2fd25e03-8bb9-4e19-9e3b-e9223d6142a7" "0cdd523b-3c30-4d46-a57a-c20ecf5aa4b5" "41096778-75c4-41b4-8352-1a45b36d5e05" "1cc0d300-015f-407a-a9ec-8cd9289292c4" "fe93396c-4f88-45f5-a17b-03475d00f27f" "b0ee9736-ed4b-4654-b031-8f830be8588d" "45c38987-d298-4a26-91cf-63924642524b" "6506e308-9636-4474-a714-8fa68d119d34" "a2d3af3d-f99a-41f4-aa77-5b8c59553ad2" "7ce4730f-27a5-457c-96de-97dfcd6bb61b" "a5832f5b-c819-439d-beec-09139ad062a0" "785efd69-4cc9-48f5-bb31-21265b5ad016" "687cd7ba-4462-4638-ad60-e535d00f797e" "e127783a-7230-4eaf-8489-20e1e5bb4fe8" "6b6aedf8-27e1-4559-a2bb-ccbafbead26f" "2ae9be8c-edc2-4384-a5c5-36e3afb2b0d4" "4a21566f-b3b9-4b32-922d-e1ea527d95e9" "4a39e252-edd9-4b6b-8914-f8df4642524b" "c70a1f64-752d-469f-9006-09d3c742326e" "a091c2c4-f6dd-43fe-b699-81bb893b0038" "1cc8a8f3-9492-4982-980f-17c9f29c205b" "c1fc5ef0-3f59-4fda-b75c-9f536def3322" "10b623ee-df45-41e1-b2e2-151f5e0530e5" "e635cf2f-5968-483e-b039-bf6445233c53" "d4dc7e53-9aa8-4648-ab97-ea9bea52ad84" "48c6db3d-35dd-4d8a-85e6-f539e112fb91" "68479798-3c46-4fcc-9009-201b4642524b" "a2a199a3-cacd-4b68-a19b-df649a6f4933" "ebd75065-2edc-488e-84e5-bfaed51eb5b2" "fb3e7731-398a-41ae-9d0c-58eb4cadaf01" "95e30211-1c04-40f9-9665-9c5e91c01cc2" "a8dc359d-582a-4959-93af-e5c9daaf72c7" "c0949335-3506-44c9-8564-6c1f4642524b" "beda17fb-28e7-44c7-9855-38861e0a7b7a" "b04a221d-0cf0-4bad-b09c-53bd7b1a352a" "a4cca675-e58b-46e5-af96-3d15e18b9161" "5d24e01e-f15a-455c-ba4a-ba124642524b" "221dc74b-c16c-4c8e-947c-320be8268106" "2c3b4c15-0932-4f55-9607-dd1cab6d0d72" "0375c7e0-cbbf-46dc-9d42-94304dba4990" "b2768ac6-ba8b-43c8-932c-86ced994a367" "f94df067-ce08-4621-a10e-ddf2bf373013" "778e3aaa-1d24-4128-8f21-ba2238bae30d" "c6895c10-e1b7-48d7-97a3-1ef53380300c" "c8e5cca7-c1eb-4180-aa15-3fb19d5f89d5" "ac39b431-efb2-4dc7-a039-f9684b216e40" "bf562e5f-ddf7-40e6-ac28-8922c605fe7a" "9b027f3b-11e0-445f-a930-708fbf02f197" "2672147f-3309-4316-b4d1-40644ab7c086" "49affcd8-95fd-4e43-b01b-ddbba46037bf" "01e2522d-5b32-430d-b3ea-403c30ac7ada" "a3112fa1-0dfe-4d92-9b56-5bfff2d59b5a" "ad11f565-385c-4762-8f41-86f54d2c3b6a" "87f59758-a1dc-4f2d-8003-54507b8ec5f7" "eaf268d6-7bbe-4b6d-be7d-129c648e855c" "f7b9286f-b974-4b81-9d85-b16bb0b53119" "66e693c0-edaa-41e1-b1de-b05bab987757" "49f52eab-d90c-4db9-adc2-87134642524b" "7e2b150a-33d4-430a-bdbc-e0ab4db3bc32" "63762aa4-d54e-4ebf-b846-9cc5620d5527")
     )
 )
