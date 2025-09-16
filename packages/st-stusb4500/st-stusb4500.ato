@@ -121,10 +121,6 @@ module STUSB4500_driver:
     vsink_cap.package = "0603"
     power_vsink.lv ~> vsink_cap ~> power_vsink.hv
 
-    # Communication
-    i2c.sda.line ~ i2c.sda.line
-    i2c.scl.line ~ i2c.scl.line
-
     # Addressing
     addressor = new Addressor<address_bits=2>
     addressor.base = 0x28
