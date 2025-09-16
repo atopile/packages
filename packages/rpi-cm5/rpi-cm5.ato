@@ -4,6 +4,7 @@
 import ElectricPower
 import I2C
 import SPI
+import I2S
 
 import USB2_0
 import ElectricLogic
@@ -41,6 +42,12 @@ module RPI_CM5:
     ethernet = new Ethernet
     hdmis = new HDMI[2]
     # TODO: add MIPI CSI/DSI
+
+    # I2S
+    i2s_output = new I2S
+    i2s_input = new I2S
+    i2s_output.reference_shim ~ gpio_ref
+    i2s_input.reference_shim ~ gpio_ref
 
     # Control
     power_button = new ElectricLogic
@@ -81,7 +88,16 @@ module RPI_CM5:
     spis[0].miso.reference ~ gpio_ref
     for cs in spi0_cs:
         cs.reference ~ gpio_ref
+    # I2S wiring
+    # Output: SCK=GPIO18, WS=GPIO19, SD=GPIO21
+    gpios[18] ~ i2s_output.sck
+    gpios[19] ~ i2s_output.ws
+    gpios[21] ~ i2s_output.sd
 
+    # Input: SCK=GPIO18, WS=GPIO19, SD=GPIO20
+    gpios[18] ~ i2s_input.sck
+    gpios[19] ~ i2s_input.ws
+    gpios[20] ~ i2s_input.sd
 
     # UART0
     gpios[14] ~ uart0.base_uart.tx
