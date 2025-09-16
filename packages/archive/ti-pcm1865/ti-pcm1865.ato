@@ -1,32 +1,104 @@
+#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
 
+import Addressor
 import DifferentialPair
 import I2S
 import I2C
-import Crystal_Oscillator
 import ElectricPower
 import ElectricLogic
 import Capacitor
+import Electrical
+import Crystal_Oscillator
 
 from "parts/Texas_Instruments_PCM1865DBTR/Texas_Instruments_PCM1865DBTR.ato" import Texas_Instruments_PCM1865DBTR_package
 from "parts/Yangxing_Tech_X322525MOB4SI/Yangxing_Tech_X322525MOB4SI.ato" import Yangxing_Tech_X322525MOB4SI_package
 
-module Texas_Instruments_PCM1865_driver:
+module Texas_Instruments_PCM1865:
     """Texas Instruments 4-Channel Audio ADC"""
-    # Interfaces
-    i2s = new I2S
-    i2s.required = True
-    i2c = new I2C
-    i2c.required = True
-    balanced_inputs = new DifferentialPair[4]
 
-    # Components
+    # --- Package ---
     package = new Texas_Instruments_PCM1865DBTR_package
-    oscillator = new Crystal_Oscillator
 
-    # Connect inputs
+    # --- External Interfaces ---
+    power_3v3 = new ElectricPower
+    """
+    3.3V power supply
+    """
+    power_3v3.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit address 0x4A/0x4B)
+    """
+    i2c.required = True
+
+    i2s = new I2S
+    """
+    I²S bus interface
+    """
+    i2s.required = True
+
+    balanced_inputs = new DifferentialPair[4]
+    """
+    4x differential audio inputs
+    """
+
+    extern_clock = new ElectricLogic
+    """
+    External 3.3V CMOS clock input (optional, default driven by crystal oscillator)
+    """
+
+    # --- Power Supply ---
+    assert power_3v3.voltage within 3.3V +/- 5%
+
+    # Analog Power
+    _power_avdd = new ElectricPower
+    power_3v3 ~ _power_avdd
+    _power_avdd.hv ~ package.AVDD
+    _power_avdd.lv ~ package.AGND
+
+    # Digital IO Power
+    _power_iovdd = new ElectricPower
+    power_3v3 ~ _power_iovdd
+    _power_iovdd.hv ~ package.IOVDD
+    _power_iovdd.hv ~ package.DVDD
+    _power_iovdd.lv ~ package.AGND
+
+    # Reference Power
+    _power_vref = new ElectricPower
+    _power_vref.hv ~ package.VREF
+    _power_vref.lv ~ package.AGND
+
+    # LDO Power
+    _power_ldo = new ElectricPower
+    _power_ldo.hv ~ package.LDO
+    _power_ldo.lv ~ package.DGND
+
+    # Connect GNDs
+    package.DGND ~ package.AGND
+
+    # --- I²C Bus ---
+    i2c.scl.line ~ package.MC_SCL
+    i2c.sda.line ~ package.MOSI_SDA
+
+    # Address selection
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x4A
+    addressor.address_lines[0].line ~ package.MS_AD
+    addressor.address_lines[0].reference ~ _power_iovdd
+    assert addressor.address is i2c.address
+
+    # Select I2C mode
+    package.MD0 ~ package.DGND
+
+    # --- I²S Bus ---
+    i2s.sd.line ~ package.DOUT
+    i2s.ws.line ~ package.LRCK
+    i2s.sck.line ~ package.BCK
+
+    # --- 4x differential audio inputs ---
     balanced_inputs[0].p.line ~ package.VINL1_VIN1P
     balanced_inputs[0].n.line ~ package.VINL2_VIN1M
     balanced_inputs[1].p.line ~ package.VINR1_VIN2P
@@ -36,24 +108,33 @@ module Texas_Instruments_PCM1865_driver:
     balanced_inputs[3].p.line ~ package.VINL3_VIN4P
     balanced_inputs[3].n.line ~ package.VINL4_VIN4M
 
-    # Power
-    power_3v3 = new ElectricPower
-    power_3v3.required = True
+    for balanced_input in balanced_inputs:
+        balanced_input.p.reference ~ _power_avdd
+        balanced_input.n.reference ~ _power_avdd
 
-    _power_vref = new ElectricPower
-    _power_vref.hv ~ package.VREF
-    _power_vref.lv ~ package.AGND
+    # --- Crystal Oscillator & Master Clock ---
 
-    vref_cap = new Capacitor
-    vref_cap.package = "C0402"
-    vref_cap.capacitance = 2.2uF +/- 20%
-    _power_vref.hv ~> vref_cap ~> _power_vref.lv
+    # Clocks
+    extern_clock.line ~ package.SCKI3_3V
+    extern_clock.reference ~ _power_iovdd
 
-    _power_avdd = new ElectricPower
-    power_3v3 ~ _power_avdd
-    _power_avdd.hv ~ package.AVDD
-    _power_avdd.lv ~ package.AGND
+    # 25MHz crystal with load capacitors
+    crystal = new Yangxing_Tech_X322525MOB4SI_package
 
+    crystal.OSC1 ~ package.XI
+    crystal.OSC2 ~ package.XO
+    crystal.GND ~ _power_iovdd.lv
+
+    crystal_caps = new Capacitor[2]
+    for cap in crystal_caps:
+        cap.capacitance = 12pF +/- 10%
+        cap.package = "C0402"
+
+    crystal.OSC1 ~> crystal_caps[0] ~> _power_iovdd.lv
+    crystal.OSC2 ~> crystal_caps[1] ~> _power_iovdd.lv
+
+    # --- Decoupling Capacitors ---
+    # Analog Power
     avdd_caps = new Capacitor[2]
     for cap in avdd_caps:
         cap.package = "C0402"
@@ -61,21 +142,7 @@ module Texas_Instruments_PCM1865_driver:
     avdd_caps[0].capacitance = 10uF +/- 20%
     avdd_caps[1].capacitance = 100nF +/- 20%
 
-    _power_ldo = new ElectricPower
-    _power_ldo.hv ~ package.LDO
-    _power_ldo.lv ~ package.DGND
-
-    _power_ldo_cap = new Capacitor
-    _power_ldo_cap.package = "C0402"
-    _power_ldo_cap.capacitance = 2.2uF +/- 20%
-    _power_ldo.hv ~> _power_ldo_cap ~> _power_ldo.lv
-
-    _power_iovdd = new ElectricPower
-    power_3v3 ~ _power_iovdd
-    _power_iovdd.hv ~ package.IOVDD
-    _power_iovdd.hv ~ package.DVDD
-    _power_iovdd.lv ~ package.AGND
-
+    # Digital IO Power
     power_iovdd_caps = new Capacitor[2]
     for cap in power_iovdd_caps:
         cap.package = "C0402"
@@ -83,72 +150,14 @@ module Texas_Instruments_PCM1865_driver:
     power_iovdd_caps[0].capacitance = 10uF +/- 20%
     power_iovdd_caps[1].capacitance = 100nF +/- 20%
 
-    # Comms interfaces
-    i2c.scl.line ~ package.MC_SCL
-    i2c.sda.line ~ package.MOSI_SDA
-    # Select I2C mode
-    package.MD0 ~ package.DGND
+    # Reference Power
+    _vref_cap = new Capacitor
+    _vref_cap.package = "C0402"
+    _vref_cap.capacitance = 2.2uF +/- 20%
+    _power_vref.hv ~> _vref_cap ~> _power_vref.lv
 
-    i2s.sd.line ~ package.DOUT
-    i2s.ws.line ~ package.LRCK
-    i2s.sck.line ~ package.BCK
-
-    # Clocks
-    master_clock = new ElectricLogic
-    master_clock.line ~ package.SCKI3_3V
-    master_clock.reference ~ _power_iovdd
-
-    package.XI ~> oscillator ~> package.XO
-    oscillator.current_limiting_resistor.resistance = 0ohm
-    oscillator.current_limiting_resistor.package = "0402"
-    oscillator.xtal_if.gnd ~ package.DGND
-    for capacitor in oscillator.capacitors:
-        capacitor.package = "C0402"
-        capacitor.capacitance = 15pF +/- 10%
-    crystal = new Yangxing_Tech_X322525MOB4SI_package
-    crystal.OSC1 ~ oscillator.xtal_if.xin
-    crystal.OSC2 ~ oscillator.xtal_if.xout
-    crystal.GND ~ package.DGND
-
-    # Connect gnds
-    package.DGND ~ package.AGND
-
-
-import Electrical
-
-module XLR:
-    """XLR connector"""
-    balanced = new DifferentialPair
-
-module Microcontroller:
-    """Microcontroller"""
-    i2c = new I2C
-    i2s = new I2S
-    power_3v3 = new ElectricPower
-
-module Example:
-    """
-    Example of a Texas Instruments PCM1865 audio ADC
-    """
-    # Power
-    power_3v3 = new ElectricPower
-    power_3v3.voltage = 3.3V
-
-    # Components
-    adc = new Texas_Instruments_PCM1865_driver
-    micro = new Microcontroller
-    xlrs = new XLR[4]
-
-    # Power connections
-    power_3v3 ~ adc.power_3v3
-    power_3v3 ~ micro.power_3v3
-
-    # Data connections
-    micro.i2c ~ adc.i2c
-    micro.i2s ~ adc.i2s
-
-    # Connect inputs
-    xlrs[0].balanced ~ adc.balanced_inputs[0]
-    xlrs[1].balanced ~ adc.balanced_inputs[1]
-    xlrs[2].balanced ~ adc.balanced_inputs[2]
-    xlrs[3].balanced ~ adc.balanced_inputs[3]
+    # LDO Power
+    _power_ldo_cap = new Capacitor
+    _power_ldo_cap.package = "C0402"
+    _power_ldo_cap.capacitance = 2.2uF +/- 20%
+    _power_ldo.hv ~> _power_ldo_cap ~> _power_ldo.lv
