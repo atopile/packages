@@ -7,11 +7,11 @@ TLV75901 LDO Regulator with adjustable output voltage
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
-from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
 
 module Usage:
     # Create LDO
-    ldo = new TLV75901_driver
+    ldo = new TI_TLV75901
 
     # Create example power interfaces
     power_in = new ElectricPower
