@@ -2,11 +2,10 @@
 #pragma experiment("BRIDGE_CONNECT")
 
 import ElectricPower
-import I2C
 import ElectricLogic
 
-from "st-stm32h723.ato" import ST_STM32H723
-from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
+from "atopile/st-stm32h723/st-stm32h723.ato" import ST_STM32H723
+# from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
 
 module Usage:
     """
@@ -14,22 +13,7 @@ module Usage:
     """
     power_3v3 = new ElectricPower
     mcu = new ST_STM32H723
-    phy = new Microchip_LAN8742A
-    mdio = new I2C
-
     reset = new ElectricLogic
 
     # Power
     power_3v3 ~ mcu.power_3v3
-
-    # USB PHY supply (3.3 V)
-    mcu.power_usb ~ power_3v3
-
-    # PHY power
-    power_3v3 ~ phy.power_3v3
-
-    # RMII interconnect
-    mcu.rmii ~ phy.rmii
-
-    # MDIO management
-    mdio ~ phy.mdio

@@ -11,33 +11,21 @@ High-performance Arm Cortex-M7 microcontroller up to 550 MHz with up to 1 MB Fla
 #pragma experiment("BRIDGE_CONNECT")
 
 import ElectricPower
-import I2C
 import ElectricLogic
 
-from "st-stm32h723.ato" import ST_STM32H723
-from "../microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A, RMII
+from "atopile/st-stm32h723/st-stm32h723.ato" import ST_STM32H723
+# from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
 
 module Usage:
+    """
+    Minimal usage for STM32H723 with power, SWD, USB FS, I2C and RMII to LAN8742A.
+    """
     power_3v3 = new ElectricPower
     mcu = new ST_STM32H723
-    phy = new Microchip_LAN8742A
-    rmii = new RMII
-    mdio = new I2C
     reset = new ElectricLogic
 
+    # Power
     power_3v3 ~ mcu.power_3v3
-    power_3v3 ~ phy.power_3v3
-
-    # USB PHY supply (3.3 V)
-    mcu.power_usb ~ power_3v3
-
-    rmii ~ mcu.rmii
-    rmii ~ phy.rmii
-
-    mdio ~ phy.mdio
-
-    reset.reference ~ power_3v3
-    reset.line ~ phy.reset.line
 ```
 
 ## Contributing

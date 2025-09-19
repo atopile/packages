@@ -8,6 +8,7 @@ import ElectricLogic
 import ElectricSignal
 import SWD
 import USB2_0
+import JTAG
 import UART
 import SPI
 import I2C
@@ -60,6 +61,9 @@ module ST_STM32H723:
 
     usb = new USB2_0
     """USB 2.0 FS device/host/OTG (on-chip FS PHY)."""
+
+    jtag = new JTAG
+    """JTAG debug interface (JTMS, JTCK, JTDI, JTDO, nTRST)."""
 
     uart = new UART
     spi = new SPI[2]
@@ -153,6 +157,13 @@ module ST_STM32H723:
     # --- Debug ---
     swd.clk ~ gpio_a[14]
     swd.dio ~ gpio_a[13]
+
+    # --- JTAG ---
+    jtag.tms ~ gpio_a[13]
+    jtag.tck ~ gpio_a[14]
+    jtag.tdi ~ gpio_a[15]
+    jtag.tdo ~ gpio_b[3]
+    jtag.n_trst ~ gpio_b[4]
 
     # --- USB FS ---
     usb.usb_if.d.p ~ gpio_a[12]
