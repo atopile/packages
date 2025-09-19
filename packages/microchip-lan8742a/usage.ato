@@ -1,0 +1,21 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
+from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import RMII
+
+module Usage:
+    """
+    Minimal usage example: connect power and RMII interface.
+    """
+    power_3v3 = new ElectricPower
+    phy = new Microchip_LAN8742A
+    rmii = new RMII
+    mdio = new I2C
+
+    power_3v3 ~ phy.power_3v3
+    rmii ~ phy.rmii
+    mdio ~ phy.mdio
