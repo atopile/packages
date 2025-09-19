@@ -16,6 +16,7 @@ import I2C
 import ElectricLogic
 from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
 from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import RMII
+from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import MDIO
 
 module Usage:
     """
@@ -24,7 +25,7 @@ module Usage:
     power_3v3 = new ElectricPower
     phy = new Microchip_LAN8742A
     rmii = new RMII
-    mdio = new I2C
+    mdio = new MDIO
 
     power_3v3 ~ phy.power_3v3
     rmii ~ phy.rmii

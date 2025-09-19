@@ -5,7 +5,6 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import Ethernet
-import I2C
 import Capacitor
 import Resistor
 from "parts/Microchip_Tech_LAN8742A_CZ_TR/Microchip_Tech_LAN8742A_CZ_TR.ato" import Microchip_Tech_LAN8742A_CZ_TR_package
@@ -24,6 +23,12 @@ interface RMII:
     rxd = new ElectricLogic[2]  # RXD[1:0] - 2-bit receive data
     crs_dv = new ElectricLogic  # CRS_DV - carrier sense/receive data valid
     rx_er = new ElectricLogic   # RX_ER - receive error (optional)
+
+
+interface MDIO:
+    # IEEE 802.3 SMI (MDIO/MDC) management bus
+    mdc = new ElectricLogic
+    mdio = new ElectricLogic
 
 
 module Microchip_LAN8742A:
@@ -46,9 +51,9 @@ module Microchip_LAN8742A:
     RMII data interface to the MAC
     """
 
-    mdio = new I2C
+    mdio = new MDIO
     """
-    MDIO/MDC management interface (I2C abstraction used for two-wire mgmt)
+    MDIO/MDC management interface (SMI)
     """
     mdio.required = True
 
@@ -126,10 +131,10 @@ module Microchip_LAN8742A:
     package.RXER_PHYAD0 ~> phyad0_pd ~> power_3v3.lv
 
     # MDIO/MDC management interface
-    mdio.scl.line ~ package.MDC
-    mdio.sda.line ~ package.MDIO
-    mdio.scl.reference ~ power_3v3
-    mdio.sda.reference ~ power_3v3
+    mdio.mdc.line ~ package.MDC
+    mdio.mdio.line ~ package.MDIO
+    mdio.mdc.reference ~ power_3v3
+    mdio.mdio.reference ~ power_3v3
 
     # 25 MHz crystal
     crystal = new Yangxing_Tech_X322525MRB4SI_package
