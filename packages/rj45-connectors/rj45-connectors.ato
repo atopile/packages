@@ -12,6 +12,7 @@ from "parts/HCTL_HC_RJ45_055_7/HCTL_HC_RJ45_055_7.ato" import HCTL_HC_RJ45_055_7
 from "parts/HANRUN_HR911130A/HANRUN_HR911130A.ato" import HANRUN_HR911130A_package
 from "parts/Ckmtw_R_RJ45S08P_C000/Ckmtw_R_RJ45S08P_C000.ato" import Ckmtw_R_RJ45S08P_C000_package
 from "parts/HCTL_HC_RJ45_059C_2_4_1/HCTL_HC_RJ45_059C_2_4_1.ato" import HCTL_HC_RJ45_059C_2_4_1_package
+from "parts/HCTL_HC632701A_M906_A/HCTL_HC632701A_M906_A.ato" import HCTL_HC632701A_M906_A_package
 
 module RJ45_Recessed_SMD:
     """
@@ -183,6 +184,68 @@ module RJ45_Horizontal_TH_Magnetics:
 
     # Center tap connections (typically left floating or connected to power reference)
     # package pins 11, 12, 13, 14 are center taps - leaving unconnected for flexibility
+
+module RJ45_Horizontal_SMD_Magnetics:
+    """
+    Horizontal SMD RJ45 connector with integrated magnetics (HCTL HC632701A-M906-A)
+
+    RJ45 jack with built-in isolation transformers and status LEDs.
+    Supports 100BASE-T and 1000BASE-T. (only two pairs)
+    """
+
+    # --- External interfaces ---
+    ethernet = new Ethernet
+    """
+    Ethernet interface with magnetically isolated differential pairs
+    """
+
+    shield = new Electrical
+    """
+    Shield connection for EMI protection
+    """
+
+    # --- Internal components ---
+    led_link_resistor = new Resistor
+    """
+    Current limiting resistor for link LED (green)
+    """
+
+    led_activity_resistor = new Resistor
+    """
+    Current limiting resistor for activity/speed LED (yellow)
+    """
+
+    # --- Internal configuration ---
+    led_link_resistor.resistance = 470ohm +/- 5%
+    led_link_resistor.package = "0402"
+    led_activity_resistor.resistance = 470ohm +/- 5%
+    led_activity_resistor.package = "0402"
+
+    # --- Package ---
+    package = new HCTL_HC632701A_M906_A_package
+
+    # --- Package connections ---
+    # PHY side differential pairs
+    ethernet.pairs[0].p.line ~ package.TDpos
+    ethernet.pairs[0].n.line ~ package.TDneg
+    ethernet.pairs[1].p.line ~ package.RDpos
+    ethernet.pairs[1].n.line ~ package.RDneg
+
+    # LED connections with current limiting resistors
+    ethernet.led_link.line ~> led_link_resistor ~> package.L_LED_Gpos
+    ethernet.led_speed.line ~> led_activity_resistor ~> package.R_LEDYpos
+
+    # LED cathodes to reference low
+    ethernet.led_link.reference.lv ~ package.L_LED_Gneg
+    ethernet.led_speed.reference.lv ~ package.R_LEDYneg
+
+    # Tie LED reference to shield as common ground
+    ethernet.led_link.reference.lv ~ shield
+    ethernet.led_speed.reference.lv ~ shield
+
+    # Shield connections
+    shield ~ package.SHELL
+    shield ~ package.GND
 
 module RJ45_Horizontal_TH_Magnetics_8Port:
     """
