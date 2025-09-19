@@ -10,7 +10,7 @@ import DifferentialPair
 from "parts/Nuvoton_Tech_NAU7802SGI/Nuvoton_Tech_NAU7802SGI.ato" import Nuvoton_Tech_NAU7802SGI_package
 
 
-module Nuvoton_Tech_NAU7802_base:
+module Nuvoton_NAU7802_base:
     """Base for the amp without any application-specific components"""
     # --- Package ---
     package = new Nuvoton_Tech_NAU7802SGI_package
@@ -76,7 +76,7 @@ module Nuvoton_Tech_NAU7802_base:
     package.REFP ~ power_analog.hv
     package.REFN ~ power_analog.lv
 
-module Nuvoton_Tech_NAU7802_Single from Nuvoton_Tech_NAU7802_base:
+module Nuvoton_NAU7802_Single from Nuvoton_NAU7802_base:
     """
     NAU7802 configured in a typical single-channel application
     """
@@ -102,7 +102,7 @@ module Nuvoton_Tech_NAU7802_Single from Nuvoton_Tech_NAU7802_base:
     input_termination_cap.package = "C0402"
     package.VIN2N ~> input_termination_cap ~> package.VIN2P
 
-module Nuvoton_Tech_NAU7802_Dual from Nuvoton_Tech_NAU7802_base:
+module Nuvoton_NAU7802_Dual from Nuvoton_NAU7802_base:
     """
     NAU7802 configured in a typical dual-channel application
     """
