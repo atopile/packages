@@ -13,6 +13,11 @@ import Resistor
 from "parts/Realtek_Semicon_RTL8305NB_VB_CG/Realtek_Semicon_RTL8305NB_VB_CG.ato" import Realtek_Semicon_RTL8305NB_VB_CG_package
 from "parts/Yangxing_Tech_X322525MRB4SI/Yangxing_Tech_X322525MRB4SI.ato" import Yangxing_Tech_X322525MRB4SI_package
 
+interface MDIO:
+    # IEEE 802.3 SMI (MDIO/MDC) management bus
+    mdc = new ElectricLogic
+    mdio = new ElectricLogic
+
 module Realtek_RTL8305NB:
     """
     Realtek RTL8305NB 5-port 10/100 Ethernet switch
@@ -51,6 +56,12 @@ module Realtek_RTL8305NB:
     I2C/MDIO management interface (dual function pins)
     """
     i2c_mdio.required = True
+
+    mdio = new MDIO
+    """
+    MDIO/MDC management interface (SMI)
+    """
+    mdio.required = False
 
     reset = new ElectricLogic
     """
@@ -116,6 +127,12 @@ module Realtek_RTL8305NB:
     i2c_mdio.sda.line ~ package.SDA_MDIO
     i2c_mdio.scl.reference ~ power_3v3
     i2c_mdio.sda.reference ~ power_3v3
+
+    # Parallel MDIO interface mapping (same pins)
+    mdio.mdc.line ~ package.SCL_MDC
+    mdio.mdio.line ~ package.SDA_MDIO
+    mdio.mdc.reference ~ power_3v3
+    mdio.mdio.reference ~ power_3v3
 
     # Reset (active low with pull-up)
     reset.line ~ package.RESETB
