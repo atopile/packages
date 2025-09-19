@@ -321,4 +321,13 @@ module ST_STM32H723:
     package.PE15 ~ gpio_e[15].line
 
     # --- References ---
-    # GPIO references can be tied at application level as needed
+    for io in gpio_a:
+        io.reference ~ power_3v3
+    for io in gpio_b:
+        io.reference ~ power_3v3
+    for io in gpio_c:
+        io.reference ~ power_3v3
+    for io in gpio_d:
+        io.reference ~ power_3v3
+    for io in gpio_e:
+        io.reference ~ power_3v3
