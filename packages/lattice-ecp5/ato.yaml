@@ -1,0 +1,33 @@
+requires-atopile: ^0.10.8
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: lattice-ecp5.ato:Lattice_ECP5
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  # usage:
+  #   entry: usage.ato:Usage
+  #   hide_designators: true
+  #   exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/lattice-ecp5
+  repository: https://github.com/atopile/packages
+  homepage:
+  version: 0.0.1
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: TBD
+  license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/ti-tlv75901
+  release: 0.3.1
+- type: registry
+  identifier: atopile/programming-headers
+  release: 0.1.4

@@ -1,0 +1,117 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import JTAG
+
+from "parts/Lattice_LFE5U_25F_6BG256C/Lattice_LFE5U_25F_6BG256C.ato" import Lattice_LFE5U_25F_6BG256C_package
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
+from "atopile/programming-headers/programming-headers.ato" import JTAG_10PIN
+from "parts/BOOMELE_2_54_2_40P/BOOMELE_2_54_2_40P.ato" import BOOMELE_2_54_2_40P_package       
+from "parts/hanxia_HX_PZ2_54_2x8P_TP/hanxia_HX_PZ2_54_2x8P_TP.ato" import hanxia_HX_PZ2_54_2x8P_TP_package                                                                                                                                                                                                                                                                                                                                                                                                  
+
+module Lattice_ECP5_base:
+
+    # Package
+    package = new Lattice_LFE5U_25F_6BG256C_package
+
+    # Ground
+    gnd = new Electrical
+    gnd ~ package.GND
+    gnd.override_net_name = "GND"
+
+    # Power
+    power_3v3 = new ElectricPower
+    power_3v3.lv ~ gnd
+    assert power_3v3.voltage within 3.3V +/- 5%
+
+    # Core Power
+    power_core = new ElectricPower
+    power_core.lv ~ gnd
+    assert power_core.voltage within 1.1V +/- 5%
+
+    # IO Power
+    power_vccio = new ElectricPower[9]
+    for p in power_vccio:
+        p.lv ~ gnd
+    
+    power_vccio[0].hv ~ package.VCCIO0
+    power_vccio[1].hv ~ package.VCCIO1
+    power_vccio[2].hv ~ package.VCCIO2
+    power_vccio[3].hv ~ package.VCCIO3
+    # power_vccio[4] ~ package.VCCIO4 # there is no VCCIO4
+    # power_vccio[5] ~ package.VCCIO5 # there is no VCCIO5
+    power_vccio[6].hv ~ package.VCCIO6
+    power_vccio[7].hv ~ package.VCCIO7
+    power_vccio[8].hv ~ package.VCCIO8
+    
+    # JTAG
+    jtag = new JTAG
+    jtag.tck.line ~ package.TCK
+    jtag.tms.line ~ package.TMS
+    jtag.tdi.line ~ package.TDI
+    jtag.tdo.line ~ package.TDO
+    jtag.vtref ~ power_vccio[8] # JTAG signals are referenced to VCCIO8
+
+    # sysCONFIG
+    cfg = new ElectricLogic[3]
+    initn = new ElectricLogic
+    programn = new ElectricLogic
+    done = new ElectricLogic
+    cclk = new ElectricLogic
+    cfg[0].line ~ package.CFG_0
+    cfg[1].line ~ package.CFG_1
+    cfg[2].line ~ package.CFG_2
+    initn.line ~ package.INITN
+    programn.line ~ package.PROGRAMN
+    done.line ~ package.DONE
+    cclk.line ~ package.CCLK
+
+    # sysCONFIG signals are referenced to VCCIO8
+    power_vccio[8] ~ initn.reference
+    power_vccio[8] ~ programn.reference
+    power_vccio[8] ~ done.reference
+    power_vccio[8] ~ cclk.reference
+    for c in cfg:
+        power_vccio[8] ~ c.reference 
+
+    # Button - from OrangeCrab
+    button = new ElectricLogic
+    button.line ~ package.PL38C
+
+    # RBG LED - from OrangeCrab
+    rgb_led = new ElectricLogic[3]
+    rgb_led[0].line ~ package.PR38A
+    rgb_led[1].line ~ package.LED_G
+    rgb_led[2].line ~ package.LED_B
+
+
+
+module Lattice_ECP5:
+
+    # Base
+    ecp5 = new Lattice_ECP5_base
+
+    gnd = new Electrical
+    gnd ~ ecp5.gnd
+
+    power_3v3 = new ElectricPower
+    power_3v3 ~ ecp5.power_3v3
+
+    # Programming Header
+    programming_header = new JTAG_10PIN
+    programming_header.jtag ~ ecp5.jtag
+
+    # --- I/O Channels ---
+    ch_headers = new hanxia_HX_PZ2_54_2x8P_TP_package[18]
+    for header in ch_headers:
+        header.1 ~ gnd
+        header.3 ~ gnd
+        header.5 ~ gnd
+        header.7 ~ gnd
+        header.9 ~ gnd
+        header.11 ~ gnd
+        header.13 ~ gnd
+        header.15 ~ gnd
