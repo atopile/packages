@@ -9,28 +9,27 @@ import JTAG
 from "parts/Lattice_LFE5U_25F_6BG256C/Lattice_LFE5U_25F_6BG256C.ato" import Lattice_LFE5U_25F_6BG256C_package
 from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
 from "atopile/programming-headers/programming-headers.ato" import JTAG_10PIN
-from "parts/BOOMELE_2_54_2_40P/BOOMELE_2_54_2_40P.ato" import BOOMELE_2_54_2_40P_package       
-from "parts/hanxia_HX_PZ2_54_2x8P_TP/hanxia_HX_PZ2_54_2x8P_TP.ato" import hanxia_HX_PZ2_54_2x8P_TP_package                                                                                                                                                                                                                                                                                                                                                                                                  
 
-module Lattice_ECP5_base:
+module Lattice_ECP5_model:
 
     # Package
     package = new Lattice_LFE5U_25F_6BG256C_package
 
     # Ground
     gnd = new Electrical
-    gnd ~ package.GND
     gnd.override_net_name = "GND"
+    gnd ~ package.GND
 
     # Power
     power_3v3 = new ElectricPower
-    power_3v3.lv ~ gnd
     assert power_3v3.voltage within 3.3V +/- 5%
+    power_3v3.lv ~ gnd
 
     # Core Power
     power_core = new ElectricPower
-    power_core.lv ~ gnd
     assert power_core.voltage within 1.1V +/- 5%
+    power_core.hv ~ package.VCC
+    power_core.lv ~ gnd
 
     # IO Power
     power_vccio = new ElectricPower[9]
@@ -110,7 +109,8 @@ module Lattice_ECP5_base:
         io.reference ~ power_vccio[7]
     for io in io_bank_8:
         io.reference ~ power_vccio[8]
-
+        
+#region
     io_bank_0[23].line ~ package.PT29B
     io_bank_0[22].line ~ package.PT27B
     io_bank_0[21].line ~ package.PT29A
@@ -314,30 +314,40 @@ module Lattice_ECP5_base:
     io_bank_8[2].line ~ package.PB13B
     io_bank_8[1].line ~ package.PB15B
     io_bank_8[0].line ~ package.PB18A
+#endregion
 
-module Lattice_ECP5:
+module Lattice_ECP5_driver:
 
-    # Base
-    ecp5 = new Lattice_ECP5_base
+    # --- Base ---
+    model = new Lattice_ECP5_model
 
-    gnd = new Electrical
-    gnd ~ ecp5.gnd
-
+    # --- External Interfaces --- 
     power_3v3 = new ElectricPower
-    power_3v3 ~ ecp5.power_3v3
+    """
+    3.3V power supply for the ECP5
+    """
+    power_3v3.required = True
+
+    # --- Power Connections ---
+    gnd = new Electrical
+    gnd ~ model.gnd
+    power_3v3 ~ model.power_3v3
+
+    # 1.1V core power supply
+    power_1v1 = new ElectricPower
+    reg_1v1 = new TI_TLV75901
+
+    reg_1v1.power_in ~ power_3v3
+    reg_1v1.power_in.voltage = 3.3V +/- 5%
+
+    reg_1v1.power_out ~ power_1v1
+    reg_1v1.power_out.voltage = 1.1V +/- 5%
+
+    power_3v3 ~ model.power_3v3
+    power_1v1 ~ model.power_core
 
     # Programming Header
     programming_header = new JTAG_10PIN
-    programming_header.jtag ~ ecp5.jtag
+    programming_header.jtag ~ model.jtag
 
-    # --- I/O Channels ---
-    ch_headers = new hanxia_HX_PZ2_54_2x8P_TP_package[18]
-    for header in ch_headers:
-        header.1 ~ gnd
-        header.3 ~ gnd
-        header.5 ~ gnd
-        header.7 ~ gnd
-        header.9 ~ gnd
-        header.11 ~ gnd
-        header.13 ~ gnd
-        header.15 ~ gnd
+
