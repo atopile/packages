@@ -14,9 +14,14 @@ module Logic_Analyzer:
 
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 5%
-    power_3v3 ~ ecp5.power_3v3
+    power_3v3 ~ ecp5.model.power_3v3
 
-    
+    power_vccaux = new ElectricPower
+    power_vccaux.voltage = 2.5V +/- 5%
+    power_vccaux ~ ecp5.power_vccaux
+
+
+
 
     # IO References
     for vccio in ecp5.model.power_vccio:
@@ -28,6 +33,7 @@ module Logic_Analyzer:
     for h in io_header:
         h.power_reference ~ power_3v3
 
+# region
     io_header[0].io[0] ~ ecp5.model.io_bank_0[0]
     io_header[0].io[1] ~ ecp5.model.io_bank_0[1]
     io_header[0].io[2] ~ ecp5.model.io_bank_0[2]
@@ -249,7 +255,7 @@ module Logic_Analyzer:
     io_header[24].io[2] ~ ecp5.model.io_bank_8[10]
     io_header[24].io[3] ~ ecp5.model.io_bank_8[11]
     io_header[24].io[4] ~ ecp5.model.io_bank_8[12]
-
+#endregion
 
 module IO_Header:
 

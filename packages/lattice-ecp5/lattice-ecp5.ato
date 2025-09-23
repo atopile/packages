@@ -5,11 +5,15 @@ import Electrical
 import ElectricPower
 import ElectricLogic
 import JTAG
+import Capacitor
+import Resistor
 
 from "parts/Lattice_LFE5U_25F_6BG256C/Lattice_LFE5U_25F_6BG256C.ato" import Lattice_LFE5U_25F_6BG256C_package
 from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
 from "atopile/programming-headers/programming-headers.ato" import JTAG_10PIN
+from "parts/Murata_Electronics_BLM15PX121SN1D/Murata_Electronics_BLM15PX121SN1D.ato" import Murata_Electronics_BLM15PX121SN1D_package                 
 
+# Model defines pin types
 module Lattice_ECP5_model:
 
     # Package
@@ -26,14 +30,21 @@ module Lattice_ECP5_model:
     power_3v3.lv ~ gnd
 
     # Core Power
-    power_core = new ElectricPower
-    assert power_core.voltage within 1.1V +/- 5%
-    power_core.hv ~ package.VCC
-    power_core.lv ~ gnd
+    power_vcc = new ElectricPower
+    assert power_vcc.voltage within 1.1V +/- 3%
+    power_vcc.hv ~ package.VCC
+    power_vcc.lv ~ gnd
+
+    # Aux Power
+    power_vccaux_filtered = new ElectricPower
+    assert power_vccaux_filtered.voltage within 2.5V +/- 5%
+    power_vccaux_filtered.hv ~ package.VCCAUX
+    power_vccaux_filtered.lv ~ gnd
 
     # IO Power
     power_vccio = new ElectricPower[9]
     for p in power_vccio:
+        p.required = True
         p.lv ~ gnd
     
     power_vccio[0].hv ~ package.VCCIO0
@@ -316,38 +327,100 @@ module Lattice_ECP5_model:
     io_bank_8[0].line ~ package.PB18A
 #endregion
 
+# Driver contains required components (decoulping caps, pullups, etc)
 module Lattice_ECP5_driver:
-
-    # --- Base ---
     model = new Lattice_ECP5_model
 
-    # --- External Interfaces --- 
-    power_3v3 = new ElectricPower
-    """
-    3.3V power supply for the ECP5
-    """
-    power_3v3.required = True
+    power_vccaux = new ElectricPower
+    power_vccaux.required = True
+    power_vccaux.voltage = 2.5V +/- 5%
+    power_vccaux.lv ~ model.power_vccaux_filtered.lv
 
-    # --- Power Connections ---
-    gnd = new Electrical
-    gnd ~ model.gnd
-    power_3v3 ~ model.power_3v3
+    # --- Decoupling Caps ---
+    caps_vcc_bulk = new Capacitor[3]
+    for cap in caps_vcc_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vcc.hv ~> cap ~> model.power_vcc.lv
 
-    # 1.1V core power supply
-    power_1v1 = new ElectricPower
-    reg_1v1 = new TI_TLV75901
+    caps_vcc_per_pin = new Capacitor[6]
+    for cap in caps_vcc_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vcc.hv ~> cap ~> model.power_vcc.lv
 
-    reg_1v1.power_in ~ power_3v3
-    reg_1v1.power_in.voltage = 3.3V +/- 5%
+    cap_vccaux_bulk = new Capacitor[1]
+    for cap in cap_vccaux_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
+    
+    cap_vccaux_per_pin = new Capacitor[2]
+    for cap in cap_vccaux_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
 
-    reg_1v1.power_out ~ power_1v1
-    reg_1v1.power_out.voltage = 1.1V +/- 5%
+    fb_vccaux = new Murata_Electronics_BLM15PX121SN1D_package
+    power_vccaux.hv ~ fb_vccaux.1; fb_vccaux.2 ~ model.power_vccaux_filtered.hv
 
-    power_3v3 ~ model.power_3v3
-    power_1v1 ~ model.power_core
+    cap_vccio_bulk = new Capacitor[7] # 7 VCCIO power rails
+    for cap in cap_vccio_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+    
+    model.power_vccio[0].hv ~> cap_vccio_bulk[0] ~> model.power_vccio[0].lv
+    model.power_vccio[1].hv ~> cap_vccio_bulk[1] ~> model.power_vccio[1].lv
+    model.power_vccio[2].hv ~> cap_vccio_bulk[2] ~> model.power_vccio[2].lv
+    model.power_vccio[3].hv ~> cap_vccio_bulk[3] ~> model.power_vccio[3].lv
+    model.power_vccio[6].hv ~> cap_vccio_bulk[4] ~> model.power_vccio[6].lv
+    model.power_vccio[7].hv ~> cap_vccio_bulk[5] ~> model.power_vccio[7].lv
+    model.power_vccio[8].hv ~> cap_vccio_bulk[6] ~> model.power_vccio[8].lv
 
-    # Programming Header
-    programming_header = new JTAG_10PIN
-    programming_header.jtag ~ model.jtag
+    cap_vccio_per_pin = new Capacitor[13] # 13 VCCIO power pins
+    for cap in cap_vccio_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 10V +/- 20%
+    
+    model.power_vccio[0].hv ~> cap_vccio_per_pin[0] ~> model.power_vccio[0].lv
+    model.power_vccio[0].hv ~> cap_vccio_per_pin[1] ~> model.power_vccio[0].lv
+    model.power_vccio[1].hv ~> cap_vccio_per_pin[2] ~> model.power_vccio[1].lv
+    model.power_vccio[1].hv ~> cap_vccio_per_pin[3] ~> model.power_vccio[1].lv
+    model.power_vccio[2].hv ~> cap_vccio_per_pin[4] ~> model.power_vccio[2].lv
+    model.power_vccio[2].hv ~> cap_vccio_per_pin[5] ~> model.power_vccio[2].lv
+    model.power_vccio[3].hv ~> cap_vccio_per_pin[6] ~> model.power_vccio[3].lv
+    model.power_vccio[3].hv ~> cap_vccio_per_pin[7] ~> model.power_vccio[3].lv
+    model.power_vccio[6].hv ~> cap_vccio_per_pin[8] ~> model.power_vccio[6].lv
+    model.power_vccio[6].hv ~> cap_vccio_per_pin[9] ~> model.power_vccio[6].lv
+    model.power_vccio[7].hv ~> cap_vccio_per_pin[10] ~> model.power_vccio[7].lv
+    model.power_vccio[7].hv ~> cap_vccio_per_pin[11] ~> model.power_vccio[7].lv
+    model.power_vccio[8].hv ~> cap_vccio_per_pin[12] ~> model.power_vccio[8].lv
+
+    # --- JTAG Resistors ---
+    jtag_pullups = new Resistor[4]
+    for r in jtag_pullups:
+        r.resistance = 4.7kohm +/- 10%
+        r.package = "0402"
+    model.jtag.tdi.line ~> jtag_pullups[0] ~> model.jtag.vtref.hv
+    model.jtag.tms.line ~> jtag_pullups[1] ~> model.jtag.vtref.hv
+    model.jtag.tdo.line ~> jtag_pullups[2] ~> model.jtag.vtref.hv
+    model.jtag.tck.line ~> jtag_pullups[3] ~> model.jtag.vtref.lv
+
+    # --- Config Resistors ---
+    config_pullups = new Resistor[3]
+    for r in config_pullups:
+        r.resistance = 4.7kohm +/- 10%
+        r.package = "0402"
+    model.programn.line ~> config_pullups[0] ~> model.programn.reference.hv
+    model.initn.line ~> config_pullups[1] ~> model.initn.reference.hv
+    model.done.line ~> config_pullups[2] ~> model.done.reference.hv
+
+
 
 
