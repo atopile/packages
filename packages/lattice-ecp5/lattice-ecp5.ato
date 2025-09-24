@@ -44,7 +44,6 @@ module Lattice_ECP5_model:
     # IO Power
     power_vccio = new ElectricPower[9]
     for p in power_vccio:
-        p.required = True
         p.lv ~ gnd
     
     power_vccio[0].hv ~ package.VCCIO0
@@ -98,13 +97,13 @@ module Lattice_ECP5_model:
     # rgb_led[2].line ~ package.PR29C
 
     # IO Banks
-    io_bank_0 = new ElectricLogic[24]
-    io_bank_1 = new ElectricLogic[32]
-    io_bank_2 = new ElectricLogic[32]
-    io_bank_3 = new ElectricLogic[32]
-    io_bank_6 = new ElectricLogic[32]
-    io_bank_7 = new ElectricLogic[32]
-    io_bank_8 = new ElectricLogic[13]
+    io_bank_0 = new ElectricLogic[24] #PT
+    io_bank_1 = new ElectricLogic[32] #PT
+    io_bank_2 = new ElectricLogic[32] #PR
+    io_bank_3 = new ElectricLogic[32] #PR
+    io_bank_6 = new ElectricLogic[32] #PL
+    io_bank_7 = new ElectricLogic[32] #PL
+    io_bank_8 = new ElectricLogic[13] #PB
 
     for io in io_bank_0:
         io.reference ~ power_vccio[0]

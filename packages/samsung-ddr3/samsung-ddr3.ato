@@ -1,7 +1,183 @@
-from "parts/Samsung_K4B2G1646F_BCMA/Samsung_K4B2G1646F_BCMA.ato" import Samsung_K4B2G1646F_BCMA_package                                                                                                                                                               
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
 
-module K4B2G1646F_BCMA_model:
-    package = new Samsung_K4B2G1646F_BCMA_package
+from "parts/Samsung_K4B4G1646E_BYMA/Samsung_K4B4G1646E_BYMA.ato" import Samsung_K4B4G1646E_BYMA_package                                                                                                                                                           
 
-module K4B2G1646F_BCMA_driver:
-    model = new K4B2G1646F_BCMA_model
+import ElectricLogic
+import ElectricSignal
+import ElectricPower
+import DifferentialPair
+import Resistor
+import ResistorVoltageDivider
+
+module Samsung_K4B4G1646E_BYMA_model:
+    # Package
+    package = new Samsung_K4B4G1646E_BYMA_package
+
+    # Power
+    power_internal = new ElectricPower
+    assert power_internal.voltage is 1.35V +/- 5%
+    power_internal.hv ~ package.VDD
+    power_internal.lv ~ package.VSS
+
+    power_external = new ElectricPower
+    assert power_external.voltage is 1.35V +/- 5%
+    power_external.hv ~ package.VDDQ
+    power_external.lv ~ package.VSSQ
+
+    # Command/Address Voltage Reference
+    vrefca = new ElectricPower
+    assert vrefca.voltage is 0.75V +/- 5%
+    vrefca.hv ~ package.VREFCA
+    vrefca.lv ~ power_external.lv
+
+    # Data Voltage Reference
+    vrefdq = new ElectricPower
+    assert vrefdq.voltage is 0.75V +/- 5%
+    vrefdq.hv ~ package.VREFDQ
+    vrefdq.lv ~ power_external.lv
+
+    # Address
+    address = new ElectricLogic[15]
+    for a in address:
+        a.reference ~ power_external
+
+    address[0].line ~ package.address_0;        address[0].line.override_net_name = "ddr_a0"
+    address[1].line ~ package.address_1;        address[1].line.override_net_name = "ddr_a1"
+    address[2].line ~ package.address_2;        address[2].line.override_net_name = "ddr_a2"
+    address[3].line ~ package.address_3;        address[3].line.override_net_name = "ddr_a3"
+    address[4].line ~ package.address_4;        address[4].line.override_net_name = "ddr_a4"
+    address[5].line ~ package.address_5;        address[5].line.override_net_name = "ddr_a5"
+    address[6].line ~ package.address_6;        address[6].line.override_net_name = "ddr_a6"
+    address[7].line ~ package.address_7;        address[7].line.override_net_name = "ddr_a7"
+    address[8].line ~ package.address_8;        address[8].line.override_net_name = "ddr_a8"
+    address[9].line ~ package.address_9;        address[9].line.override_net_name = "ddr_a9"
+    address[10].line ~ package.address_10_AP;   address[10].line.override_net_name = "ddr_a10" # Auto Precharge
+    address[11].line ~ package.address_11;      address[11].line.override_net_name = "ddr_a11"
+    address[12].line ~ package.address_12_nBC;  address[12].line.override_net_name = "ddr_a12" # ~Burst Chop
+    address[13].line ~ package.address_13;      address[13].line.override_net_name = "ddr_a13"
+    address[14].line ~ package.address_14;      address[14].line.override_net_name = "ddr_a14"
+
+    # Bank Select
+    bank_address = new ElectricLogic[3]
+    for b in bank_address:
+        b.reference ~ power_external
+    
+    bank_address[0].line ~ package.BA0;          bank_address[0].line.override_net_name = "ddr_ba0"
+    bank_address[1].line ~ package.BA1;          bank_address[1].line.override_net_name = "ddr_ba1"
+    bank_address[2].line ~ package.BA2;          bank_address[2].line.override_net_name = "ddr_ba2"
+
+    # Clock
+    clock = new DifferentialPair
+    clock.p.reference ~ power_external
+    clock.n.reference ~ power_external
+    clock.p.line ~ package.CK
+    clock.n.line ~ package.nCK
+
+    # Clock Enable
+    clock_enable = new ElectricLogic
+    clock_enable.reference ~ power_external
+    clock_enable.line ~ package.CKE
+
+    # Impedance Calibration (ZQ)
+    zq = new ElectricSignal
+    zq.reference ~ power_internal
+    zq.line ~ package.ZQ
+
+    # ~Chip Select
+    n_chip_select = new ElectricLogic
+    n_chip_select.reference ~ power_external
+    n_chip_select.line ~ package.nCS
+
+    # Command Inputs
+    n_cas = new ElectricLogic
+    n_cas.reference ~ power_external
+    n_cas.line ~ package.nCAS
+
+    n_ras = new ElectricLogic
+    n_ras.reference ~ power_external
+    n_ras.line ~ package.nRAS
+
+    n_we = new ElectricLogic
+    n_we.reference ~ power_external
+    n_we.line ~ package.nWE
+
+    # ~Reset
+    n_reset = new ElectricLogic
+    n_reset.reference ~ power_external
+    n_reset.line ~ package.nRESET
+
+    # On-Die Termination (ODT)
+    odt = new ElectricLogic
+    odt.reference ~ power_external
+    odt.line ~ package.ODT
+
+    # Upper Byte Channel
+    upper = new DDR3_Byte_Channel
+    upper.power ~ power_external
+    upper.data_mask.line ~ package.DMU
+    upper.data_strobe.p.line ~ package.DQSU
+    upper.data_strobe.n.line ~ package.nDQSU
+    upper.data[0].line ~ package.DQU0;      upper.data[0].line.override_net_name = "ddr_dqu0"
+    upper.data[1].line ~ package.DQU1;      upper.data[1].line.override_net_name = "ddr_dqu1"
+    upper.data[2].line ~ package.DQU2;      upper.data[2].line.override_net_name = "ddr_dqu2"
+    upper.data[3].line ~ package.DQU3;      upper.data[3].line.override_net_name = "ddr_dqu3"
+    upper.data[4].line ~ package.DQU4;      upper.data[4].line.override_net_name = "ddr_dqu4"
+    upper.data[5].line ~ package.DQU5;      upper.data[5].line.override_net_name = "ddr_dqu5"
+    upper.data[6].line ~ package.DQU6;      upper.data[6].line.override_net_name = "ddr_dqu6"
+    upper.data[7].line ~ package.DQU7;      upper.data[7].line.override_net_name = "ddr_dqu7"
+
+
+    # Lower Byte Channel
+    lower = new DDR3_Byte_Channel
+    lower.power ~ power_external
+    lower.data_mask.line ~ package.DML
+    lower.data_strobe.p.line ~ package.DQSL
+    lower.data_strobe.n.line ~ package.nDQSL
+    lower.data[0].line ~ package.DQL0;      lower.data[0].line.override_net_name = "ddr_dql0"
+    lower.data[1].line ~ package.DQL1;      lower.data[1].line.override_net_name = "ddr_dql1"
+    lower.data[2].line ~ package.DQL2;      lower.data[2].line.override_net_name = "ddr_dql2"
+    lower.data[3].line ~ package.DQL3;      lower.data[3].line.override_net_name = "ddr_dql3"
+    lower.data[4].line ~ package.DQL4;      lower.data[4].line.override_net_name = "ddr_dql4"
+    lower.data[5].line ~ package.DQL5;      lower.data[5].line.override_net_name = "ddr_dql5"
+    lower.data[6].line ~ package.DQL6;      lower.data[6].line.override_net_name = "ddr_dql6"
+    lower.data[7].line ~ package.DQL7;      lower.data[7].line.override_net_name = "ddr_dql7"
+
+
+module DDR3_Byte_Channel:
+    power = new ElectricPower
+    data_mask = new ElectricLogic
+    data_strobe = new DifferentialPair
+    data = new ElectricLogic[8]
+
+    data_mask.reference ~ power
+    data_strobe.p.reference ~ power
+    data_strobe.n.reference ~ power
+    for d in data:
+        d.reference ~ power
+
+module Samsung_K4B4G1646E_BYMA_driver:
+    model = new Samsung_K4B4G1646E_BYMA_model
+
+    # Impedance Calibration Resistor
+    res_zq = new Resistor
+    res_zq.resistance = 240ohm +/- 1%
+    res_zq.package = "0402"
+    model.zq.line ~> res_zq ~> model.zq.reference.lv 
+
+    # Reference Voltages
+    res_vrefca = new ResistorVoltageDivider
+    res_vrefca.r_top.resistance = 1kohm +/- 1%
+    res_vrefca.r_bottom.resistance = 1kohm +/- 1%
+    res_vrefca.r_top.package = "0402"
+    res_vrefca.r_bottom.package = "0402"
+    res_vrefca.power ~ model.power_external
+    res_vrefca.output.line ~ model.vrefca.hv
+
+    res_vrefdq = new ResistorVoltageDivider
+    res_vrefdq.r_top.resistance = 1kohm +/- 1%
+    res_vrefdq.r_bottom.resistance = 1kohm +/- 1%
+    res_vrefdq.r_top.package = "0402"
+    res_vrefdq.r_bottom.package = "0402"
+    res_vrefdq.power ~ model.power_external
+    res_vrefdq.output.line ~ model.vrefdq.hv

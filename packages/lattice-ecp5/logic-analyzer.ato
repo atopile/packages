@@ -3,35 +3,96 @@
 
 from "lattice-ecp5.ato" import Lattice_ECP5_driver
 from "parts/hanxia_HX_PZ2_54_2x8P_TP/hanxia_HX_PZ2_54_2x8P_TP.ato" import hanxia_HX_PZ2_54_2x8P_TP_package
-from "../samsung-ddr3/samsung-ddr3.ato" import K4B2G1646F_BCMA_driver
+from "../samsung-ddr3/samsung-ddr3.ato" import Samsung_K4B4G1646E_BYMA_driver
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 
 module Logic_Analyzer:
     ecp5 = new Lattice_ECP5_driver
-    ddr3 = new K4B2G1646F_BCMA_driver
+    ddr = new Samsung_K4B4G1646E_BYMA_driver
+
+    power_5v0 = new ElectricPower
+    power_5v0.voltage = 5.0V +/- 5%
 
     power_3v3 = new ElectricPower
     power_3v3.voltage = 3.3V +/- 5%
     power_3v3 ~ ecp5.model.power_3v3
 
-    power_vccaux = new ElectricPower
-    power_vccaux.voltage = 2.5V +/- 5%
-    power_vccaux ~ ecp5.power_vccaux
+    power_2v5 = new ElectricPower
+    power_2v5.voltage = 2.5V +/- 5%
+    power_2v5 ~ ecp5.power_vccaux
 
+    power_1v35 = new ElectricPower
+    power_1v35.voltage = 1.35V +/- 5%
+    power_1v35 ~ ddr.model.power_internal
+    power_1v35 ~ ddr.model.power_external
 
-
+    gnd = new Electrical
+    power_5v0.lv ~ gnd
+    power_3v3.lv ~ gnd
+    power_2v5.lv ~ gnd
+    power_1v35.lv ~ gnd
 
     # IO References
-    for vccio in ecp5.model.power_vccio:
-        vccio ~ power_3v3
+    ecp5.model.power_vccio[0] ~ power_3v3
+    ecp5.model.power_vccio[1] ~ power_3v3
+    ecp5.model.power_vccio[2] ~ power_3v3
+    ecp5.model.power_vccio[3] ~ power_3v3
+    ecp5.model.power_vccio[6] ~ power_1v35 # DRAM TTL
+    ecp5.model.power_vccio[7] ~ power_1v35 # DRAM TTL
+    ecp5.model.power_vccio[8] ~ power_3v3
+
 
     # IO Headers
     io_header = new IO_Header[25]
 
     for h in io_header:
         h.power_reference ~ power_3v3
+
+    # DDR3
+    ddr.model.power_internal ~ power_1v35
+    ddr.model.power_external ~ power_1v35
+
+    # Use bank 6 for address
+    ddr.model.address[0] ~ ecp5.model.io_bank_6[0]
+    ddr.model.address[1] ~ ecp5.model.io_bank_6[1]
+    ddr.model.address[2] ~ ecp5.model.io_bank_6[2]
+    ddr.model.address[3] ~ ecp5.model.io_bank_6[3]
+    ddr.model.address[4] ~ ecp5.model.io_bank_6[4]
+    ddr.model.address[5] ~ ecp5.model.io_bank_6[5]
+    ddr.model.address[6] ~ ecp5.model.io_bank_6[6]
+    ddr.model.address[7] ~ ecp5.model.io_bank_6[7]
+    ddr.model.address[8] ~ ecp5.model.io_bank_6[8]
+    ddr.model.address[9] ~ ecp5.model.io_bank_6[9]
+    ddr.model.address[10] ~ ecp5.model.io_bank_6[10]
+    ddr.model.address[11] ~ ecp5.model.io_bank_6[11]
+    ddr.model.address[12] ~ ecp5.model.io_bank_6[12]
+    ddr.model.address[13] ~ ecp5.model.io_bank_6[13]
+    ddr.model.address[14] ~ ecp5.model.io_bank_6[14]
+
+    ddr.model.bank_address[0] ~ ecp5.model.io_bank_6[15]
+    ddr.model.bank_address[1] ~ ecp5.model.io_bank_6[16]
+    ddr.model.bank_address[2] ~ ecp5.model.io_bank_6[17]
+
+    ddr.model.upper.data[0] ~ ecp5.model.io_bank_7[0]
+    ddr.model.upper.data[1] ~ ecp5.model.io_bank_7[1]
+    ddr.model.upper.data[2] ~ ecp5.model.io_bank_7[2]
+    ddr.model.upper.data[3] ~ ecp5.model.io_bank_7[3]
+    ddr.model.upper.data[4] ~ ecp5.model.io_bank_7[4]
+    ddr.model.upper.data[5] ~ ecp5.model.io_bank_7[5]
+    ddr.model.upper.data[6] ~ ecp5.model.io_bank_7[6]
+    ddr.model.upper.data[7] ~ ecp5.model.io_bank_7[7]
+
+    ddr.model.lower.data[0] ~ ecp5.model.io_bank_7[8]
+    ddr.model.lower.data[1] ~ ecp5.model.io_bank_7[9]
+    ddr.model.lower.data[2] ~ ecp5.model.io_bank_7[10]
+    ddr.model.lower.data[3] ~ ecp5.model.io_bank_7[11]
+    ddr.model.lower.data[4] ~ ecp5.model.io_bank_7[12]
+    ddr.model.lower.data[5] ~ ecp5.model.io_bank_7[13]
+    ddr.model.lower.data[6] ~ ecp5.model.io_bank_7[14]
+    ddr.model.lower.data[7] ~ ecp5.model.io_bank_7[15]
 
 # region
     io_header[0].io[0] ~ ecp5.model.io_bank_0[0]
@@ -169,78 +230,6 @@ module Logic_Analyzer:
     io_header[14].io[6] ~ ecp5.model.io_bank_3[30]
     io_header[14].io[7] ~ ecp5.model.io_bank_3[31]
 
-    io_header[15].io[0] ~ ecp5.model.io_bank_6[0]
-    io_header[15].io[1] ~ ecp5.model.io_bank_6[1]
-    io_header[15].io[2] ~ ecp5.model.io_bank_6[2]
-    io_header[15].io[3] ~ ecp5.model.io_bank_6[3]
-    io_header[15].io[4] ~ ecp5.model.io_bank_6[4]
-    io_header[15].io[5] ~ ecp5.model.io_bank_6[5]
-    io_header[15].io[6] ~ ecp5.model.io_bank_6[6]
-    io_header[15].io[7] ~ ecp5.model.io_bank_6[7]
-
-    io_header[16].io[0] ~ ecp5.model.io_bank_6[8]
-    io_header[16].io[1] ~ ecp5.model.io_bank_6[9]
-    io_header[16].io[2] ~ ecp5.model.io_bank_6[10]
-    io_header[16].io[3] ~ ecp5.model.io_bank_6[11]
-    io_header[16].io[4] ~ ecp5.model.io_bank_6[12]
-    io_header[16].io[5] ~ ecp5.model.io_bank_6[13]
-    io_header[16].io[6] ~ ecp5.model.io_bank_6[14]
-    io_header[16].io[7] ~ ecp5.model.io_bank_6[15]
-
-    io_header[17].io[0] ~ ecp5.model.io_bank_6[16]
-    io_header[17].io[1] ~ ecp5.model.io_bank_6[17]
-    io_header[17].io[2] ~ ecp5.model.io_bank_6[18]
-    io_header[17].io[3] ~ ecp5.model.io_bank_6[19]
-    io_header[17].io[4] ~ ecp5.model.io_bank_6[20]
-    io_header[17].io[5] ~ ecp5.model.io_bank_6[21]
-    io_header[17].io[6] ~ ecp5.model.io_bank_6[22]
-    io_header[17].io[7] ~ ecp5.model.io_bank_6[23]
-
-    io_header[18].io[0] ~ ecp5.model.io_bank_6[24]
-    io_header[18].io[1] ~ ecp5.model.io_bank_6[25]
-    io_header[18].io[2] ~ ecp5.model.io_bank_6[26]
-    io_header[18].io[3] ~ ecp5.model.io_bank_6[27]
-    io_header[18].io[4] ~ ecp5.model.io_bank_6[28]
-    io_header[18].io[5] ~ ecp5.model.io_bank_6[29]
-    io_header[18].io[6] ~ ecp5.model.io_bank_6[30]
-    io_header[18].io[7] ~ ecp5.model.io_bank_6[31]
-
-    io_header[19].io[0] ~ ecp5.model.io_bank_7[0]
-    io_header[19].io[1] ~ ecp5.model.io_bank_7[1]
-    io_header[19].io[2] ~ ecp5.model.io_bank_7[2]
-    io_header[19].io[3] ~ ecp5.model.io_bank_7[3]
-    io_header[19].io[4] ~ ecp5.model.io_bank_7[4]
-    io_header[19].io[5] ~ ecp5.model.io_bank_7[5]
-    io_header[19].io[6] ~ ecp5.model.io_bank_7[6]
-    io_header[19].io[7] ~ ecp5.model.io_bank_7[7]
-
-    io_header[20].io[0] ~ ecp5.model.io_bank_7[8]
-    io_header[20].io[1] ~ ecp5.model.io_bank_7[9]
-    io_header[20].io[2] ~ ecp5.model.io_bank_7[10]
-    io_header[20].io[3] ~ ecp5.model.io_bank_7[11]
-    io_header[20].io[4] ~ ecp5.model.io_bank_7[12]
-    io_header[20].io[5] ~ ecp5.model.io_bank_7[13]
-    io_header[20].io[6] ~ ecp5.model.io_bank_7[14]
-    io_header[20].io[7] ~ ecp5.model.io_bank_7[15]
-
-    io_header[21].io[0] ~ ecp5.model.io_bank_7[16]
-    io_header[21].io[1] ~ ecp5.model.io_bank_7[17]
-    io_header[21].io[2] ~ ecp5.model.io_bank_7[18]
-    io_header[21].io[3] ~ ecp5.model.io_bank_7[19]
-    io_header[21].io[4] ~ ecp5.model.io_bank_7[20]
-    io_header[21].io[5] ~ ecp5.model.io_bank_7[21]
-    io_header[21].io[6] ~ ecp5.model.io_bank_7[22]
-    io_header[21].io[7] ~ ecp5.model.io_bank_7[23]
-
-    io_header[22].io[0] ~ ecp5.model.io_bank_7[24]
-    io_header[22].io[1] ~ ecp5.model.io_bank_7[25]
-    io_header[22].io[2] ~ ecp5.model.io_bank_7[26]
-    io_header[22].io[3] ~ ecp5.model.io_bank_7[27]
-    io_header[22].io[4] ~ ecp5.model.io_bank_7[28]
-    io_header[22].io[5] ~ ecp5.model.io_bank_7[29]
-    io_header[22].io[6] ~ ecp5.model.io_bank_7[30]
-    io_header[22].io[7] ~ ecp5.model.io_bank_7[31]
-
     io_header[23].io[0] ~ ecp5.model.io_bank_8[0]
     io_header[23].io[1] ~ ecp5.model.io_bank_8[1]
     io_header[23].io[2] ~ ecp5.model.io_bank_8[2]
@@ -266,7 +255,6 @@ module IO_Header:
     io = new ElectricLogic[8]
 
     power_reference = new ElectricPower
-    power_reference.required = True
 
     # --- Connections ---
     for i in io:

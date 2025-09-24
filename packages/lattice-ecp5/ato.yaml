@@ -6,13 +6,13 @@ paths:
 
 builds:
   default:
+    entry: lattice-ecp5.ato:Lattice_ECP5_driver
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
     entry: logic-analyzer.ato:Logic_Analyzer
     hide_designators: true
     exclude_checks: [PCB.requires_drc_check]
-  # usage:
-  #   entry: usage.ato:Usage
-  #   hide_designators: true
-  #   exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/lattice-ecp5
@@ -31,3 +31,6 @@ dependencies:
 - type: registry
   identifier: atopile/programming-headers
   release: 0.1.4
+- type: file
+  identifier: atopile/samsung-ddr3
+  path: ../samsung-ddr3
