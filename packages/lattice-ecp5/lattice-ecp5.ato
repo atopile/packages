@@ -9,8 +9,6 @@ import Capacitor
 import Resistor
 
 from "parts/Lattice_LFE5U_25F_6BG256C/Lattice_LFE5U_25F_6BG256C.ato" import Lattice_LFE5U_25F_6BG256C_package
-from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
-from "atopile/programming-headers/programming-headers.ato" import JTAG_10PIN
 from "parts/Murata_Electronics_BLM15PX121SN1D/Murata_Electronics_BLM15PX121SN1D.ato" import Murata_Electronics_BLM15PX121SN1D_package                 
 
 # Model defines pin types
@@ -24,16 +22,11 @@ module Lattice_ECP5_model:
     gnd.override_net_name = "GND"
     gnd ~ package.GND
 
-    # Power
-    power_3v3 = new ElectricPower
-    assert power_3v3.voltage within 3.3V +/- 5%
-    power_3v3.lv ~ gnd
-
     # Core Power
-    power_vcc = new ElectricPower
-    assert power_vcc.voltage within 1.1V +/- 3%
-    power_vcc.hv ~ package.VCC
-    power_vcc.lv ~ gnd
+    power_core = new ElectricPower
+    assert power_core.voltage within 1.1V +/- 3%
+    power_core.hv ~ package.VCC
+    power_core.lv ~ gnd
 
     # Aux Power
     power_vccaux_filtered = new ElectricPower
@@ -341,14 +334,14 @@ module Lattice_ECP5_driver:
         cap.package = "0603"
         cap.capacitance = 10uF +/- 20%
         cap.max_voltage = 6.3V
-        model.power_vcc.hv ~> cap ~> model.power_vcc.lv
+        model.power_core.hv ~> cap ~> model.power_core.lv
 
     caps_vcc_per_pin = new Capacitor[6]
     for cap in caps_vcc_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
         cap.max_voltage = 6.3V
-        model.power_vcc.hv ~> cap ~> model.power_vcc.lv
+        model.power_core.hv ~> cap ~> model.power_core.lv
 
     cap_vccaux_bulk = new Capacitor[1]
     for cap in cap_vccaux_bulk:
@@ -385,7 +378,7 @@ module Lattice_ECP5_driver:
     for cap in cap_vccio_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 10V +/- 20%
+        cap.max_voltage = 6.3V
     
     model.power_vccio[0].hv ~> cap_vccio_per_pin[0] ~> model.power_vccio[0].lv
     model.power_vccio[0].hv ~> cap_vccio_per_pin[1] ~> model.power_vccio[0].lv

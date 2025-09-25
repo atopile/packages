@@ -9,6 +9,8 @@ import ElectricPower
 import DifferentialPair
 import Resistor
 import ResistorVoltageDivider
+import Capacitor
+import Electrical
 
 module Samsung_K4B4G1646E_BYMA_model:
     # Package
@@ -81,7 +83,7 @@ module Samsung_K4B4G1646E_BYMA_model:
 
     # Impedance Calibration (ZQ)
     zq = new ElectricSignal
-    zq.reference ~ power_internal
+    zq.reference ~ power_external
     zq.line ~ package.ZQ
 
     # ~Chip Select
@@ -159,6 +161,10 @@ module DDR3_Byte_Channel:
 module Samsung_K4B4G1646E_BYMA_driver:
     model = new Samsung_K4B4G1646E_BYMA_model
 
+    gnd = new Electrical
+    model.power_external.lv ~ gnd
+    model.power_internal.lv ~ gnd
+
     # Impedance Calibration Resistor
     res_zq = new Resistor
     res_zq.resistance = 240ohm +/- 1%
@@ -181,3 +187,38 @@ module Samsung_K4B4G1646E_BYMA_driver:
     res_vrefdq.r_bottom.package = "0402"
     res_vrefdq.power ~ model.power_external
     res_vrefdq.output.line ~ model.vrefdq.hv
+
+    # Decoupling Capacitors
+    caps_power_bulk = new Capacitor[2]
+    for cap in caps_power_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+    model.power_external.hv ~> caps_power_bulk[0] ~> model.power_external.lv
+    model.power_internal.hv ~> caps_power_bulk[1] ~> model.power_internal.lv
+
+    caps_power_internal_per_pin = new Capacitor[9]
+    for cap in caps_power_internal_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_internal.hv ~> cap ~> model.power_internal.lv
+
+    caps_power_external_per_pin = new Capacitor[9]
+    for cap in caps_power_external_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_external.hv ~> cap ~> model.power_external.lv
+
+    cap_vcrefca = new Capacitor
+    cap_vcrefca.package = "0402"
+    cap_vcrefca.capacitance = 100nF +/- 20%
+    cap_vcrefca.max_voltage = 6.3V
+    model.vrefca.hv ~> cap_vcrefca ~> model.vrefca.lv
+
+    cap_vrefdq = new Capacitor
+    cap_vrefdq.package = "0402"
+    cap_vrefdq.capacitance = 100nF +/- 20%
+    cap_vrefdq.max_voltage = 6.3V
+    model.vrefdq.hv ~> cap_vrefdq ~> model.vrefdq.lv
