@@ -73,8 +73,8 @@ module Samsung_K4B4G1646E_BYMA_model:
     clock = new DifferentialPair
     clock.p.reference ~ power_external
     clock.n.reference ~ power_external
-    clock.p.line ~ package.CK
-    clock.n.line ~ package.nCK
+    clock.p.line ~ package.CK; clock.p.line.override_net_name = "clk_P"
+    clock.n.line ~ package.nCK; clock.n.line.override_net_name = "clk_N"
 
     # Clock Enable
     clock_enable = new ElectricLogic
@@ -118,8 +118,8 @@ module Samsung_K4B4G1646E_BYMA_model:
     upper = new DDR3_Byte_Channel
     upper.power ~ power_external
     upper.data_mask.line ~ package.DMU
-    upper.data_strobe.p.line ~ package.DQSU
-    upper.data_strobe.n.line ~ package.nDQSU
+    upper.data_strobe.p.line ~ package.DQSU;  upper.data_strobe.p.line.override_net_name = "dqsu_P"
+    upper.data_strobe.n.line ~ package.nDQSU; upper.data_strobe.n.line.override_net_name = "dqsu_N"
     upper.data[0].line ~ package.DQU0;      upper.data[0].line.override_net_name = "ddr_dqu0"
     upper.data[1].line ~ package.DQU1;      upper.data[1].line.override_net_name = "ddr_dqu1"
     upper.data[2].line ~ package.DQU2;      upper.data[2].line.override_net_name = "ddr_dqu2"
@@ -134,8 +134,8 @@ module Samsung_K4B4G1646E_BYMA_model:
     lower = new DDR3_Byte_Channel
     lower.power ~ power_external
     lower.data_mask.line ~ package.DML
-    lower.data_strobe.p.line ~ package.DQSL
-    lower.data_strobe.n.line ~ package.nDQSL
+    lower.data_strobe.p.line ~ package.DQSL;  lower.data_strobe.p.line.override_net_name = "dqsl_P"
+    lower.data_strobe.n.line ~ package.nDQSL; lower.data_strobe.n.line.override_net_name = "dqsl_N"
     lower.data[0].line ~ package.DQL0;      lower.data[0].line.override_net_name = "ddr_dql0"
     lower.data[1].line ~ package.DQL1;      lower.data[1].line.override_net_name = "ddr_dql1"
     lower.data[2].line ~ package.DQL2;      lower.data[2].line.override_net_name = "ddr_dql2"
