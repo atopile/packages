@@ -116,6 +116,13 @@ module Logic_Analyzer:
     ddr.model.power_external ~ power_1v35
     ddr.model.power_internal ~ power_1v35_ddr_int
 
+    # Control Lines
+    ddr.model.n_chip_select ~ ecp5.model.io_bank_6[16]
+    ddr.model.n_write_enable ~ ecp5.model.io_bank_6[6]
+    ddr.model.clock_enable ~ ecp5.model.io_bank_6[28]
+    ddr.model.n_column_address_strobe ~ ecp5.model.io_bank_6[20]
+    ddr.model.n_row_address_strobe ~ ecp5.model.io_bank_6[30]
+
     # Use bank 6 for address
     ddr.model.address[0] ~ ecp5.model.io_bank_6[15]
     ddr.model.address[1] ~ ecp5.model.io_bank_6[8]

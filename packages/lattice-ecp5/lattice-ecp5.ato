@@ -378,7 +378,7 @@ module Lattice_ECP5_driver:
     for cap in cap_vccio_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 6.3V
+        cap.max_voltage = 10V
     
     model.power_vccio[0].hv ~> cap_vccio_per_pin[0] ~> model.power_vccio[0].lv
     model.power_vccio[0].hv ~> cap_vccio_per_pin[1] ~> model.power_vccio[0].lv
