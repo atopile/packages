@@ -79,6 +79,8 @@ module ST_STM32H723:
     gpio_c = new ElectricLogic[16]
     gpio_d = new ElectricLogic[16]
     gpio_e = new ElectricLogic[16]
+    gpio_f = new ElectricLogic[16]
+    gpio_g = new ElectricLogic[16]
 
     # Low-speed and high-speed crystals
     hse = new XtalIF
@@ -320,6 +322,40 @@ module ST_STM32H723:
     package.PE14 ~ gpio_e[14].line
     package.PE15 ~ gpio_e[15].line
 
+    package.PF0 ~ gpio_f[0].line
+    package.PF1 ~ gpio_f[1].line
+    package.PF2 ~ gpio_f[2].line
+    package.PF3 ~ gpio_f[3].line
+    package.PF4 ~ gpio_f[4].line
+    package.PF5 ~ gpio_f[5].line
+    package.PF6 ~ gpio_f[6].line
+    package.PF7 ~ gpio_f[7].line
+    package.PF8 ~ gpio_f[8].line
+    package.PF9 ~ gpio_f[9].line
+    package.PF10 ~ gpio_f[10].line
+    package.PF11 ~ gpio_f[11].line
+    package.PF12 ~ gpio_f[12].line
+    package.PF13 ~ gpio_f[13].line
+    package.PF14 ~ gpio_f[14].line
+    package.PF15 ~ gpio_f[15].line
+
+    package.PG0 ~ gpio_g[0].line
+    package.PG1 ~ gpio_g[1].line
+    package.PG2 ~ gpio_g[2].line
+    package.PG3 ~ gpio_g[3].line
+    package.PG4 ~ gpio_g[4].line
+    package.PG5 ~ gpio_g[5].line
+    package.PG6 ~ gpio_g[6].line
+    package.PG7 ~ gpio_g[7].line
+    package.PG8 ~ gpio_g[8].line
+    package.PG9 ~ gpio_g[9].line
+    package.PG10 ~ gpio_g[10].line
+    package.PG11 ~ gpio_g[11].line
+    package.PG12 ~ gpio_g[12].line
+    package.PG13 ~ gpio_g[13].line
+    package.PG14 ~ gpio_g[14].line
+    package.PG15 ~ gpio_g[15].line
+
     # --- References ---
     for io in gpio_a:
         io.reference ~ power_3v3
@@ -330,4 +366,8 @@ module ST_STM32H723:
     for io in gpio_d:
         io.reference ~ power_3v3
     for io in gpio_e:
+        io.reference ~ power_3v3
+    for io in gpio_f:
+        io.reference ~ power_3v3
+    for io in gpio_g:
         io.reference ~ power_3v3
