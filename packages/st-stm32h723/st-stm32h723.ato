@@ -36,6 +36,11 @@ interface RMII:
     crs_dv = new ElectricLogic  # CRS_DV - carrier sense/receive data valid
     rx_er = new ElectricLogic   # RX_ER - receive error (optional)
 
+interface MDIO:
+    # IEEE 802.3 SMI (MDIO/MDC) management bus
+    mdc = new ElectricLogic
+    mdio = new ElectricLogic
+
 module ST_STM32H723:
     """
     STMicroelectronics STM32H723 (Cortex-M7 up to 550 MHz).
@@ -72,6 +77,9 @@ module ST_STM32H723:
 
     rmii = new RMII
     """RMII MAC interface to an external Ethernet PHY (e.g. LAN8742A)."""
+
+    mdio = new MDIO
+    """MDIO/MDC management interface (SMI)."""
 
     # General-purpose IOs by port
     gpio_a = new ElectricLogic[16]
@@ -237,6 +245,12 @@ module ST_STM32H723:
     rmii.rxd[1] ~ gpio_c[5]    # PC5
     rmii.crs_dv ~ gpio_a[7]    # PA7
     rmii.rx_er ~ gpio_b[10]    # PB10
+
+    # --- MDIO mapping ---
+    mdio.mdc ~ gpio_a[6]       # PA6 - MDIOS_MDC (MDIO clock)
+    mdio.mdio ~ gpio_a[7]      # PA7 - ETH_MDIO (MDIO data)
+    mdio.mdc.reference ~ power_3v3
+    mdio.mdio.reference ~ power_3v3
 
     # Provide direct port pin exposures for app wiring
     package.PA0 ~ gpio_a[0].line
