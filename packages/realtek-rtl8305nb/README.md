@@ -46,7 +46,7 @@ module MySwitch:
     # switch.ethernets[0-4] available for connections
 
     # Optional: Connect management interface
-    # switch.i2c_mdio for MDIO configuration
+    # switch.i2c for MDIO configuration
     # switch.reset for external reset control
 ```
 
@@ -229,7 +229,7 @@ module Usage:
     esp32.gpio[1] ~ w5500.reset                       # GPIO1: W5500 reset (ADC capable)
 
     # Switch management via MDIO (uses I2C peripheral: GPIO5=SDA, GPIO6=SCL)
-    switch.i2c_mdio ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
+    switch.i2c ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
     switch.reset ~ esp32.gpio[4]      # GPIO4: Switch reset control
     switch.loop_indication ~ esp32.gpio[20]  # GPIO20: Switch loop detection monitor
 
@@ -339,7 +339,7 @@ SK6805 RGB LED (5V)
 
 ### Optional EEPROM Support
 
-For custom configuration, connect an **M24C02** (or compatible) I2C EEPROM to the `i2c_mdio` interface at address **0x50**. The RTL8305NB will auto-load configuration from EEPROM during power-on.
+For custom configuration, connect an **M24C02** (or compatible) I2C EEPROM to the `i2c` interface at address **0x50**. The RTL8305NB will auto-load configuration from EEPROM during power-on.
 
 ## Management Capabilities
 
