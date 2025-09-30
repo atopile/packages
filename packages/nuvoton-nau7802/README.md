@@ -21,8 +21,8 @@ import I2C
 import has_part_removed
 
 # --- Package Import ---
-from "atopile/nuvoton-nau7802/nuvoton-nau7802.ato" import Nuvoton_Tech_NAU7802_Single
-from "atopile/nuvoton-nau7802/nuvoton-nau7802.ato" import Nuvoton_Tech_NAU7802_Dual
+from "atopile/nuvoton-nau7802/nuvoton-nau7802.ato" import Nuvoton_NAU7802_Single
+from "atopile/nuvoton-nau7802/nuvoton-nau7802.ato" import Nuvoton_NAU7802_Dual
 
 module Microcontroller:
     """Microcontroller"""
@@ -39,7 +39,7 @@ module Usage:
     power_digital.voltage = 3.3V
 
     # Component
-    adc_single_channel = new Nuvoton_Tech_NAU7802_Single
+    adc_single_channel = new Nuvoton_NAU7802_Single
     micro = new Microcontroller
 
     # Power Connection
@@ -58,7 +58,7 @@ module Usage:
     """
 
     # Component
-    adc_dual_channel = new Nuvoton_Tech_NAU7802_Dual
+    adc_dual_channel = new Nuvoton_NAU7802_Dual
 
     # Power Connection
     adc_dual_channel.power_digital ~ power_digital
