@@ -35,6 +35,7 @@ module Nuvoton_NAU7802_base:
 
     # --- Power Supply ---
     assert power_digital.voltage within 2.7V to 5.5V
+    assert power_analog.voltage within 2.7V to 5.5V
 
     # Digital Power
     power_digital.hv ~ package.DVDD
@@ -52,6 +53,7 @@ module Nuvoton_NAU7802_base:
     i2c.scl.line ~ package.SCLK
     i2c.sda.reference ~ power_digital
     i2c.scl.reference ~ power_digital
+    i2c.address = 0x2A
 
     # --- Bypass Capacitors ---
     dvdd_cap = new Capacitor
