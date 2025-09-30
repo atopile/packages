@@ -174,7 +174,7 @@ module Usage:
     esp32.gpio[1] ~ w5500.reset                       # GPIO1: W5500 reset (ADC capable)
 
     # Switch management via MDIO (uses I2C peripheral: GPIO5=SDA, GPIO6=SCL)
-    switch.i2c_mdio ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
+    switch.i2c ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
     switch.reset ~ esp32.gpio[4]      # GPIO4: Switch reset control
     switch.loop_indication ~ esp32.gpio[20]  # GPIO20: Switch loop detection monitor
 
