@@ -132,24 +132,23 @@ module TC2050_ARM_Cortex:
 module TC2030_ARM_Cortex:
     connector = new Tag_Connect_TC2030_IDC_NL_2x03_P1_27mm_Vertical_package
 
-    # swd = new ARM_SWD
-    # connector.1 ~ swd.vtref.hv
-    # connector.2 ~ swd.dio.line
-    # connector.3 ~ swd.reset.line
-    # connector.4 ~ swd.clk.line
-    # connector.5 ~ swd.vtref.lv
-    # connector.6 ~ swd.swo.line
+    swd = new ARM_SWD
+    connector.1 ~ swd.vtref.hv
+    connector.2 ~ swd.dio.line
+    connector.3 ~ swd.reset.line
+    connector.4 ~ swd.clk.line
+    connector.5 ~ swd.vtref.lv
+    connector.6 ~ swd.swo.line
 
-    # jtag = new JTAG
-    # connector.1 ~ jtag.vtref.hv
-    # connector.2 ~ jtag.tms.line
-    # connector.3 ~ jtag.n_reset.line
-    # connector.4 ~ jtag.tck.line
-    # connector.5 ~ jtag.vtref.gnd
-    # connector.6 ~ jtag.tdo.line
+    jtag = new JTAG
+    connector.1 ~ jtag.vtref.hv
+    connector.2 ~ jtag.tms.line
+    connector.3 ~ jtag.n_reset.line
+    connector.4 ~ jtag.tck.line
+    connector.5 ~ jtag.vtref.gnd
+    connector.6 ~ jtag.tdo.line
 
-    # swd.vtref ~ jtag.vtref
-    pass
+    swd.vtref ~ jtag.vtref
 
 interface ARM_SWD:
     dio = new ElectricLogic
