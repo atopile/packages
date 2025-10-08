@@ -1,8 +1,11 @@
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import ElectricPower
 import I2C
 import SPI
+import I2S
+
 import USB2_0
 import ElectricLogic
 import ElectricSignal
@@ -10,6 +13,7 @@ import USB3
 import UART
 import Ethernet
 import HDMI
+import has_single_electric_reference_shared
 
 from "parts/HRS_DF40C_100DS_0_4V_51/HRS_DF40C_100DS_0_4V_51.ato" import HRS_DF40C_100DS_0_4V_51_package
 from "parts/Sinhoo_SMTSO2515CTJ/Sinhoo_SMTSO2515CTJ.ato" import Sinhoo_SMTSO2515CTJ_package
@@ -39,6 +43,12 @@ module RPI_CM5:
     hdmis = new HDMI[2]
     # TODO: add MIPI CSI/DSI
 
+    # I2S
+    i2s_output = new I2S
+    i2s_input = new I2S
+    i2s_output.reference_shim ~ gpio_ref
+    i2s_input.reference_shim ~ gpio_ref
+
     # Control
     power_button = new ElectricLogic
     boot_mode = new ElectricLogic
@@ -64,6 +74,73 @@ module RPI_CM5:
     # Components
     hdi_a = new HRS_DF40C_100DS_0_4V_51_package
     hdi_b = new HRS_DF40C_100DS_0_4V_51_package
+
+    # SPI
+    # SPI0 signals (Pi default): SCLK=GPIO11, MOSI=GPIO10, MISO=GPIO9, CS0=GPIO8, CS1=GPIO7
+    gpios[11] ~ spis[0].sclk
+    gpios[10] ~ spis[0].mosi
+    gpios[9] ~ spis[0].miso
+    gpios[8] ~ spi0_cs[0]
+    gpios[7] ~ spi0_cs[1]
+    # Reference domains for SPI
+    spis[0].sclk.reference ~ gpio_ref
+    spis[0].mosi.reference ~ gpio_ref
+    spis[0].miso.reference ~ gpio_ref
+    for cs in spi0_cs:
+        cs.reference ~ gpio_ref
+    # I2S wiring
+    # Output: SCK=GPIO18, WS=GPIO19, SD=GPIO21
+    gpios[18] ~ i2s_output.sck
+    gpios[19] ~ i2s_output.ws
+    gpios[21] ~ i2s_output.sd
+
+    # Input: SCK=GPIO18, WS=GPIO19, SD=GPIO20
+    gpios[18] ~ i2s_input.sck
+    gpios[19] ~ i2s_input.ws
+    gpios[20] ~ i2s_input.sd
+
+    # UART0
+    gpios[14] ~ uart0.base_uart.tx
+    gpios[15] ~ uart0.base_uart.rx
+    gpios[16] ~ uart0.cts
+    gpios[17] ~ uart0.rts
+    uart0.base_uart.tx.reference ~ gpio_ref
+    uart0.base_uart.rx.reference ~ gpio_ref
+    uart0.cts.reference ~ gpio_ref
+    uart0.rts.reference ~ gpio_ref
+
+    # I2C (four buses)
+    # i2c0: SDA=GPIO0, SCL=GPIO1
+    gpios[0] ~ i2cs[0].sda
+    gpios[1] ~ i2cs[0].scl
+    # i2c1: SDA=GPIO2, SCL=GPIO3
+    gpios[2] ~ i2cs[1].sda
+    gpios[3] ~ i2cs[1].scl
+    # i2c2: SDA=GPIO12, SCL=GPIO13
+    gpios[12] ~ i2cs[2].sda
+    gpios[13] ~ i2cs[2].scl
+    # i2c3: SDA=GPIO22, SCL=GPIO23
+    gpios[22] ~ i2cs[3].sda
+    gpios[23] ~ i2cs[3].scl
+    # Reference domains for I2C buses
+    for i2c in i2cs:
+        i2c.scl.reference ~ gpio_ref
+        i2c.sda.reference ~ gpio_ref
+
+
+    for io in gpios:
+        io.reference ~ gpio_ref
+    # Reference domains for control signals
+    power_button.reference ~ gpio_ref
+    boot_mode.reference ~ gpio_ref
+    activity_led.reference ~ gpio_ref
+    power_led.reference ~ gpio_ref
+    fan_tacho.reference ~ gpio_ref
+    fan_pwm.reference ~ gpio_ref
+    ethernet_sync.reference ~ gpio_ref
+    eeprom_wp.reference ~ gpio_ref
+
+    trait has_single_electric_reference_shared<gnd_only=True>
 
     # HDI-A Pinout (based on cm5.py)
     hdi_a.pins[0] ~ power_5v.lv  # GND
