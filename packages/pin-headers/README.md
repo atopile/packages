@@ -50,8 +50,9 @@ module Usage:
     female_1x6p_th = new Female_2_54mm_1x6P_TH
     male_1x6p_th = new Male_2_54mm_1x6P_TH
 
-    # 1x8 pin header
+    # 1x8 pin headers
     female_1x8p_th = new Female_2_54mm_1x8P_TH
+    male_1x8p_th = new Male_2_54mm_1x8P_TH
 
     # 1x10 pin headers
     female_1x10p_th = new Female_2_54mm_1x10P_TH
