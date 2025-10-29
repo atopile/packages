@@ -19,10 +19,8 @@ from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x8P_TH
 from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x8P_TH
 from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x10P_TH
 from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x10P_TH
-from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x2P_TH
 from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x2P_TH
 from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x7P_TH
-from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x7P_TH
 from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x8P_TH
 from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x8P_TH
 from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x10P_TH
@@ -50,8 +48,9 @@ module Usage:
     female_1x6p_th = new Female_2_54mm_1x6P_TH
     male_1x6p_th = new Male_2_54mm_1x6P_TH
 
-    # 1x8 pin header
+    # 1x8 pin headers
     female_1x8p_th = new Female_2_54mm_1x8P_TH
+    male_1x8p_th = new Male_2_54mm_1x8P_TH
 
     # 1x10 pin headers
     female_1x10p_th = new Female_2_54mm_1x10P_TH
@@ -79,4 +78,4 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This package is provided under the [MIT License](mdc:packages/packages/packages/https:/opensource.org/license/mit).
+This package is provided under the [MIT License](https://opensource.org/license/mit/).

@@ -6,7 +6,7 @@ from "parts/BOOMELE_2_54_1_3P/BOOMELE_2_54_1_3P.ato" import BOOMELE_2_54_1_3P_pa
 from "parts/BOOMELE_2_54_1_4P/BOOMELE_2_54_1_4P.ato" import BOOMELE_2_54_1_4P_package
 from "parts/Shenzhen_Kinghelm_Elec_KH_2_54PH180_1X4P_L11_5/Shenzhen_Kinghelm_Elec_KH_2_54PH180_1X4P_L11_5.ato" import Shenzhen_Kinghelm_Elec_KH_2_54PH180_1X4P_L11_5_package
 from "parts/BOOMELE_2_54_1_5P/BOOMELE_2_54_1_5P.ato" import BOOMELE_2_54_1_5P_package
-from "parts/hanxia_HX_PZ2_0_1x5P_ZZ/hanxia_HX_PZ2_0_1x5P_ZZ.ato" import hanxia_HX_PZ2_0_1x5P_ZZ_package
+from "parts/ZHOURI_2_54_1_5/ZHOURI_2_54_1_5.ato" import ZHOURI_2_54_1_5_package
 from "parts/BOOMELE_2_54_1_6P/BOOMELE_2_54_1_6P.ato" import BOOMELE_2_54_1_6P_package
 from "parts/BOOMELE_2_54_1x6P/BOOMELE_2_54_1x6P.ato" import BOOMELE_2_54_1x6P_package
 from "parts/BOOMELE_2_54_1_8P/BOOMELE_2_54_1_8P.ato" import BOOMELE_2_54_1_8P_package
@@ -19,6 +19,7 @@ from "parts/XFCN_PZ254V_11_02P/XFCN_PZ254V_11_02P.ato" import XFCN_PZ254V_11_02P
 from "parts/XFCN_PZ254V_12_16P/XFCN_PZ254V_12_16P.ato" import XFCN_PZ254V_12_16P_package
 from "parts/Megastar_ZX_PZ2_54_2_10PZZ/Megastar_ZX_PZ2_54_2_10PZZ.ato" import Megastar_ZX_PZ2_54_2_10PZZ_package
 from "parts/CONNFLY_Elec_DS1023_2_10SF11/CONNFLY_Elec_DS1023_2_10SF11.ato" import CONNFLY_Elec_DS1023_2_10SF11_package
+from "parts/XFCN_PZ254V_11_08P/XFCN_PZ254V_11_08P.ato" import XFCN_PZ254V_11_08P_package
 
 module Female_2_54mm_1x2P_TH:
     """1x2 pin header"""
@@ -81,7 +82,7 @@ module Female_2_54mm_1x5P_TH:
 
 module Male_2_54mm_1x5P_TH:
     """1x5 pin header"""
-    package = new hanxia_HX_PZ2_0_1x5P_ZZ_package
+    package = new ZHOURI_2_54_1_5_package
     pins = new Electrical[5]
     pins[0] ~ package.1
     pins[1] ~ package.2
@@ -114,6 +115,19 @@ module Male_2_54mm_1x6P_TH:
 module Female_2_54mm_1x8P_TH:
     """1x8 pin header"""
     package = new BOOMELE_2_54_1_8P_package
+    pins = new Electrical[8]
+    pins[0] ~ package.1
+    pins[1] ~ package.2
+    pins[2] ~ package.3
+    pins[3] ~ package.4
+    pins[4] ~ package.5
+    pins[5] ~ package.6
+    pins[6] ~ package.7
+    pins[7] ~ package.8
+
+module Male_2_54mm_1x8P_TH:
+    """1x8 pin header"""
+    package = new XFCN_PZ254V_11_08P_package
     pins = new Electrical[8]
     pins[0] ~ package.1
     pins[1] ~ package.2
