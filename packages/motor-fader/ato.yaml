@@ -1,0 +1,25 @@
+requires-atopile: "^0.12.4"
+paths:
+  src: "./"
+  layout: ./layouts
+builds:
+  default:
+    entry: motor-fader.ato:ALPS_ALPINE_RS60N11M9A0F
+    hide_designators: true
+    exclude_checks:
+      - 'PCB.requires_drc_check'
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+      - 'PCB.requires_drc_check'
+package:
+  identifier: atopile/motor-fader
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/motor-fader/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: ALPS Alpine RS60N11M9A0F motor fader with H-bridge driver and resistance sense usage example.
+  license: MIT

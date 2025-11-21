@@ -1,0 +1,53 @@
+import Electrical, ElectricPower, ElectricSignal
+
+from "parts/ALPSALPINE_RS60N11M9A0F/ALPSALPINE_RS60N11M9A0F.ato" import ALPSALPINE_RS60N11M9A0F_package
+
+module ALPS_ALPINE_RS60N11M9A0F:
+    # --- Package ---
+    package = new ALPSALPINE_RS60N11M9A0F_package
+
+    # --- External Interfaces ---
+    motor_drive_p = new Electrical
+    motor_drive_n = new Electrical
+    """
+    Positive and negative drive signals to the DC motor.
+    """
+    motor_drive_p.required = True
+    motor_drive_n.required = True
+    
+    potentiometer_power = new ElectricPower
+    """
+    Power supply for the potentiometer.
+    """
+    potentiometer_power.required = True
+    assert potentiometer_power.voltage within 40V
+
+    potentiometer_sense = new ElectricSignal
+    """
+    Sense signal from the potentiometer.
+    """
+    potentiometer_sense.required = True
+
+    touch_sense = new Electrical
+    """
+    Touch sense signal from the touch sensor.
+    """
+
+    # --- Package Connections ---
+
+    # Motor
+    motor_drive_p ~ package.A
+    motor_drive_n ~ package.B
+
+    # Potentiometer
+    potentiometer_power.hv ~ package.3
+    potentiometer_sense.line ~ package.2
+    potentiometer_power.lv ~ package.1
+    potentiometer_sense.reference ~ potentiometer_power
+
+    # Touch Sense
+    touch_sense ~ package.T
+
+
+
+

@@ -1,0 +1,78 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import Electrical, ElectricPower, ElectricSignal, ElectricLogic, Capacitor, CapacitorElectrolytic, Resistor
+
+from "parts/Texas_Instruments_DRV8210PDSGR/Texas_Instruments_DRV8210PDSGR.ato" import Texas_Instruments_DRV8210PDSGR_package
+from "parts/Nichicon_UWT1C101MCL1GB/Nichicon_UWT1C101MCL1GB.ato" import Nichicon_UWT1C101MCL1GB_package
+                                                                                                               
+
+module Texas_Instruments_DRV8210PDSGR:
+    package = new Texas_Instruments_DRV8210PDSGR_package
+
+    # --- External Interfaces ---
+    motor_power = new ElectricPower
+    assert motor_power.voltage within 11V
+    motor_out_1 = new ElectricSignal
+    motor_out_2 = new ElectricSignal
+
+    logic_power = new ElectricPower
+    assert logic_power.voltage within 1.65V to 5.5V
+    logic_in_1 = new ElectricLogic
+    logic_in_2 = new ElectricLogic
+
+    n_sleep = new ElectricLogic
+
+    current_sense_voltage = new ElectricSignal
+
+    # --- Connections ---
+    # References
+    gnd = new Electrical
+    gnd ~ package.EP
+    gnd ~ motor_power.lv
+    gnd ~ logic_power.lv
+    
+    motor_out_1.reference ~ motor_power
+    motor_out_2.reference ~ motor_power
+
+    logic_in_1.reference ~ logic_power
+    logic_in_2.reference ~ logic_power
+    n_sleep.reference ~ logic_power
+
+    # Package Connections
+    motor_power.hv ~ package.VM
+    motor_out_1.line ~ package.OUT1
+    motor_out_2.line ~ package.OUT2
+
+    logic_power.hv ~ package.VCC
+    logic_in_1.line ~ package.IN1
+    logic_in_2.line ~ package.IN2
+    n_sleep.line ~ package.nSLEEP
+
+    current_sense_resistor = new Resistor
+    current_sense_resistor.package = "1206"
+    current_sense_resistor.resistance = 1ohm +/- 1%
+    package.GND ~> current_sense_resistor ~> gnd
+    current_sense_voltage.reference ~ logic_power
+    current_sense_voltage.line ~ package.GND
+
+    current_sense_capacitor = new Capacitor
+    current_sense_capacitor.package = "0603"
+    current_sense_capacitor.capacitance = 0.1uF +/- 10%
+    package.GND ~> current_sense_capacitor ~> gnd
+
+    # --- Decoupling Capacitors ---
+    vcc_cap = new Capacitor
+    vcc_cap.package = "0603"
+    vcc_cap.capacitance = 0.1uF +/- 10%
+    assert vcc_cap.max_voltage >= logic_power.voltage * 1.5
+    logic_power.hv ~> vcc_cap ~> logic_power.lv
+
+    vm_cap = new Capacitor
+    vm_cap.package = "0603"
+    vm_cap.capacitance = 0.1uF +/- 10%
+    assert vm_cap.max_voltage >= motor_power.voltage * 1.5
+    motor_power.hv ~> vm_cap ~> motor_power.lv
+
+    vm_bulk_cap = new Nichicon_UWT1C101MCL1GB_package
+    vm_bulk_cap.1 ~ motor_power.hv
+    vm_bulk_cap.2 ~ motor_power.lv

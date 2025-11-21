@@ -1,0 +1,26 @@
+requires-atopile: "^0.12.4"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-drv8210p.ato:Texas_Instruments_DRV8210PDSGR
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/ti-drv8210p
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-drv8210p/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: Texas Instruments; TI; DRV8210; H-Bridge; Motor Driver; Brushed DC Motor; Solenoid Driver; Relay Driver; PWM; PH/EN; Half-Bridge; 1.65-11 V; 1.76 A Peak; Integrated Charge Pump; Low-Power Sleep; UVLO; OCP; TSD; WSON; SOT563"
+  license: MIT
