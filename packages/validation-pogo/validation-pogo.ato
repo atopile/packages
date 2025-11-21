@@ -3,6 +3,9 @@ import Electrical
 
 from "parts/Xinyangze_YZ227415084P_01/Xinyangze_YZ227415084P_01.ato" import Xinyangze_YZ227415084P_01_package
 from "atopile/testpoints/TestPoint.py" import TestPoint
+from "parts/Sinhoo_SMTSO3060CTJ/Sinhoo_SMTSO3060CTJ.ato" import Sinhoo_SMTSO3060CTJ_package
+from "parts/Xinyangze_YZP0265_12060_01/Xinyangze_YZP0265_12060_01.ato" import Xinyangze_YZP0265_12060_01_package
+from "parts/Sinhoo_SMTSO3040CTJ/Sinhoo_SMTSO3040CTJ.ato" import Sinhoo_SMTSO3040CTJ_package
 
 module YZ227415084P:
     """
@@ -16,6 +19,22 @@ module YZ227415084P:
     pogo = new Electrical
     pogo ~ package.1
 
+
+module Sinhoo_SMTSO3060CTJ:
+    """
+    Sinhoo SMTSO3060CTJ M3 6mm tin plated patch round nut
+    """
+
+    package = new Sinhoo_SMTSO3060CTJ_package
+
+module Xinyangze_YZP0265_12060_01:
+    package = new Xinyangze_YZP0265_12060_01_package
+
+    pogo = new Electrical
+    pogo ~ package.1
+
+module Sinhoo_SMTSO3040CTJ:
+    package = new Sinhoo_SMTSO3040CTJ_package
 
 module PogoPoint:
     net = new Electrical
