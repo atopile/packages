@@ -3,7 +3,9 @@
 #pragma experiment("TRAITS")
 
 import I2C
+import ElectricSignal
 import I2S
+import SPI
 import ElectricPower
 import ElectricLogic
 import Resistor
@@ -24,15 +26,46 @@ module Amplifier:
 
 module SPI_Pogo:
     spi = new SPI
-    pogos = new PogoPoint[4]
+    pogos = new PogoPoint[3]
+    spi.sclk.line ~ pogos[0].net
+    spi.miso.line ~ pogos[1].net
+    spi.mosi.line ~ pogos[2].net
 
 module I2C_Pogo:
-    i2c = new I2C
+    #i2c = new I2C
+    i2c_sda = new ElectricLogic
+    i2c_scl = new ElectricLogic
     pogos = new PogoPoint[2]
+    i2c_scl.line ~ pogos[0].net
+    i2c_sda.line ~ pogos[1].net
 
 module I2S_Pogo:
     i2s = new I2S
     pogos = new PogoPoint[4]
+    i2s.sd.line ~ pogos[0].net
+    i2s.ws.line ~ pogos[1].net
+    i2s.sck.line ~ pogos[2].net
+
+module GPIO_Pogo:
+    gpio = new ElectricLogic
+    pogo = new PogoPoint
+    gpio.line ~ pogo.net
+
+module Signal_Pogo:
+    analog = new ElectricSignal
+    pogo = new PogoPoint
+    analog.line ~ pogo.net
+
+module Power_Pogo:
+    power = new ElectricPower
+    pogos = new PogoPoint[2]
+    power.hv ~ pogos[0].net
+    power.lv ~ pogos[1].net
+
+module Rail_Pogo:
+    rail = new ElectricPower
+    pogo = new PogoPoint
+    rail.hv ~ pogo.net
 
 module Usage:
     """
@@ -72,34 +105,80 @@ module Usage:
     amp.i2s ~ dsp.model.i2s_outs[0]
 
 
+    power_pogo = new Power_Pogo
+    power_pogo.power ~ dsp.power
 
-    dsp_pogos = new PogoPoint[4]
-
-    # All (except digital) rails connected
-    dsp.power.hv ~ dsp_pogos[0].net
-    dsp.power.lv ~ dsp_pogos[1].net
-    dsp.model.power_digital.hv ~ dsp_pogos[2].net
-
-    spi_pogo = new SPI_Pogo
-    spi_pogo.spi ~ dsp.model.spi
-    dsp.model.spi_cs ~ dsp_pogos[3].net
-
-    spi_master_pogo = new SPI_Pogo
-    spi_master_pogo.spi ~ dsp.model.spi_master
-    dsp.model.spi_master_cs ~ dsp_pogos[4].net
-
+    # TODO move to dsp?
+    dsp_digital_rail_pogo = new Rail_Pogo
+    dsp_digital_rail_pogo.rail ~ dsp.model.power_digital
+    dsp_spi_pogo = new SPI_Pogo
+    dsp_spi_pogo.spi ~ dsp.model.spi
+    dsp_spi_cs_pogo = new GPIO_Pogo
+    dsp_spi_cs_pogo.gpio ~ dsp.model.spi_cs
+    dsp_spi_master_pogo = new SPI_Pogo
+    dsp_spi_master_pogo.spi ~ dsp.model.spi_master
+    dsp_spi_master_cs_pogo = new GPIO_Pogo
+    dsp_spi_master_cs_pogo.gpio ~ dsp.model.spi_master_cs
     i2c_pogo = new I2C_Pogo
-    i2c_pogo.i2c ~ dsp.model.i2c
-    dsp.model.addressor.address_lines[0] ~ dsp_pogos[5].net
-    dsp.model.addressor.address_lines[1] ~ dsp_pogos[6].net
+    i2c_pogo.i2c_scl ~ dsp.model.i2c.scl
+    i2c_pogo.i2c_sda ~ dsp.model.i2c.sda
+    dsp_i2c_addressor_pogos = new GPIO_Pogo[2]
+    dsp.model.addressor.address_lines[0] ~ dsp_i2c_addressor_pogos[0].gpio
+    dsp.model.addressor.address_lines[1] ~ dsp_i2c_addressor_pogos[1].gpio
+    dsp_i2c_master_pogo = new I2C_Pogo
+    dsp_i2c_master_pogo.i2c_scl ~ dsp.model.i2c_master.scl
+    dsp_i2c_master_pogo.i2c_sda ~ dsp.model.i2c_master.sda
+    dsp_i2s_pogo = new I2S_Pogo[8]
+    dsp.model.i2s_ins[0] ~ dsp_i2s_pogo[0].i2s
+    dsp.model.i2s_ins[1] ~ dsp_i2s_pogo[1].i2s
+    dsp.model.i2s_ins[2] ~ dsp_i2s_pogo[2].i2s
+    dsp.model.i2s_ins[3] ~ dsp_i2s_pogo[3].i2s
+    dsp.model.i2s_outs[0] ~ dsp_i2s_pogo[4].i2s
+    dsp.model.i2s_outs[1] ~ dsp_i2s_pogo[5].i2s
+    dsp.model.i2s_outs[2] ~ dsp_i2s_pogo[6].i2s
+    dsp.model.i2s_outs[3] ~ dsp_i2s_pogo[7].i2s
+    dsp_gpio_pogos = new GPIO_Pogo[14]
+    dsp.model.gpios[0].line ~ dsp_gpio_pogos[0].gpio
+    dsp.model.gpios[1].line ~ dsp_gpio_pogos[1].gpio
+    dsp.model.gpios[2].line ~ dsp_gpio_pogos[2].gpio
+    dsp.model.gpios[3].line ~ dsp_gpio_pogos[3].gpio
+    dsp.model.gpios[4].line ~ dsp_gpio_pogos[4].gpio
+    dsp.model.gpios[5].line ~ dsp_gpio_pogos[5].gpio
+    dsp.model.gpios[6].line ~ dsp_gpio_pogos[6].gpio
+    dsp.model.gpios[7].line ~ dsp_gpio_pogos[7].gpio
+    dsp.model.gpios[8].line ~ dsp_gpio_pogos[8].gpio
+    dsp.model.gpios[9].line ~ dsp_gpio_pogos[9].gpio
+    dsp.model.gpios[10].line ~ dsp_gpio_pogos[10].gpio
+    dsp.model.gpios[11].line ~ dsp_gpio_pogos[11].gpio
+    dsp.model.gpios[12].line ~ dsp_gpio_pogos[12].gpio
+    dsp.model.gpios[13].line ~ dsp_gpio_pogos[13].gpio
+    dsp_aux_adc_inputs_pogos = new Signal_Pogo[6]
+    dsp.model.aux_adc_inputs[0] ~ dsp_aux_adc_inputs_pogos[0].analog
+    dsp.model.aux_adc_inputs[1] ~ dsp_aux_adc_inputs_pogos[1].analog
+    dsp.model.aux_adc_inputs[2] ~ dsp_aux_adc_inputs_pogos[2].analog
+    dsp.model.aux_adc_inputs[3] ~ dsp_aux_adc_inputs_pogos[3].analog
+    dsp.model.aux_adc_inputs[4] ~ dsp_aux_adc_inputs_pogos[4].analog
+    dsp.model.aux_adc_inputs[5] ~ dsp_aux_adc_inputs_pogos[5].analog
+    dsp_spdif_pogos = new Signal_Pogo[2]
+    dsp.model.spdif_in ~ dsp_spdif_pogos[0].analog
+    dsp.model.spdif_out ~ dsp_spdif_pogos[1].analog
+    dsp_temperature_sensor_pogos = new PogoPoint[2]
+    dsp.model.temperature_sensor_in_p ~ dsp_temperature_sensor_pogos[0].net
+    dsp.model.temperature_sensor_in_n ~ dsp_temperature_sensor_pogos[1].net
+    dsp_reset_disable_pogo = new GPIO_Pogo
+    dsp.model.reset_disable.line ~ dsp_reset_disable_pogo.gpio
+    dsp_selfboot_enable_pogo = new GPIO_Pogo
+    dsp.model.selfboot_enable.line ~ dsp_selfboot_enable_pogo.gpio
 
-    i2c_master_pogo = new I2C_Pogo
-    i2c_master_pogo.i2c ~ dsp.model.i2c_master
+    pll_filter_pogos = new PogoPoint[3]
+    dsp.pll_filter.input ~ pll_filter_pogos[0].net
+    dsp.pll_filter.output ~ pll_filter_pogos[1].net
+    dsp.pll_filter.r.unnamed[1] ~ pll_filter_pogos[2].net
 
-    i2s_pogo = new I2S_Pogo[8]
+    oscillator_driver_pogos = new PogoPoint[3]
+    dsp.oscillator_driver.input ~ oscillator_driver_pogos[0].net
+    dsp.oscillator_driver.output ~ oscillator_driver_pogos[1].net
+    dsp.oscillator_driver.xtal.unnamed[0] ~ oscillator_driver_pogos[2].net
 
-    pll_filter_pogos = new PogoPoint[0]
-
-    oscillator_driver_pogos = new PogoPoint[0]
-
-    dvdd_regulator_pogos = new PogoPoint[0]
+    dvdd_regulator_pogos = new PogoPoint
+    dsp.regulator_driver.dvdd ~ dvdd_regulator_pogos.net

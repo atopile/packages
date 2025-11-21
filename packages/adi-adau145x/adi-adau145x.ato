@@ -225,6 +225,7 @@ module ADI_ADAU145x:
     # power_pll PVDD, powers PLL and reference for VCO, externally supplied
 
     # Driver for internal LDO
+    regulator_driver = new _RegulatorDriver
     model.package.IOVDD[0] ~ regulator_driver.iovdd
     model.regulator_vdrive ~ regulator_driver.vdrive
     model.power_digital.hv ~ regulator_driver.dvdd

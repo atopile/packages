@@ -1,8 +1,7 @@
 import Electrical
-#pragma experiment("MODULE_TEMPLATING")
 
 from "parts/Xinyangze_YZ227415084P_01/Xinyangze_YZ227415084P_01.ato" import Xinyangze_YZ227415084P_01_package
-from "atopile/testpoints/TestPoint.py" import TestPoint
+from "parts/GENERIC_TESTPOINT/GENERIC_TESTPOINT.ato" import GENERIC_TESTPOINT
 from "parts/Sinhoo_SMTSO3060CTJ/Sinhoo_SMTSO3060CTJ.ato" import Sinhoo_SMTSO3060CTJ_package
 from "parts/Xinyangze_YZP0265_12060_01/Xinyangze_YZP0265_12060_01.ato" import Xinyangze_YZP0265_12060_01_package
 from "parts/Sinhoo_SMTSO3040CTJ/Sinhoo_SMTSO3040CTJ.ato" import Sinhoo_SMTSO3040CTJ_package
@@ -39,5 +38,5 @@ module Sinhoo_SMTSO3040CTJ:
 module PogoPoint:
     net = new Electrical
 
-    testpoint = new TestPoint<size=1.0, pad_type="SMD", pad_shape="ROUND">
+    testpoint = new GENERIC_TESTPOINT
     testpoint.contact ~ net
