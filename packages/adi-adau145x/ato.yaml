@@ -1,4 +1,4 @@
-requires-atopile: "^0.12.4"
+requires-atopile: ^0.12.4
 
 paths:
   src: ./
@@ -8,18 +8,22 @@ builds:
   default:
     entry: adi-adau145x.ato:ADI_ADAU145x
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
 
 package:
   identifier: atopile/adi-adau145x
   repository: https://github.com/atopile/packages
-  version: "0.1.6"
+  version: 0.1.6
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: Analog Devices ADAU 145x Family (1452, 1451, 1450)
   license: MIT
+dependencies:
+- type: file
+  identifier: atopile/validation-pogo
+  path: ../validation-pogo

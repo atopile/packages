@@ -1,6 +1,8 @@
 import Electrical
+#pragma experiment("MODULE_TEMPLATING")
 
 from "parts/Xinyangze_YZ227415084P_01/Xinyangze_YZ227415084P_01.ato" import Xinyangze_YZ227415084P_01_package
+from "atopile/testpoints/TestPoint.py" import TestPoint
 
 module YZ227415084P:
     """
@@ -13,3 +15,10 @@ module YZ227415084P:
     package = new Xinyangze_YZ227415084P_01_package
     pogo = new Electrical
     pogo ~ package.1
+
+
+module PogoPoint:
+    net = new Electrical
+
+    testpoint = new TestPoint<size=1.0, pad_type="SMD", pad_shape="ROUND">
+    testpoint.contact ~ net

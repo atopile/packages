@@ -22,7 +22,6 @@ import can_bridge_by_name
 from "adi-adau145x-model.ato" import Analog_Devices_ADAU145x_model
 from "parts/Nexperia_PBSS5350X_115/Nexperia_PBSS5350X_115.ato" import Nexperia_PBSS5350X_115_package
 from "parts/TAE_TXM12_288M0004322FBCDO00T/TAE_TXM12_288M0004322FBCDO00T.ato" import TAE_TXM12_288M0004322FBCDO00T_driver
-from "parts/GENERIC_TESTPOINT/GENERIC_TESTPOINT.ato" import GENERIC_TESTPOINT
 
 
 module _BypassCapacitor from Capacitor:
@@ -105,9 +104,26 @@ module _OscillatorDriver:
     xtal.unnamed[1] ~> c_load[1] ~> ground
     xtal.gnd ~> ground
 
-# Hacking using local test point part
-module TestPoint from GENERIC_TESTPOINT:
-    pass
+module _RegulatorDriver:
+    """
+    Driver for internal LDO for DVDD
+    """
+
+    iovdd = new Electrical
+    vdrive = new Electrical
+    dvdd = new Electrical
+
+    bjt_pnp = new BJT #	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
+    bjt_pnp.doping_type = "PNP"
+    bjt_pnp.lcsc_id = "C426844"
+    iovdd ~ bjt_pnp.emitter
+    vdrive ~ bjt_pnp.base
+    bjt_pnp.collector ~> dvdd
+
+    vdrive_min_load_res = new Resistor
+    vdrive_min_load_res.resistance = 1kohm +/- 5%
+    vdrive_min_load_res.package = "R0402"
+    iovdd ~> vdrive_min_load_res ~> vdrive
 
 module ADI_ADAU145x:
     """
@@ -143,14 +159,6 @@ module ADI_ADAU145x:
     ]:
         power ~ rail
 
-    tp_power = new TestPoint
-    tp_power.contact ~ power.hv
-    tp_power_digital = new TestPoint
-    tp_power_digital.contact ~ model.power_digital.hv
-    tp_gnd = new TestPoint
-    tp_gnd.contact ~ power.lv
-    tp_clockout = new TestPoint
-    tp_clockout.contact ~ model.pll_clock_out
 
     # --- Decoupling capacitors ---
     bulk_decoupling_power_caps = new Capacitor[4]
@@ -216,23 +224,10 @@ module ADI_ADAU145x:
     # power_digital DVDD, powers auxilary ADC, externally supplied, max current 690mA
     # power_pll PVDD, powers PLL and reference for VCO, externally supplied
 
-    # DVDD internal LDO
-    output_debug_resistor = new Resistor
-    output_debug_resistor.resistance = 0ohm +/- 0.05
-    output_debug_resistor.package = "R0603"
-
-    bjt_pnp = new BJT #	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
-    bjt_pnp.doping_type = "PNP"
-    bjt_pnp.lcsc_id = "C426844"
-    model.package.IOVDD[0] ~ bjt_pnp.emitter
-    model.package.VDRIVE ~ bjt_pnp.base
-    for dvdd in model.package.DVDD:
-        bjt_pnp.collector ~> output_debug_resistor ~> dvdd
-
-    vdrive_min_load_res = new Resistor
-    vdrive_min_load_res.resistance = 1kohm +/- 5%
-    vdrive_min_load_res.package = "R0402"
-    model.package.IOVDD[0] ~> vdrive_min_load_res ~> model.package.VDRIVE
+    # Driver for internal LDO
+    model.package.IOVDD[0] ~ regulator_driver.iovdd
+    model.regulator_vdrive ~ regulator_driver.vdrive
+    model.power_digital.hv ~ regulator_driver.dvdd
 
     # --- Component specifications ---
     oscillator_driver.xtal -> TAE_TXM12_288M0004322FBCDO00T_driver
