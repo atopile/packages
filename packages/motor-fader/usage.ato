@@ -1,4 +1,6 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
 
 import ElectricPower, ElectricLogic, ElectricSignal
 
@@ -7,6 +9,7 @@ from "atopile/ti-drv8210p/ti-drv8210p.ato" import Texas_Instruments_DRV8210PDSGR
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 from "atopile/espressif-esp32-c3/espressif-esp32-c3-wroom.ato" import ESP32_C3_WROOM_02
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/mounting-holes/MountingHole.py" import MountingHole
 
 
 module Usage:
@@ -21,6 +24,9 @@ module Usage:
     motor_driver = new Texas_Instruments_DRV8210PDSGR
     motor_fader = new ALPS_ALPINE_RS60N11M9A0F
     ldo = new LDK220M_R
+    m2_1 = new MountingHole<metric_screw_size="M2", pad_type="NoPad">
+    m2_2 = new MountingHole<metric_screw_size="M2", pad_type="NoPad">
+
 
     # Power
     power_motor = new ElectricPower
