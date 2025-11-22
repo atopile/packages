@@ -5,6 +5,8 @@ from "parts/GENERIC_TESTPOINT/GENERIC_TESTPOINT.ato" import GENERIC_TESTPOINT
 from "parts/Sinhoo_SMTSO3060CTJ/Sinhoo_SMTSO3060CTJ.ato" import Sinhoo_SMTSO3060CTJ_package
 from "parts/Xinyangze_YZP0265_12060_01/Xinyangze_YZP0265_12060_01.ato" import Xinyangze_YZP0265_12060_01_package
 from "parts/Sinhoo_SMTSO3040CTJ/Sinhoo_SMTSO3040CTJ.ato" import Sinhoo_SMTSO3040CTJ_package
+from "atopile/mounting-holes/MountingHole.py" import MountingHole
+
 
 module YZ227415084P:
     """
@@ -26,17 +28,29 @@ module Sinhoo_SMTSO3060CTJ:
 
     package = new Sinhoo_SMTSO3060CTJ_package
 
-module Xinyangze_YZP0265_12060_01:
-    package = new Xinyangze_YZP0265_12060_01_package
 
-    pogo = new Electrical
-    pogo ~ package.1
+# Application Board ------------------------------------------------------------
+module MountingHole:
+    hole = new MountingHole<metric_screw_size="M3", pad_type="Pad">
 
-module Sinhoo_SMTSO3040CTJ:
-    package = new Sinhoo_SMTSO3040CTJ_package
+module DatumHole:
+    hole = new MountingHole<metric_screw_size="M3", pad_type="Pad">
 
 module PogoPoint:
     net = new Electrical
 
     testpoint = new GENERIC_TESTPOINT
     testpoint.contact ~ net
+
+# Pogoboard --------------------------------------------------------------------
+module PogoBoardMountingNut:
+    package = new Sinhoo_SMTSO3040CTJ_package
+
+module PogoBoardPogo:
+    package = new Xinyangze_YZP0265_12060_01_package
+
+    pogo = new Electrical
+    pogo ~ package.1
+
+module PogoBoardDatum:
+    pass
