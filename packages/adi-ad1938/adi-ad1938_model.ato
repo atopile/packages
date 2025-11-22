@@ -61,15 +61,15 @@ module Analog_Devices_AD1938_model:
     dac_channels[3].analog_right.line ~ package.OR4
 
 
-    adc_channels[0].analog_left.p.line ~ package.ADC1LN
-    adc_channels[0].analog_left.n.line ~ package.ADC1LP
-    adc_channels[0].analog_right.p.line ~ package.ADC1RN
-    adc_channels[0].analog_right.n.line ~ package.ADC1RP
+    adc_channels[0].analog_left.p.line ~ package.ADC1LP
+    adc_channels[0].analog_left.n.line ~ package.ADC1LN
+    adc_channels[0].analog_right.p.line ~ package.ADC1RP
+    adc_channels[0].analog_right.n.line ~ package.ADC1RN
 
-    adc_channels[1].analog_left.p.line ~ package.ADC2LN
-    adc_channels[1].analog_left.n.line ~ package.ADC2LP
-    adc_channels[1].analog_right.p.line ~ package.ADC2RN
-    adc_channels[1].analog_right.n.line ~ package.ADC2RP
+    adc_channels[1].analog_left.p.line ~ package.ADC2LP
+    adc_channels[1].analog_left.n.line ~ package.ADC2LN
+    adc_channels[1].analog_right.p.line ~ package.ADC2RP
+    adc_channels[1].analog_right.n.line ~ package.ADC2RN
 
     i2s_ins = new I2S[4]
     i2s_outs = new I2S[2]
@@ -90,8 +90,8 @@ module Analog_Devices_AD1938_model:
     spi_cs = new ElectricLogic
 
     spi.sclk.line ~ package.CCLK
-    spi.miso.line ~ package.CIN
-    spi.mosi.line ~ package.COUT
+    spi.miso.line ~ package.COUT
+    spi.mosi.line ~ package.CIN
     spi_cs.line ~ package.nCLATCH
 
     xtal_in = new Electrical
