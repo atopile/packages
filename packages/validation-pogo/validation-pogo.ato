@@ -1,3 +1,5 @@
+#pragma experiment("MODULE_TEMPLATING")
+
 import Electrical
 
 from "parts/Xinyangze_YZ227415084P_01/Xinyangze_YZ227415084P_01.ato" import Xinyangze_YZ227415084P_01_package
@@ -30,13 +32,13 @@ module Sinhoo_SMTSO3060CTJ:
 
 
 # Application Board ------------------------------------------------------------
-module MountingHole:
-    hole = new MountingHole<metric_screw_size="M3", pad_type="Pad">
+module DUTMountingHole:
+    hole = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
 
-module DatumHole:
-    hole = new MountingHole<metric_screw_size="M3", pad_type="Pad">
+module DUTDatumHole:
+    hole = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
 
-module PogoPoint:
+module DUTPogoPoint:
     net = new Electrical
 
     testpoint = new GENERIC_TESTPOINT
@@ -53,4 +55,5 @@ module PogoBoardPogo:
     pogo ~ package.1
 
 module PogoBoardDatum:
+    hole = new MountingHole<metric_screw_size="M4", pad_type="NoPad">
     pass

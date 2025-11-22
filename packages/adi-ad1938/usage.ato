@@ -11,11 +11,12 @@ import SPI
 import has_part_removed
 
 from "atopile/adi-ad1938/adi-ad1938.ato" import Analog_Devices_AD1938_driver
-from "atopile/validation-pogo/validation-pogo.ato" import PogoPoint
-from "atopile/validation-pogo/validation-pogo.ato" import Xinyangze_YZP0265_12060_01
-from "atopile/mounting-holes/MountingHole.py" import MountingHole
+
 from "atopile/logos/logos.ato" import atopile_logo_4x4mm
 
+from "atopile/validation-pogo/validation-pogo.ato" import DUTDatumHole
+from "atopile/validation-pogo/validation-pogo.ato" import DUTMountingHole
+from "atopile/validation-pogo/validation-pogo.ato" import DUTPogoPoint
 module Usage:
     """
     AD1938 Example
@@ -51,7 +52,7 @@ module Usage:
     dac_adc.model.adc_channels[1].analog_right.p.line.override_net_name = "adc_1_right_P"
     dac_adc.model.adc_channels[1].analog_right.n.line.override_net_name = "adc_1_right_N"
 
-    pogos = new PogoPoint[44]
+    pogos = new DUTPogoPoint[44]
     # Power rails (driver + model)
     pogos[0].net ~ dac_adc.power.hv
     pogos[1].net ~ dac_adc.power.lv
@@ -110,11 +111,7 @@ module Usage:
     pogos[42].net ~ dac_adc.model.adc_channels[1].analog_right.p.line
     pogos[43].net ~ dac_adc.model.adc_channels[1].analog_right.n.line
 
-    M3_mounting_holes1 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
-    M3_mounting_holes2 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
-    M3_mounting_holes3 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
-    M3_mounting_holes4 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
-    datum_holes1 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
-    datum_holes2 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    M3_mounting_holes = new DUTMountingHole[4]
+    datum_holes = new DUTDatumHole[2]
 
     logo = new atopile_logo_4x4mm

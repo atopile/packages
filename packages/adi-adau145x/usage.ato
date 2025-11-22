@@ -12,7 +12,11 @@ import Resistor
 import has_part_removed
 
 from "atopile/adi-adau145x/adi-adau145x.ato" import ADI_ADAU145x
-from "atopile/validation-pogo/validation-pogo.ato" import PogoPoint
+from "atopile/validation-pogo/validation-pogo.ato" import DUTPogoPoint
+from "atopile/validation-pogo/validation-pogo.ato" import DUTMountingHole
+from "atopile/validation-pogo/validation-pogo.ato" import DUTDatumHole
+from "atopile/validation-pogo/validation-pogo.ato" import PogoBoardPogo
+from "atopile/logos/logos.ato" import atopile_logo_4x4mm
 
 module Microcontroller:
     i2c = new I2C
@@ -26,7 +30,7 @@ module Amplifier:
 
 module SPI_Pogo:
     spi = new SPI
-    pogos = new PogoPoint[3]
+    pogos = new DUTPogoPoint[3]
     spi.sclk.line ~ pogos[0].net
     spi.miso.line ~ pogos[1].net
     spi.mosi.line ~ pogos[2].net
@@ -34,37 +38,41 @@ module SPI_Pogo:
 module I2C_Pogo:
     i2c_sda = new ElectricLogic
     i2c_scl = new ElectricLogic
-    pogos = new PogoPoint[2]
+    pogos = new DUTPogoPoint[2]
     i2c_sda.line ~ pogos[0].net
     i2c_scl.line ~ pogos[1].net
 
 module I2S_Pogo:
     i2s = new I2S
-    pogos = new PogoPoint[3]
+    pogos = new DUTPogoPoint[3]
     i2s.sd.line ~ pogos[0].net
     i2s.ws.line ~ pogos[1].net
     i2s.sck.line ~ pogos[2].net
 
 module GPIO_Pogo:
     gpio = new ElectricLogic
-    pogo = new PogoPoint
+    pogo = new DUTPogoPoint
     gpio.line ~ pogo.net
 
 module Signal_Pogo:
     analog = new ElectricSignal
-    pogo = new PogoPoint
+    pogo = new DUTPogoPoint
     analog.line ~ pogo.net
 
 module Power_Pogo:
     power = new ElectricPower
-    pogos = new PogoPoint[2]
+    pogos = new DUTPogoPoint[2]
     power.hv ~ pogos[0].net
     power.lv ~ pogos[1].net
 
 module Rail_Pogo:
     rail = new ElectricPower
-    pogo = new PogoPoint
+    pogo = new DUTPogoPoint
     rail.hv ~ pogo.net
+
+module MountingHardware:
+    M3_mounting_holes = new DUTMountingHole[4]
+    datum_holes = new DUTDatumHole[2]
 
 module Usage:
     """
@@ -146,25 +154,29 @@ module Usage:
     dsp_spdif_pogos = new Signal_Pogo[2]
     dsp.model.spdif_in ~ dsp_spdif_pogos[0].analog
     dsp.model.spdif_out ~ dsp_spdif_pogos[1].analog
-    dsp_temperature_sensor_pogos = new PogoPoint[2]
+    dsp_temperature_sensor_pogos = new DUTPogoPoint[2]
     dsp.model.temperature_sensor_in_p ~ dsp_temperature_sensor_pogos[0].net
     dsp.model.temperature_sensor_in_n ~ dsp_temperature_sensor_pogos[1].net
     dsp_reset_disable_pogo = new GPIO_Pogo
     dsp.model.reset_disable.line ~ dsp_reset_disable_pogo.gpio
     dsp_selfboot_enable_pogo = new GPIO_Pogo
     dsp.model.selfboot_enable.line ~ dsp_selfboot_enable_pogo.gpio
-    dsp_pll_clkout = new PogoPoint
+    dsp_pll_clkout = new DUTPogoPoint
     dsp.model.pll_clock_out ~ dsp_pll_clkout.net
 
-    pll_filter_pogos = new PogoPoint[3]
+    pll_filter_pogos = new DUTPogoPoint[3]
     dsp.pll_filter.input ~ pll_filter_pogos[0].net
     dsp.pll_filter.output ~ pll_filter_pogos[1].net
     dsp.pll_filter.r.unnamed[1] ~ pll_filter_pogos[2].net
 
-    oscillator_driver_pogos = new PogoPoint[3]
+    oscillator_driver_pogos = new DUTPogoPoint[3]
     dsp.oscillator_driver.input ~ oscillator_driver_pogos[0].net
     dsp.oscillator_driver.output ~ oscillator_driver_pogos[1].net
     dsp.oscillator_driver.xtal.unnamed[0] ~ oscillator_driver_pogos[2].net
 
-    dvdd_regulator_pogos = new PogoPoint
+    dvdd_regulator_pogos = new DUTPogoPoint
     dsp.regulator_driver.dvdd ~ dvdd_regulator_pogos.net
+
+    mounting_hardware = new MountingHardware
+
+    logo = new atopile_logo_4x4mm
