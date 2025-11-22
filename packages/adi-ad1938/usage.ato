@@ -1,6 +1,7 @@
 #pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
 
 import I2S
 import ElectricPower
@@ -10,33 +11,16 @@ import SPI
 import has_part_removed
 
 from "atopile/adi-ad1938/adi-ad1938.ato" import Analog_Devices_AD1938_driver
-
-module Microcontroller:
-    spi = new SPI
-    i2s = new I2S[2]
-    gpio = new ElectricLogic
-
-    trait has_part_removed
-
-module Amplifier:
-    analog_input_left = new ElectricSignal
-    analog_input_right = new ElectricSignal
-
-    trait has_part_removed
-
-module ClockSource:
-    clock_out = new ElectricLogic
-
-    trait has_part_removed
+from "atopile/validation-pogo/validation-pogo.ato" import PogoPoint
+from "atopile/validation-pogo/validation-pogo.ato" import Xinyangze_YZP0265_12060_01
+from "atopile/mounting-holes/MountingHole.py" import MountingHole
+from "atopile/logos/logos.ato" import atopile_logo_4x4mm
 
 module Usage:
     """
     AD1938 Example
     """
     dac_adc = new Analog_Devices_AD1938_driver
-    mcu = new Microcontroller
-    amp = new Amplifier
-    clock_source = new ClockSource
 
     # Power
     power = new ElectricPower
@@ -44,23 +28,9 @@ module Usage:
     assert power.voltage within 3.3V
     power ~ dac_adc.power
 
-    # Reset
-    dac_adc.reset_disable ~ mcu.gpio
+    logic = new ElectricLogic
+    dac_adc.reset_disable ~ logic
 
-    # dac/adc configuration
-
-
-    # SPI - for configuration
-    mcu.spi ~ dac_adc.model.spi
-
-    # I2S - for audio
-    mcu.i2s[0] ~ dac_adc.model.i2s_ins[0]
-    mcu.i2s[1] ~ dac_adc.model.i2s_outs[0]
-    amp.analog_input_left ~ dac_adc.model.dac_channels[0].analog_left
-    amp.analog_input_right ~ dac_adc.model.dac_channels[0].analog_right
-
-    # clock
-    clock_source.clock_out.line ~ dac_adc.model.pll_clock_in
 
     # override net names
     dac_adc.model.dac_channels[0].analog_left.line.override_net_name = "dac_0_left"
@@ -80,3 +50,71 @@ module Usage:
     dac_adc.model.adc_channels[1].analog_left.n.line.override_net_name = "adc_1_left_N"
     dac_adc.model.adc_channels[1].analog_right.p.line.override_net_name = "adc_1_right_P"
     dac_adc.model.adc_channels[1].analog_right.n.line.override_net_name = "adc_1_right_N"
+
+    pogos = new PogoPoint[44]
+    # Power rails (driver + model)
+    pogos[0].net ~ dac_adc.power.hv
+    pogos[1].net ~ dac_adc.power.lv
+    pogos[2].net ~ dac_adc.model.power_io.hv
+    pogos[3].net ~ dac_adc.model.power_io.lv
+    pogos[4].net ~ dac_adc.model.power_analog.hv
+    pogos[5].net ~ dac_adc.model.power_analog.lv
+
+    # Control and reference nets
+    pogos[6].net ~ dac_adc.reset_disable.line
+    pogos[7].net ~ dac_adc.model.pll_clock_in
+    pogos[8].net ~ dac_adc.model.pll_filter
+    pogos[9].net ~ dac_adc.model.pll_clock_out
+    pogos[10].net ~ dac_adc.model.common_mode_reference
+    pogos[11].net ~ dac_adc.model.voltage_reference
+    # pogos[12].net
+    pogos[13].net ~ dac_adc.pll_filter.r.p2
+
+    # SPI
+    pogos[14].net ~ dac_adc.model.spi.sclk.line
+    pogos[15].net ~ dac_adc.model.spi.miso.line
+    pogos[16].net ~ dac_adc.model.spi.mosi.line
+    pogos[17].net ~ dac_adc.model.spi_cs.line
+
+    # I2S inputs
+    pogos[18].net ~ dac_adc.model.i2s_ins[0].sd.line
+    pogos[19].net ~ dac_adc.model.i2s_ins[1].sd.line
+    pogos[20].net ~ dac_adc.model.i2s_ins[2].sd.line
+    pogos[21].net ~ dac_adc.model.i2s_ins[3].sd.line
+    pogos[22].net ~ dac_adc.model.i2s_ins[0].ws.line
+    pogos[23].net ~ dac_adc.model.i2s_ins[0].sck.line
+
+    # I2S outputs
+    pogos[24].net ~ dac_adc.model.i2s_outs[0].sd.line
+    pogos[25].net ~ dac_adc.model.i2s_outs[1].sd.line
+    pogos[26].net ~ dac_adc.model.i2s_outs[0].ws.line
+    pogos[27].net ~ dac_adc.model.i2s_outs[0].sck.line
+
+    # DAC analog outputs
+    pogos[28].net ~ dac_adc.model.dac_channels[0].analog_left.line
+    pogos[29].net ~ dac_adc.model.dac_channels[0].analog_right.line
+    pogos[30].net ~ dac_adc.model.dac_channels[1].analog_left.line
+    pogos[31].net ~ dac_adc.model.dac_channels[1].analog_right.line
+    pogos[32].net ~ dac_adc.model.dac_channels[2].analog_left.line
+    pogos[33].net ~ dac_adc.model.dac_channels[2].analog_right.line
+    pogos[34].net ~ dac_adc.model.dac_channels[3].analog_left.line
+    pogos[35].net ~ dac_adc.model.dac_channels[3].analog_right.line
+
+    # ADC differential inputs
+    pogos[36].net ~ dac_adc.model.adc_channels[0].analog_left.p.line
+    pogos[37].net ~ dac_adc.model.adc_channels[0].analog_left.n.line
+    pogos[38].net ~ dac_adc.model.adc_channels[0].analog_right.p.line
+    pogos[39].net ~ dac_adc.model.adc_channels[0].analog_right.n.line
+    pogos[40].net ~ dac_adc.model.adc_channels[1].analog_left.p.line
+    pogos[41].net ~ dac_adc.model.adc_channels[1].analog_left.n.line
+    pogos[42].net ~ dac_adc.model.adc_channels[1].analog_right.p.line
+    pogos[43].net ~ dac_adc.model.adc_channels[1].analog_right.n.line
+
+    M3_mounting_holes1 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    M3_mounting_holes2 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    M3_mounting_holes3 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    M3_mounting_holes4 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    datum_holes1 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+    datum_holes2 = new MountingHole<metric_screw_size="M3", pad_type="NoPad">
+
+    logo = new atopile_logo_4x4mm
