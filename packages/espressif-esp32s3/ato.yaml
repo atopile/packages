@@ -1,0 +1,26 @@
+requires-atopile: "^0.12.0"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: espressif-esp32s3.ato:Espressif_ESP32S3
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/espressif-esp32s3
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/espressif-esp32s3/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Espressif ESP32-S3-WROOM-1/1U Module
+  license: MIT
