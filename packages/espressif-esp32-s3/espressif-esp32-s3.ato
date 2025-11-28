@@ -14,7 +14,7 @@ from "atopile/buttons/buttons.ato" import VerticalButton
 
 from "parts/Espressif_Systems_ESP32_S3_WROOM_1_N16R8/Espressif_Systems_ESP32_S3_WROOM_1_N16R8.ato" import Espressif_Systems_ESP32_S3_WROOM_1_N16R8_package
 
-module Espressif_ESP32S3:
+module Espressif_ESP32_S3:
     """
     Espressif ESP32-S3-WROOM-1/1U Module
     """
@@ -51,7 +51,6 @@ module Espressif_ESP32S3:
     boot_switch = new Button
     boot_pullup_resistor = new Resistor
     reset_switch = new Button
-    reset_pullup_resistor = new Resistor
 
     # Boot Switch (IO0)
     # Boot mode: IO0 held low during reset
@@ -81,8 +80,8 @@ module Espressif_ESP32S3:
 
     # UART0
     uart0 = new UART
-    uart0.base_uart.tx ~ ic.TXD0
-    uart0.base_uart.rx ~ ic.RXD0
+    uart0.base_uart.tx.line ~ ic.TXD0
+    uart0.base_uart.rx.line ~ ic.RXD0
 
     # USB
     usb = new USB2_0

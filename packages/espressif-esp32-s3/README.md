@@ -18,16 +18,21 @@ This package provides the module definition for the ESP32-S3-WROOM-1 and ESP32-S
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import USB2_0
-import Espressif_ESP32S3 from "espressif-esp32s3/espressif-esp32s3.ato"
+import has_part_removed
+from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
 
 # Mock modules for usage example
 module USBCConn:
+    trait has_part_removed
     power = new ElectricPower
     usb = new USB2_0
 
 module LDO:
+    trait has_part_removed
     power_in = new ElectricPower
     power_out = new ElectricPower
     v_out = 3.3V
@@ -36,7 +41,7 @@ module Usage:
     """
     Example usage of ESP32-S3
     """
-    mcu = new Espressif_ESP32S3
+    mcu = new Espressif_ESP32_S3
 
     # Components
     usb = new USBCConn
@@ -52,6 +57,7 @@ module Usage:
 
     # LDO Config
     ldo.v_out = 3.3V
+
 ```
 
 ## Pin Mapping
