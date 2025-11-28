@@ -5,6 +5,10 @@ import ElectricLogic
 import DifferentialPair
 
 from "atopile/maxlinear-sp3485/maxlinear-sp3485.ato" import MaxLinear_SP3485
+from "atopile/validation-pogo/validation-pogo.ato" import DUTPogoPoint
+from "atopile/validation-pogo/validation-pogo.ato" import DUTDatumHole
+from "atopile/validation-pogo/validation-pogo.ato" import DUTMountingHole
+from "atopile/logos/logos.ato" import atopile_logo_4x4mm
 
 
 module Usage:
@@ -40,3 +44,22 @@ module Usage:
   # RS-485 bus
   rs485_bus = new DifferentialPair
   rs485_bus ~ transceiver.rs485_bus
+
+  # Test points
+  pogos = new DUTPogoPoint[8]
+  # Power rails
+  pogos[0].net ~ power_3v3.hv
+  pogos[1].net ~ power_3v3.lv
+  # MCU-side UART and control
+  pogos[2].net ~ mcu_tx.line
+  pogos[3].net ~ mcu_rx.line
+  pogos[4].net ~ ctrl_de.line
+  pogos[5].net ~ ctrl_re_n.line
+  # RS-485 differential bus
+  pogos[6].net ~ rs485_bus.p.line
+  pogos[7].net ~ rs485_bus.n.line
+
+  M3_mounting_holes = new DUTMountingHole[4]
+  datum_holes = new DUTDatumHole[2]
+
+  logo = new atopile_logo_4x4mm
