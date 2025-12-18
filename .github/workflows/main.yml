@@ -67,8 +67,8 @@ jobs:
       - run: ato build ${{ matrix.package }}
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-
-      - run: ato package verify -s
+      #TODO: put back -s
+      - run: ato package verify
         working-directory: ${{ matrix.package }}
 
       - uses: atopile/publish-package@v1

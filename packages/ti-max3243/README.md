@@ -21,9 +21,12 @@ Texas Instruments MAX3243 is a 3V to 5.5V multichannel RS-232 line driver and re
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import ElectricPower, ElectricLogic
-import RS232, UART
-import Resistor, Capacitor
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import Resistor
+import RS232
+import UART
 
 from "atopile/ti-max3243/ti-max3243.ato" import TI_MAX3243
 
