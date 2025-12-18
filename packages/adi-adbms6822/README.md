@@ -18,7 +18,9 @@ For a guide on getting started with this transceiver checkout: https://blog.atop
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 
-import DifferentialPair, ElectricPower, Resistor
+import DifferentialPair
+import ElectricPower
+import Resistor
 
 from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
 from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
