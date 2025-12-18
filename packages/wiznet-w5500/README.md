@@ -27,7 +27,7 @@ import Ethernet
 import Resistor
 import SPI
 
-from "wiznet-w5500.ato" import Wiznet_W5500
+from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
 
 module Usage:
     """
