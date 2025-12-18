@@ -20,9 +20,12 @@ The W5500 is a hardwired TCP/IP embedded Ethernet controller that enables easier
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
 
-import Resistor, Capacitor
-import SPI, ElectricPower, ElectricLogic
+import Capacitor
+import ElectricLogic
+import ElectricPower
 import Ethernet
+import Resistor
+import SPI
 
 from "wiznet-w5500.ato" import Wiznet_W5500
 

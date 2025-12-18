@@ -1,9 +1,16 @@
+# RJ45 Connectors
+
+## Usage
+
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
 
-import Ethernet, ElectricPower, ElectricLogic, Electrical
+import Electrical
+import ElectricLogic
+import ElectricPower
+import Ethernet
 
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Vertical_SMD
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
@@ -65,3 +72,11 @@ module Usage:
     # Connect shield to ground
     rj45_8port.shield ~ power_3v3.lv
 ```
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or pull requests.
+
+## License
+
+This package is provided under the [MIT License](https://opensource.org/license/mit).

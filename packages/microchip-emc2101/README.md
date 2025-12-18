@@ -30,7 +30,9 @@ A comprehensive driver for the Microchip EMC2101 temperature monitoring and PWM 
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-import I2C, ElectricPower, ElectricLogic
+import ElectricLogic
+import ElectricPower
+import I2C
 from "atopile/microchip-emc2101/microchip-emc2101.ato" import Microchip_EMC2101
 
 module Usage:
