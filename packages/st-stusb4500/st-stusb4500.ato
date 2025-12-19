@@ -2,6 +2,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 import Capacitor
@@ -16,6 +17,7 @@ import Diode
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
 
 from "parts/STMicroelectronics_STUSB4500QTR/STMicroelectronics_STUSB4500QTR.ato" import STMicroelectronics_STUSB4500QTR_package
+from "parts/ElecSuper_CDSOD323_T24SC/ElecSuper_CDSOD323_T24SC.ato" import ElecSuper_CDSOD323_T24SC_package
 
 module STUSB4500_driver:
     """
@@ -145,10 +147,14 @@ module STUSB4500_driver:
     power_vbus.lv ~> vbus_esd_diode ~> power_vbus.hv
     vsink_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
     power_vsink.lv ~> vsink_esd_diode ~> power_vsink.hv
+
     cc1_esd_diode = new CDSOD323_T24SC
-    cc1.line ~> cc1_esd_diode ~> power_vbus.lv
+    cc1.line ~ cc1_esd_diode.cathode
+    power_vbus.lv ~ cc1_esd_diode.anode
+
     cc2_esd_diode = new CDSOD323_T24SC
-    cc2.line ~> cc2_esd_diode ~> power_vbus.lv
+    cc2.line ~ cc2_esd_diode.cathode
+    power_vbus.lv ~ cc2_esd_diode.anode
 
     # --- Pass FET parts ---
     vsink_mosfet = new MOSFET
@@ -221,7 +227,10 @@ module STMicroelectronics_ESDA25P35_1U1M from Diode:
     anode ~ pin 2
     cathode ~ pin 1
 
-module CDSOD323_T24SC from TVS:
-    lcsc_id = "C22363664"
-    anode ~ pin 1
-    cathode ~ pin 2
+module CDSOD323_T24SC:
+    package = new ElecSuper_CDSOD323_T24SC_package
+    anode = new Electrical
+    cathode = new Electrical
+
+    anode ~ package.A
+    cathode ~ package.K
