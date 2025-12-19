@@ -10,7 +10,6 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import EnablePin
 import has_single_electric_reference_shared
 from "regulators.ato" import AdjustableRegulator
 
@@ -50,11 +49,11 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     # --- External interfaces ---
     # power_in from regulator
     # power_out from regulator
-    enable = new ElectricLogic #TODO: support EnablePin
+    enable = new ElectricLogic
     """
     Enable the regulator (active high)
     """
-    enable.line.required = True # TODO: should be enable.line
+    enable.line.required = True
 
     power_good = new ElectricLogic
     """
