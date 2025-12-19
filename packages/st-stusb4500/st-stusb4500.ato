@@ -10,7 +10,6 @@ import Resistor
 import I2C
 import USB2_0
 import Addressor
-import TVS
 import MOSFET
 import Diode
 
@@ -144,9 +143,12 @@ module STUSB4500_driver:
 
     # ESD diodes
     vbus_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
-    power_vbus.lv ~> vbus_esd_diode ~> power_vbus.hv
+    power_vbus.hv ~ vbus_esd_diode.cathode
+    power_vbus.lv ~ vbus_esd_diode.anode
+
     vsink_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
-    power_vsink.lv ~> vsink_esd_diode ~> power_vsink.hv
+    power_vsink.hv ~ vsink_esd_diode.cathode
+    power_vsink.lv ~ vsink_esd_diode.anode
 
     cc1_esd_diode = new CDSOD323_T24SC
     cc1.line ~ cc1_esd_diode.cathode
@@ -222,10 +224,13 @@ module STUSB4500_USBC_Connector:
     driver.cc1 ~ usb_connector.connector.cc[0]
     driver.cc2 ~ usb_connector.connector.cc[1]
 
-module STMicroelectronics_ESDA25P35_1U1M from Diode:
-    lcsc_id = "C1974707"
-    anode ~ pin 2
-    cathode ~ pin 1
+module STMicroelectronics_ESDA25P35_1U1M:
+    package = new STMicroelectronics_ESDA25P35_1U1M_package
+    anode = new Electrical
+    cathode = new Electrical
+
+    anode ~ package.2
+    cathode ~ package.1
 
 module CDSOD323_T24SC:
     package = new ElecSuper_CDSOD323_T24SC_package
