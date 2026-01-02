@@ -1,0 +1,90 @@
+/*
+ * Motor Fader Firmware - Device Tree Overlay for ESP32-S3
+ * 
+ * Pin Assignments (from usage.ato):
+ *   GPIO4  - Motor IN1 (PWM)
+ *   GPIO5  - Motor IN2 (PWM)
+ *   GPIO6  - Driver nSLEEP (GPIO output)
+ *   GPIO2  - Potentiometer sense (ADC)
+ *   GPIO3  - Current sense (ADC)
+ *   GPIO1  - Touch sense
+ */
+
+/ {
+    aliases {
+        motor-in1 = &motor_in1_pwm;
+        motor-in2 = &motor_in2_pwm;
+        motor-sleep = &gpio0;
+        pot-sense = &adc0;
+        current-sense = &adc0;
+    };
+
+    chosen {
+        zephyr,console = &usb_serial;
+        zephyr,shell-uart = &usb_serial;
+    };
+
+    /* Motor control GPIOs */
+    motor_gpios {
+        compatible = "gpio-leds";
+        
+        motor_sleep: motor_sleep {
+            gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+            label = "Motor Driver nSLEEP";
+        };
+    };
+};
+
+/* PWM configuration for motor control */
+&ledc0 {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+    
+    /* Motor IN1 - PWM Channel 0 on GPIO4 */
+    motor_in1_pwm: motor_in1_pwm@0 {
+        reg = <0>;
+        channel = <0>;
+        timer = <0>;
+        gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+    };
+    
+    /* Motor IN2 - PWM Channel 1 on GPIO5 */
+    motor_in2_pwm: motor_in2_pwm@1 {
+        reg = <1>;
+        channel = <1>;
+        timer = <0>;
+        gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+    };
+};
+
+/* ADC configuration for position and current sensing */
+&adc0 {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+    
+    /* Potentiometer sense on GPIO2 (ADC1_CH1) */
+    channel@1 {
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+    
+    /* Current sense on GPIO3 (ADC1_CH2) */
+    channel@2 {
+        reg = <2>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+};
+
+/* USB CDC for console */
+&usb_serial {
+    status = "okay";
+};
+

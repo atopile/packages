@@ -1,0 +1,21 @@
+# West manifest for Motor Fader Firmware
+# This tells west where to find Zephyr and any additional modules
+
+manifest:
+  version: "1.0"
+
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: v3.6.0
+      import:
+        name-allowlist:
+          - hal_espressif
+
+  self:
+    path: motor-fader-firmware
+

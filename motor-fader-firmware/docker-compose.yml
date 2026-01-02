@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  zephyr-build:
+    image: zephyrprojectrtos/ci:v0.26.13
+    container_name: motor-fader-zephyr
+    working_dir: /workdir
+    volumes:
+      - .:/workdir
+      - zephyr-cache:/root/.cache
+    environment:
+      - ZEPHYR_BASE=/opt/toolchains/zephyr-sdk-0.16.5/zephyr
+      - ESPRESSIF_TOOLCHAIN_PATH=/opt/toolchains/zephyr-sdk-0.16.5
+    command: /bin/bash -c "west init -l . && west update && west build -b esp32s3_devkitm"
+    tty: true
+    stdin_open: true
+
+  # Interactive shell for development
+  shell:
+    image: zephyrprojectrtos/ci:v0.26.13
+    container_name: motor-fader-shell
+    working_dir: /workdir
+    volumes:
+      - .:/workdir
+      - zephyr-cache:/root/.cache
+    environment:
+      - ZEPHYR_BASE=/opt/toolchains/zephyr-sdk-0.16.5/zephyr
+    tty: true
+    stdin_open: true
+    entrypoint: /bin/bash
+
+volumes:
+  zephyr-cache:
+
