@@ -1,7 +1,7 @@
 #pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 import ElectricLogic
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 import Capacitor
 from "regulators.ato" import AdjustableLDO
@@ -43,6 +43,6 @@ module LDK220M_R from AdjustableLDO:
     feedback_divider.r_top.package = "0402"
     feedback_divider.r_bottom.package = "0402"
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     power_out ~ feedback_divider.power

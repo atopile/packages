@@ -10,7 +10,7 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import has_single_electric_reference_shared
+import has_single_electric_reference
 from "regulators.ato" import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS82130SILR/Texas_Instruments_TPS82130SILR.ato" import Texas_Instruments_TPS82130SILR_package
@@ -102,7 +102,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     feedback_divider.r_top.package = "0201"
     feedback_divider.output ~ _feedback
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     # --- Calculations ---
     # soft start time

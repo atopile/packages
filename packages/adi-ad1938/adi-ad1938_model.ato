@@ -9,7 +9,7 @@ import Capacitor
 import Resistor
 import SPI
 import DifferentialPair
-import has_single_electric_reference_shared
+import has_single_electric_reference
 import has_part_removed
 
 from "atopile/adi-ad1938/adi-ad1938_family.ato" import Analog_Devices_AD1938_package_family
@@ -124,7 +124,7 @@ module Analog_Devices_AD1938_model:
     reset_disable.required = True
 
     # logic references
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     for logic in [
         spi,

@@ -13,7 +13,7 @@ import USB3
 import UART
 import Ethernet
 import HDMI
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/HRS_DF40C_100DS_0_4V_51/HRS_DF40C_100DS_0_4V_51.ato" import HRS_DF40C_100DS_0_4V_51_package
 from "parts/Sinhoo_SMTSO2515CTJ/Sinhoo_SMTSO2515CTJ.ato" import Sinhoo_SMTSO2515CTJ_package
@@ -140,7 +140,7 @@ module RPI_CM5:
     ethernet_sync.reference ~ gpio_ref
     eeprom_wp.reference ~ gpio_ref
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     # HDI-A Pinout (based on cm5.py)
     hdi_a.pins[0] ~ power_5v.lv  # GND

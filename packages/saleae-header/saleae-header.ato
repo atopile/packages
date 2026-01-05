@@ -11,7 +11,7 @@ import SPI
 import UART
 import USB2_0
 
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package # C3294462
 from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package # C2897424
@@ -36,7 +36,7 @@ module SaleaeHeaderVertical:
     channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     channels[0].reference_shim.lv ~ package.1
     channels[1].reference_shim.lv ~ package.3
@@ -84,7 +84,7 @@ module SaleaeHeaderRightAngle:
     channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     channels[0].reference_shim.lv ~ package.1
     channels[1].reference_shim.lv ~ package.3

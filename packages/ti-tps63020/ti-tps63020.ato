@@ -11,7 +11,7 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import has_single_electric_reference_shared
+import has_single_electric_reference
 from "regulators.ato" import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS63020DSJR/Texas_Instruments_TPS63020DSJR.ato" import Texas_Instruments_TPS63020DSJR_package
@@ -89,7 +89,7 @@ module TPS63020_driver from AdjustableRegulator:
     inductor.package = "SMD4x4mm"
 
     # other connections
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     # --- Package connections ---
     power_in.hv ~> package.VIN

@@ -22,7 +22,7 @@ import Inductor
 import Resistor
 import has_part_removed
 import can_bridge_by_name
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package
 from "parts/Winbond_Elec_W25Q128JVSIQ/Winbond_Elec_W25Q128JVSIQ.ato" import Winbond_Elec_W25Q128JVSIQ_package
@@ -240,7 +240,7 @@ module Raspberry_Pi_RP2040:
 
     # --- References ---
     # connect all grounds
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     for logic in [
         i2c,

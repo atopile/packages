@@ -5,8 +5,7 @@
 
 from "adi-adau145x-family.ato" import Analog_Devices_ADAU145x_package_family
 
-import has_single_electric_reference_shared
-
+import has_single_electric_reference
 import ElectricPower
 import Electrical
 import SPI
@@ -182,7 +181,7 @@ module Analog_Devices_ADAU145x_model:
     selfboot_enable.line ~ package.SELFBOOT
 
     # logic references
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     for logic in [
         spi,

@@ -11,7 +11,7 @@ import I2S
 import UART_Base
 import Ethernet
 import ElectricLogic
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/PJRC_Teensy_4_1/PJRC_Teensy_4_1.ato" import PJRC_Teensy_4_1_package
 from "parts/Hong_Cheng_HC_PM254_8_5H_1x24PZ/Hong_Cheng_HC_PM254_8_5H_1x24PZ.ato" import Hong_Cheng_HC_PM254_8_5H_1x24PZ_package
@@ -87,7 +87,7 @@ module PJRC_Teensy_4_1:
 
     # --- Internal connections ---
     # logic references
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
     for logic in gpio:
         logic.reference_shim ~ power_3v3
     for logic in spi:

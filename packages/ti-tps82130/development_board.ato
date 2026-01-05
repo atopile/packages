@@ -8,7 +8,7 @@ import Electrical
 import Resistor
 import can_bridge_by_name
 import ResistorVoltageDivider
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "atopile/ti-tps82130/ti-tps82130.ato" import Texas_Instruments_TPS82130
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeader
@@ -200,7 +200,7 @@ module PowerMux:
     output.hv ~ header.pins[5]
     output.hv ~ header.pins[7]
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
 module Male_2_54mm_2x4P_TH:
     """2x4 pin male header"""
