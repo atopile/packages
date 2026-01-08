@@ -3,7 +3,6 @@
 import ElectricLogic
 import ElectricPower
 import JTAG
-import Power
 import SWD
 
 from "parts/Hanbo_Electronic_HB_PH9_12725PB2GOB/Hanbo_Electronic_HB_PH9_12725PB2GOB.ato" import Hanbo_Electronic_HB_PH9_12725PB2GOB_package
@@ -14,12 +13,12 @@ from "parts/Liansheng_BH_00019/Liansheng_BH_00019.ato" import Liansheng_BH_00019
 
 """
 ARM Cortex Debug:
- - Contains JTAG (>=10pin) and SWD (>=6pin) functionality
- - Does not power the target
+    - Contains JTAG ( >= 10pin) and SWD ( >= 6pin) functionality
+    - Does not power the target
 
 TI MSP430 FET/SPI by wire
- - Contains JTAG (>=10pin) and SWD (>=6pin) functionality
- - Can power the target
+    - Contains JTAG ( >= 10pin) and SWD ( >= 6pin) functionality
+    - Can power the target
 """
 
 module HDR_2_54mm_10pin_ARM_Cortex:
@@ -78,7 +77,6 @@ module IDC_2_54mm_10pin_ARM_Cortex:
 
     swd.vtref ~ jtag.vtref
 
-
 module IDC_2_54mm_20pin_ARM:
     connector = new Liansheng_BH_00019_package
 
@@ -131,7 +129,6 @@ module TC2050_ARM_Cortex:
     # connector.8
     # connector.9
     connector.10 ~ swd.reset.line
-
 
 module TC2030_ARM_Cortex:
     connector = new Tag_Connect_TC2030_IDC_NL_2x03_P1_27mm_Vertical_package
