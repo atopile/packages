@@ -57,10 +57,10 @@ module MEMSIC_MMC5603:
     # --- Decoupling capacitors ---
     power_cap = new Capacitor
     power_cap.capacitance = 100nF +/- 20%
-    power_cap.max_voltage = 10V
+    power_cap.max_voltage = 10V to 11V
     power_cap.package = "0402"
 
-    power.hv ~> power_cap ~> power.lv
+    # power.hv ~> power_cap ~> power.lv
 
     # --- Package connections ---
     package = new MEMSIC_MMC5603NJ_package
