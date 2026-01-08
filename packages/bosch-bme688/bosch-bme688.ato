@@ -73,8 +73,8 @@ module Bosch_BME688:
     # Power consumption specifications (typical values)
     # VDD current: 2.1μA (sleep) to 12mA (gas measurement)
     # VDDIO current: < 1μA (typical I/O operation)
-    power_core.current = 2.1uA to 12mA  # Depends on operation mode
-    power_io.current = 0.1uA to 1mA     # I/O interface current
+    power_core.max_current = 2.1uA to 12mA  # Depends on operation mode
+    power_io.max_current = 0.1uA to 1mA  # I/O interface current
 
     # Power sequencing: VDD and VDDIO can be powered simultaneously
     # No specific power-up sequence required
@@ -96,7 +96,7 @@ module Bosch_BME688:
 
     # I2C address selection via SDO pin
     # SDO=0 (GND): Address 0x76, SDO=1 (VDDIO): Address 0x77
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x77  # Default address when SDO floating/high
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
