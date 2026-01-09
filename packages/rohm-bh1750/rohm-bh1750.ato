@@ -11,7 +11,6 @@ import FilterElectricalRC
 
 from "parts/ROHM_Semicon_BH1750FVI_TR/ROHM_Semicon_BH1750FVI_TR.ato" import ROHM_Semicon_BH1750FVI_TR_package
 
-
 module ROHM_BH1750:
     """
     Digital ambient light sensor with I²C interface.
@@ -38,7 +37,7 @@ module ROHM_BH1750:
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
     i2c_address_pulldown_resistor = new Resistor
-    i2c_address_pulldown_resistor.value = 10kohm +/- 10%
+    i2c_address_pulldown_resistor.resistance = 10kohm +/- 10%
     i2c_address_pulldown_resistor.package = "0402"
     power.lv ~> i2c_address_pulldown_resistor ~> package.ADDR
     i2c.address = 0x23

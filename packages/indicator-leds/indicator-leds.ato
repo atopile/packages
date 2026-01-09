@@ -32,13 +32,13 @@ module LEDIndicator:
 
     current = 0.5mA to 3mA # TODO: calculate with brightness (TypicalLuminousIntensity) instead
 
-    assert (power.voltage - led.forward_voltage) / current is resistor.resistance
-    assert (power.voltage - led.forward_voltage) / resistor.resistance is current
-    assert resistor.resistance * current is (power.voltage - led.forward_voltage)
-    assert current <= led.max_current
+    assert (power.voltage - led.diode.forward_voltage) / current is resistor.resistance
+    assert (power.voltage - led.diode.forward_voltage) / resistor.resistance is current
+    assert resistor.resistance * current is (power.voltage - led.diode.forward_voltage)
+    assert current <= led.diode.max_current
 
     assert power.voltage <= 60V
-    assert power.voltage >= led.forward_voltage
+    assert power.voltage >= led.diode.forward_voltage
 
     # Connections
     power.hv ~> led ~> resistor ~> power.lv

@@ -106,15 +106,16 @@ module Usage:
     bootstrap_capacitors = new Capacitor[4]
     for capacitor in bootstrap_capacitors:
         capacitor.capacitance = 220nF +/- 20%
-        capacitor.max_voltage = 50V
         capacitor.package = "0603"
+        capacitor.lcsc_id = "C344195"
 
     # --- Shunt ----
     shunt_resistors = new Resistor[2]
     for shunt_resistor in shunt_resistors:
         shunt_resistor.resistance = 75mohm +/- 1%
-        shunt_resistor.package = "1206"
+        shunt_resistor.package = "R1206"
         shunt_resistor.max_power = 1W
+        shunt_resistor.lcsc_id = "C2904225"
 
     shunt_sense_resistors = new Resistor[4]
     for resistor in shunt_sense_resistors:
@@ -124,8 +125,8 @@ module Usage:
     full_bridge_decoupling_capacitors = new Capacitor[2]
     for capacitor in full_bridge_decoupling_capacitors:
         capacitor.capacitance = 470nF +/- 20%
-        capacitor.max_voltage = 50V
         capacitor.package = "0603"
+        capacitor.lcsc_id = "C513577"
 
     # --- Full Bridges ---
     full_bridge_a = new FullBridge
