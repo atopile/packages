@@ -17,6 +17,7 @@ from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalCon
 
 from "parts/STMicroelectronics_STUSB4500QTR/STMicroelectronics_STUSB4500QTR.ato" import STMicroelectronics_STUSB4500QTR_package
 from "parts/ElecSuper_CDSOD323_T24SC/ElecSuper_CDSOD323_T24SC.ato" import ElecSuper_CDSOD323_T24SC_package
+from "parts/STMicroelectronics_ESDA25P35_1U1M/STMicroelectronics_ESDA25P35_1U1M.ato" import STMicroelectronics_ESDA25P35_1U1M_package
 
 module STUSB4500_driver:
     """
@@ -31,10 +32,10 @@ module STUSB4500_driver:
 
     | ADDR1 | ADDR0 | 7-bit Address |
     |-------|-------|---------------|
-    | 0     | 0     | 0x28          | (Default in this configuration)
-    | 0     | 1     | 0x29          |
-    | 1     | 0     | 0x2A          |
-    | 1     | 1     | 0x2B          |
+    | 0 | 0 | 0x28 | (Default in this configuration)
+    | 0 | 1 | 0x29 |
+    | 1 | 0 | 0x2A |
+    | 1 | 1 | 0x2B |
 
     The full 8-bit address format is: 01010[ADDR1][ADDR0][R/W]
     """
@@ -120,7 +121,7 @@ module STUSB4500_driver:
     power_vsink.lv ~> vsink_cap ~> power_vsink.hv
 
     # Addressing
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     addressor.base = 0x28
     addressor.address_lines[0].line ~ package.ADDR0
     addressor.address_lines[0].reference ~ power_2v7
@@ -210,7 +211,6 @@ module STUSB4500_driver:
 
     package.GND ~ power_vbus.lv
     package.EP ~ power_vbus.lv
-
 
 module STUSB4500_USBC_Connector:
     driver = new STUSB4500_driver

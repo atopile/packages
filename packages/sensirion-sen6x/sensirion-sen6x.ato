@@ -18,8 +18,8 @@ module Sensirion_SEN6X:
     JST-GH connector.
 
     External interfaces:
-      • power – 3.3 V supply rail (3.0 V … 3.6 V)
-      • i2c   – I²C bus interface (fixed address 0x69)
+        • power - 3.3 V supply rail (3.0 V … 3.6 V)
+        • i2c - I²C bus interface (fixed address 0x69)
     """
 
     # --- Package (connector) ---
@@ -42,7 +42,7 @@ module Sensirion_SEN6X:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
