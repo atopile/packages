@@ -69,7 +69,9 @@ module TI_INA228:
     i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
-    i2c.single_electric_reference.reference ~ power
+    # I2C logic reference (for pullup to VCC)
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
 
     # --- I2C pullup resistors ---
     pullup_scl = new Resistor
