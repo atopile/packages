@@ -16,7 +16,6 @@ import ElectricPower
 import I2C
 import USB2_0
 import Resistor
-import LDO
 import has_part_removed
 
 from "atopile/raspberry-rp2040/raspberry-rp2040.ato" import Raspberry_Pi_RP2040

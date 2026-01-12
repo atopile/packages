@@ -82,12 +82,12 @@ module BQ2404XDSQR:
 
     # ISet resistor - 540ohm = 1A to 10.8kohm = 100mA (RISET = 540 / IOUT)
     iset_resistor = new Resistor
-    iset_resistor.p1 ~ package.ISET
-    iset_resistor.p2 ~ package.VSS
+    iset_resistor.unnamed[0] ~ package.ISET
+    iset_resistor.unnamed[1] ~ package.VSS
     iset_resistor.package = "0402"
 
-    # Set default charge current
-    charge_current = 200mA +/- 10%
+    # charge_current must be set by user - no default to avoid solver conflicts
+    # Valid range: 50mA to 1A (based on RISET range)
 
     assert charge_current is 540V / iset_resistor.resistance
     assert iset_resistor.resistance is 540V / charge_current
