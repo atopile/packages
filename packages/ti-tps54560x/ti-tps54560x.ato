@@ -11,7 +11,6 @@ import ElectricSignal
 
 from "parts/Texas_Instruments_TPS54560DDAR/Texas_Instruments_TPS54560DDAR.ato" import Texas_Instruments_TPS54560DDAR_package
 from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U
-from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT
 import AdjustableRegulator
 
 module TI_TPS54560 from AdjustableRegulator:
@@ -30,7 +29,7 @@ module TI_TPS54560 from AdjustableRegulator:
     diode = new STMicroelectronics_STPS340U
     input_caps = new Capacitor[3]
     output_caps = new Capacitor[4]
-    inductor = new Sunlord_SWPA8040S5R6NT
+    inductor = new Inductor
     bootstrap_capacitor = new Capacitor
     compensation_resistor = new Resistor
     compensation_capacitors = new Capacitor[2]
@@ -45,6 +44,11 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Set feedback reference voltage
     assert reference_voltage is 0.8V +/- 0.1%
+
+    # Inductor
+    inductor.inductance = 5.6uH +/- 30%
+    assert inductor.max_current >= power_out.max_current
+    inductor.package = "SMD8x8mm"
 
     # Input caps
     for cap in input_caps:
