@@ -87,18 +87,18 @@
 		)
 	)
 	(net 0 "")
-	(net 1 "CPI")
+	(net 1 "cap_cp-power-hv")
 	(net 2 "38")
 	(net 3 "24")
 	(net 4 "power-vccio")
 	(net 5 "16")
 	(net 6 "power-motor")
-	(net 7 "hv")
+	(net 7 "power_vsa-hv")
 	(net 8 "lv")
 	(net 9 "14")
 	(net 10 "15")
-	(net 11 "SRBH_P")
-	(net 12 "SRAL_N")
+	(net 11 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_b_current_sense.net_name_suffixes[0]' on <Node[Electrical] '0xA89FD.motor_b_current_sense.p.line'>>>SRBH<bound method ...ctrical] '0xA89FD.motor_b_current_sense.p.line'>>>")
+	(net 12 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_a_current_sense.net_name_suffixes[1]' on <Node[Electrical] '0xA89FD.motor_a_current_sense.n.line'>>>SRAL<bound method ...ctrical] '0xA89FD.motor_a_current_sense.n.line'>>>")
 	(net 13 "DIAG0_SWN")
 	(net 14 "37")
 	(net 15 "36")
@@ -110,7 +110,7 @@
 	(net 21 "13")
 	(net 22 "DRV_ENN")
 	(net 23 "39")
-	(net 24 "SRAH_P")
+	(net 24 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_a_current_sense.net_name_suffixes[0]' on <Node[Electrical] '0xA89FD.motor_a_current_sense.p.line'>>>SRAH<bound method ...ctrical] '0xA89FD.motor_a_current_sense.p.line'>>>")
 	(net 25 "DIAG1_SWP")
 	(net 26 "47")
 	(net 27 "46")
@@ -118,8 +118,8 @@
 	(net 29 "2")
 	(net 30 "43")
 	(net 31 "42")
-	(net 32 "SRBL_N")
-	(net 33 "VCP")
+	(net 32 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_b_current_sense.net_name_suffixes[1]' on <Node[Electrical] '0xA89FD.motor_b_current_sense.n.line'>>>SRBL<bound method ...ctrical] '0xA89FD.motor_b_current_sense.n.line'>>>")
+	(net 33 "cap_vcp-power-hv")
 	(net 34 "35")
 	(net 35 "41")
 	(net 36 "power-vcc")
@@ -149,7 +149,7 @@
 				)
 			)
 		)
-		(property "Value" "{4.229999992996454e-06..5.170000007003546e-06}F"
+		(property "Value" "4.7e-06F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -233,7 +233,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 4.229999992996454e-06, \"max\": 5.170000007003546e-06}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 4.229999992996454e-06, \"max\": 5.170000007003546e-06}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -245,7 +245,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -257,7 +257,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -281,7 +281,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{4.229999992996454e-06..5.170000007003546e-06}F"
+		(property "capacitance" "4.7e-06±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -497,7 +497,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -581,7 +581,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -593,7 +593,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -605,7 +605,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -629,7 +629,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -845,7 +845,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999999985098838e-07..1.100000001490116e-06}F"
+		(property "Value" "1e-06F"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -929,7 +929,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098838e-07, \"max\": 1.100000001490116e-06}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098838e-07, \"max\": 1.100000001490116e-06}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -941,7 +941,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -953,7 +953,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -977,7 +977,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999999985098838e-07..1.100000001490116e-06}F"
+		(property "capacitance" "1e-06±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1193,7 +1193,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -1277,7 +1277,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1289,7 +1289,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1301,7 +1301,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1325,7 +1325,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1509,7 +1509,7 @@
 			(at -0.7 0 0)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 33 "VCP")
+			(net 33 "cap_vcp-power-hv")
 			(uuid "bd01fc04-c331-4420-8808-28d4bffaf0cb")
 		)
 		(embedded_fonts no)
@@ -1541,7 +1541,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999999985098837e-06..1.1000000014901161e-05}F"
+		(property "Value" "9.999999999999999e-06F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1625,7 +1625,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1637,7 +1637,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1649,7 +1649,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1673,7 +1673,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999999985098837e-06..1.1000000014901161e-05}F"
+		(property "capacitance" "9.999999999999999e-06±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1878,7 +1878,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999999985098837e-06..1.1000000014901161e-05}F"
+		(property "Value" "9.999999999999999e-06F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1962,7 +1962,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1974,7 +1974,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1986,7 +1986,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2010,7 +2010,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999999985098837e-06..1.1000000014901161e-05}F"
+		(property "capacitance" "9.999999999999999e-06±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2215,7 +2215,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -2299,7 +2299,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2311,7 +2311,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2323,7 +2323,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2347,7 +2347,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2563,7 +2563,7 @@
 				)
 			)
 		)
-		(property "Value" "{4.229999992996454e-06..5.170000007003546e-06}F"
+		(property "Value" "4.7e-06F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2647,7 +2647,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 4.229999992996454e-06, \"max\": 5.170000007003546e-06}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 4.229999992996454e-06, \"max\": 5.170000007003546e-06}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2659,7 +2659,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2671,7 +2671,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X5R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2695,7 +2695,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{4.229999992996454e-06..5.170000007003546e-06}F"
+		(property "capacitance" "4.7e-06±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2911,7 +2911,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -2995,7 +2995,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3007,7 +3007,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3019,7 +3019,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3043,7 +3043,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3259,7 +3259,7 @@
 				)
 			)
 		)
-		(property "Value" "{2.2±1.0%}Ω"
+		(property "Value" "2.2Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -3343,7 +3343,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3355,7 +3355,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3367,7 +3367,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 2.1780000004917386, \"max\": 2.2219999995082618}}]}}, \"unit\": \"\u03a9\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 2.1780000004917386, \"max\": 2.2219999995082618}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3391,7 +3391,7 @@
 				)
 			)
 		)
-		(property "resistance" "{2.2±1.0%}Ω"
+		(property "resistance" "2.2±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3559,7 +3559,7 @@
 				)
 			)
 		)
-		(property "Value" "{1.9799999967217448e-08..2.4200000032782556e-08}F"
+		(property "Value" "2.2000000000000002e-08F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -3643,7 +3643,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 1.9799999967217448e-08, \"max\": 2.4200000032782556e-08}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 1.9799999967217448e-08, \"max\": 2.4200000032782556e-08}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -3655,7 +3655,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 100.0, \"max\": 100.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 100.0, \"max\": 100.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -3667,7 +3667,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -3691,7 +3691,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{1.9799999967217448e-08..2.4200000032782556e-08}F"
+		(property "capacitance" "2.2000000000000002e-08±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3871,7 +3871,7 @@
 			(at -0.7 0 270)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 1 "CPI")
+			(net 1 "cap_cp-power-hv")
 			(uuid "fb66cbf4-05d7-4b24-ab1c-e22f9825aaa9")
 		)
 		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10B223KB8NNNC/C0603_L1.6-W0.8-H0.8.step"
@@ -4217,7 +4217,7 @@
 			(at -1.25 4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "hv")
+			(net 7 "power_vsa-hv")
 			(uuid "4929115b-cf38-425b-96bd-a4c0151861d6")
 		)
 		(pad "5" smd oval
@@ -4238,28 +4238,28 @@
 			(at 0.25 4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "SRAL_N")
+			(net 12 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_a_current_sense.net_name_suffixes[1]' on <Node[Electrical] '0xA89FD.motor_a_current_sense.n.line'>>>SRAL<bound method ...ctrical] '0xA89FD.motor_a_current_sense.n.line'>>>")
 			(uuid "33c3c360-d24f-4b0a-a9b9-4d98149ca3a0")
 		)
 		(pad "8" smd oval
 			(at 0.75 4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 24 "SRAH_P")
+			(net 24 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_a_current_sense.net_name_suffixes[0]' on <Node[Electrical] '0xA89FD.motor_a_current_sense.p.line'>>>SRAH<bound method ...ctrical] '0xA89FD.motor_a_current_sense.p.line'>>>")
 			(uuid "0b7975e6-87e0-4eeb-8e3f-0bcb588c06ba")
 		)
 		(pad "9" smd oval
 			(at 1.25 4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 11 "SRBH_P")
+			(net 11 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_b_current_sense.net_name_suffixes[0]' on <Node[Electrical] '0xA89FD.motor_b_current_sense.p.line'>>>SRBH<bound method ...ctrical] '0xA89FD.motor_b_current_sense.p.line'>>>")
 			(uuid "fec951e4-aaf5-4784-a859-6a63b416af01")
 		)
 		(pad "10" smd oval
 			(at 1.75 4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 32 "SRBL_N")
+			(net 32 "<bound method has_net_name_affix.get_prefix of <has_net_name_affix '0xA89FD.motor_b_current_sense.net_name_suffixes[1]' on <Node[Electrical] '0xA89FD.motor_b_current_sense.n.line'>>>SRBL<bound method ...ctrical] '0xA89FD.motor_b_current_sense.n.line'>>>")
 			(uuid "da19336b-50a2-4434-834f-9a07a2c02df2")
 		)
 		(pad "11" smd oval
@@ -4413,7 +4413,7 @@
 			(at -0.75 -4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 1 "CPI")
+			(net 1 "cap_cp-power-hv")
 			(uuid "1ac8dbe2-a64e-480b-b68e-a14f41d66aba")
 		)
 		(pad "33" smd oval
@@ -4427,7 +4427,7 @@
 			(at -1.75 -4.2 0)
 			(size 0.28 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 33 "VCP")
+			(net 33 "cap_vcp-power-hv")
 			(uuid "a282657b-660c-4b71-ad20-4538b159a687")
 		)
 		(pad "35" smd oval
