@@ -1,0 +1,53 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import Electrical
+import can_bridge_by_name
+
+""" Relay components - base types that part files inherit from """
+
+module Coil:
+    input = new Electrical
+    output = new Electrical
+    voltage: V
+    trait can_bridge_by_name<input_name = "input", output_name = "output">
+
+module SwitchNC:
+    common = new Electrical
+    normally_closed = new Electrical
+    trait can_bridge_by_name<input_name = "common", output_name = "normally_closed">
+
+module SwitchNO:
+    common = new Electrical
+    normally_open = new Electrical
+    trait can_bridge_by_name<input_name = "common", output_name = "normally_open">
+
+module PowerSwitchNC:
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+
+module PowerSwitchNO:
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+
+""" Base relay module """
+
+module Relay:
+    coil = new Coil
+
+""" Standard relay formats """
+
+module RelaySPST from Relay:
+    pass
+
+module RelaySPDT from Relay:
+    switch_nc = new SwitchNC
+    switch_no = new SwitchNO
+
+module RelayDPDT from Relay:
+    switch_nc = new SwitchNC[2]
+    switch_no = new SwitchNO[2]
