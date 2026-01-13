@@ -28,11 +28,11 @@ module TI_INA238:
     - Two configurable address pins (A1, A0) → 4 possible addresses 0x40-0x43
 
     External connections provided by this driver:
-    • power        – Device supply (2.7 V … 5.5 V)
-    • power_in     – High-side sense input (before shunt)
-    • power_out    – High-side sense output (after shunt)
-    • i2c          – I²C bus
-    • alert        – Open-drain ALERT pin (over-limit interrupt)
+    • power – Device supply (2.7 V … 5.5 V)
+    • power_in – High-side sense input (before shunt)
+    • power_out – High-side sense output (after shunt)
+    • i2c – I²C bus
+    • alert – Open-drain ALERT pin (over-limit interrupt)
     """
 
     # --- Package ---
@@ -82,7 +82,7 @@ module TI_INA238:
     # User-defined maximum current parameter
     max_current: current
     # Default to 1 A to provide initial constraint (can be overridden by instantiations)
-    max_current = 1A
+    max_current.default = 1A
 
     # INA238 default full-scale shunt drop (programmable). Use 80 mV typical.
     shunt_drop = 80mV
@@ -111,7 +111,7 @@ module TI_INA238:
     power_in.vcc ~> shunt ~> power_out.vcc
 
     # Mark module as a bridge so it can be inserted inline in power path
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
     # --- Decoupling capacitor on VS ---
     decouple = new Capacitor
@@ -120,7 +120,7 @@ module TI_INA238:
     power.vcc ~> decouple ~> power.gnd
 
     # --- I²C address selection (A1, A0) ---
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     addressor.base = 0x40
 
     # Connect address lines to pins (LSB =A0)
