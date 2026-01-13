@@ -62,6 +62,8 @@ module ST_LSM6DS3TR_C:
     addressor = new Addressor<address_bits=1>
     addressor.base = 0x6A  # Base address when SDO/SA0 = 0
     assert i2c.address is addressor.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
 
     # I2C pull-up resistors (soft pullups)
     i2c_pullups = new Resistor[2]

@@ -108,6 +108,8 @@ module ST_LSM6DSO32:
     addressor.address_lines[0].line ~ sdo_sa0.line
     addressor.address_lines[0].reference ~ power_vddio
     assert addressor.address is i2c.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
     assert i2c.address within 0x6A to 0x6B
 
     # --- CS pull-up for I2C mode ---

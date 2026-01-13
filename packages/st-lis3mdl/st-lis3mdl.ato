@@ -55,6 +55,8 @@ module ST_LIS3MDL:
     addressor.address_lines[0].reference ~ power_io
     addressor.base = 0x1C
     assert addressor.address is i2c.address
+    # Default to base address (0x1C), can be overridden by user
+    i2c.address.default = 0x1C
 
     # --- I²C pull-up resistors ---
     scl_pullup = new Resistor

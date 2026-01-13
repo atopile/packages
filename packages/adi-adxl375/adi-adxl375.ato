@@ -41,6 +41,8 @@ module ADI_ADXL375:
     addressor.address_lines[0].reference ~ power_digital
     assert addressor.base is 0x53
     assert addressor.address is i2c.address
+    # Default to base address (0x53), can be overridden by user
+    i2c.address.default = 0x53
 
     # --- Decoupling capacitors ---
     decoupling_capacitors = new Capacitor[2]

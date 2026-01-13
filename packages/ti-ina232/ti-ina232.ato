@@ -138,6 +138,8 @@ module TI_INA232:
     addressor.i2c ~ i2c
     addressor.address_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
     # --- Decoupling capacitor ---
     decoupling_cap = new Capacitor

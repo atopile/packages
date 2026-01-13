@@ -61,6 +61,8 @@ module ADI_AD5693R:
     addressor = new Addressor<address_bits = 1>
     addressor.base = 0x0C
     assert i2c.address is addressor.address
+    # Default to base address (0x0C), can be overridden by user
+    i2c.address.default = 0x0C
 
     # I2C pull-up resistors (soft pullups in case external ones aren't present)
     i2c_pullups = new Resistor[2]

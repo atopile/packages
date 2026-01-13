@@ -47,6 +47,8 @@ module Microchip_MCP4725_driver:
     addressor.address_lines[0].line ~ package.A0
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x60), can be overridden by user
+    i2c.address.default = 0x60
     assert addressor.base is 0x60
 
 

@@ -78,6 +78,8 @@ module TI_INA237:
     """
     addressor.base = 0x40
     assert i2c.address is addressor.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
     # --- Decoupling capacitors ---
     supply_cap = new Capacitor

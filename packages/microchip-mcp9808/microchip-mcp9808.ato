@@ -84,6 +84,8 @@ module Microchip_MCP9808:
     for address_line in addressor.address_lines:
         address_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x18), can be overridden by user
+    i2c.address.default = 0x18
 
     # I2C pull-up resistors (required for proper I2C operation)
     i2c_pullups = new Resistor[2]

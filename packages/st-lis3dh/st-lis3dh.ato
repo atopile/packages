@@ -116,6 +116,8 @@ module ST_LIS3DH:
     addressor.address_lines[0].line ~ package.SDO_SA0
     addressor.address_lines[0].reference ~ power_io
     assert addressor.address is i2c.address
+    # Default to base address (0x18), can be overridden by user
+    i2c.address.default = 0x18
 
     # --- SPI interface ---
     spi.sclk.line ~ package.SCL_SPC

@@ -58,6 +58,8 @@ module TI_ADS1115:
     addressor.address_lines[0].line ~ package.ADDR
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x48), can be overridden by user
+    i2c.address.default = 0x48
 
     # I2C Pullups
     sda_pullup = new Resistor

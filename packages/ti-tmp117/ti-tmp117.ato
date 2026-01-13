@@ -81,6 +81,8 @@ module TI_TMP117:
     addressor.address_line.reference ~ power
     addressor.i2c ~ i2c
     assert addressor.address is i2c.address
+    # Default to base address (0x48), can be overridden by user
+    i2c.address.default = 0x48
 
     # --- Alert pin ---
     alert.line ~ package.ALERT

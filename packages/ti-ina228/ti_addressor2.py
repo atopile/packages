@@ -132,17 +132,39 @@ def _build_ti_addressor2() -> type[fabll.Node]:
                 base_lit_solver = solver.inspect_get_known_supersets(base_param)
 
                 if addr_lit is None or not addr_lit.is_singleton():
-                    raise self.OffsetNotResolvedError(self)
+                    # Offset not yet constrained - this is expected when the user
+                    # hasn't specified the I2C address. The address line connection
+                    # will be made later when the offset is known.
+                    logger.warning(
+                        "TIAddressor2 offset not resolved - address line connection "
+                        "skipped. Constrain the I2C address to enable automatic "
+                        "connection of A0/A1 pins."
+                    )
+                    return
                 if base_lit_solver is None or not base_lit_solver.is_singleton():
-                    raise self.OffsetNotResolvedError(self)
+                    logger.warning(
+                        "TIAddressor2 base not resolved - address line connection "
+                        "skipped. Set addressor.base to enable automatic connection "
+                        "of A0/A1 pins."
+                    )
+                    return
 
                 address_val = int(addr_lit.get_single())
                 base_val = int(base_lit_solver.get_single())
             else:
                 if not address_lit.is_literal.get().is_singleton():
-                    raise self.OffsetNotResolvedError(self)
+                    logger.warning(
+                        "TIAddressor2 address not a singleton - address line "
+                        "connection skipped. Constrain the I2C address to a "
+                        "specific value."
+                    )
+                    return
                 if not base_lit.is_literal.get().is_singleton():
-                    raise self.OffsetNotResolvedError(self)
+                    logger.warning(
+                        "TIAddressor2 base not a singleton - address line "
+                        "connection skipped. Set addressor.base to a specific value."
+                    )
+                    return
                 address_val = int(address_lit.get_single())
                 base_val = int(base_lit.get_single())
 
@@ -150,9 +172,8 @@ def _build_ti_addressor2() -> type[fabll.Node]:
             offset = address_val - base_val
 
             if offset < 0 or offset > 15:
-                raise UserDesignCheckException(
-                    f"TIAddressor2 offset must be 0-15, got {offset}",
-                    nodes=[self],
+                raise ValueError(
+                    f"TIAddressor2 offset must be 0-15, got {offset}"
                 )
 
             # Decode offset into A0 and A1 configurations

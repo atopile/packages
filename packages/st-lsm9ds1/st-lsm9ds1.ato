@@ -117,6 +117,8 @@ module ST_LSM9DS1:
     addressor.address_lines[0].reference ~ power_io
     addressor.base = 0x6A  # Base address, +1 when SDO_A_G is high (0x6B)
     assert addressor.address is i2c.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
 
     # Note: Magnetometer uses separate internal address (0x1C or 0x1E based on SDO_M pin)
     # Both units share the same I2C bus but are accessed with different slave addresses

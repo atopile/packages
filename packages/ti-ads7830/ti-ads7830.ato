@@ -81,6 +81,8 @@ module TI_ADS7830:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x48), can be overridden by user
+    i2c.address.default = 0x48
 
     # --- Decoupling capacitors ---
     # Main power supply decoupling - 100nF
