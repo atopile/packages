@@ -109,14 +109,14 @@ module Allvision_OLED12832:
     iref_resistor = new Resistor
     iref_resistor.resistance = 560kohm +/- 10%
     iref_resistor.package = "0402"
-    iref_resistor.p2 ~ power_3v3.gnd
+    iref_resistor.unnamed[1] ~ power_3v3.gnd
 
     # Reset pullup
     # Reset pullup resistor
     reset_pullup = new Resistor
     reset_pullup.resistance = 10kohm +/- 10%
     reset_pullup.package = "0402"
-    reset_pullup.p2 ~ power_3v3.vcc
+    reset_pullup.unnamed[1] ~ power_3v3.vcc
 
     # trait has_single_electric_reference<ground_only=True> # Broken AttributeError: 'NoneType' object has no attribute 'lv'
 
@@ -129,7 +129,7 @@ module Allvision_OLED12832:
     package.VCC ~ _power_vcc.vcc
     package.SDA ~ i2c.sda.line
     package.SCL ~ i2c.scl.line
-    package.nRES ~ reset_pullup.p1
-    package.IREF ~ iref_resistor.p1
+    package.nRES ~ reset_pullup.unnamed[0]
+    package.IREF ~ iref_resistor.unnamed[0]
     package.C1N ~> charge_pump_cap_1 ~> package.C1P
     package.C2N ~> charge_pump_cap_2 ~> package.C2P

@@ -71,8 +71,8 @@ module TI_LV2842X from Buck:
     bootstrap_capacitor = new Capacitor
     bootstrap_capacitor.capacitance = 200nF to 1uF
     bootstrap_capacitor.package = "C0402"
-    bootstrap_capacitor.p1 ~ _bootstrap.line
-    bootstrap_capacitor.p2 ~ _power_sw_out.hv
+    bootstrap_capacitor.unnamed[0] ~ _bootstrap.line
+    bootstrap_capacitor.unnamed[1] ~ _power_sw_out.hv
 
     # --- Feedback Divider ---
     assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm
