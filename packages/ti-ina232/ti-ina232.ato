@@ -90,7 +90,7 @@ module TI_INA232:
     Maximum expected current for shunt resistor sizing
     """
     # Default to 1A to provide initial constraint
-    max_current = 1A
+    max_current.default = 1A
 
     # INA232 full-scale shunt voltage range
     shunt_voltage_range = 75mV
@@ -129,7 +129,7 @@ module TI_INA232:
     power_in.vcc ~> shunt ~> power_out.vcc
 
     # Mark module as a bridge so it can be inserted inline in power path
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
     # --- I²C address selection (A0 pin) ---
     addressor = new TIAddressor
