@@ -13,7 +13,6 @@ import ElectricPower
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
-
 module Usage:
     """
     Minimal usage example for `indicator-leds`.
