@@ -1,3 +1,8 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+
 # Circular SMD components
 from "netties.ato" import NetTie_2_SMD_Pad0_5mm
 from "netties.ato" import NetTie_2_SMD_Pad1_0mm
@@ -44,3 +49,13 @@ module Usage:
     nettie4thtpad05mm = new NetTie_4_THT_Pad0_5mm
     nettie4thtpad10mm = new NetTie_4_THT_Pad1_0mm
     nettie4thtpad20mm = new NetTie_4_THT_Pad2_0mm
+
+    power_a = new ElectricPower
+    power_b = new ElectricPower
+    power_c = new ElectricPower
+
+    power_a ~> nettie2smdpad05mm ~> power_b
+    power_a ~> nettie2thtpad05mm ~> power_b
+
+    for pwr in [power_a, power_b, power_c]:
+        pwr ~ nettie3smdpad05mm.power
