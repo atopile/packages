@@ -41,8 +41,10 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     """
 
     # --- Internal module Parameters ---
-    assert power_in.voltage within 3.0V to 17V
-    assert power_out.voltage within 0.9V to 6V
+    assert power_in.voltage is input_voltage
+    assert power_out.voltage is output_voltage
+    assert input_voltage within 3.0V to 17V
+    assert output_voltage within 0.9V to 6V
     # assert soft_start_time_ms within 7ms +/-20%
     assert soft_start_time_ms within 0.1ms to 10ms
 
@@ -70,7 +72,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     # --- Adjustable Regulator Configuration ---
     assert reference_voltage within 0.800V +/- 0.015V
     assert feedback_divider.max_current within 100uA to 1mA
-    assert feedback_divider.r_bottom.resistance <= 100kohm +/- 1%
+    assert feedback_divider.r_bottom.resistance <= 1Mohm +/- 1%
 
     # --- Components & connections ---
     input_power_decoupling_capacitors = new Capacitor[2]
@@ -99,7 +101,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     _soft_start_tracking.line ~> soft_start_capacitor ~> power_in.lv
 
     feedback_divider.r_bottom.package = "0402"
-    feedback_divider.r_top.package = "0201"
+    feedback_divider.r_top.package = "0402"
     feedback_divider.output ~ _feedback
 
     trait has_single_electric_reference<ground_only = True>
