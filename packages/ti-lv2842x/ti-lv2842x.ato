@@ -2,21 +2,20 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
-#pragma experiment("MODULE_TEMPLATING")
+
 import Capacitor
 import Diode
 import Inductor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-import ResistorVoltageDivider
+import AdjustableRegulator
 import has_single_electric_reference
-from "regulators.ato" import Buck
 
 from "parts/Texas_Instruments_LV2842XLVDDCR/Texas_Instruments_LV2842XLVDDCR.ato" import Texas_Instruments_LV2842XLVDDCR_package
 from "parts/Guangdong_Hottech_1N5819WS/Guangdong_Hottech_1N5819WS.ato" import Guangdong_Hottech_1N5819WS_package
 
-module TI_LV2842X from Buck:
+module TI_LV2842X from AdjustableRegulator:
     """
     High Efficiency Wide Input Voltage Range Buck Regulator
 
@@ -37,8 +36,8 @@ module TI_LV2842X from Buck:
     assert power_in.voltage within 4V to 40V
     assert power_out.voltage >= reference_voltage
     assert power_out.voltage <= 40V
-    assert power_out.max_current within 10mA to 600mA # to be specialized by exact IC
-    K_IND = 0.3 # Ripple factor, 30% of Io
+    assert power_out.max_current within 10mA to 600mA  # to be specialized by exact IC
+    K_IND = 0.3  # Ripple factor, 30% of Io
     current_ripple = K_IND * power_out.max_current
     switching_frequency = 325kHz to 1500kHz
 
@@ -52,7 +51,7 @@ module TI_LV2842X from Buck:
     _enable = new ElectricLogic
     _enable.reference ~ power_in
 
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
@@ -87,7 +86,7 @@ module TI_LV2842X from Buck:
 
     # --- Input Capacitor ---
     input_cap = new Capacitor
-    input_cap.power ~ power_in
+    power_in.hv ~> input_cap ~> power_in.lv
     # assert input_cap.max_voltage >= (power_in.voltage * 2) # DC bias derating factor
     assert input_cap.max_voltage >= 100V
     assert input_cap.capacitance within 2.2uF to 10uF
@@ -97,7 +96,7 @@ module TI_LV2842X from Buck:
     output_caps = new Capacitor[5]
     output_capacitance = 0 uF
     for cap in output_caps:
-        cap.power ~ power_out
+        power_out.hv ~> cap ~> power_out.lv
         cap.package = "C1206"
         # assert cap.max_voltage >= power_out.voltage * 2 # DC bias derating factor
         # assert cap.max_voltage >= 49V
@@ -117,9 +116,8 @@ module TI_LV2842X from Buck:
     assert inductor.saturation_current >= power_out.max_current * 1.10
     assert inductor.max_current >= power_out.max_current
     duty = power_out.voltage / power_in.voltage
-    assert duty <= 0.81 # 81% duty cycle is the maximum for the LV2842
+    assert duty <= 0.81  # 81% duty cycle is the maximum for the LV2842
     # voltage_ripple = current_ripple * (ESR + (1/(8*switching_frequency*output_capacitance)))
-
 
 component Diode_1N5819WS from Diode:
     package = new Guangdong_Hottech_1N5819WS_package
