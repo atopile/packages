@@ -19,7 +19,6 @@ from "parts/ZHOURI_PM2_54_1_5/ZHOURI_PM2_54_1_5.ato" import ZHOURI_PM2_54_1_5_pa
 from "parts/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A.ato" import Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A_package
 from "parts/Xinyangze_YZ88715155P_02025_01/Xinyangze_YZ88715155P_02025_01.ato" import Xinyangze_YZ88715155P_02025_01_package
 
-
 module PJRC_Teensy_4_1:
     """
     PJRC Teensy 4.1
@@ -87,23 +86,24 @@ module PJRC_Teensy_4_1:
 
     # --- Internal connections ---
     # logic references
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
     for logic in gpio:
-        logic.reference_shim ~ power_3v3
-    for logic in spi:
-        logic.reference_shim ~ power_3v3
+        logic.reference ~ power_3v3
     for logic in chip_select:
-        logic.reference_shim ~ power_3v3
-    for logic in i2c:
-        logic.reference_shim ~ power_3v3
-    for logic in can:
-        logic.reference_shim ~ power_3v3
-    for logic in uart:
-        logic.reference_shim ~ power_3v3
-    for logic in i2s:
-        logic.reference_shim ~ power_3v3
+        logic.reference ~ power_3v3
     for logic in [spdif_in, spdif_out, on_off, program]:
-        logic.reference_shim ~ power_3v3
+        logic.reference ~ power_3v3
+    # Interfaces with has_single_electric_reference trait use reference_shim
+    for bus in spi:
+        bus.reference_shim ~ power_3v3
+    for bus in i2c:
+        bus.reference_shim ~ power_3v3
+    for bus in can:
+        bus.reference_shim ~ power_3v3
+    for bus in uart:
+        bus.reference_shim ~ power_3v3
+    for bus in i2s:
+        bus.reference_shim ~ power_3v3
 
     # default pinmux and fixed peripheral connections
     # can
@@ -240,12 +240,12 @@ module PJRC_Teensy_4_1:
     power_usb_host.lv ~ header_usb_host.4
     power_usb_host.lv ~ header_usb_host.5
 
-    ethernet.pairs[0].p.line ~ header_ethernet.1 # rx+
-    ethernet.pairs[0].n.line ~ header_ethernet.2 # rx-
-    ethernet.led_speed.line ~ header_ethernet.3 # led anode
-    ethernet.led_speed.reference.lv ~ header_ethernet.4 # gnd
-    ethernet.pairs[1].n.line ~ header_ethernet.5 # tx-
-    ethernet.pairs[1].p.line ~ header_ethernet.6 # tx+
+    ethernet.pairs[0].p.line ~ header_ethernet.1  # rx+
+    ethernet.pairs[0].n.line ~ header_ethernet.2  # rx-
+    ethernet.led_speed.line ~ header_ethernet.3  # led anode
+    ethernet.led_speed.reference.lv ~ header_ethernet.4  # gnd
+    ethernet.pairs[1].n.line ~ header_ethernet.5  # tx-
+    ethernet.pairs[1].p.line ~ header_ethernet.6  # tx+
 
     usb_device.usb_if.d.n.line ~ usb_pogo.1
     usb_device.usb_if.d.p.line ~ usb_pogo.2

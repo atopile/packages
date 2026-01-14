@@ -126,12 +126,10 @@ module Analog_Devices_AD1938_model:
     # logic references
     trait has_single_electric_reference<ground_only=True>
 
-    for logic in [
-        spi,
-        spi_cs
-    ]:
-        logic.reference_shim ~ power_io
-    for logic in i2s_ins:
-        logic.reference_shim ~ power_io
-    for logic in i2s_outs:
-        logic.reference_shim ~ power_io
+    spi.reference_shim ~ power_io
+    spi_cs.reference ~ power_io
+
+    for i2s in i2s_ins:
+        i2s.reference_shim ~ power_io
+    for i2s in i2s_outs:
+        i2s.reference_shim ~ power_io
