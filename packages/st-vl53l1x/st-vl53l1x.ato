@@ -1,6 +1,7 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 # --- Imports ---
 import ElectricPower
@@ -8,6 +9,7 @@ import I2C
 import ElectricLogic
 import Capacitor
 import Resistor
+import has_single_electric_reference
 
 from "parts/STMicroelectronics_VL53L1CXV0FY_1/STMicroelectronics_VL53L1CXV0FY_1.ato" import STMicroelectronics_VL53L1CXV0FY_1_package
 
@@ -54,6 +56,8 @@ module ST_VL53L1X:
     """
     gpio1.required = False
 
+    trait has_single_electric_reference
+
     # --- Power supply ---
     assert power.voltage within 2.6V to 3.5V
 
@@ -69,8 +73,6 @@ module ST_VL53L1X:
     # --- I²C bus ---
     package.SCL ~ i2c.scl.line
     package.SDA ~ i2c.sda.line
-    i2c.scl.reference ~ power
-    i2c.sda.reference ~ power
 
     # I²C address (default 0x29, 7-bit address)
     # VL53L1X has a fixed default address of 0x29
@@ -94,10 +96,7 @@ module ST_VL53L1X:
 
     # --- Control pins ---
     xshut.line ~ package.XSHUT
-    xshut.reference ~ power
-
     gpio1.line ~ package.GPIO1
-    gpio1.reference ~ power
 
     # --- Decoupling capacitors ---
     decoupling_cap_100nF = new Capacitor
@@ -108,4 +107,4 @@ module ST_VL53L1X:
     decoupling_cap_4u7 = new Capacitor
     decoupling_cap_4u7.capacitance = 4.7uF +/- 20%
     decoupling_cap_4u7.package = "0402"
-    power.hv ~> decoupling_cap_4u7 ~> power
+    power.hv ~> decoupling_cap_4u7 ~> power.lv

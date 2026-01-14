@@ -1,12 +1,14 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import Capacitor
 import ElectricPower
 import ElectricLogic
 import I2C
 import Resistor
+import has_single_electric_reference
 
 from "parts/Texas_Instruments_DRV2605LDGSR/Texas_Instruments_DRV2605LDGSR.ato" import Texas_Instruments_DRV2605LDGSR_package
 from "parts/UNI_ROYAL_0402WGF1002TCE/UNI_ROYAL_0402WGF1002TCE.ato" import UNI_ROYAL_0402WGF1002TCE_package
@@ -59,6 +61,8 @@ module TI_DRV2605L:
     """
     trigger.required = False
 
+    trait has_single_electric_reference
+
     # --- Power supply ---
     power.hv ~ package.VDD
     power.lv ~ package.GND
@@ -69,8 +73,6 @@ module TI_DRV2605L:
     i2c.address = 0x5A
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
-    i2c.scl.reference ~ power
-    i2c.sda.reference ~ power
 
     # --- I2C pull-up resistors ---
     # Built-in 10k pullups on breakout boards, but adding external for reliability
@@ -124,4 +126,4 @@ module TI_DRV2605L:
     bulk_cap = new Capacitor
     bulk_cap.capacitance = 10uF +/- 20%
     bulk_cap.package = "0805"
-    power.hv ~> bulk_cap ~> power
+    power.hv ~> bulk_cap ~> power.lv
