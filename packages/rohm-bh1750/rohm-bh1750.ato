@@ -58,8 +58,6 @@ module ROHM_BH1750:
 
     # --- DVI low-pass filter ---
     dvi_lowpass = new FilterElectricalRC
-    dvi_lowpass.in_.line ~ power.hv
-    dvi_lowpass.in_.reference ~ power
     dvi_lowpass.resistor.resistance = 1kohm +/- 10%
     dvi_lowpass.resistor.package = "0402"
     dvi_lowpass.capacitor.capacitance = 0.1uF +/- 10%
@@ -71,4 +69,4 @@ module ROHM_BH1750:
     package.SDA ~ i2c.sda.line
     package.SCL ~ i2c.scl.line
     package.EP ~ power.lv
-    package.DVI ~ dvi_lowpass.out.line
+    power.hv ~> dvi_lowpass ~> package.DVI
