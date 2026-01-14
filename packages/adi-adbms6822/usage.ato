@@ -4,8 +4,8 @@ import DifferentialPair
 import ElectricPower
 import Resistor
 
-from "atopile/pjrc-teensy-4-1/pjrc-teensy_4_1.ato" import PJRC_Teensy_4_1
-from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/pjrc-teensy-4-1/pjrc-teensy-4-1.ato" import PJRC_Teensy_4_1
+from "atopile/usb-connectors/usb-connectors.ato" import USBTypeCConnector_driver
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/adi-adbms6822/adi-adbms6822.ato" import ADI_ADBMS6822
 from "atopile/adi-adbms6830/usage.ato" import StackableBMBInterface
@@ -25,7 +25,7 @@ from "parts/XKB_Connectivity_SK_3245S_L1_B/XKB_Connectivity_SK_3245S_L1_B.ato" i
 module Usage:
     teensy = new PJRC_Teensy_4_1
     adbms6822 = new ADI_ADBMS6822
-    usb_c_connector = new USBCConn
+    usb_c_connector = new USBTypeCConnector_driver
     gpio_dac = new TI_DAC6578
     sbi = new StackableBMBInterface
     adcs = new TI_ADS1115[2]
@@ -47,7 +47,7 @@ module Usage:
     # adbms6822.isospi_ports[1]
 
     # --- Power Connections ---
-    power_5v ~ usb_c_connector.usb2.usb_if.buspower
+    power_5v ~ usb_c_connector.usb.usb_if.buspower
     adbms6822.vp_power ~ power_5v
     adbms6822.vdd_iso_spi_power ~ power_3v3
     adbms6822.vdds_spi_power ~ power_3v3
@@ -65,7 +65,7 @@ module Usage:
     teensy.chip_select[0] ~ adbms6822.spi_cs[0]
     teensy.spi[1] ~ adbms6822.spi[1]
     teensy.chip_select[1] ~ adbms6822.spi_cs[1]
-    teensy.usb_device ~ usb_c_connector.usb2
+    teensy.usb_device ~ usb_c_connector.usb
     teensy.i2c[0] ~ adcs[0].i2c
     teensy.i2c[0] ~ adcs[1].i2c
 

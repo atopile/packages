@@ -27,7 +27,7 @@ import ResistorVoltageDivider
 import can_bridge_by_name
 import has_part_removed
 
-## DF40 3mm stack Connectors:
+# # DF40 3mm stack Connectors:
 # 10P: C5623558 (2.5), C424635
 # 20P : C3644774 (3.5), C531034 (3.0), C3032587 (2.5), C597932(2.0), C424637 - no stock
 # 30P: C597945 (3.5), C531034 (3.0), C597933(2.0), C429942
@@ -124,10 +124,9 @@ module Usage:
     sbi.isoSPI_up.p.line ~ adbms6830.iso_b_external.p.line
 
     # ISOSPI loopback switch
-    SPDT = new SHOU_HAN_MSK12C02_HB # 1x2~3
+    SPDT = new SHOU_HAN_MSK12C02_HB  # 1x2~3
     trait has_part_removed
     analog_DPDT = new Texas_Instruments_TS5A22362DGSR
-    trait has_part_removed
     switch_resistors = new Resistor[2]
     for switch_resistor in switch_resistors:
         switch_resistor.package = "0402"
@@ -148,7 +147,6 @@ module Usage:
 
     sbi.isoSPI_up.p.line ~> analog_DPDT.switches_no[0] ~> sbi.isoSPI_passthru.p.line
     sbi.isoSPI_up.n.line ~> analog_DPDT.switches_no[1] ~> sbi.isoSPI_passthru.n.line
-
 
     cells[0] ~ adbms6830.cell_stack[0]
     cells[1] ~ adbms6830.cell_stack[1]
@@ -259,7 +257,6 @@ module Usage:
     sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
 
     atopile_logo = new atopile_logo_25x6mm
-    trait has_part_removed
 
 module TempSensor:
     # -40~+125 100mW 10kΩ ±1% 0402 NTC Thermistors ROHS
@@ -312,7 +309,6 @@ module StackableBMBInterface:
     gpios[7].line ~ signals_down.17
     gpios[8].line ~ signals_down.18
     gpios[9].line ~ signals_down.19
-
 
     cell_power_down.1 ~ cell_power_up.1
     cell_power_down.2 ~ cell_power_up.2
