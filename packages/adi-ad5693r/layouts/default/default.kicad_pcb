@@ -86,9 +86,9 @@
 			(outputdirectory "")
 		)
 	)
-	(net 2 "nLDAC")
-	(net 3 "vref_cap-power-hv")
-	(net 4 "lv")
+	(net 2 "ldac-line")
+	(net 3 "VREF")
+	(net 4 "decoupling_caps[1]-power-lv")
 	(net 5 "SDA")
 	(net 6 "SCL")
 	(net 7 "nRESET")
@@ -195,7 +195,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -207,7 +207,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -219,7 +219,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"Ω\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -411,7 +411,7 @@
 				)
 			)
 		)
-		(property "Value" "{7.999999970197677e-06..1.2000000029802321e-05}F"
+		(property "Value" "9.999999999999999e-06F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -495,7 +495,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -507,7 +507,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -543,7 +543,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{7.999999970197677e-06..1.2000000029802321e-05}F"
+		(property "capacitance" "9.999999999999999e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -724,7 +724,7 @@
 			(at 0.55 0 90)
 			(size 0.79 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "89bf6749-0cc2-47d4-be82-2456b706f805")
 		)
 		(model "${KIPRJMOD}/../../parts/Murata_Electronics_GRM155R60J106ME44D/C0402_L1.0-W0.5-H0.5.step"
@@ -1030,21 +1030,21 @@
 			(at 0.5 2.3 0)
 			(size 0.3 1)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "nLDAC")
+			(net 2 "ldac-line")
 			(uuid "512961b6-4b76-4382-9da4-2d82a2ea0d57")
 		)
 		(pad "5" smd oval
 			(at 1 2.3 0)
 			(size 0.3 1)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "746a5265-38d9-4c0f-8342-8c7ab29a6042")
 		)
 		(pad "6" smd oval
 			(at 1 -2.3 0)
 			(size 0.3 1)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "c6b7fa89-e07f-43a7-8e63-22695c184bed")
 		)
 		(pad "7" smd oval
@@ -1065,7 +1065,7 @@
 			(at -0.5 -2.3 0)
 			(size 0.3 1)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "vref_cap-power-hv")
+			(net 3 "VREF")
 			(uuid "86a317ab-c412-4bdf-b182-ebf47f79b653")
 		)
 		(pad "10" smd oval
@@ -1103,7 +1103,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1187,7 +1187,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1199,7 +1199,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1235,7 +1235,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1419,7 +1419,7 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "fbb24aae-36d6-412f-b46b-30a85262334f")
 		)
 		(embedded_fonts no)
@@ -1451,7 +1451,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1.0000000000000001e-07F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -1535,7 +1535,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1547,7 +1547,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1583,7 +1583,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1.0000000000000001e-07±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1760,14 +1760,14 @@
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "vref_cap-power-hv")
+			(net 3 "VREF")
 			(uuid "41c9d652-e55f-426d-92fc-f6b1925d4945")
 		)
 		(pad "2" smd rect
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "658d2cdb-f033-46ca-b87e-5f250b6d3d85")
 		)
 		(embedded_fonts no)
@@ -1883,7 +1883,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1895,7 +1895,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1907,7 +1907,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 99000.00002235174, \"max\": 100999.99997764826}}]}}, \"unit\": \"Ω\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 99000.00002235174, \"max\": 100999.99997764826}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2183,7 +2183,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2195,7 +2195,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2207,7 +2207,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"Ω\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2360,14 +2360,14 @@
 			(at -0.43 0 270)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "nLDAC")
+			(net 2 "ldac-line")
 			(uuid "15137e45-e221-4e28-9b02-62a689857a0d")
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "lv")
+			(net 4 "decoupling_caps[1]-power-lv")
 			(uuid "70775584-7d6b-45e1-9897-74c5bcfb5c59")
 		)
 		(embedded_fonts no)
@@ -2483,7 +2483,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2495,7 +2495,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2507,7 +2507,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"Ω\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
