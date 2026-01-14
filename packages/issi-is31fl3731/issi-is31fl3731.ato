@@ -39,9 +39,9 @@ module ISSI_IS31FL3731:
     channel_b = new ElectricSignal[9]
 
     # --- Power ---
-    power.vcc ~ package.VCC
-    power.gnd ~ package.GND
-    power.gnd ~ package.EP  # Exposed pad
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+    power.lv ~ package.EP  # Exposed pad
     assert power.voltage within 2.7V to 5.5V
 
     # --- I²C ---

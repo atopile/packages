@@ -40,8 +40,8 @@ module TI_INA232:
     """
     power.required = True
     assert power.voltage within 1.7V to 5.5V
-    power.vcc ~ package.VS
-    power.gnd ~ package.GND
+    power.hv ~ package.VS
+    power.lv ~ package.GND
 
     # --- I²C bus ---
     i2c = new I2C
@@ -57,8 +57,8 @@ module TI_INA232:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
-    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
 
     # --- Alert pin ---
     alert = new ElectricLogic
@@ -73,7 +73,7 @@ module TI_INA232:
     alert_pullup = new Resistor
     alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
-    alert.line ~> alert_pullup ~> power.vcc
+    alert.line ~> alert_pullup ~> power.hv
 
     # --- Shunt differential input ---
     shunt_input = new DifferentialPair
@@ -122,8 +122,8 @@ module TI_INA232:
     assert power_in.voltage within 0V to 48V
 
     # Common ground ties to device ground
-    power_in.gnd ~ power.gnd
-    power_out.gnd ~ power.gnd
+    power_in.gnd ~ power.lv
+    power_out.gnd ~ power.lv
 
     # Bridge VCC path through shunt
     power_in.vcc ~> shunt ~> power_out.vcc

@@ -11,16 +11,15 @@ import Resistor
 
 from "parts/STMicroelectronics_VL53L1CXV0FY_1/STMicroelectronics_VL53L1CXV0FY_1.ato" import STMicroelectronics_VL53L1CXV0FY_1_package
 
-
 module ST_VL53L1X:
     """
     Driver for ST VL53L1X Time-of-Flight distance sensor (I²C).
 
     Exposes:
-      * power – Supply voltage (2.6V - 3.5V)
-      * i2c   – I²C bus interface (7-bit addr 0x29, default)
-      * xshut – Hardware shutdown pin (active low)
-      * gpio1 – Interrupt output pin
+        * power – Supply voltage (2.6V - 3.5V)
+        * i2c – I²C bus interface (7-bit addr 0x29, default)
+        * xshut – Hardware shutdown pin (active low)
+        * gpio1 – Interrupt output pin
     """
 
     # --- Package ---
@@ -59,13 +58,13 @@ module ST_VL53L1X:
     assert power.voltage within 2.6V to 3.5V
 
     # Connect power pins (both AVDD and AVDDVCSEL to same supply)
-    power.vcc ~ package.AVDD
-    power.vcc ~ package.AVDDVCSEL
-    power.gnd ~ package.GND
-    power.gnd ~ package.GND2
-    power.gnd ~ package.GND3
-    power.gnd ~ package.GND4
-    power.gnd ~ package.AVSSVCSEL
+    power.hv ~ package.AVDD
+    power.hv ~ package.AVDDVCSEL
+    power.lv ~ package.GND
+    power.lv ~ package.GND2
+    power.lv ~ package.GND3
+    power.lv ~ package.GND4
+    power.lv ~ package.AVSSVCSEL
 
     # --- I²C bus ---
     package.SCL ~ i2c.scl.line
@@ -82,7 +81,7 @@ module ST_VL53L1X:
     xshut_pullup = new Resistor
     xshut_pullup.resistance = 10kohm +/- 5%
     xshut_pullup.package = "0402"
-    power.vcc ~> xshut_pullup ~> package.XSHUT
+    power.hv ~> xshut_pullup ~> package.XSHUT
 
     # --- I²C pull-ups ---
     i2c_pullups = new Resistor[2]
@@ -90,8 +89,8 @@ module ST_VL53L1X:
         pullup.resistance = 10kohm +/- 5%
         pullup.package = "0402"
 
-    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
-    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- Control pins ---
     xshut.line ~ package.XSHUT
@@ -104,9 +103,9 @@ module ST_VL53L1X:
     decoupling_cap_100nF = new Capacitor
     decoupling_cap_100nF.capacitance = 100nF +/- 20%
     decoupling_cap_100nF.package = "0402"
-    power.vcc ~> decoupling_cap_100nF ~> power.gnd
+    power.hv ~> decoupling_cap_100nF ~> power.lv
 
     decoupling_cap_4u7 = new Capacitor
     decoupling_cap_4u7.capacitance = 4.7uF +/- 20%
     decoupling_cap_4u7.package = "0402"
-    power.vcc ~> decoupling_cap_4u7 ~> power.gnd
+    power.hv ~> decoupling_cap_4u7 ~> power

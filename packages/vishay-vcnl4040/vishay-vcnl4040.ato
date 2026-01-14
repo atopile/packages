@@ -34,7 +34,6 @@ module Vishay_VCNL4040:
     assert i2c.address is 0x60
     i2c.reference_shim ~ power
 
-
     int_pin = new ElectricLogic
     """
     Interrupt output pin (active low)
@@ -53,7 +52,7 @@ module Vishay_VCNL4040:
     power_cap = new Capacitor
     power_cap.capacitance = 1uF +/- 20%
     power_cap.package = "0402"
-    power.vcc ~> power_cap ~> power.gnd
+    power.hv ~> power_cap ~> power.lv
 
     power_resistor = new Resistor
     power_resistor.resistance = 22ohm +/- 5%
@@ -63,7 +62,7 @@ module Vishay_VCNL4040:
     ir_led_cap = new Capacitor
     ir_led_cap.capacitance = 2.2uF +/- 20%
     ir_led_cap.package = "0603"
-    power.vcc ~> ir_led_cap ~> power.gnd
+    power.hv ~> ir_led_cap ~> power.lv
 
     # --- Interrupt pin pull-up ---
     int_pullup = new Resistor
@@ -73,12 +72,12 @@ module Vishay_VCNL4040:
 
     # --- Package ---
     package = new Vishay_Intertech_VCNL4040M3OE_package
-    package.VDD ~> power_resistor ~> power.vcc
-    package.GND ~ power.gnd
+    package.VDD ~> power_resistor ~> power.hv
+    package.GND ~ power.lv
     package.SCLK ~ i2c.scl.line
     package.SDAT ~ i2c.sda.line
     package.INT ~ int_pin.line
     # Internal IR emitter and detector connections (handled internally by the sensor)
-    package.ANODE ~ power.vcc
-    package.CATHODELED ~ power.gnd
-    package.CATHODESENSOE ~ power.gnd
+    package.ANODE ~ power.hv
+    package.CATHODELED ~ power.lv
+    package.CATHODESENSOE ~ power.lv

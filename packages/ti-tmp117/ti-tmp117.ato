@@ -49,12 +49,11 @@ module TI_TMP117:
     Configurable for temperature limits, data ready, etc.
     """
 
-
     # --- Power connections ---
-    power.vcc ~ package.Vpos
-    power.gnd ~ package.GND
+    power.hv ~ package.Vpos
+    power.lv ~ package.GND
     # Connect exposed pad to GND for thermal performance
-    package.EP ~ power.gnd
+    package.EP ~ power.lv
     assert power.voltage within 1.8V to 5.5V
 
     # --- I²C interface ---

@@ -74,10 +74,10 @@ module Awinic_AW9523:
     reset_n_pulldown = new Resistor
     reset_n_pulldown.resistance = 10kohm +/- 20%
     reset_n_pulldown.package = "0402"
-    reset_n.line ~> reset_n_pulldown ~> power.gnd
+    reset_n.line ~> reset_n_pulldown ~> power.lv
 
     # --- I2C address configuration ---
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     addressor.base = 0x58
     assert addressor.address is i2c.address
     # Default to base address (0x58), can be overridden by user

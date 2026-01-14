@@ -22,9 +22,9 @@ module NXP_PCT2075:
     - Configurable I²C address via address pins
 
     Exposes:
-      * i2c        - I²C bus interface (7-bit addresses 0x48-0x4F)
-      * power      - Power supply rail (2.8V - 5.5V typical)
-      * os         - Open-drain overtemperature output
+        * i2c - I²C bus interface (7-bit addresses 0x48-0x4F)
+        * power - Power supply rail (2.8V - 5.5V typical)
+        * os - Open-drain overtemperature output
     """
 
     # --- Package ---
@@ -51,13 +51,13 @@ module NXP_PCT2075:
     os.reference ~ power
 
     # --- Power supply ---
-    power.vcc ~ package.VCC
-    power.gnd ~ package.GND
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
     assert power.voltage within 2.8V to 5.5V
 
     # --- Exposed pad connection ---
     # EP pad is connected to ground for thermal and electrical performance
-    power.gnd ~ package.EP
+    power.lv ~ package.EP
 
     # --- I²C bus ---
     i2c.scl.line ~ package.SCL
@@ -66,7 +66,7 @@ module NXP_PCT2075:
     i2c.sda.reference ~ power
 
     # I²C address configuration via A0, A1, A2 pins
-    addressor = new Addressor<address_bits=3>
+    addressor = new Addressor<address_bits = 3>
     addressor.base = 0x48
     addressor.address_lines[0].line ~ package.A0
     addressor.address_lines[0].reference ~ power

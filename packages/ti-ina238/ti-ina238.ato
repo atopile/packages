@@ -42,8 +42,8 @@ module TI_INA238:
     power = new ElectricPower
     power.required = True
     assert power.voltage within 2.7V to 5.5V
-    power.vcc ~ package.VS
-    power.gnd ~ package.GND
+    power.hv ~ package.VS
+    power.lv ~ package.GND
 
     # --- I²C bus ---
     i2c = new I2C
@@ -56,8 +56,8 @@ module TI_INA238:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
-    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
 
     # --- ALERT output ---
     alert = new ElectricLogic
@@ -104,8 +104,8 @@ module TI_INA238:
     power_out.required = True
 
     # Common ground ties to device ground
-    power_in.gnd ~ power.gnd
-    power_out.gnd ~ power.gnd
+    power_in.gnd ~ power.lv
+    power_out.gnd ~ power.lv
 
     # Bridge VCC path through shunt
     power_in.vcc ~> shunt ~> power_out.vcc
@@ -117,7 +117,7 @@ module TI_INA238:
     decouple = new Capacitor
     decouple.capacitance = 100nF +/- 10%
     decouple.package = "C0402"
-    power.vcc ~> decouple ~> power.gnd
+    power.hv ~> decouple ~> power.lv
 
     # --- I²C address selection (A1, A0) ---
     addressor = new Addressor<address_bits = 2>

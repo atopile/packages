@@ -44,10 +44,10 @@ module Sensirion_SHT41:
     power.required = True
 
     # --- Power supply ---
-    power.vcc ~ package.VDD
-    power.gnd ~ package.VSS
+    power.hv ~ package.VDD
+    power.lv ~ package.VSS
     # Connect exposed pad to ground for thermal performance
-    power.gnd ~ package.EP
+    power.lvackage.EP
     assert power.voltage within 1.08V to 3.6V
 
     # --- I2C interface ---
@@ -64,15 +64,15 @@ module Sensirion_SHT41:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 20%
     scl_pullup.package = "0201"
-    power.vcc ~> scl_pullup ~> i2c.scl.line
+    power.hv ~> scl_pullup ~> i2c.scl.line
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 20%
     sda_pullup.package = "0201"
-    power.vcc ~> sda_pullup ~> i2c.sda.line
+    power.hv ~> sda_pullup ~> i2c.sda.line
 
     # --- Decoupling capacitor ---
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0201"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv

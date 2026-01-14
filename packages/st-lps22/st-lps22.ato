@@ -64,12 +64,12 @@ module ST_LPS22:
     interrupt.required = False
 
     # --- Power connections ---
-    package.VDD ~ power.vcc
-    package.Vdd_IO ~ power.vcc  # I/O power supply
-    package.GND ~ power.gnd
+    package.VDD ~ power.hv
+    package.Vdd_IO ~ power.hv  # I/O power supply
+    package.GND ~ power.lv
 
     # Connect reserved pin to GND as per datasheet
-    package.Reserved ~ power.gnd
+    package.Reserved ~ power.lv
 
     assert power.voltage within 1.7V to 3.6V
 
@@ -88,7 +88,7 @@ module ST_LPS22:
     i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.vcc
 
     # --- I²C address selection ---
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x5C
     addressor.address_lines[0].line ~ package.SDO_SA0
     addressor.address_lines[0].reference ~ power
@@ -100,7 +100,7 @@ module ST_LPS22:
     cs_pullup = new Resistor
     cs_pullup.resistance = 10kohm +/- 1%
     cs_pullup.package = "0201"
-    power.vcc ~> cs_pullup ~> package.CS
+    power.hv ~> cs_pullup ~> package.CS
 
     # --- SPI interface ---
     # In SPI mode:
@@ -109,7 +109,7 @@ module ST_LPS22:
     # - Pin 5 (SDO_SA0) is data output in 4-wire SPI
     spi.sclk.line ~ package.SCLSPC
     spi.mosi.line ~ package.SDA_SDI_SDI_SDO  # SDI in 4-wire mode
-    spi.miso.line ~ package.SDO_SA0         # SDO in 4-wire mode
+    spi.miso.line ~ package.SDO_SA0  # SDO in 4-wire mode
     spi.sclk.reference ~ power
     spi.mosi.reference ~ power
     spi.miso.reference ~ power
@@ -125,4 +125,4 @@ module ST_LPS22:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0201"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv

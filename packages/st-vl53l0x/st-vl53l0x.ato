@@ -61,15 +61,15 @@ module ST_VL53L0X:
     assert power_analog.voltage within 2.6V to 2.9V
 
     # --- Power connections ---
-    power.vcc ~ power_core.vcc
-    power.vcc ~ power_analog.vcc
-    power.gnd ~ power_core.gnd
-    power.gnd ~ power_analog.gnd
+    power.hv ~ power_core.vcc
+    power.hv ~ power_analog.vcc
+    power.lv ~ power_core.gnd
+    power.lv ~ power_analog.gnd
 
     # Connect additional grounds
-    power.gnd ~ package.GND2
-    power.gnd ~ package.GND3
-    power.gnd ~ package.GND4
+    power.lv ~ package.GND2
+    power.lv ~ package.GND3
+    power.lv ~ package.GND4
 
     # --- I²C bus connections ---
     i2c.scl.line ~ package.SCL
@@ -82,8 +82,8 @@ module ST_VL53L0X:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 20%
         r.package = "0402"
-    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
-    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- Control pin connections ---
     xshut.line ~ package.SHT

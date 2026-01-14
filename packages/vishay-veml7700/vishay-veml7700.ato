@@ -26,8 +26,8 @@ module Vishay_VEML7700:
     - Excellent temperature compensation
 
     Exposes:
-      * i2c          – I²C bus interface (7-bit addr 0x10)
-      * power        – Power supply (2.5V - 3.6V)
+        * i2c – I²C bus interface (7-bit addr 0x10)
+        * power – Power supply (2.5V - 3.6V)
     """
 
     # --- Package ---
@@ -49,8 +49,8 @@ module Vishay_VEML7700:
     power.required = True
 
     # --- Power connections ---
-    power.vcc ~ package.VDD
-    power.gnd ~ package.GND
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
     assert power.voltage within 2.5V to 3.6V
 
     # --- I²C interface ---
@@ -68,11 +68,11 @@ module Vishay_VEML7700:
         pullup.resistance = 10kohm +/- 5%
         pullup.package = "0402"
 
-    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
-    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- Decoupling capacitor ---
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv
