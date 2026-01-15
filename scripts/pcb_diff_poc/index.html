@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCB Diff Viewer</title>
+    <style>
+        :root {
+            --bg: #1e1e2e;
+            --surface: #313244;
+            --text: #cdd6f4;
+            --subtext: #a6adc8;
+            --unchanged: #585b70;
+            --added: #a6e3a1;
+            --removed: #f38ba8;
+            --modified-before: #fab387;
+            --modified-after: #89b4fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--surface);
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.unchanged { background: var(--unchanged); }
+        .legend-dot.added { background: var(--added); }
+        .legend-dot.removed { background: var(--removed); }
+        .legend-dot.modified-before { background: var(--modified-before); }
+        .legend-dot.modified-after { background: var(--modified-after); }
+
+        main {
+            flex: 1;
+            display: flex;
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .viewer {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--subtext);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-group {
+            margin-bottom: 20px;
+        }
+
+        .stat-group h3 {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-row .label { color: var(--subtext); }
+        .stat-row .value { font-weight: 600; }
+
+        .stat-row.added .value { color: var(--added); }
+        .stat-row.removed .value { color: var(--removed); }
+        .stat-row.modified .value { color: var(--modified-after); }
+
+        .info-panel {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(30,30,46,0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--subtext);
+        }
+
+        button {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        button.active {
+            background: var(--modified-after);
+            color: var(--bg);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCB Diff Viewer</h1>
+        <div class="controls">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot unchanged"></div>
+                    <span>Unchanged</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot modified-before"></div>
+                    <span>Before</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot modified-after"></div>
+                    <span>After</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot added"></div>
+                    <span>Added</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot removed"></div>
+                    <span>Removed</span>
+                </div>
+            </div>
+            <button id="toggleBefore">Show Before</button>
+            <button id="toggleAfter" class="active">Show After</button>
+            <button id="resetView">Reset View</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="viewer">
+            <canvas id="pcbCanvas"></canvas>
+            <div class="info-panel">
+                <span id="zoomInfo">Zoom: 100%</span> |
+                <span id="posInfo">Pan: 0, 0</span>
+            </div>
+        </div>
+
+        <aside class="sidebar">
+            <h2>Diff Summary</h2>
+
+            <div class="stat-group" id="footprintStats">
+                <h3>Footprints</h3>
+            </div>
+
+            <div class="stat-group" id="segmentStats">
+                <h3>Traces</h3>
+            </div>
+
+            <div class="stat-group" id="viaStats">
+                <h3>Vias</h3>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // PCB Diff Viewer - Canvas-based renderer
+
+        const canvas = document.getElementById('pcbCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Colors
+        const COLORS = {
+            unchanged: '#585b70',
+            added: '#a6e3a1',
+            removed: '#f38ba8',
+            modifiedBefore: '#fab387',
+            modifiedAfter: '#89b4fa',
+            pad: '#45475a',
+            background: '#1e1e2e'
+        };
+
+        // View state
+        let viewState = {
+            zoom: 80,  // pixels per mm (higher = more zoomed in)
+            panX: 0,
+            panY: 0,
+            showBefore: true,
+            showAfter: true,
+            isDragging: false,
+            lastMouseX: 0,
+            lastMouseY: 0,
+            // PCB center (computed from data)
+            centerX: 160.5,
+            centerY: 91.5
+        };
+
+        // Diff data
+        let diffData = null;
+
+        // Load diff data
+        async function loadDiffData() {
+            try {
+                const response = await fetch('diff_result.json');
+                diffData = await response.json();
+                updateStats();
+                render();
+            } catch (e) {
+                console.error('Failed to load diff data:', e);
+            }
+        }
+
+        // Update stats sidebar
+        function updateStats() {
+            if (!diffData) return;
+
+            const types = [
+                { id: 'footprintStats', key: 'footprints', name: 'Footprints' },
+                { id: 'segmentStats', key: 'segments', name: 'Traces' },
+                { id: 'viaStats', key: 'vias', name: 'Vias' }
+            ];
+
+            for (const { id, key, name } of types) {
+                const el = document.getElementById(id);
+                const data = diffData[key] || { unchanged: [], added: [], removed: [], modified: [] };
+
+                el.innerHTML = `
+                    <h3>${name}</h3>
+                    <div class="stat-row">
+                        <span class="label">Unchanged</span>
+                        <span class="value">${data.unchanged.length}</span>
+                    </div>
+                    <div class="stat-row modified">
+                        <span class="label">Modified</span>
+                        <span class="value">${data.modified.length}</span>
+                    </div>
+                    <div class="stat-row added">
+                        <span class="label">Added</span>
+                        <span class="value">${data.added.length}</span>
+                    </div>
+                    <div class="stat-row removed">
+                        <span class="label">Removed</span>
+                        <span class="value">${data.removed.length}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Transform coordinates from PCB space to canvas space
+        function pcbToCanvas(x, y) {
+            const cx = (x - viewState.centerX) * viewState.zoom + canvas.offsetWidth / 2 + viewState.panX;
+            const cy = (y - viewState.centerY) * viewState.zoom + canvas.offsetHeight / 2 + viewState.panY;
+            return { x: cx, y: cy };
+        }
+
+        // Render the PCB diff
+        function render() {
+            // Set canvas size
+            canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+            canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+            // Clear canvas
+            ctx.fillStyle = COLORS.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!diffData) return;
+
+            // Draw grid
+            drawGrid();
+
+            // Draw unchanged elements first (background)
+            drawUnchangedElements();
+
+            // Draw modified elements
+            drawModifiedElements();
+
+            // Draw added/removed elements
+            drawAddedRemovedElements();
+
+            // Update info
+            document.getElementById('zoomInfo').textContent = `Zoom: ${Math.round(viewState.zoom / 15 * 100)}%`;
+            document.getElementById('posInfo').textContent = `Pan: ${Math.round(viewState.panX)}, ${Math.round(viewState.panY)}`;
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+
+            const gridSize = viewState.zoom; // 1mm grid
+            const offsetX = (viewState.panX + canvas.width / 2) % gridSize;
+            const offsetY = (viewState.panY + canvas.height / 2) % gridSize;
+
+            for (let x = offsetX; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = offsetY; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawUnchangedElements() {
+            ctx.strokeStyle = COLORS.unchanged;
+            ctx.fillStyle = COLORS.unchanged;
+
+            // Draw unchanged segments
+            for (const seg of (diffData.segments?.unchanged || [])) {
+                drawSegment(seg, COLORS.unchanged);
+            }
+
+            // Draw unchanged footprints
+            for (const fp of (diffData.footprints?.unchanged || [])) {
+                drawFootprint(fp, COLORS.unchanged, COLORS.pad);
+            }
+
+            // Draw unchanged vias
+            for (const via of (diffData.vias?.unchanged || [])) {
+                drawVia(via, COLORS.unchanged);
+            }
+        }
+
+        function drawModifiedElements() {
+            // Draw modified elements - show both before and after positions
+            for (const mod of (diffData.segments?.modified || [])) {
+                if (viewState.showBefore) {
+                    drawSegment(mod.before, COLORS.modifiedBefore, 3);
+                }
+                if (viewState.showAfter) {
+                    drawSegment(mod.after, COLORS.modifiedAfter, 3);
+                }
+            }
+
+            for (const mod of (diffData.footprints?.modified || [])) {
+                if (viewState.showBefore) {
+                    drawFootprint(mod.before, COLORS.modifiedBefore, COLORS.modifiedBefore, 0.5);
+                }
+                if (viewState.showAfter) {
+                    drawFootprint(mod.after, COLORS.modifiedAfter, COLORS.modifiedAfter, 0.8);
+                }
+            }
+
+            for (const mod of (diffData.vias?.modified || [])) {
+                if (viewState.showBefore) {
+                    drawVia(mod.before, COLORS.modifiedBefore);
+                }
+                if (viewState.showAfter) {
+                    drawVia(mod.after, COLORS.modifiedAfter);
+                }
+            }
+        }
+
+        function drawAddedRemovedElements() {
+            // Draw added elements
+            for (const seg of (diffData.segments?.added || [])) {
+                drawSegment(seg, COLORS.added, 3);
+            }
+            for (const fp of (diffData.footprints?.added || [])) {
+                drawFootprint(fp, COLORS.added, COLORS.added, 0.8);
+            }
+            for (const via of (diffData.vias?.added || [])) {
+                drawVia(via, COLORS.added);
+            }
+
+            // Draw removed elements
+            if (viewState.showBefore) {
+                for (const seg of (diffData.segments?.removed || [])) {
+                    drawSegment(seg, COLORS.removed, 3);
+                }
+                for (const fp of (diffData.footprints?.removed || [])) {
+                    drawFootprint(fp, COLORS.removed, COLORS.removed, 0.5);
+                }
+                for (const via of (diffData.vias?.removed || [])) {
+                    drawVia(via, COLORS.removed);
+                }
+            }
+        }
+
+        function drawSegment(seg, color, lineWidth = 2) {
+            const start = pcbToCanvas(seg.start.x, seg.start.y);
+            const end = pcbToCanvas(seg.end.x, seg.end.y);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(lineWidth, seg.width * viewState.zoom);
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+        }
+
+        function drawFootprint(fp, outlineColor, padColor, alpha = 1) {
+            ctx.globalAlpha = alpha;
+
+            const pos = pcbToCanvas(fp.at.x, fp.at.y);
+            const rotation = (fp.at.r || 0) * Math.PI / 180;
+
+            // Draw pads
+            for (const pad of fp.pads) {
+                const padX = pad.at.x;
+                const padY = pad.at.y;
+
+                // Rotate pad position
+                const rotatedX = padX * Math.cos(rotation) - padY * Math.sin(rotation);
+                const rotatedY = padX * Math.sin(rotation) + padY * Math.cos(rotation);
+
+                const padPos = {
+                    x: pos.x + rotatedX * viewState.zoom,
+                    y: pos.y + rotatedY * viewState.zoom
+                };
+
+                const w = (pad.size?.w || 0.5) * viewState.zoom;
+                const h = (pad.size?.h || 0.5) * viewState.zoom;
+
+                ctx.fillStyle = padColor;
+
+                if (pad.shape === 'circle' || pad.shape === 'oval') {
+                    ctx.beginPath();
+                    ctx.ellipse(padPos.x, padPos.y, w/2, h/2, rotation + (pad.at.r || 0) * Math.PI / 180, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Rectangle
+                    ctx.save();
+                    ctx.translate(padPos.x, padPos.y);
+                    ctx.rotate(rotation + (pad.at.r || 0) * Math.PI / 180);
+                    ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.restore();
+                }
+            }
+
+            // Draw outline
+            ctx.strokeStyle = outlineColor;
+            ctx.lineWidth = 2;
+
+            // Simple bounding box for now
+            const bbox = getBoundingBox(fp);
+            const topLeft = pcbToCanvas(bbox.minX, bbox.minY);
+            const size = {
+                w: (bbox.maxX - bbox.minX) * viewState.zoom,
+                h: (bbox.maxY - bbox.minY) * viewState.zoom
+            };
+
+            ctx.strokeRect(topLeft.x, topLeft.y, size.w, size.h);
+
+            ctx.globalAlpha = 1;
+        }
+
+        function getBoundingBox(fp) {
+            let minX = fp.at.x, maxX = fp.at.x;
+            let minY = fp.at.y, maxY = fp.at.y;
+
+            const rotation = (fp.at.r || 0) * Math.PI / 180;
+
+            for (const pad of fp.pads) {
+                const padX = pad.at.x;
+                const padY = pad.at.y;
+                const rotatedX = padX * Math.cos(rotation) - padY * Math.sin(rotation);
+                const rotatedY = padX * Math.sin(rotation) + padY * Math.cos(rotation);
+
+                const x = fp.at.x + rotatedX;
+                const y = fp.at.y + rotatedY;
+                const w = (pad.size?.w || 0.5) / 2;
+                const h = (pad.size?.h || 0.5) / 2;
+
+                minX = Math.min(minX, x - w);
+                maxX = Math.max(maxX, x + w);
+                minY = Math.min(minY, y - h);
+                maxY = Math.max(maxY, y + h);
+            }
+
+            return { minX, maxX, minY, maxY };
+        }
+
+        function drawVia(via, color) {
+            const pos = pcbToCanvas(via.at.x, via.at.y);
+            const radius = (via.size / 2) * viewState.zoom;
+            const drillRadius = (via.drill / 2) * viewState.zoom;
+
+            // Outer circle
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Drill hole
+            ctx.fillStyle = COLORS.background;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, drillRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Event handlers
+        canvas.addEventListener('mousedown', (e) => {
+            viewState.isDragging = true;
+            viewState.lastMouseX = e.clientX;
+            viewState.lastMouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (viewState.isDragging) {
+                viewState.panX += e.clientX - viewState.lastMouseX;
+                viewState.panY += e.clientY - viewState.lastMouseY;
+                viewState.lastMouseX = e.clientX;
+                viewState.lastMouseY = e.clientY;
+                render();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            viewState.isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            viewState.isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            viewState.zoom *= zoomFactor;
+            viewState.zoom = Math.max(5, Math.min(100, viewState.zoom));
+            render();
+        });
+
+        // Buttons
+        document.getElementById('toggleBefore').addEventListener('click', (e) => {
+            viewState.showBefore = !viewState.showBefore;
+            e.target.classList.toggle('active', viewState.showBefore);
+            render();
+        });
+
+        document.getElementById('toggleAfter').addEventListener('click', (e) => {
+            viewState.showAfter = !viewState.showAfter;
+            e.target.classList.toggle('active', viewState.showAfter);
+            render();
+        });
+
+        document.getElementById('resetView').addEventListener('click', () => {
+            viewState.zoom = 15;
+            viewState.panX = 0;
+            viewState.panY = 0;
+            render();
+        });
+
+        // Initialize
+        window.addEventListener('resize', render);
+        document.getElementById('toggleBefore').classList.add('active');
+        loadDiffData();
+    </script>
+</body>
+</html>
