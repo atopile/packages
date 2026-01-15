@@ -55,7 +55,7 @@ module ST_LSM6DS3TR_C:
     power ~> power_io
 
     # Connect I2C reference to power
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # --- I²C bus ---
     # I2C address configuration using addressor for SDO/SA0 pin

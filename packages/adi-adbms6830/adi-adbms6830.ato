@@ -94,7 +94,7 @@ module ADI_ADBMS6830:
     """
     SPI interface for communication with port A of the ADBMS6830
     """
-    spi.reference_shim.lv ~ vreg.lv
+    spi.has_single_electric_reference.reference.lv ~ vreg.lv
     spi_cs.reference.lv ~ vreg.lv
 
     gpios = new ElectricSignal[9]

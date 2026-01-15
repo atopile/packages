@@ -38,7 +38,7 @@ module TI_INA237:
     I2C bus interface with 16 selectable addresses (0x40-0x4F)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     vbus = new ElectricLogic
     """
@@ -72,7 +72,7 @@ module TI_INA237:
     Alert output pin (open-drain, active low)
     """
 
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     """
     I2C address configuration (A0, A1 pins) - 4 addresses: 0x40-0x43
     """

@@ -59,7 +59,6 @@ module Analog_Devices_AD1938_model:
     dac_channels[3].analog_left.line ~ package.OL4
     dac_channels[3].analog_right.line ~ package.OR4
 
-
     adc_channels[0].analog_left.p.line ~ package.ADC1LP
     adc_channels[0].analog_left.n.line ~ package.ADC1LN
     adc_channels[0].analog_right.p.line ~ package.ADC1RP
@@ -124,12 +123,12 @@ module Analog_Devices_AD1938_model:
     reset_disable.required = True
 
     # logic references
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
-    spi.reference_shim ~ power_io
+    spi.has_single_electric_reference.reference ~ power_io
     spi_cs.reference ~ power_io
 
     for i2s in i2s_ins:
-        i2s.reference_shim ~ power_io
+        i2s.has_single_electric_reference.reference ~ power_io
     for i2s in i2s_outs:
-        i2s.reference_shim ~ power_io
+        i2s.has_single_electric_reference.reference ~ power_io

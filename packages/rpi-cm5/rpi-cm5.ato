@@ -46,8 +46,8 @@ module RPI_CM5:
     # I2S
     i2s_output = new I2S
     i2s_input = new I2S
-    i2s_output.reference_shim ~ gpio_ref
-    i2s_input.reference_shim ~ gpio_ref
+    i2s_output.has_single_electric_reference.reference ~ gpio_ref
+    i2s_input.has_single_electric_reference.reference ~ gpio_ref
 
     # Control
     power_button = new ElectricLogic

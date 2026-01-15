@@ -35,7 +35,7 @@ module TI_TCA8418:
     I2C bus interface (7-bit address: 0x34, fixed)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # Interrupt output - active low, open drain
     interrupt = new ElectricLogic

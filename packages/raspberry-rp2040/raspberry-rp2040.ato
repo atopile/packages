@@ -79,7 +79,7 @@ module Raspberry_Pi_RP2040:
     _core_regulator_out_power = new ElectricPower
     assert _core_regulator_out_power.voltage within 1.2V +/- 5%
     core_power_decoupling_capacitor = new Capacitor[3]
-    for cap in core_power_decoupling_capacitor[1:]:
+    for cap in core_power_decoupling_capacitor[1: ]:
         cap.capacitance = 100nF +/- 20%
         cap.package = "C0402"
     core_power_decoupling_capacitor[0].capacitance = 2.2uF +/- 20%
@@ -98,7 +98,7 @@ module Raspberry_Pi_RP2040:
     _package_usb = new USB2_0
 
     # quad spi interface, connected to the external flash
-    qspi = new MultiSPI<data_lane_count=4>
+    qspi = new MultiSPI<data_lane_count = 4>
 
     # --- Components ---
     reset_switch = new _TactileSwitch
@@ -119,7 +119,7 @@ module Raspberry_Pi_RP2040:
 
     # _io_power decoupling
     io_power_decoupling_capacitor = new Capacitor[7]
-    for cap in io_power_decoupling_capacitor[1:]:
+    for cap in io_power_decoupling_capacitor[1: ]:
         cap.capacitance = 100nF +/- 20%
         cap.package = "C0402"
     io_power_decoupling_capacitor[0].capacitance = 2.2uF +/- 20%
@@ -240,7 +240,7 @@ module Raspberry_Pi_RP2040:
 
     # --- References ---
     # connect all grounds
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     for logic in [
         i2c,
@@ -250,14 +250,15 @@ module Raspberry_Pi_RP2040:
         swd,
         reset,
     ]:
-        logic.reference_shim ~ _io_power
+        logic.has_single_electric_reference.reference ~ _io_power
 
     for logic in gpio:
-        logic.reference_shim ~ _io_power
+        logic.has_single_electric_reference.reference ~ _io_power
     for an in analog:
-        an.reference_shim ~ _adc_power
+        an.has_single_electric_reference.reference ~ _adc_power
 
 # --- Helper modules ---
+
 module _USBTermination:
     """
     USB termination resistors
@@ -286,7 +287,7 @@ module _Crystal:
     output = new Electrical
     gnd = new Electrical
 
-    trait can_bridge_by_name<input_name="input", output_name="output">
+    trait can_bridge_by_name<input_name = "input", output_name = "output">
 
     input ~ package.1
     output ~ package.3

@@ -49,7 +49,7 @@ module Usage:
 
     # I2C bus with pull-up resistors
     i2c = new I2C
-    i2c.reference_shim ~ device_power
+    i2c.has_single_electric_reference.reference ~ device_power
 
     # Four sensors with different address configurations
     sensor1 = new TI_INA232  # A0 = GND -> 0x40

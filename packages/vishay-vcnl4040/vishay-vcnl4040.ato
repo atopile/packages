@@ -32,7 +32,7 @@ module Vishay_VCNL4040:
     """
     i2c.required = True
     assert i2c.address is 0x60
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     int_pin = new ElectricLogic
     """

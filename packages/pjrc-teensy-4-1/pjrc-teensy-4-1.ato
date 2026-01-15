@@ -93,17 +93,17 @@ module PJRC_Teensy_4_1:
         logic.reference ~ power_3v3
     for logic in [spdif_in, spdif_out, on_off, program]:
         logic.reference ~ power_3v3
-    # Interfaces with has_single_electric_reference trait use reference_shim
+    # Interfaces with has_single_electric_reference trait use has_single_electric_reference.reference
     for bus in spi:
-        bus.reference_shim ~ power_3v3
+        bus.has_single_electric_reference.reference ~ power_3v3
     for bus in i2c:
-        bus.reference_shim ~ power_3v3
+        bus.has_single_electric_reference.reference ~ power_3v3
     for bus in can:
-        bus.reference_shim ~ power_3v3
+        bus.has_single_electric_reference.reference ~ power_3v3
     for bus in uart:
-        bus.reference_shim ~ power_3v3
+        bus.has_single_electric_reference.reference ~ power_3v3
     for bus in i2s:
-        bus.reference_shim ~ power_3v3
+        bus.has_single_electric_reference.reference ~ power_3v3
 
     # default pinmux and fixed peripheral connections
     # can
