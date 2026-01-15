@@ -334,9 +334,17 @@ def _review_worker_process(
         log_path: Path,
         pkg: str,
         step: str,
+        status_file: Path | None = None,
     ) -> tuple[int, float, int, int]:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         start = time.perf_counter()
+
+        # Set up environment with status file for progress reporting
+        env = os.environ.copy()
+        if status_file:
+            status_file.parent.mkdir(parents=True, exist_ok=True)
+            env["ATO_BUILD_STATUS_FILE"] = str(status_file)
+
         with log_path.open("w", encoding="utf-8") as f:
             f.write("$ " + " ".join(shlex.quote(c) for c in cmd) + "\n\n")
             f.flush()
@@ -346,6 +354,7 @@ def _review_worker_process(
                 stdout=f,
                 stderr=subprocess.STDOUT,
                 text=True,
+                env=env,
             )
             # Report pid/step.
             result_q.put(
@@ -356,6 +365,8 @@ def _review_worker_process(
                     "current_pid": proc.pid,
                 }
             )
+
+            last_progress: str | None = None
             while True:
                 rc = proc.poll()
                 if rc is not None:
@@ -373,7 +384,33 @@ def _review_worker_process(
                         proc.kill()
                     rc = proc.returncode if proc.returncode is not None else -1
                     break
+
+                # Read and report progress from status file
+                if status_file and status_file.exists():
+                    try:
+                        progress = status_file.read_text(encoding="utf-8").strip()
+                        if progress and progress != last_progress:
+                            last_progress = progress
+                            elapsed = time.perf_counter() - start
+                            result_q.put(
+                                {
+                                    "type": "progress",
+                                    "package": pkg,
+                                    "build_progress": progress,
+                                    "elapsed": round(elapsed, 1),
+                                }
+                            )
+                    except Exception:
+                        pass
+
                 time.sleep(0.2)
+
+        # Clean up status file
+        if status_file and status_file.exists():
+            try:
+                status_file.unlink()
+            except Exception:
+                pass
 
         secs = max(0.0, time.perf_counter() - start)
         try:
@@ -399,8 +436,14 @@ def _review_worker_process(
         cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs))]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
+        status_file = logs_dir / "build_status.txt"
         b_rc, b_secs, b_warn, b_err = run_cmd_to_log(
-            cmd=cmd, cwd=pkg_dir, log_path=build_log_path, pkg=pkg, step="build"
+            cmd=cmd,
+            cwd=pkg_dir,
+            log_path=build_log_path,
+            pkg=pkg,
+            step="build",
+            status_file=status_file,
         )
 
         # If cancelled mid-build, stop early.
@@ -468,8 +511,14 @@ def _review_worker_process(
         # Verify
         v_log = logs_dir / "verify.log"
         v_cmd = [*ato_cmd, "package", "verify", "-s"]
+        verify_status_file = logs_dir / "verify_status.txt"
         v_rc, v_secs, v_warn, v_err = run_cmd_to_log(
-            cmd=v_cmd, cwd=pkg_dir, log_path=v_log, pkg=pkg, step="verify"
+            cmd=v_cmd,
+            cwd=pkg_dir,
+            log_path=v_log,
+            pkg=pkg,
+            step="verify",
+            status_file=verify_status_file,
         )
 
         if cancelled(pkg):
@@ -848,6 +897,7 @@ class JobState:
     skip_requested_at: str | None = None
     current_step: str | None = None  # e.g. "build:<name>" / "verify"
     current_pid: int | None = None
+    build_progress: str | None = None  # e.g. "Picking parts 3/10"
 
     # Registry metadata (best-effort, optional)
     package_identifier: str | None = None
@@ -925,7 +975,8 @@ class ReviewRun:
             build_names = _read_ato_yaml_builds(pkg_dir / "ato.yaml")
             build_entries = _read_ato_yaml_build_entries(pkg_dir / "ato.yaml")
             pkg_run_dir = run_dir / pkg_dir.name
-            todo_path = pkg_run_dir / "review.todo.md"
+            # Store TODO in the package directory so it persists across sessions
+            todo_path = pkg_dir / "review.todo.md"
             js = JobState(
                 package=pkg_dir.name,
                 package_dir=str(pkg_dir),
@@ -1075,6 +1126,9 @@ class ReviewRun:
             if typ == "step":
                 j.current_step = msg.get("current_step")
                 j.current_pid = msg.get("current_pid")
+                j.build_progress = None  # Reset progress when step changes
+            elif typ == "progress":
+                j.build_progress = msg.get("build_progress")
             elif typ == "result":
                 # Build outputs
                 j.build_logs = dict(msg.get("build_logs") or j.build_logs)
@@ -1102,6 +1156,7 @@ class ReviewRun:
                 j.finished_at = _now_ts()
                 j.current_step = None
                 j.current_pid = None
+                j.build_progress = None  # Clear progress when complete
 
                 status = msg.get("status")
                 if status in (
@@ -1893,6 +1948,23 @@ class ReviewRun:
         cmd = [*shlex.split(cursor_cmd), str(ato_path)]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+    def open_logs_in_cursor(self, package: str, cursor_cmd: str) -> None:
+        """
+        Open the package's logs folder in Cursor.
+
+        Opens the run logs directory which contains all build/verify logs.
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        run_logs_dir = Path(job.run_dir) / "logs"
+        if not run_logs_dir.exists():
+            raise FileNotFoundError(f"Logs directory not found: {run_logs_dir}")
+
+        cmd = [*shlex.split(cursor_cmd), str(run_logs_dir)]
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
     def list_logs(self, package: str) -> dict[str, Any]:
         """
         Return a structured log index for the UI.
@@ -2030,6 +2102,7 @@ class ReviewRun:
             source_label: str,
             stage: str,
             max_bytes: int = 2_000_000,
+            log_id_override: str | None = None,
         ) -> None:
             """Extract errors/warnings from a single log file."""
             if not log_path.exists():
@@ -2062,6 +2135,9 @@ class ReviewRun:
                         continue
 
                 # Match explicit ERROR/WARNING markers
+                # Determine log_id - use override if provided, otherwise fall back to run__ prefix
+                effective_log_id = log_id_override if log_id_override else f"run__{log_path.name}"
+
                 if error_pattern.search(line):
                     # Clean up the line - remove ANSI codes and excessive whitespace
                     clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
@@ -2073,7 +2149,7 @@ class ReviewRun:
                             "source": source_label,
                             "stage": stage,
                             "line_num": line_num,
-                            "log_id": f"run__{log_path.name}" if "run__" not in source_label else source_label,
+                            "log_id": effective_log_id,
                         })
                 elif warning_pattern.search(line):
                     clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
@@ -2084,18 +2160,18 @@ class ReviewRun:
                             "source": source_label,
                             "stage": stage,
                             "line_num": line_num,
-                            "log_id": f"run__{log_path.name}" if "run__" not in source_label else source_label,
+                            "log_id": effective_log_id,
                         })
 
         # Extract from review-station build logs
         for b in job.build_names:
             fname = f"build.{b}.log"
             p = run_logs_dir / fname
-            extract_from_log(p, f"build ({b})", "build")
+            extract_from_log(p, f"build ({b})", "build", log_id_override=fname)
 
         # Extract from verify log
         v = run_logs_dir / "verify.log"
-        extract_from_log(v, "verify", "verify")
+        extract_from_log(v, "verify", "verify", log_id_override="verify.log")
 
         # Extract from package internal logs (build/logs/latest/<build>/*)
         if pkg_build_latest.exists():
@@ -2108,7 +2184,9 @@ class ReviewRun:
                         continue
                     if not (p.name.endswith(".log") or p.name.endswith(".txt")):
                         continue
-                    extract_from_log(p, f"{b} / {p.name}", "build")
+                    # Use pkg__latest__<build>__<filename> format for package logs
+                    pkg_log_id = f"pkg__latest__{b}__{p.name}"
+                    extract_from_log(p, f"{b} / {p.name}", "build", log_id_override=pkg_log_id)
 
         # Sort: errors first, then by stage (build before verify), then by line number
         stage_order = {"build": 0, "verify": 1, "other": 2}
@@ -2619,6 +2697,26 @@ class Server:
                                     HTTPStatus.BAD_REQUEST, {"error": "missing build"}
                                 )
                             run.open_cursor(pkg, build, cursor_cmd=cursor_cmd)
+                            return self._send_json(HTTPStatus.OK, {"ok": True})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/open_logs_cursor"
+                    ):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/open_logs_cursor"
+                            )
+                        ).strip("/")
+                        try:
+                            run.open_logs_in_cursor(pkg, cursor_cmd=cursor_cmd)
                             return self._send_json(HTTPStatus.OK, {"ok": True})
                         except KeyError:
                             return self._send_json(

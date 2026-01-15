@@ -13,7 +13,10 @@
       <aside id="left">
         <div class="toolbar">
           <div class="title">atopile Package Review</div>
-          <input id="filter" type="text" placeholder="Filter packages…" />
+          <div class="filterRow">
+            <input id="filter" type="text" placeholder="Filter packages…" />
+            <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
+          </div>
         </div>
         <div id="pkgList" class="list"></div>
       </aside>
@@ -74,7 +77,10 @@
           <section class="card" id="cardTodo">
             <div class="cardTitle row">
               <span>Feedback / TODO</span>
-              <span class="muted" style="font-size:11px;">Autosave</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <span class="muted" style="font-size:11px;">Autosave</span>
+                <button id="openLogsBtn" class="miniBtn" type="button">Open Logs</button>
+              </div>
             </div>
             <textarea id="todo" spellcheck="false" placeholder="Write feedback/tasks here…"></textarea>
             <div id="todoHint" class="hint"></div>

@@ -59,6 +59,7 @@ const state = {
   packages: {}, // name -> JobState
   queue: [],
   filter: "",
+  sortOrder: "asc", // "asc" (A-Z) or "desc" (Z-A)
   selected: null,
   selectedDetail: null, // { job, todo, excerpts }
   selectedBuild: null,
@@ -91,6 +92,8 @@ const state = {
   expandedIssue: null, // Index of currently expanded issue (for inline log viewer)
   expandedIssueLog: "", // Log content for expanded issue
   expandedIssueLoading: false,
+  expandedIssueScroll: 0, // Preserved scroll position for expanded issue log
+  issuesListScroll: 0, // Preserved scroll position for the issues list container
 };
 
 // Debug / instrumentation (client-side)
@@ -314,25 +317,146 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   if (totalWarn) pills.push(pillHtml("warn", `${totalWarn} warnings`));
   if (totalSecs) pills.push(pillHtml("neutral", `${totalSecs.toFixed(1)}s`));
 
+  // Only show publish-related info not displayed elsewhere
   const rows = [];
-  if (job.error) rows.push(kvRowHtml("error", job.error));
-  if (job.package_identifier) rows.push(kvRowHtml("identifier", job.package_identifier));
-  if (job.published_branch) rows.push(kvRowHtml("pushed branch", job.published_branch));
-  if (job.published_pr_url) rows.push(kvRowHtml("PR", job.published_pr_url));
-  if (job.published_target_requires_atopile) rows.push(kvRowHtml("target atopile", job.published_target_requires_atopile));
-  if (job.published_at) rows.push(kvRowHtml("pushed at", job.published_at));
   if (job.publish_error) rows.push(kvRowHtml("publish error", job.publish_error));
-  if (job.registry_requires_atopile) {
-    rows.push(kvRowHtml("registry requires-atopile", job.registry_requires_atopile));
-    rows.push(kvRowHtml("registry updated 0.14.x", job.registry_updated_014 ? "yes" : "no"));
-  }
-  if (job.registry_published_version) rows.push(kvRowHtml("registry published version", job.registry_published_version));
-  if (job.started_at) rows.push(kvRowHtml("started", job.started_at));
-  if (job.finished_at) rows.push(kvRowHtml("finished", job.finished_at));
-  if (job.approved_by) rows.push(kvRowHtml("approved at", job.approved_at || "?"));
+  if (job.published_pr_url) rows.push(kvRowHtml("PR", job.published_pr_url));
 
-  const grid = rows.filter(Boolean).join("") || `<div class="muted">—</div>`;
-  return `${prog}<div class="sumPills">${pills.join("")}</div><div class="sumGrid">${grid}</div>`;
+  // Build targets table (similar to ato build CLI output)
+  const buildNames = job.build_names || [];
+  let buildTable = "";
+  if (buildNames.length > 0) {
+    // Parse the build_progress to extract stage name if available
+    const progressStage = job.build_progress ? job.build_progress.split(" ")[0] : "";
+
+    const tableRows = buildNames.map((name) => {
+      const rc = job.build_rc?.[name];
+      const warn = job.build_warn?.[name] || 0;
+      const err = job.build_err?.[name] || 0;
+      const secs = job.build_seconds?.[name];
+
+      let statusIcon, statusClass, stageText;
+      if (rc === undefined || rc === null) {
+        // Not started or in progress
+        if (job.status === "building") {
+          statusIcon = "●";
+          statusClass = "inprogress";
+          // Show the current stage from build_progress
+          stageText = progressStage || "building";
+        } else {
+          statusIcon = "○";
+          statusClass = "pending";
+          stageText = "queued";
+        }
+      } else if (Number(rc) !== 0) {
+        statusIcon = "✗";
+        statusClass = "failed";
+        stageText = "failed";
+      } else if (warn > 0) {
+        statusIcon = "⚠";
+        statusClass = "warning";
+        stageText = "✓"; // Yellow tick for passed with warnings
+      } else {
+        statusIcon = "✓";
+        statusClass = "success";
+        stageText = "✓"; // Green tick for clean pass
+      }
+
+      const warnText = warn > 0 ? `<span class="buildWarn">${warn}w</span>` : "";
+      const errText = err > 0 ? `<span class="buildErr">${err}e</span>` : "";
+      const timeText = secs != null ? `${secs.toFixed(1)}s` : "-";
+
+      return `<tr class="buildRow ${statusClass}">
+        <td class="buildIcon">${statusIcon}</td>
+        <td class="buildName">${escHtml(name)}</td>
+        <td class="buildStage">${escHtml(stageText)}</td>
+        <td class="buildStats">${errText}${warnText}</td>
+        <td class="buildTime">${timeText}</td>
+      </tr>`;
+    }).join("");
+
+    // Add verify row
+    let verifyRow = "";
+    if (job.status === "verifying" || job.verify_rc != null) {
+      const vrc = job.verify_rc;
+      const vwarn = job.verify_warn || 0;
+      const verr = job.verify_err || 0;
+      const vsecs = job.verify_seconds;
+
+      let vIcon, vClass, vStage;
+      if (vrc === undefined || vrc === null) {
+        vIcon = "●";
+        vClass = "inprogress";
+        vStage = "verifying";
+      } else if (Number(vrc) !== 0) {
+        vIcon = "✗";
+        vClass = "failed";
+        vStage = "failed";
+      } else if (vwarn > 0) {
+        vIcon = "⚠";
+        vClass = "warning";
+        vStage = "✓"; // Yellow tick for passed with warnings
+      } else {
+        vIcon = "✓";
+        vClass = "success";
+        vStage = "✓"; // Green tick for clean pass
+      }
+
+      const vWarnText = vwarn > 0 ? `<span class="buildWarn">${vwarn}w</span>` : "";
+      const vErrText = verr > 0 ? `<span class="buildErr">${verr}e</span>` : "";
+      const vTimeText = vsecs != null ? `${vsecs.toFixed(1)}s` : "-";
+
+      verifyRow = `<tr class="buildRow ${vClass} verifyRow">
+        <td class="buildIcon">${vIcon}</td>
+        <td class="buildName">verify</td>
+        <td class="buildStage">${escHtml(vStage)}</td>
+        <td class="buildStats">${vErrText}${vWarnText}</td>
+        <td class="buildTime">${vTimeText}</td>
+      </tr>`;
+    }
+
+    // Progress banner when building
+    const progressBanner = (job.status === "building" && job.build_progress)
+      ? `<div class="buildProgressBanner">${escHtml(job.build_progress)}</div>`
+      : "";
+
+    buildTable = `
+      <div class="buildTable">
+        ${progressBanner}
+        <table>
+          <thead><tr><th></th><th>Target</th><th>Stage</th><th></th><th>Time</th></tr></thead>
+          <tbody>${tableRows}${verifyRow}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Timing element - nice two-column layout for start/finish
+  let timingHtml = "";
+  if (job.started_at || job.finished_at) {
+    const startTime = job.started_at ? job.started_at.split(" ")[1] || job.started_at : "—";
+    const endTime = job.finished_at ? job.finished_at.split(" ")[1] || job.finished_at : "—";
+    const startDate = job.started_at ? job.started_at.split(" ")[0] : "";
+    timingHtml = `
+      <div class="timingRow">
+        <div class="timingItem">
+          <span class="timingIcon">▶</span>
+          <span class="timingLabel">Started</span>
+          <span class="timingValue">${escHtml(startTime)}</span>
+        </div>
+        <div class="timingItem">
+          <span class="timingIcon">■</span>
+          <span class="timingLabel">Finished</span>
+          <span class="timingValue">${escHtml(endTime)}</span>
+        </div>
+        ${startDate ? `<div class="timingDate">${escHtml(startDate)}</div>` : ""}
+      </div>
+    `;
+  }
+
+  const grid = rows.filter(Boolean).join("") || "";
+  const gridHtml = grid ? `<div class="sumGrid">${grid}</div>` : "";
+  return `${prog}<div class="sumPills">${pills.join("")}</div>${buildTable}${timingHtml}${gridHtml}`;
 }
 
 function setHash(pkg) {
@@ -390,7 +514,12 @@ function renderList() {
   const queueNames = Array.isArray(state.queue) ? state.queue.slice() : [];
   const extra = Object.keys(state.packages).filter((n) => !queueNames.includes(n));
   extra.sort((a, b) => a.localeCompare(b));
-  const names = (queueNames.length ? queueNames : Object.keys(state.packages).sort((a, b) => a.localeCompare(b))).concat(extra);
+  let names = (queueNames.length ? queueNames : Object.keys(state.packages).sort((a, b) => a.localeCompare(b))).concat(extra);
+
+  // Apply sort order (A-Z or Z-A)
+  if (state.sortOrder === "desc") {
+    names = names.slice().reverse();
+  }
 
   const visible = names.filter((n) => !filter || n.toLowerCase().includes(filter));
 
@@ -425,6 +554,15 @@ function renderList() {
     if (warn) metaPills.push(el("span", { class: "pill warn" }, [el("span", { class: "dot" }), el("span", { text: `${warn} warnings` })]));
     if (err) metaPills.push(el("span", { class: "pill bad" }, [el("span", { class: "dot" }), el("span", { text: `${err} errors` })]));
     if (j.approved_by) metaPills.push(el("span", { class: "pill good" }, [el("span", { class: "dot" }), el("span", { text: `approved: ${j.approved_by}` })]));
+
+    // Show build progress when actively building/verifying
+    const isActive = j.status === "building" || j.status === "verifying";
+    if (isActive && j.build_progress) {
+      metaPills.push(el("span", { class: "pill purple buildProgress" }, [
+        el("span", { class: "dot" }),
+        el("span", { text: j.build_progress }),
+      ]));
+    }
 
     const metrics = [];
     const canPause = (j.status === "not_started" || j.status === "building" || j.status === "verifying");
@@ -462,11 +600,20 @@ function renderList() {
       }));
     }
     const totalSecs = sum(j.build_seconds) + (j.verify_seconds || 0);
-    if (totalSecs) metrics.push(el("div", { class: "metric", text: `${totalSecs.toFixed(1)}s` }));
+    // Show elapsed time for active builds, or total time for completed builds
+    if (isActive && j.started_at) {
+      const startMs = new Date(j.started_at.replace(" ", "T")).getTime();
+      const elapsedSecs = Math.max(0, (Date.now() - startMs) / 1000);
+      metrics.push(el("div", { class: "metric activeTimer", text: `${Math.floor(elapsedSecs)}s` }));
+    } else if (totalSecs) {
+      metrics.push(el("div", { class: "metric", text: `${totalSecs.toFixed(1)}s` }));
+    }
     if (j.finished_at) metrics.push(el("div", { class: "metric", text: `done ${j.finished_at.split(" ")[1]}` }));
 
+    // Highlight packages needing attention
+    const needsAttention = j.status === "awaiting_review" || j.status === "publishing";
     root.append(el("div", {
-      class: `pkgRow ${selected ? "selected" : ""}`,
+      class: `pkgRow ${selected ? "selected" : ""} ${needsAttention ? "attention" : ""}`,
       onClick: () => selectPackage(name),
     }, [
       el("div", {}, [
@@ -770,6 +917,13 @@ function renderRight() {
       return true;
     });
 
+    // Preserve scroll positions before clearing
+    state.issuesListScroll = issuesList.scrollTop;
+    const existingLogViewer = issuesList.querySelector(".issueLogViewer");
+    if (existingLogViewer && state.expandedIssue !== null) {
+      state.expandedIssueScroll = existingLogViewer.scrollTop;
+    }
+
     issuesList.innerHTML = "";
 
     if (filtered.length === 0) {
@@ -810,12 +964,14 @@ function renderRight() {
             // Collapse if clicking the same issue
             state.expandedIssue = null;
             state.expandedIssueLog = "";
+            state.expandedIssueScroll = 0;
             renderRight();
           } else {
             // Expand this issue (and collapse any other)
             state.expandedIssue = idx;
             state.expandedIssueLoading = true;
             state.expandedIssueLog = "";
+            state.expandedIssueScroll = 0; // Reset scroll for new issue
             renderRight();
 
             // Fetch the log content for this issue
@@ -860,8 +1016,23 @@ function renderRight() {
           const logViewer = el("div", { class: `issueLogViewer ${issue.type}`, "data-idx": idx });
           logViewer.innerHTML = logContent;
           issuesList.appendChild(logViewer);
+
+          // Restore scroll position after append
+          if (state.expandedIssueScroll > 0) {
+            logViewer.scrollTop = state.expandedIssueScroll;
+          }
+
+          // Track scroll changes to preserve position across re-renders
+          logViewer.addEventListener("scroll", () => {
+            state.expandedIssueScroll = logViewer.scrollTop;
+          });
         }
       });
+
+      // Restore issues list scroll position after rendering
+      if (state.issuesListScroll > 0) {
+        issuesList.scrollTop = state.issuesListScroll;
+      }
     }
 
     // Update hint
@@ -878,6 +1049,8 @@ function renderRight() {
       state.issueFilter = issueFilterSelect.value;
       state.expandedIssue = null;  // Collapse expanded issue when filter changes
       state.expandedIssueLog = "";
+      state.expandedIssueScroll = 0;
+      state.issuesListScroll = 0;  // Reset list scroll when filter changes
       renderRight();
     });
     issueFilterSelect._wired = true;
@@ -887,6 +1060,8 @@ function renderRight() {
       state.issueSearch = issueSearch.value;
       state.expandedIssue = null;  // Collapse expanded issue when search changes
       state.expandedIssueLog = "";
+      state.expandedIssueScroll = 0;
+      state.issuesListScroll = 0;  // Reset list scroll when search changes
       renderRight();
     });
     issueSearch._wired = true;
@@ -1117,6 +1292,8 @@ async function selectPackage(name) {
   state.expandedIssue = null;  // Reset expanded issue
   state.expandedIssueLog = "";
   state.expandedIssueLoading = false;
+  state.expandedIssueScroll = 0;
+  state.issuesListScroll = 0;  // Reset issues list scroll
   setHash(name);
   await fetchSelectedDetail(false);
   // Fetch issues first (primary view)
@@ -1205,6 +1382,16 @@ async function openInCursor() {
   }
 }
 
+async function openLogsInCursor() {
+  const pkg = state.selected;
+  if (!pkg) return;
+  try {
+    await apiPost(`/api/package/${encodeURIComponent(pkg)}/open_logs_cursor`, {});
+  } catch (e) {
+    alert(`Open logs in Cursor failed: ${String(e)}`);
+  }
+}
+
 async function refresh(keepDetail = true) {
   const t0 = performance.now();
   await fetchState();
@@ -1246,6 +1433,12 @@ function wireGlobal() {
     state.filter = e.target.value || "";
     renderList();
   });
+  $("#sortToggle")?.addEventListener("click", () => {
+    state.sortOrder = state.sortOrder === "asc" ? "desc" : "asc";
+    const btn = $("#sortToggle");
+    if (btn) btn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
+    renderList();
+  });
   $("#themeBtn")?.addEventListener("click", () => {
     const cur = getThemeMode();
     const next = cur === "auto" ? "dark" : (cur === "dark" ? "light" : "auto");
@@ -1257,11 +1450,17 @@ function wireGlobal() {
   $("#restartBtn").addEventListener("click", restartSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);
+  $("#openLogsBtn").addEventListener("click", openLogsInCursor);
 }
 
 async function bootstrap() {
   wireGlobal();
   initTheme();
+
+  // Initialize sort button text
+  const sortBtn = $("#sortToggle");
+  if (sortBtn) sortBtn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
+
   await refresh(false);
 
   // Prefill reviewer from git

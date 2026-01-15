@@ -231,6 +231,33 @@ aside#left {
   display: grid;
   gap: 10px;
 }
+.filterRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.filterRow #filter {
+  flex: 1;
+}
+.sortBtn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: var(--card);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sortBtn:hover {
+  background: var(--card2);
+  border-color: var(--purple);
+}
+.sortBtn:active {
+  transform: scale(0.97);
+}
 .title {
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -337,6 +364,18 @@ option {
   background: rgba(137, 180, 250, 0.14);
   border-color: rgba(137, 180, 250, 0.25);
 }
+.pkgRow.attention {
+  background: rgba(249, 226, 175, 0.12);
+  border-color: rgba(249, 226, 175, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(249, 226, 175, 0.1);
+}
+.pkgRow.attention:not(.selected) {
+  animation: attention-pulse 2s ease-in-out infinite;
+}
+@keyframes attention-pulse {
+  0%, 100% { border-color: rgba(249, 226, 175, 0.35); }
+  50% { border-color: rgba(249, 226, 175, 0.6); }
+}
 .pkgName { font-weight: 650; font-size: 13px; }
 .pkgMeta {
   margin-top: 2px;
@@ -368,6 +407,28 @@ option {
 .pill.bad  .dot { background: var(--bad); }
 .pill.blue .dot { background: var(--blue); }
 .pill.purple .dot { background: var(--purple); }
+
+/* Build progress pill - pulsing animation for active builds */
+.pill.buildProgress {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.pill.buildProgress .dot {
+  animation: pulseDot 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Active timer for in-progress builds */
+.metric.activeTimer {
+  color: var(--purple);
+  font-weight: 500;
+}
 
 .metrics {
   display: grid;
@@ -492,17 +553,17 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   display: grid;
   gap: 12px;
   grid-template-columns: 1.15fr 1.85fr;
-  grid-template-rows: 180px 1fr 360px;
+  grid-template-rows: auto 1fr minmax(280px, 360px);
   grid-template-areas:
     "summary layout"
-    "todo layout"
-    "logs model";
+    "issues layout"
+    "todo model";
 }
 .grid.modeDiff {
   grid-template-areas:
     "summary diff"
-    "todo diff"
-    "logs diff";
+    "issues diff"
+    "todo diff";
 }
 .card {
   border: 1px solid var(--stroke);
@@ -546,8 +607,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 #summary {
   padding: 12px;
-  overflow: auto;
-  flex: 1;
+  flex: 0 0 auto; /* Don't grow/shrink, size to content */
 }
 
 .sumPills {
@@ -555,6 +615,100 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+/* Build targets table - clean, borderless design */
+.buildTable {
+  margin: 8px 0 12px;
+  max-height: 140px; /* ~5 rows at 28px each */
+  overflow-y: auto;
+}
+.buildTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.buildTable thead {
+  display: none;
+}
+.buildRow td {
+  padding: 4px 0;
+  vertical-align: middle;
+}
+.buildRow.verifyRow td {
+  padding-top: 8px;
+}
+.buildIcon {
+  width: 20px;
+  text-align: center;
+  font-size: 11px;
+}
+.buildRow.success .buildIcon { color: var(--good); }
+.buildRow.warning .buildIcon { color: var(--warn); }
+.buildRow.failed .buildIcon { color: var(--bad); }
+.buildRow.inprogress .buildIcon { color: var(--purple); animation: pulse 1.5s ease-in-out infinite; }
+.buildRow.pending .buildIcon { color: var(--muted); opacity: 0.4; }
+.buildName {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+  color: var(--text);
+}
+.buildRow.pending .buildName {
+  opacity: 0.5;
+}
+.buildStage {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-left: 8px;
+}
+.buildRow.inprogress .buildStage {
+  color: var(--purple);
+}
+.buildRow.failed .buildStage {
+  color: var(--bad);
+}
+.buildRow.success .buildStage {
+  color: var(--good);
+}
+.buildRow.warning .buildStage {
+  color: var(--warn);
+}
+.buildStats {
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 8px;
+}
+.buildWarn {
+  color: var(--warn);
+  font-size: 10px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.buildErr {
+  color: var(--bad);
+  font-size: 10px;
+  font-weight: 500;
+}
+.buildTime {
+  text-align: right;
+  font-family: var(--mono);
+  color: var(--muted);
+  font-size: 10px;
+  padding-left: 10px;
+}
+.buildProgressBanner {
+  padding: 6px 0;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--purple);
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .prog { margin-bottom: 10px; }
@@ -600,11 +754,54 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 .progStep.active .progDot { background: rgba(180, 190, 254, 0.85); }
 .progStep.warn .progDot { background: rgba(249, 226, 175, 0.90); }
 .progStep.err .progDot { background: rgba(243, 139, 168, 0.85); }
+/* Timing row - compact two-column start/finish */
+.timingRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+  padding: 8px 12px;
+  background: rgba(17, 17, 27, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(69, 71, 90, 0.3);
+}
+.timingItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.timingIcon {
+  font-size: 8px;
+  color: var(--ctp-subtext0);
+  opacity: 0.7;
+}
+.timingItem:first-child .timingIcon { color: var(--ctp-green); }
+.timingItem:nth-child(2) .timingIcon { color: var(--ctp-red); }
+.timingLabel {
+  font-size: 11px;
+  color: var(--ctp-subtext0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.timingValue {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ctp-text);
+}
+.timingDate {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ctp-subtext0);
+  font-family: var(--mono);
+}
+
 .sumGrid {
   display: grid;
   grid-template-columns: 180px 1fr;
   gap: 8px 12px;
   align-items: start;
+  margin-top: 8px;
 }
 .sumRow { display: contents; }
 .sumKey {
@@ -660,8 +857,8 @@ kicanvas-embed {
 .diffLine { display: block; padding: 0 8px; border-left: 3px solid transparent; }
 .diffMeta { color: var(--ctp-subtext1); background: rgba(49, 50, 68, 0.35); }
 .diffHunk { color: var(--ctp-lavender); background: rgba(180, 190, 254, 0.10); }
-.diffAdd { color: var(--ctp-green); background: rgba(166, 227, 161, 0.08); border-left-color: rgba(166, 227, 161, 0.45); }
-.diffDel { color: var(--ctp-red); background: rgba(243, 139, 168, 0.08); border-left-color: rgba(243, 139, 168, 0.45); }
+.diffAdd { border-left-color: rgba(64, 160, 43, 0.5); }
+.diffDel { border-left-color: rgba(210, 15, 57, 0.5); }
 .diffCtx { color: var(--ctp-text); }
 
 model-viewer {
@@ -857,11 +1054,13 @@ model-viewer {
 }
 
 /* grid placement */
-#cardSummary { grid-area: summary; }
+#cardSummary {
+  grid-area: summary;
+}
 #cardLayout  { grid-area: layout; }
-#cardIssues  { grid-area: todo; }
-#cardLogs    { grid-area: todo; }
-#cardTodo    { grid-area: logs; }
+#cardIssues  { grid-area: issues; }
+#cardLogs    { grid-area: issues; }
+#cardTodo    { grid-area: todo; }
 #cardModel   { grid-area: model; }
 #cardDiff    { grid-area: layout; }
 .grid.modeDiff #cardDiff { grid-area: diff; }
@@ -870,13 +1069,13 @@ model-viewer {
   #app { grid-template-columns: 320px 1fr; }
   .grid {
     grid-template-columns: 1fr;
-    grid-template-rows: 180px 420px 320px 320px 1fr;
+    grid-template-rows: auto 420px 320px 320px 1fr;
     grid-template-areas:
       "summary"
       "layout"
       "model"
-      "todo"
-      "logs";
+      "issues"
+      "todo";
   }
 }
 
@@ -990,6 +1189,18 @@ model-viewer {
   }
 }
 
+:root[data-theme="light"] .timingRow,
+:root:not([data-theme]) .timingRow {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .timingRow {
+    background: rgba(17, 17, 27, 0.3);
+    border-color: rgba(69, 71, 90, 0.3);
+  }
+}
+
 :root[data-theme="light"] .tabs,
 :root[data-theme="light"] .miniBtn,
 :root:not([data-theme]) .tabs,
@@ -1014,6 +1225,18 @@ model-viewer {
   :root:not([data-theme]) .pkgRow:hover {
     background: rgba(49, 50, 68, 0.55);
     border-color: rgba(69, 71, 90, 0.75);
+  }
+}
+
+:root[data-theme="light"] .pkgRow.attention,
+:root:not([data-theme]) .pkgRow.attention {
+  background: rgba(181, 137, 0, 0.08);
+  border-color: rgba(181, 137, 0, 0.3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .pkgRow.attention {
+    background: rgba(249, 226, 175, 0.12);
+    border-color: rgba(249, 226, 175, 0.35);
   }
 }
 
@@ -1061,6 +1284,45 @@ model-viewer {
   }
 }
 
+:root[data-theme="light"] .diffMeta,
+:root:not([data-theme]) .diffMeta {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--muted);
+}
+:root[data-theme="light"] .diffHunk,
+:root:not([data-theme]) .diffHunk {
+  background: rgba(108, 112, 134, 0.08);
+  color: var(--ctp-lavender);
+}
+:root[data-theme="light"] .diffAdd,
+:root:not([data-theme]) .diffAdd {
+  background: rgba(64, 160, 43, 0.08);
+  color: #2a7e19;
+}
+:root[data-theme="light"] .diffDel,
+:root:not([data-theme]) .diffDel {
+  background: rgba(210, 15, 57, 0.08);
+  color: #c01b40;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .diffMeta {
+    background: rgba(49, 50, 68, 0.35);
+    color: var(--ctp-subtext1);
+  }
+  :root:not([data-theme]) .diffHunk {
+    background: rgba(180, 190, 254, 0.10);
+    color: var(--ctp-lavender);
+  }
+  :root:not([data-theme]) .diffAdd {
+    background: rgba(166, 227, 161, 0.08);
+    color: var(--ctp-green);
+  }
+  :root:not([data-theme]) .diffDel {
+    background: rgba(243, 139, 168, 0.08);
+    color: var(--ctp-red);
+  }
+}
+
 :root[data-theme="light"] #todo,
 :root:not([data-theme]) #todo {
   background: transparent;
@@ -1083,6 +1345,7 @@ model-viewer {
   background: rgba(0, 0, 0, 0.03);
   border-color: var(--stroke);
 }
+/* Build table has no background - integrates cleanly */
 :root[data-theme="light"] .logLine.highlighted,
 :root:not([data-theme]) .logLine.highlighted {
   background: rgba(210, 15, 57, 0.08);
