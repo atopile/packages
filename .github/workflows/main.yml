@@ -76,14 +76,10 @@ jobs:
       - run: ato package verify
         working-directory: ${{ matrix.package }}
 
-      - uses: atopile/publish-package@v1
-        name: Publish package
+      - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        with:
-          package-entrypoint: ${{ matrix.package }}
-          skip-duplicate-versions: true
-          package-version: "" # Use the embedded version key
-          ato-config: ${{ matrix.package }}/ato.yaml
+        working-directory: ${{ matrix.package }}
+        run: ato package publish --skip-duplicate-versions
 
       - name: Archive build logs
         id: archive_logs
