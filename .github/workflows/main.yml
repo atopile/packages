@@ -78,12 +78,8 @@ jobs:
 
       - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
-        run: |
-          cd ${{ matrix.package }}
-          ato package publish --skip-duplicate-versions || echo "Publish failed or version already exists"
+        working-directory: ${{ matrix.package }}
+        run: ato package publish --skip-duplicate-versions
 
       - name: Archive build logs
         id: archive_logs
