@@ -7,11 +7,24 @@
 
 import { useState, useEffect } from 'react';
 import { PcbViewer } from './components/PcbViewer';
-import type { PcbData, PcbDiffData } from './types/pcb';
+import type { PcbData, PcbDiffData, BusData } from './types/pcb';
+
+// atopile brand colors
+const colors = {
+  orange: '#f95015',
+  orangeGlow: 'rgba(249, 80, 21, 0.15)',
+  navy: '#070a23',
+  navyLight: '#0e1338',
+  text: '#cdd6f4',
+  textMuted: '#6c7086',
+  error: '#f38ba8',
+  surface: '#313244',
+};
 
 function App() {
   const [data, setData] = useState<PcbData | null>(null);
   const [diffData, setDiffData] = useState<PcbDiffData | null>(null);
+  const [busData, setBusData] = useState<BusData | null>(null);
   const [mode, setMode] = useState<'single' | 'diff'>('single');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +95,24 @@ function App() {
     loadData();
   }, []);
 
+  // Load bus data separately (optional, only when available from atopile)
+  useEffect(() => {
+    async function loadBusData() {
+      try {
+        const response = await fetch('/api/buses');
+        if (response.ok) {
+          const busJson = await response.json();
+          setBusData(busJson);
+          console.log(`Loaded ${Object.keys(busJson.buses || {}).length} buses from atopile design`);
+        }
+      } catch {
+        // Bus data is optional - ignore errors
+      }
+    }
+
+    loadBusData();
+  }, []);
+
   if (loading) {
     return (
       <div style={{
@@ -90,13 +121,28 @@ function App() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#1e1e2e',
-        color: '#cdd6f4',
-        fontFamily: 'system-ui, sans-serif',
+        background: `
+          radial-gradient(ellipse 1200px 900px at 10% -5%, ${colors.orangeGlow} 0%, transparent 50%),
+          radial-gradient(ellipse 900px 700px at 90% -5%, rgba(137, 180, 250, 0.06) 0%, transparent 50%),
+          ${colors.navy}
+        `,
+        color: colors.text,
+        fontFamily: "'Inter', system-ui, sans-serif",
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '16px' }}>⏳</div>
-          <div>Loading PCB data...</div>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: `3px solid ${colors.surface}`,
+            borderTopColor: colors.orange,
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            margin: '0 auto 16px',
+          }} />
+          <div style={{ color: colors.textMuted }}>Loading PCB data...</div>
+          <style>{`
+            @keyframes spin { to { transform: rotate(360deg); } }
+          `}</style>
         </div>
       </div>
     );
@@ -110,32 +156,60 @@ function App() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#1e1e2e',
-        color: '#cdd6f4',
-        fontFamily: 'system-ui, sans-serif',
+        background: `
+          radial-gradient(ellipse 1200px 900px at 10% -5%, ${colors.orangeGlow} 0%, transparent 50%),
+          radial-gradient(ellipse 900px 700px at 90% -5%, rgba(137, 180, 250, 0.06) 0%, transparent 50%),
+          ${colors.navy}
+        `,
+        color: colors.text,
+        fontFamily: "'Inter', system-ui, sans-serif",
         padding: '32px',
       }}>
         <div style={{
           textAlign: 'center',
           maxWidth: '500px',
-          background: '#313244',
-          padding: '32px',
-          borderRadius: '12px',
+          background: colors.navyLight,
+          padding: '40px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          boxShadow: '0 14px 50px rgba(7, 10, 35, 0.55)',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-          <div style={{ marginBottom: '16px', color: '#f38ba8' }}>{error}</div>
-          <div style={{ fontSize: '14px', color: '#6c7086' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            background: 'rgba(243, 139, 168, 0.1)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            fontSize: '28px',
+          }}>
+            ⚠️
+          </div>
+          <div style={{
+            marginBottom: '16px',
+            color: colors.error,
+            fontWeight: 600,
+            fontSize: '15px',
+          }}>
+            {error}
+          </div>
+          <div style={{ fontSize: '13px', color: colors.textMuted }}>
             To use the PCB Viewer, run the Python backend:
             <pre style={{
-              background: '#1e1e2e',
-              padding: '12px',
-              borderRadius: '8px',
-              marginTop: '12px',
+              background: colors.navy,
+              padding: '16px',
+              borderRadius: '10px',
+              marginTop: '16px',
               fontSize: '12px',
               textAlign: 'left',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              fontFamily: "'JetBrains Mono', monospace",
+              lineHeight: 1.6,
             }}>
-              cd pcb_diff_poc{'\n'}
-              python pcb_diff.py before.kicad_pcb after.kicad_pcb
+              <span style={{ color: colors.textMuted }}>$</span> cd backend{'\n'}
+              <span style={{ color: colors.textMuted }}>$</span> python pcb_server.py <span style={{ color: colors.orange }}>path/to/your.kicad_pcb</span>
             </pre>
           </div>
         </div>
@@ -147,6 +221,7 @@ function App() {
     <PcbViewer
       data={mode === 'single' ? data ?? undefined : undefined}
       diffData={mode === 'diff' ? diffData ?? undefined : undefined}
+      busData={busData ?? undefined}
       mode={mode}
       width="100vw"
       height="100vh"

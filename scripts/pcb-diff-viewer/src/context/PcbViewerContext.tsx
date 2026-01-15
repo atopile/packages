@@ -9,7 +9,8 @@ import type {
   PcbElement,
   ViewState,
   LayerVisibility,
-  ViewerMode
+  ViewerMode,
+  BusData
 } from '../types/pcb';
 
 // ============================================================================
@@ -18,21 +19,42 @@ import type {
 
 export type ColorMode = 'layer' | 'net';
 
+/** Filter for which element types can be selected/hovered */
+export interface SelectionFilter {
+  footprints: boolean;
+  segments: boolean;
+  vias: boolean;
+}
+
+/** Opacity settings for different element types */
+export interface OpacitySettings {
+  zones: number;      // Polygon pours / ground planes
+  tracks: number;     // Trace segments
+  pads: number;       // Footprint pads
+  vias: number;       // Vias
+  text: number;       // Text labels (silkscreen, fab, etc.)
+  boardOutline: number; // Edge cuts
+}
+
 interface PcbViewerState {
   // Data
   mode: ViewerMode;
   pcbData: PcbData | null;
   diffData: PcbDiffData | null;
+  busData: BusData | null;
 
   // View
   view: ViewState;
   layerVisibility: LayerVisibility;
   colorMode: ColorMode;
+  opacity: OpacitySettings;
 
   // Selection
   hoveredElement: PcbElement | null;
   selectedElement: PcbElement | null;
   highlightedNet: number | null;
+  highlightedBus: string | null;  // Bus ID for highlighting entire bus
+  selectionFilter: SelectionFilter;
 
   // UI
   showDiffOverlay: boolean;
@@ -42,6 +64,7 @@ interface PcbViewerState {
 
 type PcbViewerAction =
   | { type: 'SET_DATA'; payload: { mode: ViewerMode; pcbData?: PcbData; diffData?: PcbDiffData } }
+  | { type: 'SET_BUS_DATA'; payload: BusData | null }
   | { type: 'SET_MODE'; payload: ViewerMode }
   | { type: 'SET_VIEW'; payload: Partial<ViewState> }
   | { type: 'ZOOM'; payload: { delta: number; centerX: number; centerY: number } }
@@ -52,7 +75,10 @@ type PcbViewerAction =
   | { type: 'SET_HOVERED'; payload: PcbElement | null }
   | { type: 'SET_SELECTED'; payload: PcbElement | null }
   | { type: 'HIGHLIGHT_NET'; payload: number | null }
+  | { type: 'HIGHLIGHT_BUS'; payload: string | null }
   | { type: 'SET_COLOR_MODE'; payload: ColorMode }
+  | { type: 'SET_SELECTION_FILTER'; payload: Partial<SelectionFilter> }
+  | { type: 'SET_OPACITY'; payload: Partial<OpacitySettings> }
   | { type: 'TOGGLE_DIFF_OVERLAY' }
   | { type: 'TOGGLE_BEFORE_STATE' }
   | { type: 'TOGGLE_AFTER_STATE' };
@@ -65,6 +91,7 @@ const initialState: PcbViewerState = {
   mode: 'single',
   pcbData: null,
   diffData: null,
+  busData: null,
   view: {
     zoom: 50,
     panX: 0,
@@ -72,9 +99,23 @@ const initialState: PcbViewerState = {
   },
   layerVisibility: {},
   colorMode: 'layer',
+  opacity: {
+    zones: 0.25,
+    tracks: 0.9,
+    pads: 0.85,
+    vias: 0.9,
+    text: 0.8,
+    boardOutline: 1.0,
+  },
   hoveredElement: null,
   selectedElement: null,
   highlightedNet: null,
+  highlightedBus: null,
+  selectionFilter: {
+    footprints: true,
+    segments: true,
+    vias: true,
+  },
   showDiffOverlay: true,
   showBeforeState: true,
   showAfterState: true,
@@ -195,8 +236,26 @@ function pcbViewerReducer(state: PcbViewerState, action: PcbViewerAction): PcbVi
     case 'HIGHLIGHT_NET':
       return { ...state, highlightedNet: action.payload };
 
+    case 'HIGHLIGHT_BUS':
+      return { ...state, highlightedBus: action.payload };
+
+    case 'SET_BUS_DATA':
+      return { ...state, busData: action.payload };
+
     case 'SET_COLOR_MODE':
       return { ...state, colorMode: action.payload };
+
+    case 'SET_SELECTION_FILTER':
+      return {
+        ...state,
+        selectionFilter: { ...state.selectionFilter, ...action.payload }
+      };
+
+    case 'SET_OPACITY':
+      return {
+        ...state,
+        opacity: { ...state.opacity, ...action.payload }
+      };
 
     case 'TOGGLE_DIFF_OVERLAY':
       return { ...state, showDiffOverlay: !state.showDiffOverlay };
@@ -228,7 +287,11 @@ interface PcbViewerContextType {
   setHovered: (element: PcbElement | null) => void;
   setSelected: (element: PcbElement | null) => void;
   highlightNet: (net: number | null) => void;
+  highlightBus: (busId: string | null) => void;
+  setBusData: (busData: BusData | null) => void;
   setColorMode: (mode: ColorMode) => void;
+  setSelectionFilter: (filter: Partial<SelectionFilter>) => void;
+  setOpacity: (opacity: Partial<OpacitySettings>) => void;
 }
 
 const PcbViewerContext = createContext<PcbViewerContextType | null>(null);
@@ -280,8 +343,24 @@ export function PcbViewerProvider({ children, initialState: customInitial }: Pcb
     dispatch({ type: 'HIGHLIGHT_NET', payload: net });
   }, []);
 
+  const highlightBus = useCallback((busId: string | null) => {
+    dispatch({ type: 'HIGHLIGHT_BUS', payload: busId });
+  }, []);
+
+  const setBusData = useCallback((busData: BusData | null) => {
+    dispatch({ type: 'SET_BUS_DATA', payload: busData });
+  }, []);
+
   const setColorMode = useCallback((mode: ColorMode) => {
     dispatch({ type: 'SET_COLOR_MODE', payload: mode });
+  }, []);
+
+  const setSelectionFilter = useCallback((filter: Partial<SelectionFilter>) => {
+    dispatch({ type: 'SET_SELECTION_FILTER', payload: filter });
+  }, []);
+
+  const setOpacity = useCallback((opacity: Partial<OpacitySettings>) => {
+    dispatch({ type: 'SET_OPACITY', payload: opacity });
   }, []);
 
   return (
@@ -296,7 +375,11 @@ export function PcbViewerProvider({ children, initialState: customInitial }: Pcb
       setHovered,
       setSelected,
       highlightNet,
+      highlightBus,
+      setBusData,
       setColorMode,
+      setSelectionFilter,
+      setOpacity,
     }}>
       {children}
     </PcbViewerContext.Provider>

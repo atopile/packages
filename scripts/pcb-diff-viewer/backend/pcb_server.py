@@ -136,6 +136,55 @@ def extract_footprint(fp) -> dict:
         elif prop.name == "Value":
             value = prop.value
 
+    # Extract footprint graphics (lines, rects, circles, arcs) for outline rendering
+    # Prioritize courtyard layer, but also include fab and silkscreen
+    graphics = []
+
+    # Extract fp_lines
+    for line in getattr(fp, 'fp_lines', []):
+        layer = line.layer.layer if hasattr(line.layer, 'layer') else str(line.layer)
+        graphics.append({
+            "type": "line",
+            "layer": layer,
+            "start": {"x": line.start.x, "y": line.start.y},
+            "end": {"x": line.end.x, "y": line.end.y},
+            "width": line.stroke.width if hasattr(line, 'stroke') and line.stroke else 0.1,
+        })
+
+    # Extract fp_rects
+    for rect in getattr(fp, 'fp_rects', []):
+        layer = rect.layer.layer if hasattr(rect.layer, 'layer') else str(rect.layer)
+        graphics.append({
+            "type": "rect",
+            "layer": layer,
+            "start": {"x": rect.start.x, "y": rect.start.y},
+            "end": {"x": rect.end.x, "y": rect.end.y},
+            "width": rect.stroke.width if hasattr(rect, 'stroke') and rect.stroke else 0.1,
+        })
+
+    # Extract fp_circles
+    for circle in getattr(fp, 'fp_circles', []):
+        layer = circle.layer.layer if hasattr(circle.layer, 'layer') else str(circle.layer)
+        graphics.append({
+            "type": "circle",
+            "layer": layer,
+            "center": {"x": circle.center.x, "y": circle.center.y},
+            "end": {"x": circle.end.x, "y": circle.end.y},  # Point on circumference
+            "width": circle.stroke.width if hasattr(circle, 'stroke') and circle.stroke else 0.1,
+        })
+
+    # Extract fp_arcs
+    for arc in getattr(fp, 'fp_arcs', []):
+        layer = arc.layer.layer if hasattr(arc.layer, 'layer') else str(arc.layer)
+        graphics.append({
+            "type": "arc",
+            "layer": layer,
+            "start": {"x": arc.start.x, "y": arc.start.y},
+            "mid": {"x": arc.mid.x, "y": arc.mid.y} if hasattr(arc, 'mid') and arc.mid else None,
+            "end": {"x": arc.end.x, "y": arc.end.y},
+            "width": arc.stroke.width if hasattr(arc, 'stroke') and arc.stroke else 0.1,
+        })
+
     return {
         "type": "footprint",
         "uuid": fp.uuid,
@@ -157,6 +206,7 @@ def extract_footprint(fp) -> dict:
             }
             for p in fp.pads
         ],
+        "graphics": graphics,
     }
 
 
@@ -199,7 +249,7 @@ def extract_gr_line(line) -> dict:
 
 
 def extract_arc(arc) -> dict:
-    """Extract arc data."""
+    """Extract arc segment (copper trace arc) data."""
     return {
         "type": "arc",
         "uuid": getattr(arc, 'uuid', None),
@@ -212,10 +262,205 @@ def extract_arc(arc) -> dict:
     }
 
 
+def extract_gr_arc(arc) -> dict:
+    """Extract graphic arc (board outline, etc.) data."""
+    return {
+        "type": "arc",
+        "uuid": getattr(arc, 'uuid', None),
+        "start": {"x": arc.start.x, "y": arc.start.y},
+        "mid": {"x": arc.mid.x, "y": arc.mid.y},
+        "end": {"x": arc.end.x, "y": arc.end.y},
+        "width": arc.stroke.width if arc.stroke else 0.15,
+        "layer": arc.layer,
+        "net": None,
+    }
+
+
+def extract_zone(zone) -> dict:
+    """Extract zone (polygon pour) data."""
+    # Get outline polygon points
+    outline_points = []
+    if zone.polygon and zone.polygon.pts:
+        outline_points = [{"x": pt.x, "y": pt.y} for pt in zone.polygon.pts.xys]
+
+    # Get filled polygon points (actual copper after fill)
+    filled_polygons = []
+    for fp in zone.filled_polygon:
+        points = [{"x": pt.x, "y": pt.y} for pt in fp.pts.xys]
+        filled_polygons.append({
+            "layer": fp.layer,
+            "points": points,
+        })
+
+    # Get layer(s)
+    layer = zone.layer
+    if not layer and zone.layers:
+        layer = list(zone.layers)[0] if zone.layers else None
+
+    return {
+        "type": "zone",
+        "uuid": getattr(zone, 'uuid', None),
+        "name": getattr(zone, 'name', None),
+        "net": zone.net,
+        "netName": zone.net_name,
+        "layer": layer,
+        "layers": list(zone.layers) if zone.layers else [],
+        "priority": getattr(zone, 'priority', 0),
+        "outline": outline_points,
+        "filledPolygons": filled_polygons,
+    }
+
+
+def extract_fp_text(fp_text, footprint) -> dict:
+    """Extract footprint text element data (legacy fp_text elements)."""
+    # For placeholder text like %R or ${REFERENCE}, skip - we extract from properties instead
+    text_content = fp_text.text
+    if text_content in ('%R', '${REFERENCE}', '%V', '${VALUE}'):
+        return None  # Skip placeholders, we'll get these from properties
+
+    is_hidden = fp_text.hide or False
+
+    # Get layer from nested structure
+    layer = fp_text.layer.layer if hasattr(fp_text.layer, 'layer') else str(fp_text.layer)
+
+    # Get font info
+    font_size = 1.0
+    font_thickness = 0.15
+    if fp_text.effects and fp_text.effects.font:
+        if fp_text.effects.font.size:
+            font_size = fp_text.effects.font.size.w
+        if fp_text.effects.font.thickness:
+            font_thickness = fp_text.effects.font.thickness
+
+    # Calculate absolute position (footprint position + text offset)
+    abs_x = footprint.at.x + fp_text.at.x
+    abs_y = footprint.at.y + fp_text.at.y
+    # Rotation: add footprint rotation to text rotation
+    fp_rotation = getattr(footprint.at, 'r', 0) or 0
+    text_rotation = getattr(fp_text.at, 'r', 0) or 0
+
+    return {
+        "type": "text",
+        "uuid": getattr(fp_text, 'uuid', None),
+        "text": text_content,
+        "textType": enum_to_str(fp_text.type) if fp_text.type else "user",
+        "at": {
+            "x": abs_x,
+            "y": abs_y,
+            "r": fp_rotation + text_rotation,
+        },
+        "layer": layer,
+        "hide": is_hidden,
+        "fontSize": font_size,
+        "fontThickness": font_thickness,
+        "footprintRef": footprint.propertys[0].value if footprint.propertys else None,
+    }
+
+
+def extract_fp_property_text(prop, footprint) -> dict:
+    """Extract text from footprint property (Reference, Value, etc.)."""
+    # Skip non-text properties or those without position
+    if not hasattr(prop, 'at') or prop.at is None:
+        return None
+
+    # Get layer - property layer is a string directly
+    layer = str(prop.layer) if prop.layer else "F.SilkS"
+
+    # Check if hidden
+    is_hidden = prop.hide or False
+
+    # Get font info from effects
+    font_size = 1.0
+    font_thickness = 0.15
+    if hasattr(prop, 'effects') and prop.effects:
+        if prop.effects.font and prop.effects.font.size:
+            font_size = prop.effects.font.size.w
+        if prop.effects.font and prop.effects.font.thickness:
+            font_thickness = prop.effects.font.thickness
+
+    # Calculate absolute position (footprint position + property offset)
+    abs_x = footprint.at.x + prop.at.x
+    abs_y = footprint.at.y + prop.at.y
+    # Rotation: add footprint rotation to text rotation
+    fp_rotation = getattr(footprint.at, 'r', 0) or 0
+    text_rotation = getattr(prop.at, 'r', 0) or 0
+
+    return {
+        "type": "text",
+        "uuid": getattr(prop, 'uuid', None),
+        "text": prop.value,
+        "textType": prop.name.lower() if hasattr(prop, 'name') else "property",
+        "at": {
+            "x": abs_x,
+            "y": abs_y,
+            "r": fp_rotation + text_rotation,
+        },
+        "layer": layer,
+        "hide": is_hidden,
+        "fontSize": font_size,
+        "fontThickness": font_thickness,
+        "footprintRef": footprint.propertys[0].value if footprint.propertys else None,
+    }
+
+
+def extract_gr_text(gr_text) -> dict:
+    """Extract graphic text element data."""
+    # Get layer
+    layer = gr_text.layer.layer if hasattr(gr_text.layer, 'layer') else str(gr_text.layer)
+
+    # Get font info
+    font_size = 1.0
+    font_thickness = 0.15
+    if gr_text.effects and gr_text.effects.font:
+        if gr_text.effects.font.size:
+            font_size = gr_text.effects.font.size.w
+        if gr_text.effects.font.thickness:
+            font_thickness = gr_text.effects.font.thickness
+
+    return {
+        "type": "text",
+        "uuid": getattr(gr_text, 'uuid', None),
+        "text": gr_text.text,
+        "textType": "graphic",
+        "at": {
+            "x": gr_text.at.x,
+            "y": gr_text.at.y,
+            "r": getattr(gr_text.at, 'r', 0) or 0,
+        },
+        "layer": layer,
+        "hide": getattr(gr_text, 'hide', False) or False,
+        "fontSize": font_size,
+        "fontThickness": font_thickness,
+        "footprintRef": None,
+    }
+
+
 def load_pcb(filepath: Path) -> dict:
     """Load a PCB file and extract all data."""
     pcb_file = kicad.loads(kicad.pcb.PcbFile, filepath)
     kicad_pcb = pcb_file.kicad_pcb
+
+    # Combine copper arcs and graphic arcs
+    all_arcs = [extract_arc(arc) for arc in kicad_pcb.arcs]
+    all_arcs.extend([extract_gr_arc(arc) for arc in kicad_pcb.gr_arcs])
+
+    # Extract all text elements (footprint texts + property texts + graphic texts)
+    all_texts = []
+    for fp in kicad_pcb.footprints:
+        # Extract legacy fp_text elements (skip placeholders)
+        for fp_text in fp.fp_texts:
+            text_data = extract_fp_text(fp_text, fp)
+            if text_data:  # Skip None (placeholders)
+                all_texts.append(text_data)
+        # Extract property text (Reference, Value, etc.) - these have their own positions
+        for prop in fp.propertys:
+            # Only extract Reference and Value as visible text
+            if hasattr(prop, 'name') and prop.name in ('Reference', 'Value'):
+                prop_text = extract_fp_property_text(prop, fp)
+                if prop_text:
+                    all_texts.append(prop_text)
+    for gr_text in kicad_pcb.gr_texts:
+        all_texts.append(extract_gr_text(gr_text))
 
     return {
         "filename": filepath.name,
@@ -227,8 +472,9 @@ def load_pcb(filepath: Path) -> dict:
             "segments": [extract_segment(seg) for seg in kicad_pcb.segments],
             "vias": [extract_via(via) for via in kicad_pcb.vias],
             "graphicLines": [extract_gr_line(line) for line in kicad_pcb.gr_lines],
-            "arcs": [extract_arc(arc) for arc in kicad_pcb.arcs],
-            "zones": [],  # TODO: Extract zones
+            "arcs": all_arcs,
+            "zones": [extract_zone(zone) for zone in kicad_pcb.zones],
+            "texts": all_texts,
         },
     }
 
@@ -313,7 +559,10 @@ def compute_diff(before_data: dict, after_data: dict) -> dict:
                 before_data["elements"]["arcs"],
                 after_data["elements"]["arcs"]
             ),
-            "zones": [],
+            "zones": diff_elements(
+                before_data["elements"]["zones"],
+                after_data["elements"]["zones"]
+            ),
         },
     }
 
@@ -327,6 +576,7 @@ class PcbViewerHandler(SimpleHTTPRequestHandler):
 
     pcb_data: dict | None = None
     diff_data: dict | None = None
+    bus_data: dict | None = None
     static_dir: Path | None = None
 
     def __init__(self, *args, **kwargs):
@@ -351,6 +601,13 @@ class PcbViewerHandler(SimpleHTTPRequestHandler):
                 self.send_error(404, "No diff data available")
             return
 
+        if parsed.path == '/api/buses':
+            if self.bus_data:
+                self.send_json(self.bus_data)
+            else:
+                self.send_error(404, "No bus data available (run with --ato-project)")
+            return
+
         # Serve static files for everything else
         super().do_GET()
 
@@ -373,11 +630,18 @@ class PcbViewerHandler(SimpleHTTPRequestHandler):
             print(f"[API] {args[0]}")
 
 
-def run_server(port: int, pcb_data: dict | None, diff_data: dict | None, static_dir: Path | None):
+def run_server(
+    port: int,
+    pcb_data: dict | None,
+    diff_data: dict | None,
+    bus_data: dict | None,
+    static_dir: Path | None
+):
     """Run the HTTP server."""
     # Configure handler with data
     PcbViewerHandler.pcb_data = pcb_data
     PcbViewerHandler.diff_data = diff_data
+    PcbViewerHandler.bus_data = bus_data
     PcbViewerHandler.static_dir = static_dir
 
     server = HTTPServer(('localhost', port), PcbViewerHandler)
@@ -385,6 +649,8 @@ def run_server(port: int, pcb_data: dict | None, diff_data: dict | None, static_
     print(f"   API endpoints:")
     print(f"   - GET /api/pcb   (single PCB data)")
     print(f"   - GET /api/diff  (diff data)")
+    if bus_data:
+        print(f"   - GET /api/buses (bus/interface data)")
     print(f"\n   Press Ctrl+C to stop\n")
 
     try:
@@ -405,11 +671,14 @@ def main():
     parser.add_argument('--port', type=int, default=3001, help="Server port (default: 3001)")
     parser.add_argument('--output', help="Output JSON file instead of serving")
     parser.add_argument('--static', help="Directory to serve static files from")
+    parser.add_argument('--ato-project', help="Atopile project directory for bus extraction")
+    parser.add_argument('--ato-build', default='default', help="Atopile build target (default: 'default')")
 
     args = parser.parse_args()
 
     pcb_data = None
     diff_data = None
+    bus_data = None
 
     # Diff mode
     if args.before and args.after:
@@ -443,6 +712,17 @@ def main():
         parser.print_help()
         return
 
+    # Load bus data from atopile project
+    if args.ato_project:
+        try:
+            from bus_extractor import extract_bus_info
+            print(f"🔌 Extracting bus info from: {args.ato_project}")
+            bus_data = extract_bus_info(Path(args.ato_project), args.ato_build)
+            print(f"   ✅ {len(bus_data['buses'])} buses")
+            print(f"   ✅ {len(bus_data['net_to_bus'])} net mappings")
+        except Exception as e:
+            print(f"   ⚠️ Bus extraction failed: {e}")
+
     # Output to file
     if args.output:
         output_path = Path(args.output)
@@ -453,7 +733,7 @@ def main():
 
     # Run server
     static_dir = Path(args.static) if args.static else None
-    run_server(args.port, pcb_data, diff_data, static_dir)
+    run_server(args.port, pcb_data, diff_data, bus_data, static_dir)
 
 
 if __name__ == "__main__":

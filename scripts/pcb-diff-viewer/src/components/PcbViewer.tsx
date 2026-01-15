@@ -14,9 +14,10 @@
  * - Net highlighting
  * - Element inspection
  * - Pan/zoom navigation
+ * - Collapsible panels
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PcbViewerProvider, usePcbViewer } from '../context/PcbViewerContext';
 import { Canvas } from './Canvas';
 import { LayerPanel } from './LayerPanel';
@@ -24,15 +25,61 @@ import { NetPanel } from './NetPanel';
 import { Inspector } from './Inspector';
 import { Toolbar } from './Toolbar';
 import { DiffSummary } from './DiffSummary';
-import type { PcbViewerProps, PcbData, PcbDiffData, ViewerMode } from '../types/pcb';
+import { OpacityPanel } from './OpacityPanel';
+import type { PcbViewerProps, PcbData, PcbDiffData, BusData, ViewerMode } from '../types/pcb';
 
 import '../styles/theme.css';
 import '../styles/components.css';
+
+// Collapsible sidebar panel component
+interface CollapsibleSidebarPanelProps {
+  title: string;
+  children: React.ReactNode;
+  defaultCollapsed?: boolean;
+}
+
+function CollapsibleSidebarPanel({ title, children, defaultCollapsed = false }: CollapsibleSidebarPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  return (
+    <div className={`pcb-sidebar-panel ${isCollapsed ? 'pcb-sidebar-panel--collapsed' : ''}`}>
+      <div
+        className="pcb-sidebar-panel__header"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+      >
+        <span className="pcb-sidebar-panel__chevron">
+          {isCollapsed ? '▶' : '▼'}
+        </span>
+        <span className="pcb-sidebar-panel__title">{title}</span>
+      </div>
+      {!isCollapsed && (
+        <div className="pcb-sidebar-panel__content">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Sidebar container
+interface SidebarProps {
+  children: React.ReactNode;
+  position: 'left' | 'right';
+}
+
+function SidebarWithCollapsiblePanels({ children, position }: SidebarProps) {
+  return (
+    <div className={`pcb-viewer__sidebar pcb-viewer__sidebar--${position}`}>
+      {children}
+    </div>
+  );
+}
 
 // Internal component that uses the context
 function PcbViewerInner({
   data,
   diffData,
+  busData,
   mode = 'single',
   showLayerPanel = true,
   showNetPanel = true,
@@ -47,9 +94,9 @@ function PcbViewerInner({
   width = '100%',
   height = '100%',
 }: PcbViewerProps) {
-  const { state, dispatch } = usePcbViewer();
+  const { state, dispatch, setBusData } = usePcbViewer();
 
-  // Load data when props change
+  // Load PCB data when props change
   useEffect(() => {
     if (diffData) {
       dispatch({
@@ -63,6 +110,13 @@ function PcbViewerInner({
       });
     }
   }, [data, diffData, dispatch]);
+
+  // Load bus data when props change
+  useEffect(() => {
+    if (busData) {
+      setBusData(busData);
+    }
+  }, [busData, setBusData]);
 
   // Callbacks for external integration
   useEffect(() => {
@@ -111,10 +165,21 @@ function PcbViewerInner({
       <div className="pcb-viewer__layout">
         {/* Left sidebar: Layers and Nets */}
         {(showLayerPanel || showNetPanel) && hasData && (
-          <div className="pcb-viewer__sidebar pcb-viewer__sidebar--left">
-            {showLayerPanel && <LayerPanel />}
-            {showNetPanel && <NetPanel />}
-          </div>
+          <SidebarWithCollapsiblePanels position="left">
+            {showLayerPanel && (
+              <CollapsibleSidebarPanel title="Layers" defaultCollapsed={false}>
+                <LayerPanel />
+              </CollapsibleSidebarPanel>
+            )}
+            {showNetPanel && (
+              <CollapsibleSidebarPanel title="Nets" defaultCollapsed={false}>
+                <NetPanel />
+              </CollapsibleSidebarPanel>
+            )}
+            <CollapsibleSidebarPanel title="Opacity" defaultCollapsed={true}>
+              <OpacityPanel />
+            </CollapsibleSidebarPanel>
+          </SidebarWithCollapsiblePanels>
         )}
 
         {/* Main canvas */}
@@ -139,10 +204,18 @@ function PcbViewerInner({
 
         {/* Right sidebar: Inspector and Diff Summary */}
         {(showInspector || state.mode === 'diff') && hasData && (
-          <div className="pcb-viewer__sidebar">
-            {state.mode === 'diff' && <DiffSummary />}
-            {showInspector && <Inspector />}
-          </div>
+          <SidebarWithCollapsiblePanels position="right">
+            {state.mode === 'diff' && (
+              <CollapsibleSidebarPanel title="Diff Summary" defaultCollapsed={false}>
+                <DiffSummary />
+              </CollapsibleSidebarPanel>
+            )}
+            {showInspector && (
+              <CollapsibleSidebarPanel title="Inspector" defaultCollapsed={false}>
+                <Inspector />
+              </CollapsibleSidebarPanel>
+            )}
+          </SidebarWithCollapsiblePanels>
         )}
       </div>
     </div>
@@ -159,4 +232,4 @@ export function PcbViewer(props: PcbViewerProps) {
 }
 
 // Also export types for consumers
-export type { PcbViewerProps, PcbData, PcbDiffData, ViewerMode };
+export type { PcbViewerProps, PcbData, PcbDiffData, BusData, ViewerMode };

@@ -102,28 +102,32 @@ export function Canvas({ className, backgroundColor, highlightColor }: CanvasPro
       const hitThreshold = Math.max(0.3, 2 / state.view.zoom);
 
       // Priority: vias (small, easy to miss) -> footprints (important) -> traces (everywhere)
+      const { selectionFilter } = state;
 
       // Check vias first (they're small and easy to miss otherwise)
-      let hoveredVia: Via | null = null;
-      let minViaDist = Infinity;
-      for (const via of data.elements.vias) {
-        const dist = Math.sqrt(Math.pow(via.at.x - pcbX, 2) + Math.pow(via.at.y - pcbY, 2));
-        // Hit if within outer radius plus threshold
-        if (dist < via.size / 2 + hitThreshold && dist < minViaDist) {
-          hoveredVia = via;
-          minViaDist = dist;
+      if (selectionFilter.vias) {
+        let hoveredVia: Via | null = null;
+        let minViaDist = Infinity;
+        for (const via of data.elements.vias) {
+          const dist = Math.sqrt(Math.pow(via.at.x - pcbX, 2) + Math.pow(via.at.y - pcbY, 2));
+          // Hit if within outer radius plus threshold
+          if (dist < via.size / 2 + hitThreshold && dist < minViaDist) {
+            hoveredVia = via;
+            minViaDist = dist;
+          }
+        }
+
+        if (hoveredVia) {
+          setHovered(hoveredVia);
+          return;
         }
       }
 
-      if (hoveredVia) {
-        setHovered(hoveredVia);
-        return;
-      }
-
       // Check footprints - use pad-based hit detection for accuracy
-      let hoveredFp: Footprint | null = null;
-      let minFpDist = Infinity;
-      for (const fp of data.elements.footprints) {
+      if (selectionFilter.footprints) {
+        let hoveredFp: Footprint | null = null;
+        let minFpDist = Infinity;
+        for (const fp of data.elements.footprints) {
         // Transform point to footprint's local coordinates
         const cosR = Math.cos((-fp.at.r * Math.PI) / 180);
         const sinR = Math.sin((-fp.at.r * Math.PI) / 180);
@@ -137,8 +141,10 @@ export function Canvas({ className, backgroundColor, highlightColor }: CanvasPro
           if (!pad.size) continue;
 
           // Transform to pad's local coordinates
-          const padCosR = Math.cos((-pad.at.r * Math.PI) / 180);
-          const padSinR = Math.sin((-pad.at.r * Math.PI) / 180);
+          // NOTE: pad.at.r is in BOARD coordinates. We need LOCAL rotation relative to footprint.
+          const padLocalRotation = (pad.at.r || 0) - (fp.at.r || 0);
+          const padCosR = Math.cos((-padLocalRotation * Math.PI) / 180);
+          const padSinR = Math.sin((-padLocalRotation * Math.PI) / 180);
           const padRelX = localX - pad.at.x;
           const padRelY = localY - pad.at.y;
           const padLocalX = padRelX * padCosR - padRelY * padSinR;
@@ -159,38 +165,47 @@ export function Canvas({ className, backgroundColor, highlightColor }: CanvasPro
         }
 
         // Fallback: check distance to footprint center if no pads matched
-        // (handles footprints with no pads or very small pads)
-        if (!hoveredFp) {
-          const distToCenter = Math.sqrt(relX * relX + relY * relY);
-          if (distToCenter < 2 + hitThreshold && distToCenter < minFpDist) {
-            hoveredFp = fp;
-            minFpDist = distToCenter;
+          // (handles footprints with no pads or very small pads)
+          if (!hoveredFp) {
+            const distToCenter = Math.sqrt(relX * relX + relY * relY);
+            if (distToCenter < 2 + hitThreshold && distToCenter < minFpDist) {
+              hoveredFp = fp;
+              minFpDist = distToCenter;
+            }
           }
         }
-      }
 
-      if (hoveredFp) {
-        setHovered(hoveredFp);
-        return;
+        if (hoveredFp) {
+          setHovered(hoveredFp);
+          return;
+        }
       }
 
       // Check segments (traces) last - they're everywhere
-      let hoveredSeg: Segment | null = null;
-      let minSegDist = Infinity;
-      for (const seg of data.elements.segments) {
-        const dist = pointToSegmentDistance(
-          { x: pcbX, y: pcbY },
-          { x: seg.start.x, y: seg.start.y },
-          { x: seg.end.x, y: seg.end.y }
-        );
-        const effectiveWidth = Math.max(seg.width / 2, hitThreshold);
-        if (dist < effectiveWidth && dist < minSegDist) {
-          hoveredSeg = seg;
-          minSegDist = dist;
+      if (selectionFilter.segments) {
+        let hoveredSeg: Segment | null = null;
+        let minSegDist = Infinity;
+        for (const seg of data.elements.segments) {
+          const dist = pointToSegmentDistance(
+            { x: pcbX, y: pcbY },
+            { x: seg.start.x, y: seg.start.y },
+            { x: seg.end.x, y: seg.end.y }
+          );
+          const effectiveWidth = Math.max(seg.width / 2, hitThreshold);
+          if (dist < effectiveWidth && dist < minSegDist) {
+            hoveredSeg = seg;
+            minSegDist = dist;
+          }
+        }
+
+        if (hoveredSeg) {
+          setHovered(hoveredSeg);
+          return;
         }
       }
 
-      setHovered(hoveredSeg);
+      // Nothing found
+      setHovered(null);
     }
   }, [isDragging, pan, state, setHovered]);
 
@@ -240,7 +255,9 @@ export function Canvas({ className, backgroundColor, highlightColor }: CanvasPro
           highlightNet(netId);
         }
       } else {
+        // Click on empty space: clear selection and net highlight
         setSelected(null);
+        highlightNet(null);
       }
     }
   }, [state.hoveredElement, state.highlightedNet, setSelected, highlightNet]);

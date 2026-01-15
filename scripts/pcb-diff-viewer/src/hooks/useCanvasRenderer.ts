@@ -14,6 +14,8 @@ import type {
   Via,
   GraphicLine,
   Arc,
+  Zone,
+  PcbText,
   Point,
   PcbData,
   LayerInfo,
@@ -85,9 +87,10 @@ function generateLayerColor(layer: LayerInfo, layerName: string): string {
     saturation = 40;
     lightness = 60;
   } else if (isEdge) {
-    hue = 0;
-    saturation = 0;
-    lightness = 90;
+    // Bright yellow for edge cuts to make them very visible
+    hue = 60;
+    saturation = 100;
+    lightness = 70;
   } else {
     // User layers - spread across spectrum
     hue = (layer.number * 37) % 360;
@@ -221,7 +224,7 @@ function renderFootprint(
   transform: Transform,
   color: string,
   isHovered: boolean,
-  highlightedNet: number | null,
+  isNetHighlighted: (net: number | null) => boolean,
   highlightColor: string,
   colorByNet: boolean = false,
   getNetColor?: (net: number | null) => string
@@ -230,29 +233,103 @@ function renderFootprint(
 
   ctx.save();
   ctx.translate(pos.x, pos.y);
-  // Negate rotation: KiCad uses counter-clockwise positive, canvas uses clockwise
-  ctx.rotate((-fp.at.r * Math.PI) / 180);
+  // KiCad rotation: positive = counter-clockwise
+  // Canvas rotation: positive = clockwise
+  // To convert: negate the angle
+  const fpRotationRad = (-fp.at.r * Math.PI) / 180;
+  ctx.rotate(fpRotationRad);
 
-  // Add glow effect when hovered
-  if (isHovered) {
+  const zoom = transform.scale(1);
+
+  // Draw footprint outline with glow when hovered/selected
+  if (isHovered && fp.graphics && fp.graphics.length > 0) {
+    // Find courtyard graphics first, then fab, then any graphics
+    const courtyardGraphics = fp.graphics.filter(g => g.layer.includes('CrtYd'));
+    const fabGraphics = fp.graphics.filter(g => g.layer.includes('Fab'));
+    const silkGraphics = fp.graphics.filter(g => g.layer.includes('SilkS'));
+    const outlineGraphics = courtyardGraphics.length > 0 ? courtyardGraphics :
+                           fabGraphics.length > 0 ? fabGraphics :
+                           silkGraphics.length > 0 ? silkGraphics : [];
+
+    if (outlineGraphics.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = highlightColor;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.8;
+      ctx.shadowColor = highlightColor;
+      ctx.shadowBlur = 20;
+
+      outlineGraphics.forEach(g => {
+        ctx.beginPath();
+        if (g.type === 'line' && g.start && g.end) {
+          ctx.moveTo(g.start.x * zoom, g.start.y * zoom);
+          ctx.lineTo(g.end.x * zoom, g.end.y * zoom);
+        } else if (g.type === 'rect' && g.start && g.end) {
+          const x = Math.min(g.start.x, g.end.x) * zoom;
+          const y = Math.min(g.start.y, g.end.y) * zoom;
+          const w = Math.abs(g.end.x - g.start.x) * zoom;
+          const h = Math.abs(g.end.y - g.start.y) * zoom;
+          ctx.rect(x, y, w, h);
+        } else if (g.type === 'circle' && g.center && g.end) {
+          const radius = Math.sqrt(
+            Math.pow((g.end.x - g.center.x) * zoom, 2) +
+            Math.pow((g.end.y - g.center.y) * zoom, 2)
+          );
+          ctx.arc(g.center.x * zoom, g.center.y * zoom, radius, 0, Math.PI * 2);
+        } else if (g.type === 'arc' && g.start && g.end && g.mid) {
+          // Similar arc rendering as renderArc
+          const ax = g.start.x * zoom, ay = g.start.y * zoom;
+          const bx = g.mid.x * zoom, by = g.mid.y * zoom;
+          const cx = g.end.x * zoom, cy = g.end.y * zoom;
+          const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+          if (Math.abs(d) > 0.0001) {
+            const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
+            const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
+            const radius = Math.sqrt((ax - ux) * (ax - ux) + (ay - uy) * (ay - uy));
+            const startAngle = Math.atan2(ay - uy, ax - ux);
+            const endAngle = Math.atan2(cy - uy, cx - ux);
+            ctx.arc(ux, uy, radius, startAngle, endAngle);
+          }
+        }
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+  }
+
+  // Fallback: draw bounding box outline from pads when hovered and no graphics
+  if (isHovered && (!fp.graphics || fp.graphics.length === 0) && fp.pads.length > 0) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    fp.pads.forEach(pad => {
+      const halfW = (pad.size?.w || 0.5) / 2;
+      const halfH = (pad.size?.h || 0.5) / 2;
+      minX = Math.min(minX, pad.at.x - halfW);
+      minY = Math.min(minY, pad.at.y - halfH);
+      maxX = Math.max(maxX, pad.at.x + halfW);
+      maxY = Math.max(maxY, pad.at.y + halfH);
+    });
+    // Add margin
+    const margin = 0.3;
+    minX -= margin; minY -= margin; maxX += margin; maxY += margin;
+
+    ctx.save();
+    ctx.strokeStyle = highlightColor;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6;
     ctx.shadowColor = highlightColor;
     ctx.shadowBlur = 15;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(minX * zoom, minY * zoom, (maxX - minX) * zoom, (maxY - minY) * zoom);
+    ctx.restore();
   }
 
   // Draw pads
   fp.pads.forEach(pad => {
-    // Pad positions are relative to footprint center in mm
-    // Scale by zoom to convert to canvas pixels
-    // Note: KiCad pad coordinates are in footprint-local space
-    const zoom = transform.scale(1);
-    // Negate Y because KiCad uses Y-down but after footprint rotation
-    // the local coordinate system might be different
-    const padPos = { x: pad.at.x * zoom, y: -pad.at.y * zoom };
+    // Pad positions are in footprint-local coordinates (mm)
+    const padPos = { x: pad.at.x * zoom, y: pad.at.y * zoom };
 
     // Check if this pad's net is highlighted
-    const isPadHighlighted = highlightedNet !== null && pad.net === highlightedNet;
+    const isPadHighlighted = isNetHighlighted(pad.net);
 
     // Determine pad color: highlighted > net color > base color
     let padColor = color;
@@ -264,10 +341,13 @@ function renderFootprint(
 
     ctx.save();
     ctx.translate(padPos.x, padPos.y);
-    // Pad rotation is relative to the footprint (already rotated)
-    // Negate to match KiCad's counter-clockwise convention
-    if (pad.at.r !== 0) {
-      ctx.rotate((-pad.at.r * Math.PI) / 180);
+    // IMPORTANT: In KiCad, pad.at.r is in BOARD coordinates, not footprint-local!
+    // When a footprint is rotated, KiCad updates pad rotations to include the fp rotation.
+    // Since we already applied fp rotation to the context, we need the pad's LOCAL rotation,
+    // which is: pad_board_rotation - footprint_rotation
+    const padLocalRotation = (pad.at.r || 0) - (fp.at.r || 0);
+    if (padLocalRotation !== 0) {
+      ctx.rotate((-padLocalRotation * Math.PI) / 180);
     }
 
     if (pad.size) {
@@ -314,17 +394,6 @@ function renderFootprint(
     ctx.restore();
   });
 
-  // Draw reference designator if it exists
-  if (fp.reference) {
-    const fontSize = Math.max(8, transform.scale(0.8));
-    ctx.font = `${fontSize}px monospace`;
-    ctx.fillStyle = isHovered ? highlightColor : color;
-    ctx.globalAlpha = 0.9;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(fp.reference, 0, -transform.scale(2));
-  }
-
   ctx.restore();
 }
 
@@ -335,7 +404,8 @@ function renderSegment(
   color: string,
   isHighlighted: boolean,
   highlightColor: string,
-  isHovered: boolean = false
+  isHovered: boolean = false,
+  baseOpacity: number = 0.9
 ) {
   const start = transform.pcbToCanvas(seg.start.x, seg.start.y);
   const end = transform.pcbToCanvas(seg.end.x, seg.end.y);
@@ -354,7 +424,7 @@ function renderSegment(
   ctx.strokeStyle = isHovered ? highlightColor : (isHighlighted ? highlightColor : color);
   ctx.lineWidth = Math.max(1, width);
   ctx.lineCap = 'round';
-  ctx.globalAlpha = isHighlighted || isHovered ? 1 : 0.9;
+  ctx.globalAlpha = isHighlighted || isHovered ? 1 : baseOpacity;
 
   ctx.beginPath();
   ctx.moveTo(start.x, start.y);
@@ -372,7 +442,8 @@ function renderVia(
   isHighlighted: boolean,
   highlightColor: string,
   bgColor: string,
-  isHovered: boolean = false
+  isHovered: boolean = false,
+  baseOpacity: number = 0.9
 ) {
   const pos = transform.pcbToCanvas(via.at.x, via.at.y);
   const outerRadius = transform.scale(via.size / 2);
@@ -390,7 +461,7 @@ function renderVia(
 
   // Outer ring
   ctx.fillStyle = isHovered ? highlightColor : (isHighlighted ? highlightColor : color);
-  ctx.globalAlpha = isHighlighted || isHovered ? 1 : 0.9;
+  ctx.globalAlpha = isHighlighted || isHovered ? 1 : baseOpacity;
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, Math.max(2, outerRadius), 0, Math.PI * 2);
   ctx.fill();
@@ -444,64 +515,140 @@ function renderArc(
 
   ctx.save();
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1, width);
+  ctx.lineWidth = Math.max(2, width);
   ctx.lineCap = 'round';
-  ctx.globalAlpha = 0.9;
-
-  ctx.beginPath();
+  ctx.globalAlpha = 1.0;
 
   if (arc.mid) {
-    // We have a mid point - draw arc through three points using quadratic curve
     const mid = transform.pcbToCanvas(arc.mid.x, arc.mid.y);
 
-    // Calculate the center and radius of the arc from 3 points
-    // Using the perpendicular bisector method
+    // Calculate circle center from 3 points (start, mid, end)
     const ax = start.x, ay = start.y;
     const bx = mid.x, by = mid.y;
     const cx = end.x, cy = end.y;
 
-    // Midpoints
+    // Determinant for center calculation
     const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
 
     if (Math.abs(d) < 0.0001) {
       // Points are collinear, draw a line
+      ctx.beginPath();
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
+      ctx.stroke();
     } else {
-      // Calculate center
+      // Calculate center of circle through 3 points
       const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
       const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
 
       const radius = Math.sqrt((ax - ux) * (ax - ux) + (ay - uy) * (ay - uy));
 
-      // Calculate start and end angles
+      // Calculate angles
       const startAngle = Math.atan2(ay - uy, ax - ux);
-      const endAngle = Math.atan2(cy - uy, cx - ux);
       const midAngle = Math.atan2(by - uy, bx - ux);
+      const endAngle = Math.atan2(cy - uy, cx - ux);
 
-      // Determine direction (clockwise or counter-clockwise)
-      // Check if mid angle is between start and end going counter-clockwise
-      const normalizeAngle = (a: number) => (a + Math.PI * 2) % (Math.PI * 2);
-      const startN = normalizeAngle(startAngle);
-      const endN = normalizeAngle(endAngle);
-      const midN = normalizeAngle(midAngle);
+      // Determine if we go clockwise or counter-clockwise
+      // The mid point tells us which way to go around the circle
+      // Normalize angles to [0, 2π)
+      const normalize = (a: number) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      const sn = normalize(startAngle);
+      const mn = normalize(midAngle);
+      const en = normalize(endAngle);
 
-      let counterClockwise: boolean;
-      if (startN < endN) {
-        counterClockwise = midN > startN && midN < endN;
+      // Check if mid is between start and end going counter-clockwise
+      let anticlockwise: boolean;
+      if (sn <= en) {
+        anticlockwise = mn >= sn && mn <= en;
       } else {
-        counterClockwise = midN > startN || midN < endN;
+        anticlockwise = mn >= sn || mn <= en;
       }
 
-      ctx.arc(ux, uy, radius, startAngle, endAngle, !counterClockwise);
+      ctx.beginPath();
+      ctx.arc(ux, uy, radius, startAngle, endAngle, !anticlockwise);
+      ctx.stroke();
     }
   } else {
     // No mid point - just draw a line from start to end
+    ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
+    ctx.stroke();
   }
 
-  ctx.stroke();
+  ctx.restore();
+}
+
+function renderZone(
+  ctx: CanvasRenderingContext2D,
+  zone: Zone,
+  transform: Transform,
+  color: string,
+  isHighlighted: boolean,
+  highlightColor: string,
+  baseOpacity: number = 0.25
+) {
+  // Only render zones that have filled polygons (actual copper after DRC fill)
+  // Skip zones with only outline (keepout rectangles, unfilled zones)
+  if (zone.filledPolygons.length === 0) return;
+
+  ctx.save();
+
+  // Use reduced opacity for zones to see traces through them
+  ctx.globalAlpha = isHighlighted ? Math.min(baseOpacity * 2, 1) : baseOpacity;
+  ctx.fillStyle = isHighlighted ? highlightColor : color;
+
+  // Render only the filled polygons (actual copper shapes)
+  for (const filledPoly of zone.filledPolygons) {
+    const points = filledPoly.points;
+    if (points.length < 3) continue;
+
+    ctx.beginPath();
+    const firstPoint = transform.pcbToCanvas(points[0].x, points[0].y);
+    ctx.moveTo(firstPoint.x, firstPoint.y);
+
+    for (let i = 1; i < points.length; i++) {
+      const pt = transform.pcbToCanvas(points[i].x, points[i].y);
+      ctx.lineTo(pt.x, pt.y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function renderText(
+  ctx: CanvasRenderingContext2D,
+  text: PcbText,
+  transform: Transform,
+  color: string,
+  baseOpacity: number = 0.9
+) {
+  // Skip hidden text
+  if (text.hide) return;
+
+  const pos = transform.pcbToCanvas(text.at.x, text.at.y);
+  // Scale font size - KiCad uses mm, we need to scale
+  const fontSize = Math.max(8, transform.scale(text.fontSize));
+
+  ctx.save();
+  ctx.translate(pos.x, pos.y);
+
+  // Apply rotation (KiCad rotation is counter-clockwise, canvas is clockwise)
+  if (text.at.r) {
+    ctx.rotate((-text.at.r * Math.PI) / 180);
+  }
+
+  ctx.font = `${fontSize}px sans-serif`;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = baseOpacity;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillText(text.text, 0, 0);
+
   ctx.restore();
 }
 
@@ -577,9 +724,43 @@ export function useCanvasRenderer(
       centerY
     );
 
-    const { layerVisibility, highlightedNet, hoveredElement, selectedElement, colorMode } = state;
+    const { layerVisibility, highlightedNet, highlightedBus, hoveredElement, selectedElement, colorMode, opacity, busData } = state;
     const layerColors = layerColorsRef.current;
     const netColors = netColorsRef.current;
+
+    // Build net name to net number mapping for bus lookups
+    const netNameToNumber: Record<string, number> = {};
+    const netNumberToName: Record<number, string> = {};
+    if (data?.nets) {
+      Object.entries(data.nets).forEach(([numStr, info]) => {
+        netNameToNumber[info.name] = Number(numStr);
+        netNumberToName[Number(numStr)] = info.name;
+      });
+    }
+
+    // Helper to check if a net should be highlighted (by direct net or bus membership)
+    const isNetHighlighted = (netNumber: number | null): boolean => {
+      if (netNumber === null) return false;
+      if (highlightedNet === netNumber) return true;
+      if (highlightedBus && busData) {
+        const netName = netNumberToName[netNumber];
+        const bus = busData.buses[highlightedBus];
+        if (bus && netName) {
+          return bus.nets.some(n => n.name === netName);
+        }
+      }
+      return false;
+    };
+
+    // Helper to get bus color for a net (if available)
+    const getBusColor = (netNumber: number | null): string | null => {
+      if (!busData || netNumber === null) return null;
+      const netName = netNumberToName[netNumber];
+      if (!netName) return null;
+      const busId = busData.net_to_bus[netName];
+      if (!busId) return null;
+      return busData.buses[busId]?.color || null;
+    };
 
     // Helper to check if layer should be rendered
     const shouldRender = (layer: string) => layerVisibility[layer] !== false;
@@ -587,9 +768,12 @@ export function useCanvasRenderer(
     // Helper to get layer color
     const getLayerColor = (layer: string) => layerColors.get(layer) || '#888888';
 
-    // Helper to get net color
+    // Helper to get net color (bus color if available, otherwise generated)
     const getNetColor = (netNumber: number | null) => {
       if (netNumber === null) return '#6c7086';
+      // Prefer bus color when available
+      const busColor = getBusColor(netNumber);
+      if (busColor) return busColor;
       return netColors.get(netNumber) || generateNetColor(netNumber);
     };
 
@@ -604,7 +788,26 @@ export function useCanvasRenderer(
     // Get diff data if in diff mode
     const diffData = state.mode === 'diff' ? state.diffData : null;
 
-    // Render order: graphic lines (board outline) -> segments (traces) -> vias -> footprints
+    // Render order: zones (ground planes) -> graphic lines (board outline) -> segments (traces) -> vias -> footprints
+
+    // Render zones (polygon pours / ground planes) - render first so they're behind everything
+    if (data && data.elements.zones && opacity.zones > 0) {
+      // Sort by priority (lower priority renders first / behind)
+      const sortedZones = [...data.elements.zones].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
+      sortedZones.forEach(zone => {
+        // Check if any layer this zone is on should be rendered
+        const zoneLayers = zone.layers.length > 0 ? zone.layers : (zone.layer ? [zone.layer] : []);
+        const shouldRenderZone = zoneLayers.some(l => shouldRender(l));
+        if (!shouldRenderZone) return;
+
+        const isHighlighted = isNetHighlighted(zone.net);
+        const primaryLayer = zoneLayers[0] || 'F.Cu';
+        const color = getElementColor(primaryLayer, zone.net);
+
+        renderZone(ctx, zone, transform, color, isHighlighted, highlightColor, opacity.zones);
+      });
+    }
 
     // Render graphic lines (board outline, etc.) - always use layer color
     if (data) {
@@ -616,7 +819,7 @@ export function useCanvasRenderer(
     }
 
     // Render arcs (curved board outline edges, etc.) - always use layer color
-    if (data) {
+    if (data && data.elements.arcs) {
       data.elements.arcs.forEach(arc => {
         if (!shouldRender(arc.layer)) return;
         const color = getLayerColor(arc.layer);
@@ -635,14 +838,14 @@ export function useCanvasRenderer(
 
         if (status === 'removed') {
           if (!state.showBeforeState) return;
-          const isHighlighted = highlightedNet === element.net;
+          const isHighlighted = isNetHighlighted(element.net);
           renderSegment(ctx, element, transform, getDiffColor('removed'), isHighlighted, highlightColor, isHovered);
         } else if (status === 'added') {
           if (!state.showAfterState) return;
-          const isHighlighted = highlightedNet === element.net;
+          const isHighlighted = isNetHighlighted(element.net);
           renderSegment(ctx, element, transform, getDiffColor('added'), isHighlighted, highlightColor, isHovered);
         } else if (status === 'modified') {
-          const isHighlighted = highlightedNet === element.net;
+          const isHighlighted = isNetHighlighted(element.net);
           // Render before state (counterpart) in orange
           if (state.showBeforeState && counterpart) {
             renderSegment(ctx, counterpart as Segment, transform, '#fab387', isHighlighted, highlightColor, false);
@@ -653,7 +856,7 @@ export function useCanvasRenderer(
           }
         } else {
           // Unchanged - use colorMode
-          const isHighlighted = highlightedNet === element.net;
+          const isHighlighted = isNetHighlighted(element.net);
           const color = colorMode === 'net' ? getNetColor(element.net) : getDiffColor('unchanged');
           renderSegment(ctx, element, transform, color, isHighlighted, highlightColor, isHovered);
         }
@@ -662,11 +865,11 @@ export function useCanvasRenderer(
       // Single mode - use layer or net colors based on colorMode
       data.elements.segments.forEach(seg => {
         if (!shouldRender(seg.layer)) return;
-        const isHighlighted = highlightedNet === seg.net;
+        const isHighlighted = isNetHighlighted(seg.net);
         const isHovered = hoveredElement?.type === 'segment' &&
           isSameSegment(hoveredElement as Segment, seg);
         const color = getElementColor(seg.layer, seg.net);
-        renderSegment(ctx, seg, transform, color, isHighlighted, highlightColor, isHovered);
+        renderSegment(ctx, seg, transform, color, isHighlighted, highlightColor, isHovered, opacity.tracks);
       });
     }
 
@@ -683,18 +886,18 @@ export function useCanvasRenderer(
         const color = status === 'unchanged' && colorMode === 'net'
           ? getNetColor(element.net)
           : getDiffColor(status);
-        renderVia(ctx, element, transform, color, isHighlighted, highlightColor, bgColor, isHovered);
+        renderVia(ctx, element, transform, color, isHighlighted, highlightColor, bgColor, isHovered, opacity.vias);
       });
     } else if (data) {
       // Use net color in net mode, otherwise use copper color
       data.elements.vias.forEach(via => {
-        const isHighlighted = highlightedNet === via.net;
+        const isHighlighted = isNetHighlighted(via.net);
         const isHovered = hoveredElement?.type === 'via' &&
           isSameVia(hoveredElement as Via, via);
         const color = colorMode === 'net'
           ? getNetColor(via.net)
           : (getLayerColor('F.Cu') || getLayerColor('B.Cu') || '#f38ba8');
-        renderVia(ctx, via, transform, color, isHighlighted, highlightColor, bgColor, isHovered);
+        renderVia(ctx, via, transform, color, isHighlighted, highlightColor, bgColor, isHovered, opacity.vias);
       });
     }
 
@@ -708,23 +911,23 @@ export function useCanvasRenderer(
 
         if (status === 'removed') {
           if (!state.showBeforeState) return;
-          renderFootprint(ctx, element, transform, getDiffColor('removed'), isHighlighted, highlightedNet, highlightColor, false);
+          renderFootprint(ctx, element, transform, getDiffColor('removed'), isHighlighted, isNetHighlighted, highlightColor, false);
         } else if (status === 'added') {
           if (!state.showAfterState) return;
-          renderFootprint(ctx, element, transform, getDiffColor('added'), isHighlighted, highlightedNet, highlightColor, false);
+          renderFootprint(ctx, element, transform, getDiffColor('added'), isHighlighted, isNetHighlighted, highlightColor, false);
         } else if (status === 'modified') {
           // Render before state (counterpart) in orange
           if (state.showBeforeState && counterpart) {
-            renderFootprint(ctx, counterpart as Footprint, transform, '#fab387', isHighlighted, highlightedNet, highlightColor, false);
+            renderFootprint(ctx, counterpart as Footprint, transform, '#fab387', isHighlighted, isNetHighlighted, highlightColor, false);
           }
           // Render after state in blue
           if (state.showAfterState) {
-            renderFootprint(ctx, element, transform, '#89b4fa', isHighlighted, highlightedNet, highlightColor, false);
+            renderFootprint(ctx, element, transform, '#89b4fa', isHighlighted, isNetHighlighted, highlightColor, false);
           }
         } else {
           // Unchanged - respect colorMode for pads
           const color = colorMode === 'net' ? getLayerColor(element.layer) : getDiffColor('unchanged');
-          renderFootprint(ctx, element, transform, color, isHighlighted, highlightedNet, highlightColor, colorMode === 'net', getNetColor);
+          renderFootprint(ctx, element, transform, color, isHighlighted, isNetHighlighted, highlightColor, colorMode === 'net', getNetColor);
         }
       });
     } else if (data) {
@@ -735,7 +938,16 @@ export function useCanvasRenderer(
         const isSelected = selectedElement?.type === 'footprint' &&
           (selectedElement as Footprint).uuid === fp.uuid;
         const baseColor = isSelected ? highlightColor : getLayerColor(fp.layer);
-        renderFootprint(ctx, fp, transform, baseColor, isHighlighted || isSelected, highlightedNet, highlightColor, colorMode === 'net', getNetColor);
+        renderFootprint(ctx, fp, transform, baseColor, isHighlighted || isSelected, isNetHighlighted, highlightColor, colorMode === 'net', getNetColor);
+      });
+    }
+
+    // Render texts (last, on top of everything)
+    if (data && data.elements.texts && opacity.text > 0) {
+      data.elements.texts.forEach(text => {
+        if (!shouldRender(text.layer)) return;
+        const color = getLayerColor(text.layer);
+        renderText(ctx, text, transform, color, opacity.text);
       });
     }
 

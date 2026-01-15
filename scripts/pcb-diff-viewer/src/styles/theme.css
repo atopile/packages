@@ -1,74 +1,154 @@
 /**
- * PCB Viewer - CSS Variables Theme
+ * PCB Viewer - atopile Theme
  *
- * These can be overridden by parent applications for custom theming.
+ * Brand colors combined with Catppuccin-inspired palette
+ * for a cohesive, modern design system.
  */
 
-.pcb-viewer {
-  /* Base colors */
-  --pcb-bg: #1e1e2e;
-  --pcb-panel: #313244;
-  --pcb-panel-border: #45475a;
-  --pcb-text: #cdd6f4;
-  --pcb-text-muted: #6c7086;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  /* Layer colors */
-  --pcb-copper-front: #f38ba8;
-  --pcb-copper-back: #89b4fa;
-  --pcb-copper-inner: #a6e3a1;
-  --pcb-silkscreen-front: #f5e0dc;
-  --pcb-silkscreen-back: #b4befe;
-  --pcb-mask-front: rgba(69, 71, 90, 0.5);
-  --pcb-mask-back: rgba(49, 50, 68, 0.5);
-  --pcb-board-edge: #cdd6f4;
-  --pcb-board-fill: #313244;
+.pcb-viewer {
+  /* ==========================================
+     atopile Brand Colors
+     ========================================== */
+  --ato-orange: #f95015;
+  --ato-orange-light: #ff7a47;
+  --ato-orange-dark: #c93d0d;
+  --ato-navy: #070a23;
+  --ato-navy-light: #0e1338;
+  --ato-navy-lighter: #161b4a;
+
+  /* ==========================================
+     Catppuccin Mocha Base (for consistency with review tool)
+     ========================================== */
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext1: #bac2de;
+  --ctp-subtext0: #a6adc8;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-overlay0: #6c7086;
+  --ctp-surface2: #585b70;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+
+  /* ==========================================
+     Theme Tokens (mapped from brand + Catppuccin)
+     ========================================== */
+
+  /* Backgrounds - Navy-tinted dark */
+  --pcb-bg: var(--ato-navy);
+  --pcb-bg-elevated: var(--ato-navy-light);
+  --pcb-panel: rgba(14, 19, 56, 0.85);
+  --pcb-panel-solid: var(--ato-navy-light);
+  --pcb-panel-border: rgba(255, 255, 255, 0.06);
+  --pcb-panel-border-hover: rgba(255, 255, 255, 0.12);
+
+  /* Text */
+  --pcb-text: var(--ctp-text);
+  --pcb-text-muted: var(--ctp-subtext0);
+  --pcb-text-subtle: var(--ctp-overlay0);
+
+  /* Accent - atopile Orange */
+  --pcb-accent: var(--ato-orange);
+  --pcb-accent-hover: var(--ato-orange-light);
+  --pcb-accent-glow: rgba(249, 80, 21, 0.25);
+
+  /* Layer colors - PCB-inspired with warm tones */
+  --pcb-copper-front: #ef4444;
+  --pcb-copper-back: var(--ctp-blue);
+  --pcb-copper-inner: var(--ctp-green);
+  --pcb-silkscreen-front: #fafafa;
+  --pcb-silkscreen-back: var(--ctp-lavender);
+  --pcb-mask-front: rgba(34, 197, 94, 0.2);
+  --pcb-mask-back: rgba(89, 180, 250, 0.2);
+  --pcb-board-edge: var(--ctp-yellow);
+  --pcb-board-fill: var(--ato-navy-light);
 
   /* Interaction colors */
-  --pcb-highlight: #f9e2af;
-  --pcb-selected: #fab387;
-  --pcb-hovered: #94e2d5;
+  --pcb-highlight: var(--ato-orange);
+  --pcb-selected: var(--ctp-peach);
+  --pcb-hovered: var(--ctp-teal);
 
-  /* Diff colors */
-  --pcb-diff-unchanged: #585b70;
-  --pcb-diff-added: #a6e3a1;
-  --pcb-diff-removed: #f38ba8;
-  --pcb-diff-modified-before: #fab387;
-  --pcb-diff-modified-after: #89b4fa;
+  /* Diff colors - semantic and clear */
+  --pcb-diff-unchanged: var(--ctp-surface2);
+  --pcb-diff-added: var(--ctp-green);
+  --pcb-diff-removed: var(--ctp-red);
+  --pcb-diff-modified-before: var(--ctp-peach);
+  --pcb-diff-modified-after: var(--ctp-blue);
 
-  /* Spacing */
-  --pcb-panel-width: 280px;
-  --pcb-toolbar-height: 48px;
-  --pcb-border-radius: 8px;
+  /* ==========================================
+     Spacing - 4px base unit
+     ========================================== */
+  --pcb-panel-width: 300px;
+  --pcb-toolbar-height: 56px;
+  --pcb-radius-sm: 8px;
+  --pcb-radius-md: 12px;
+  --pcb-radius-lg: 14px;
+  --pcb-radius-full: 9999px;
   --pcb-spacing-xs: 4px;
   --pcb-spacing-sm: 8px;
   --pcb-spacing-md: 12px;
   --pcb-spacing-lg: 16px;
+  --pcb-spacing-xl: 24px;
 
-  /* Typography */
-  --pcb-font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  --pcb-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --pcb-font-size-xs: 10px;
+  /* ==========================================
+     Typography
+     ========================================== */
+  --pcb-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --pcb-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --pcb-font-size-xs: 11px;
   --pcb-font-size-sm: 12px;
-  --pcb-font-size-md: 14px;
+  --pcb-font-size-md: 13px;
+  --pcb-font-size-lg: 14px;
+
+  /* ==========================================
+     Shadows & Effects
+     ========================================== */
+  --pcb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --pcb-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --pcb-shadow-lg: 0 14px 50px rgba(7, 10, 35, 0.55);
+  --pcb-shadow-glow: 0 0 20px var(--pcb-accent-glow);
+
+  /* Transitions */
+  --pcb-transition-fast: 0.1s ease;
+  --pcb-transition-normal: 0.15s ease;
+  --pcb-transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Light theme variant */
+/* ==========================================
+   Light theme variant
+   ========================================== */
 .pcb-viewer.light {
-  --pcb-bg: #eff1f5;
-  --pcb-panel: #e6e9ef;
-  --pcb-panel-border: #ccd0da;
-  --pcb-text: #4c4f69;
-  --pcb-text-muted: #8c8fa1;
-  --pcb-copper-front: #d20f39;
-  --pcb-copper-back: #1e66f5;
-  --pcb-copper-inner: #40a02b;
-  --pcb-silkscreen-front: #4c4f69;
-  --pcb-silkscreen-back: #7287fd;
-  --pcb-board-edge: #4c4f69;
-  --pcb-board-fill: #e6e9ef;
-  --pcb-diff-unchanged: #9ca0b0;
-  --pcb-diff-added: #40a02b;
-  --pcb-diff-removed: #d20f39;
-  --pcb-diff-modified-before: #fe640b;
-  --pcb-diff-modified-after: #1e66f5;
+  --pcb-bg: #fafafa;
+  --pcb-bg-elevated: #ffffff;
+  --pcb-panel: rgba(255, 255, 255, 0.92);
+  --pcb-panel-solid: #ffffff;
+  --pcb-panel-border: rgba(0, 0, 0, 0.08);
+  --pcb-panel-border-hover: rgba(0, 0, 0, 0.14);
+  --pcb-text: #18181b;
+  --pcb-text-muted: #52525b;
+  --pcb-text-subtle: #a1a1aa;
+  --pcb-accent: #e04510;
+  --pcb-accent-hover: var(--ato-orange);
+  --pcb-accent-glow: rgba(249, 80, 21, 0.12);
+  --pcb-board-fill: #f4f4f5;
+  --pcb-diff-unchanged: #d4d4d8;
+  --pcb-shadow-lg: 0 14px 50px rgba(0, 0, 0, 0.12);
 }

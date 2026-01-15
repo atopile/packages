@@ -53,6 +53,17 @@ export interface Pad {
   netName: string | null;
 }
 
+/** Graphics element within a footprint (lines, rects, circles, arcs) */
+export interface FootprintGraphic {
+  type: 'line' | 'rect' | 'circle' | 'arc';
+  layer: string;
+  start?: Point;
+  end?: Point;
+  mid?: Point | null;
+  center?: Point;
+  width: number;
+}
+
 export interface Footprint {
   type: 'footprint';
   uuid: string;
@@ -62,6 +73,7 @@ export interface Footprint {
   at: PointWithRotation;
   layer: string;
   pads: Pad[];
+  graphics: FootprintGraphic[];
 }
 
 export interface Segment {
@@ -104,16 +116,38 @@ export interface Arc {
   net: number | null;
 }
 
+export interface FilledPolygon {
+  layer: string;
+  points: Point[];
+}
+
 export interface Zone {
   type: 'zone';
   uuid: string | null;
+  name: string | null;
   net: number;
   netName: string | null;
-  layer: string;
-  polygon: Point[];
+  layer: string | null;
+  layers: string[];
+  priority: number;
+  outline: Point[];
+  filledPolygons: FilledPolygon[];
 }
 
-export type PcbElement = Footprint | Segment | Via | GraphicLine | Arc | Zone;
+export interface PcbText {
+  type: 'text';
+  uuid: string | null;
+  text: string;
+  textType: string; // 'reference', 'value', 'user', 'graphic'
+  at: PointWithRotation;
+  layer: string;
+  hide: boolean;
+  fontSize: number;
+  fontThickness: number;
+  footprintRef: string | null;
+}
+
+export type PcbElement = Footprint | Segment | Via | GraphicLine | Arc | Zone | PcbText;
 
 // ============================================================================
 // PCB Metadata
@@ -132,6 +166,41 @@ export interface LayerInfo {
 }
 
 // ============================================================================
+// Bus/Interface Types (from atopile design)
+// ============================================================================
+
+/** Known bus/interface types in atopile designs */
+export type BusType =
+  | 'ElectricPower'
+  | 'I2C'
+  | 'SPI'
+  | 'I2S'
+  | 'UART'
+  | 'USB'
+  | 'DifferentialPair'
+  | 'ElectricLogic'
+  | 'ElectricSignal'
+  | 'CAN'
+  | 'Ethernet'
+  | 'Unknown';
+
+/** Information about a bus/interface instance */
+export interface BusInfo {
+  id: string;
+  type: BusType;
+  instance: string;
+  nets: { name: string }[];
+  color: string;
+}
+
+/** Bus data from atopile design extraction */
+export interface BusData {
+  buses: Record<string, BusInfo>;
+  net_to_bus: Record<string, string>;
+  bus_colors: Record<BusType, string>;
+}
+
+// ============================================================================
 // PCB Data (loaded from .kicad_pcb file)
 // ============================================================================
 
@@ -147,6 +216,7 @@ export interface PcbData {
     graphicLines: GraphicLine[];
     arcs: Arc[];
     zones: Zone[];
+    texts: PcbText[];
   };
 }
 
@@ -173,6 +243,7 @@ export interface PcbDiffData {
     graphicLines: DiffElement<GraphicLine>[];
     arcs: DiffElement<Arc>[];
     zones: DiffElement<Zone>[];
+    texts: DiffElement<PcbText>[];
   };
 }
 
@@ -239,6 +310,8 @@ export interface PcbViewerProps {
   data?: PcbData;
   /** Diff data for 'diff' mode */
   diffData?: PcbDiffData;
+  /** Bus/interface data from atopile design (optional) */
+  busData?: BusData;
   /** Before/after PCB data for 'side-by-side' mode */
   compareData?: { before: PcbData; after: PcbData };
   /** Viewer mode */
