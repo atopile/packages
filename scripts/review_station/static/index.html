@@ -80,13 +80,31 @@
             <div id="todoHint" class="hint"></div>
           </section>
 
-          <section class="card" id="cardLogs">
+          <section class="card" id="cardIssues">
             <div class="cardTitle row">
-              <span>Logs</span>
+              <span>Issues</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="issueFilterSelect">
+                  <option value="all">All</option>
+                  <option value="errors">Errors only</option>
+                  <option value="warnings">Warnings only</option>
+                </select>
+                <input id="issueSearch" type="text" placeholder="Search issues…" style="width: 180px;" />
+                <button id="toggleLogsBtn" class="miniBtn" type="button">Show Logs</button>
+              </div>
+            </div>
+            <div id="issuesList" class="issuesList"></div>
+            <div class="hint" id="issuesHint"></div>
+          </section>
+
+          <section class="card" id="cardLogs" style="display:none;">
+            <div class="cardTitle row">
+              <span>Raw Logs</span>
               <div style="display:flex; gap:8px; align-items:center;">
                 <select id="logStageSelect"></select>
                 <select id="logSelect"></select>
-                <input id="logSearch" type="text" placeholder="Search…" style="width: 200px;" />
+                <input id="logSearch" type="text" placeholder="Search…" style="width: 180px;" />
+                <button id="hideLogsBtn" class="miniBtn" type="button">Hide Logs</button>
               </div>
             </div>
             <pre id="logViewer" class="pre"></pre>

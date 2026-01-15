@@ -192,8 +192,14 @@ def extract_bus_info(
                 "parent_uuid": parent_uuid,
             }
 
-            # Group by parent interface UUID for merging (only for protocol-level buses)
-            if parent_uuid and bus_type and BUS_TYPE_PRIORITY.get(bus_type, 0) >= 10:
+            # Debug: show what we're grouping for power buses
+            if bus_type == "ElectricPower" and bus_nets:
+                print(f"  DEBUG ElectricPower: instance={bus_instance}, nets={list(bus_nets)[:3]}, uuid={parent_uuid[:12] if parent_uuid else None}")
+
+            # Group by parent interface UUID for merging
+            # This merges things like ElectricPower.hv and ElectricPower.lv into one bus
+            # Also merges I2C.sda and I2C.scl, SPI signals, etc.
+            if parent_uuid and bus_type:
                 if parent_uuid not in parent_to_groups:
                     parent_to_groups[parent_uuid] = []
                 parent_to_groups[parent_uuid].append(group_info)
