@@ -56,12 +56,12 @@ module Bosch_BME280:
     spi_cs.required = False
 
     # --- Power supply ---
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
     assert power_core.voltage within 1.71V to 3.6V
 
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ power_core.gnd
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ power_core.lv
     assert power_io.voltage within 1.2V to 3.6V
 
     # --- I²C bus ---
@@ -95,7 +95,7 @@ module Bosch_BME280:
     csb_pullup = new Resistor
     csb_pullup.resistance = 10kohm +/- 20%
     csb_pullup.package = "0402"
-    power_io.vcc ~> csb_pullup ~> package.CSB
+    power_io.hv ~> csb_pullup ~> package.CSB
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -103,5 +103,5 @@ module Bosch_BME280:
         cap.capacitance = 100nF +/- 20%
         cap.package = "0402"
 
-    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
-    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

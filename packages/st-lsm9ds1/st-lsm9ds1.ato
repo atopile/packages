@@ -96,12 +96,12 @@ module ST_LSM9DS1:
 
     # --- Internal power rail connections ---
     # Connect external power supplies to package pins
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
     assert power_core.voltage within 2.16V to 3.6V
 
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ package.GND
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ package.GND
     assert power_io.voltage within 1.71V to 3.6V
 
     # --- I2C bus ---
@@ -112,7 +112,7 @@ module ST_LSM9DS1:
 
     # --- I2C addresses ---
     # Accelerometer/Gyroscope address (0x6A or 0x6B based on SDO_A/G pin)
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.address_lines[0].line ~ package.SDO_A_G
     addressor.address_lines[0].reference ~ power_io
     addressor.base = 0x6A  # Base address, +1 when SDO_A_G is high (0x6B)
@@ -142,12 +142,12 @@ module ST_LSM9DS1:
     i2c_pullup_scl = new Resistor
     i2c_pullup_scl.resistance = 4.7kohm +/- 5%
     i2c_pullup_scl.package = "0402"
-    power_io.vcc ~> i2c_pullup_scl ~> i2c.scl.line
+    power_io.hv ~> i2c_pullup_scl ~> i2c.scl.line
 
     i2c_pullup_sda = new Resistor
     i2c_pullup_sda.resistance = 4.7kohm +/- 5%
     i2c_pullup_sda.package = "0402"
-    power_io.vcc ~> i2c_pullup_sda ~> i2c.sda.line
+    power_io.hv ~> i2c_pullup_sda ~> i2c.sda.line
 
     # --- Interrupt connections ---
     int1_ag.line ~ package.NT1_A_G
@@ -167,15 +167,15 @@ module ST_LSM9DS1:
     cs_ag_pullup = new Resistor
     cs_ag_pullup.resistance = 10kohm +/- 5%
     cs_ag_pullup.package = "0402"
-    power_io.vcc ~> cs_ag_pullup ~> package.CS_A_G
+    power_io.hv ~> cs_ag_pullup ~> package.CS_A_G
 
     cs_m_pullup = new Resistor
     cs_m_pullup.resistance = 10kohm +/- 5%
     cs_m_pullup.package = "0402"
-    power_io.vcc ~> cs_m_pullup ~> package.CS_M
+    power_io.hv ~> cs_m_pullup ~> package.CS_M
 
     # --- Enable/Control pins ---
-    package.DEN_A_G ~ power_io.gnd  # Data enable for accelerometer/gyroscope (active low)
+    package.DEN_A_G ~ power_io.lv  # Data enable for accelerometer/gyroscope (active low)
 
     # --- Reserved pins ---
     # package.RES (pins 14-18) are reserved and must be left unconnected
@@ -186,22 +186,22 @@ module ST_LSM9DS1:
     power_core_cap = new Capacitor
     power_core_cap.capacitance = 100nF +/- 20%
     power_core_cap.package = "0402"
-    power_core.vcc ~> power_core_cap ~> power_core.gnd
+    power_core.hv ~> power_core_cap ~> power_core.lv
 
     # VDDIO decoupling capacitor
     power_io_cap = new Capacitor
     power_io_cap.capacitance = 100nF +/- 20%
     power_io_cap.package = "0402"
-    power_io.vcc ~> power_io_cap ~> power_io.gnd
+    power_io.hv ~> power_io_cap ~> power_io.lv
 
     # C1 capacitor (internal charge pump)
     charge_pump_cap = new Capacitor
     charge_pump_cap.capacitance = 10nF +/- 20%
     charge_pump_cap.package = "0402"
-    package.C1 ~> charge_pump_cap ~> power_core.gnd
+    package.C1 ~> charge_pump_cap ~> power_core.lv
 
     # CAP capacitor (internal LDO)
     ldo_cap = new Capacitor
     ldo_cap.capacitance = 100nF +/- 20%
     ldo_cap.package = "0402"
-    package.CAP ~> ldo_cap ~> power_core.gnd
+    package.CAP ~> ldo_cap ~> power_core.lv

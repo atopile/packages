@@ -105,8 +105,8 @@ module TI_DRV2605L:
     trigger.line ~> trigger_pulldown ~> power.lv
 
     # --- Haptic motor output ---
-    haptic_output.vcc ~ package.OUTpos
-    haptic_output.gnd ~ package.OUTneg
+    haptic_output.hv ~ package.OUTpos
+    haptic_output.lv ~ package.OUTneg
 
     # --- Voltage regulator capacitor ---
     # REG pin needs 1µF ceramic capacitor to ground

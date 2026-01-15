@@ -16,10 +16,10 @@ module Bosch_BMP388:
     """Driver for Bosch BMP388 temperature & pressure sensor (I²C/SPI).
 
     Exposes:
-      * i2c        – I²C bus interface (7-bit addr 0x76 / 0x77)
-      * power_core – Core supply rail (1.71 V – 3.6 V)
-      * power_io   – Digital I/O supply rail (1.2 V – 3.6 V)
-      * interrupt  – Interrupt output pin
+        * i2c – I²C bus interface (7-bit addr 0x76 / 0x77)
+        * power_core – Core supply rail (1.71 V – 3.6 V)
+        * power_io – Digital I/O supply rail (1.2 V – 3.6 V)
+        * interrupt – Interrupt output pin
     """
 
     # --- Package ---
@@ -36,12 +36,12 @@ module Bosch_BMP388:
     interrupt = new ElectricLogic
 
     # --- Power supply ---
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.VSS
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.VSS
     assert power_core.voltage within 1.71V to 3.6V
 
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ power_core.gnd
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ power_core.lv
     assert power_io.voltage within 1.2V to 3.6V
 
     # --- I²C bus ---
@@ -54,14 +54,14 @@ module Bosch_BMP388:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 20%
     scl_pullup.package = "0402"
-    power_io.vcc ~> scl_pullup ~> i2c.scl.line
+    power_io.hv ~> scl_pullup ~> i2c.scl.line
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 20%
     sda_pullup.package = "0402"
-    power_io.vcc ~> sda_pullup ~> i2c.sda.line
+    power_io.hv ~> sda_pullup ~> i2c.sda.line
 
     # Address selection via SDO pin
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x76
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
@@ -89,7 +89,7 @@ module Bosch_BMP388:
     csb_pullup = new Resistor
     csb_pullup.resistance = 10kohm +/- 20%
     csb_pullup.package = "0402"
-    power_io.vcc ~> csb_pullup ~> package.CSB
+    power_io.hv ~> csb_pullup ~> package.CSB
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -97,5 +97,5 @@ module Bosch_BMP388:
         cap.capacitance = 100nF +/- 20%
         cap.package = "0402"
 
-    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
-    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

@@ -51,20 +51,20 @@ module ST_VL53L0X:
 
     # --- Internal power rails ---
     power_core = new ElectricPower  # VDD - Core supply
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.VSS
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.VSS
     assert power_core.voltage within 2.6V to 2.9V
 
     power_analog = new ElectricPower  # AVDD - Analog supply (VCSEL)
-    power_analog.vcc ~ package.AVDD
-    power_analog.gnd ~ package.GND
+    power_analog.hv ~ package.AVDD
+    power_analog.lv ~ package.GND
     assert power_analog.voltage within 2.6V to 2.9V
 
     # --- Power connections ---
-    power.hv ~ power_core.vcc
-    power.hv ~ power_analog.vcc
-    power.lv ~ power_core.gnd
-    power.lv ~ power_analog.gnd
+    power.hv ~ power_core.hv
+    power.hv ~ power_analog.hv
+    power.lv ~ power_core.lv
+    power.lv ~ power_analog.lv
 
     # Connect additional grounds
     power.lv ~ package.GND2
@@ -97,10 +97,10 @@ module ST_VL53L0X:
     power_core_cap = new Capacitor
     power_core_cap.capacitance = 100nF +/- 20%
     power_core_cap.package = "0402"
-    power_core.vcc ~> power_core_cap ~> power_core.gnd
+    power_core.hv ~> power_core_cap ~> power_core.lv
 
     # Analog supply decoupling
     power_analog_cap = new Capacitor
     power_analog_cap.capacitance = 100nF +/- 20%
     power_analog_cap.package = "0402"
-    power_analog.vcc ~> power_analog_cap ~> power_analog.gnd
+    power_analog.hv ~> power_analog_cap ~> power_analog.lv

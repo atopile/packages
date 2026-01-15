@@ -16,11 +16,11 @@ module ST_LIS3MDL:
     """STMicroelectronics LIS3MDL 3-axis magnetometer (I²C/SPI).
 
     Exposes:
-      * i2c        – I²C bus interface (7-bit addr 0x1C / 0x1E)
-      * power_core – Core supply (2.16V - 3.6V)
-      * power_io   – Digital I/O supply (1.71V - 3.6V)
-      * int_pin    – Interrupt pin (optional)
-      * drdy_pin   – Data ready pin (optional)
+        * i2c – I²C bus interface (7-bit addr 0x1C / 0x1E)
+        * power_core – Core supply (2.16V - 3.6V)
+        * power_io – Digital I/O supply (1.71V - 3.6V)
+        * int_pin – Interrupt pin (optional)
+        * drdy_pin – Data ready pin (optional)
     """
 
     # --- External interfaces ---
@@ -50,7 +50,7 @@ module ST_LIS3MDL:
     package = new STMicroelectronics_LIS3MDLTR_package
 
     # --- I²C address selection (SA1 pin) ---
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.address_lines[0].line ~ package.SD0_SA1
     addressor.address_lines[0].reference ~ power_io
     addressor.base = 0x1C
@@ -62,12 +62,12 @@ module ST_LIS3MDL:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 10%
     scl_pullup.package = "0402"
-    i2c.scl.line ~> scl_pullup ~> power_io.vcc
+    i2c.scl.line ~> scl_pullup ~> power_io.hv
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 10%
     sda_pullup.package = "0402"
-    i2c.sda.line ~> sda_pullup ~> power_io.vcc
+    i2c.sda.line ~> sda_pullup ~> power_io.hv
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[3]
@@ -75,16 +75,16 @@ module ST_LIS3MDL:
         cap.capacitance = 100nF +/- 20%
         cap.package = "0402"
 
-    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
-    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd
-    package.C1 ~> decoupling_caps[2] ~> power_core.gnd
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv
+    package.C1 ~> decoupling_caps[2] ~> power_core.lv
 
     # --- Package connections ---
-    package.Vdd ~ power_core.vcc
-    package.Vdd_IO ~ power_io.vcc
-    package.GND ~ power_core.gnd
+    package.Vdd ~ power_core.hv
+    package.Vdd_IO ~ power_io.hv
+    package.GND ~ power_core.lv
     package.SCL_SPC ~ i2c.scl.line
     package.SDA_SDI_SDO ~ i2c.sda.line
-    package.CS ~ power_io.vcc  # I2C mode (CS high)
+    package.CS ~ power_io.hv  # I2C mode (CS high)
     package.INT ~ int_pin.line
     package.DRDY ~ drdy_pin.line

@@ -60,15 +60,15 @@ module Bosch_BME680:
     """
     Core power supply (VDD) - internally connected to main power
     """
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
 
     power_io = new ElectricPower
     """
     I/O power supply (VDDIO) - internally connected to main power
     """
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ package.GND
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ package.GND
 
     # Power consumption specifications (typical values)
     # VDD current: 2.1μA (sleep) to 12mA (gas measurement)

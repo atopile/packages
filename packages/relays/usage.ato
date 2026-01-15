@@ -7,7 +7,6 @@ import Electrical
 
 from "atopile/relays/relays.ato" import LogicLevelRelaySPDT3A12V, LogicLevelRelayDPDT5A5V, LogicLevelRelayDPDT1A3V
 
-
 module Usage:
     """
     Minimal usage example showcasing three relay series:
@@ -64,5 +63,5 @@ module Usage:
     # Power - normally open, switching both vcc and gnd
     input_power = new ElectricPower
     output_power = new ElectricPower
-    input_power.vcc ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.vcc
-    input_power.gnd ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.gnd
+    input_power.hv ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.hv
+    input_power.lv ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.lv

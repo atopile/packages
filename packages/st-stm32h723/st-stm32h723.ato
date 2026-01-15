@@ -19,7 +19,6 @@ import XtalIF
 import Resistor
 import Capacitor
 
-
 from "parts/Yangxing_Tech_X322525MRB4SI/Yangxing_Tech_X322525MRB4SI.ato" import Yangxing_Tech_X322525MRB4SI_package
 from "parts/STMicroelectronics_STM32H723ZGT6/STMicroelectronics_STM32H723ZGT6.ato" import STMicroelectronics_STM32H723ZGT6_package
 
@@ -29,12 +28,12 @@ interface RMII:
 
     # Transmit signals
     txd = new ElectricLogic[2]  # TXD[1:0] - 2-bit transmit data
-    tx_en = new ElectricLogic   # TX_EN - transmit enable
+    tx_en = new ElectricLogic  # TX_EN - transmit enable
 
     # Receive signals
     rxd = new ElectricLogic[2]  # RXD[1:0] - 2-bit receive data
     crs_dv = new ElectricLogic  # CRS_DV - carrier sense/receive data valid
-    rx_er = new ElectricLogic   # RX_ER - receive error (optional)
+    rx_er = new ElectricLogic  # RX_ER - receive error (optional)
 
 interface MDIO:
     # IEEE 802.3 SMI (MDIO/MDC) management bus
@@ -182,7 +181,7 @@ module ST_STM32H723:
     # --- High-speed crystal (HSE) ---
     hse.xin ~ package.PH0_OSC_IN
     hse.xout ~ package.PH1_OSC_OUT
-    hse.gnd ~ power_3v3.lv
+    hse.lv ~ power_3v3.lv
 
     # 25 MHz crystal for HSE (same as used with LAN8742A)
     hse_crystal = new Yangxing_Tech_X322525MRB4SI_package
@@ -201,7 +200,7 @@ module ST_STM32H723:
     # --- Low-speed crystal (LSE) ---
     lse.xin ~ package.PC14_OSC32_IN
     lse.xout ~ package.PC15_OSC32_OUT
-    lse.gnd ~ power_3v3.lv
+    lse.lv ~ power_3v3.lv
 
     # --- Default peripheral mappings (example sensible defaults) ---
     # UART on PA9 (TX) / PA10 (RX)
@@ -237,18 +236,18 @@ module ST_STM32H723:
     i2s[1].sd ~ gpio_d[5]
 
     # --- RMII MAC mapping via GPIO arrays (references come from GPIO domain) ---
-    rmii.ref_clk ~ gpio_a[1]   # PA1
-    rmii.tx_en ~ gpio_b[11]    # PB11
-    rmii.txd[0] ~ gpio_b[12]   # PB12
-    rmii.txd[1] ~ gpio_b[13]   # PB13
-    rmii.rxd[0] ~ gpio_c[4]    # PC4
-    rmii.rxd[1] ~ gpio_c[5]    # PC5
-    rmii.crs_dv ~ gpio_a[7]    # PA7
-    rmii.rx_er ~ gpio_b[10]    # PB10
+    rmii.ref_clk ~ gpio_a[1]  # PA1
+    rmii.tx_en ~ gpio_b[11]  # PB11
+    rmii.txd[0] ~ gpio_b[12]  # PB12
+    rmii.txd[1] ~ gpio_b[13]  # PB13
+    rmii.rxd[0] ~ gpio_c[4]  # PC4
+    rmii.rxd[1] ~ gpio_c[5]  # PC5
+    rmii.crs_dv ~ gpio_a[7]  # PA7
+    rmii.rx_er ~ gpio_b[10]  # PB10
 
     # --- MDIO mapping ---
-    mdio.mdc ~ gpio_a[6]       # PA6 - MDIOS_MDC (MDIO clock)
-    mdio.mdio ~ gpio_a[7]      # PA7 - ETH_MDIO (MDIO data)
+    mdio.mdc ~ gpio_a[6]  # PA6 - MDIOS_MDC (MDIO clock)
+    mdio.mdio ~ gpio_a[7]  # PA7 - ETH_MDIO (MDIO data)
     mdio.mdc.reference ~ power_3v3
     mdio.mdio.reference ~ power_3v3
 

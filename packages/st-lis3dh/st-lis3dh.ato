@@ -20,15 +20,14 @@ module ST_LIS3DH:
     able to provide the measured acceleration to the external world through I²C/SPI serial interface.
 
     Exposes:
-      * i2c           – I²C bus interface (7-bit addr 0x18 / 0x19)
-      * spi           – SPI bus interface
-      * power_core    – Core power supply (1.71V - 3.6V)
-      * power_io      – I/O power supply (1.71V - 3.6V)
-      * interrupt1    – Interrupt 1 output pin
-      * interrupt2    – Interrupt 2 output pin
-      * adc1, adc2, adc3 – Auxiliary ADC inputs
+        * i2c – I²C bus interface (7-bit addr 0x18 / 0x19)
+        * spi – SPI bus interface
+        * power_core – Core power supply (1.71V - 3.6V)
+        * power_io – I/O power supply (1.71V - 3.6V)
+        * interrupt1 – Interrupt 1 output pin
+        * interrupt2 – Interrupt 2 output pin
+        * adc1, adc2, adc3 – Auxiliary ADC inputs
     """
-
 
     # --- Package ---
     package = new STMicroelectronics_LIS3DHTR_package
@@ -96,12 +95,12 @@ module ST_LIS3DH:
     adc3.required = False
 
     # --- Power connections ---
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
     assert power_core.voltage within 1.71V to 3.6V
 
-    power_io.vcc ~ package.VDD_IO
-    power_io.gnd ~ power_core.gnd
+    power_io.hv ~ package.VDD_IO
+    power_io.lv ~ power_core.lv
     assert power_io.voltage within 1.71V to 3.6V
 
     # --- I²C interface ---
@@ -111,7 +110,7 @@ module ST_LIS3DH:
     i2c.sda.reference ~ power_io
 
     # I²C address selection via SA0 pin
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x18
     addressor.address_lines[0].line ~ package.SDO_SA0
     addressor.address_lines[0].reference ~ power_io
@@ -155,14 +154,14 @@ module ST_LIS3DH:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 20%
         r.package = "0402"
-    power_io.vcc ~> i2c_pullups[0] ~> i2c.scl.line
-    power_io.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+    power_io.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power_io.hv ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- Chip select pullup (for I²C mode) ---
     cs_pullup = new Resistor
     cs_pullup.resistance = 10kohm +/- 20%
     cs_pullup.package = "0402"
-    power_io.vcc ~> cs_pullup ~> package.CS
+    power_io.hv ~> cs_pullup ~> package.CS
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -170,5 +169,5 @@ module ST_LIS3DH:
         cap.capacitance = 100nF +/- 20%
         cap.package = "0402"
 
-    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
-    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

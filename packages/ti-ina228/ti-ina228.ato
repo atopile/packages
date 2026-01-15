@@ -80,8 +80,8 @@ module TI_INA228:
     pullup_sda.resistance = 10kohm +/- 5%
     pullup_scl.package = "0402"
     pullup_sda.package = "0402"
-    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.vcc
-    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.vcc
+    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.hv
 
     # --- ALERT output ---
     alert = new ElectricLogic
@@ -96,7 +96,7 @@ module TI_INA228:
     alert_pullup = new Resistor
     alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
-    alert.line ~> alert_pullup ~> alert.reference.vcc
+    alert.line ~> alert_pullup ~> alert.reference.hv
 
     # --- Shunt measurement path ---
     # PCB Layout Guidelines:

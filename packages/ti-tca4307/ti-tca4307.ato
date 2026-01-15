@@ -105,16 +105,16 @@ module TI_TCA4307:
     for r in i2c_upstream_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c_upstream.scl.line ~> i2c_upstream_pullups[0] ~> i2c_upstream.scl.reference.vcc
-    i2c_upstream.sda.line ~> i2c_upstream_pullups[1] ~> i2c_upstream.sda.reference.vcc
+    i2c_upstream.scl.line ~> i2c_upstream_pullups[0] ~> i2c_upstream.scl.reference.hv
+    i2c_upstream.sda.line ~> i2c_upstream_pullups[1] ~> i2c_upstream.sda.reference.hv
 
     # --- I2C pull-up resistors (downstream) ---
     i2c_downstream_pullups = new Resistor[2]
     for r in i2c_downstream_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c_downstream.scl.line ~> i2c_downstream_pullups[0] ~> i2c_downstream.scl.reference.vcc
-    i2c_downstream.sda.line ~> i2c_downstream_pullups[1] ~> i2c_downstream.sda.reference.vcc
+    i2c_downstream.scl.line ~> i2c_downstream_pullups[0] ~> i2c_downstream.scl.reference.hv
+    i2c_downstream.sda.line ~> i2c_downstream_pullups[1] ~> i2c_downstream.sda.reference.hv
 
     # --- Decoupling capacitors ---
     decoupling_cap = new Capacitor

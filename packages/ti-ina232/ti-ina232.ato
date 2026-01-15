@@ -122,11 +122,11 @@ module TI_INA232:
     assert power_in.voltage within 0V to 48V
 
     # Common ground ties to device ground
-    power_in.gnd ~ power.lv
-    power_out.gnd ~ power.lv
+    power_in.lv ~ power.lv
+    power_out.lv ~ power.lv
 
     # Bridge VCC path through shunt
-    power_in.vcc ~> shunt ~> power_out.vcc
+    power_in.hv ~> shunt ~> power_out.hv
 
     # Mark module as a bridge so it can be inserted inline in power path
     trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">

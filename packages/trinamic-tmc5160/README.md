@@ -92,7 +92,7 @@ module Usage:
     motor_b2 ~ tmc5160.motor_b_bm2
 
     # --- External Interfaces ---
-    power_vccio.vcc.override_net_name = "power-vccio"
+    power_vccio.hv.override_net_name = "power-vccio"
     power_vccio.lv.override_net_name = "gnd"
     chip_select.line.override_net_name = "chip-select"
     spi.sclk.line.override_net_name = "spi-sclk"

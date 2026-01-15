@@ -64,8 +64,8 @@ module Test:
         pullup.resistance = 10kohm +/- 10%
         pullup.package = "R0402"
 
-    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.vcc
-    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.vcc
+    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
 
     # Connect DACs to power and I2C
     for dac in dacs:

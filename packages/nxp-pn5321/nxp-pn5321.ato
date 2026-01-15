@@ -58,53 +58,53 @@ module NXP_PN5321_driver:
         rail ~ power_3v3
 
     # Connect power rails to IC
-    power_dvdd.vcc ~ package.DVDD
-    power_dvdd.gnd ~ package.DVSS
-    power_dvdd.gnd ~ package.EP
-    power_tvdd.vcc ~ package.TVDD
-    power_tvdd.gnd ~ package.TVSS1
-    power_tvdd.gnd ~ package.TVSS2
-    power_pvdd.vcc ~ package.PVDD
-    power_pvdd.gnd ~ package.DVSS
-    power_avdd.vcc ~ package.AVDD
-    power_avdd.gnd ~ package.AVSS
-    power_svdd.vcc ~ package.SVDD
-    power_svdd.gnd ~ package.DVSS
-    power_vmid.vcc ~ package.VMID
-    power_vmid.gnd ~ package.DVSS
-    power_vbat.vcc ~ package.VBAT
-    power_vbat.gnd ~ package.DVSS
+    power_dvdd.hv ~ package.DVDD
+    power_dvdd.lv ~ package.DVSS
+    power_dvdd.lv ~ package.EP
+    power_tvdd.hv ~ package.TVDD
+    power_tvdd.lv ~ package.TVSS1
+    power_tvdd.lv ~ package.TVSS2
+    power_pvdd.hv ~ package.PVDD
+    power_pvdd.lv ~ package.DVSS
+    power_avdd.hv ~ package.AVDD
+    power_avdd.lv ~ package.AVSS
+    power_svdd.hv ~ package.SVDD
+    power_svdd.lv ~ package.DVSS
+    power_vmid.hv ~ package.VMID
+    power_vmid.lv ~ package.DVSS
+    power_vbat.hv ~ package.VBAT
+    power_vbat.lv ~ package.DVSS
 
     # Decoupling caps for power rails
     vbat_cap = new Capacitor
     vbat_cap.capacitance = 100nF +/- 20%
     vbat_cap.package = "C0402"
-    power_vbat.vcc ~> vbat_cap ~> power_vbat.gnd
+    power_vbat.hv ~> vbat_cap ~> power_vbat.lv
 
     svdd_cap = new Capacitor
     svdd_cap.capacitance = 100nF +/- 20%
     svdd_cap.package = "C0402"
-    power_svdd.vcc ~> svdd_cap ~> power_svdd.gnd
+    power_svdd.hv ~> svdd_cap ~> power_svdd.lv
 
     avdd_cap = new Capacitor
     avdd_cap.capacitance = 100nF +/- 20%
     avdd_cap.package = "C0402"
-    power_avdd.vcc ~> avdd_cap ~> power_avdd.gnd
+    power_avdd.hv ~> avdd_cap ~> power_avdd.lv
 
     pvdd_cap = new Capacitor
     pvdd_cap.capacitance = 100nF +/- 20%
     pvdd_cap.package = "C0402"
-    power_pvdd.vcc ~> pvdd_cap ~> power_pvdd.gnd
+    power_pvdd.hv ~> pvdd_cap ~> power_pvdd.lv
 
     dvdd_cap = new Capacitor
     dvdd_cap.capacitance = 100nF +/- 20%
     dvdd_cap.package = "C0402"
-    power_dvdd.vcc ~> dvdd_cap ~> power_dvdd.gnd
+    power_dvdd.hv ~> dvdd_cap ~> power_dvdd.lv
 
     vmid_cap = new Capacitor
     vmid_cap.capacitance = 100nF +/- 20%
     vmid_cap.package = "C0402"
-    power_vmid.vcc ~> vmid_cap ~> power_vmid.gnd
+    power_vmid.hv ~> vmid_cap ~> power_vmid.lv
 
     power_tvdd_caps = new Capacitor[2]
     power_tvdd_caps[0].capacitance = 10uF +/- 20%
@@ -113,7 +113,7 @@ module NXP_PN5321_driver:
     power_tvdd_caps[1].package = "C0402"
 
     for cap in power_tvdd_caps:
-        power_tvdd.vcc ~> cap ~> power_tvdd.gnd
+        power_tvdd.hv ~> cap ~> power_tvdd.lv
 
     power_dvdd_caps = new Capacitor[2]
     power_dvdd_caps[0].capacitance = 10uF +/- 20%
@@ -122,7 +122,7 @@ module NXP_PN5321_driver:
     power_dvdd_caps[1].package = "C0402"
 
     for cap in power_dvdd_caps:
-        power_dvdd.vcc ~> cap ~> power_dvdd.gnd
+        power_dvdd.hv ~> cap ~> power_dvdd.lv
 
     # Antenna
     tx1_mid = new Electrical
@@ -130,20 +130,19 @@ module NXP_PN5321_driver:
     tx1_mid ~> tx1_series_capacitor ~> antenna_output.p.line
 
     tx1_mid ~> tx1_inductor ~> package.TX1
-    tx1_mid ~> tx1_mid_decouple_capacitor ~> power_tvdd.gnd
-    antenna_output.p.line ~> tx1_decouple_capacitor ~> power_tvdd.gnd
+    tx1_mid ~> tx1_mid_decouple_capacitor ~> power_tvdd.lv
+    antenna_output.p.line ~> tx1_decouple_capacitor ~> power_tvdd.lv
 
     tx2_mid = new Electrical
     tx2_mid.override_net_name = "tx_2_mid"
     tx2_mid ~> tx2_series_capacitor ~> antenna_output.n.line
     tx2_mid ~> tx2_inductor ~> package.TX2
-    tx2_mid ~> tx2_mid_decouple_capacitor ~> power_tvdd.gnd
-    antenna_output.n.line ~> tx2_decouple_capacitor ~> power_tvdd.gnd
+    tx2_mid ~> tx2_mid_decouple_capacitor ~> power_tvdd.lv
+    antenna_output.n.line ~> tx2_decouple_capacitor ~> power_tvdd.lv
     tx2_mid ~> rx_capacitor ~> package.RX
     tx2_mid ~> rx_resistor ~> package.RX
 
     power_vmid.hv ~> vmid_resistor ~> package.RX
-
 
     # Interrupt and reset
     interrupt.line ~ package.P70_IRQ
@@ -166,7 +165,7 @@ module NXP_PN5321_driver:
 
     # Oscillator
     package.OSCIN ~> oscillator ~> package.OSCOUT
-    power_3v3.gnd ~ oscillator.gnd
+    power_3v3.lv ~ oscillator.lv
 
     # Antenna components
     tx1_series_capacitor.capacitance = 1nF +/- 20%
@@ -190,4 +189,4 @@ module NXP_PN5321_driver:
     rx_resistor.resistance = 1kohm +/- 5%
 
     # TESTEN
-    package.TESTEN ~ power_3v3.gnd
+    package.TESTEN ~ power_3v3.lv

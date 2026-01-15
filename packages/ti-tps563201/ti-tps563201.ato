@@ -11,7 +11,6 @@ import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS563201DDCR/Texas_Instruments_TPS563201DDCR.ato" import Texas_Instruments_TPS563201DDCR_package
 
-
 module TI_TPS563201 from AdjustableRegulator:
     """
     Texas Instruments TPS563201DDCR Buck Regulator
@@ -38,12 +37,12 @@ module TI_TPS563201 from AdjustableRegulator:
     feedback_divider.r_bottom.package = "R0402"
     feedback_divider.r_top.resistance = 10kohm +/- 1%
     assert feedback_divider.max_current within 10uA to 1mA
-    assert input_voltage >= output_voltage # Buck only
+    assert input_voltage >= output_voltage  # Buck only
 
     # Power Connections
-    power_in.vcc ~ package.VIN
-    power_in.gnd ~ package.GND
-    power_out.gnd ~ package.GND
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    power_out.lv ~ package.GND
 
     # Feedback
     package.VFB ~ feedback_divider.output.line
@@ -51,7 +50,7 @@ module TI_TPS563201 from AdjustableRegulator:
 
     # Input caps
     input_caps = new Capacitor[3]
-    for cap in input_caps[:2]:
+    for cap in input_caps[: 2]:
         cap.capacitance = 10uF +/- 20%
         cap.package = "0805"
 
@@ -60,16 +59,14 @@ module TI_TPS563201 from AdjustableRegulator:
 
     # Connect Input Caps
     for cap in input_caps:
-        power_in.vcc ~> cap ~> power_in.gnd
-
+        power_in.hv ~> cap ~> power_in.lv
 
     # Output caps
     output_caps = new Capacitor[3]
     for cap in output_caps:
         cap.capacitance = 10uF +/- 20%
         cap.package = "0805"
-        power_out.vcc ~> cap ~> power_out.gnd
-
+        power_out.hv ~> cap ~> power_out.lv
 
     # Bootstrap cap
     bootstrap_cap = new Capacitor
@@ -83,14 +80,14 @@ module TI_TPS563201 from AdjustableRegulator:
     inductor.inductance = 2.2uH +/- 30%
     assert inductor.max_current >= 3A
     inductor.package = "SMD5x5mm"
-    package.SW ~> inductor ~> power_out.vcc
+    package.SW ~> inductor ~> power_out.hv
 
     # Enable
     enable.line ~ package.EN
-    enable.reference.gnd ~ power_in.gnd
+    enable.reference.lv ~ power_in.lv
 
     # Default Enabled (pull-up)
     enable_resistor = new Resistor
     enable_resistor.resistance = 10kohm +/- 5%
     enable_resistor.package = "0402"
-    package.EN ~> enable_resistor ~> power_in.vcc
+    package.EN ~> enable_resistor ~> power_in.hv

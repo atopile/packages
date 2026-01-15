@@ -84,8 +84,8 @@ module ST_LPS22:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 1%
         r.package = "0201"
-    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.vcc
-    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.vcc
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
 
     # --- I²C address selection ---
     addressor = new Addressor<address_bits = 1>

@@ -12,17 +12,16 @@ from "parts/Honor_Elec_RVT1V101M0607/Honor_Elec_RVT1V101M0607.ato" import Honor_
 
 from "parts/TDPOWER_TDK20_24S24WH/TDPOWER_TDK20_24S24WH.ato" import TDPOWER_TDK20_24S24WH_package
 
-
 module TDPOWER_TDK20_driver from Regulator:
     """TDPOWER_TDK20_24S24WH"""
     package = new TDPOWER_TDK20_24S24WH_package
 
     # Connect package to power
-    power_in.vcc ~ package.VINpos
-    power_in.gnd ~ package.VINneg
+    power_in.hv ~ package.VINpos
+    power_in.lv ~ package.VINneg
 
-    power_out.vcc ~ package.VOpos
-    power_out.gnd ~ package.VOneg
+    power_out.hv ~ package.VOpos
+    power_out.lv ~ package.VOneg
 
     # Input ceramics
     input_caps = new Capacitor[3]
@@ -30,26 +29,26 @@ module TDPOWER_TDK20_driver from Regulator:
         cap.package = "0805"
         assert cap.max_voltage within 30V to 100V
         assert cap.capacitance within 10uF +/- 10%
-        power_in.vcc ~> cap ~> power_in.gnd
+        power_in.hv ~> cap ~> power_in.lv
 
     # Output ceramics
     output_cap_1 = new Capacitor
     output_cap_1.package = "0805"
     assert output_cap_1.max_voltage within 30V to 100V
     assert output_cap_1.capacitance within 1uF +/- 10%
-    power_out.vcc ~> output_cap_1 ~> power_out.gnd
+    power_out.hv ~> output_cap_1 ~> power_out.lv
 
     # Output electrolytics
     output_electrolytics = new Honor_Elec_RVT1V101M0607_driver[2]
 
     for cap in output_electrolytics:
-        power_out.vcc ~> cap ~> power_out.gnd
+        power_out.hv ~> cap ~> power_out.lv
 
     # Y capacitors
     y_caps = new Capacitor[3]
 
     # Connect the Y capacitors across the power input and output gnd
-    power_in.gnd ~> y_caps[0] ~> y_caps[1] ~> y_caps[2] ~> power_out.gnd
+    power_in.lv ~> y_caps[0] ~> y_caps[1] ~> y_caps[2] ~> power_out.lv
 
     for y_cap in y_caps:
         assert y_cap.max_voltage within 1kV to 2kV
@@ -66,7 +65,7 @@ module TDPOWER_TDK20_driver from Regulator:
     # TODO: logic level enable
 
     # Enabled by default
-    package.CNT ~> enable_resistor ~> power_in.vcc
+    package.CNT ~> enable_resistor ~> power_in.hv
 
 module Honor_Elec_RVT1V101M0607_driver:
     """Polarized electrolytic capacitor - Honor Elec RVT1V101M0607 (100uF 35V)"""
@@ -80,4 +79,4 @@ module Honor_Elec_RVT1V101M0607_driver:
     package.2 ~ cathode
 
     # Enable bridge syntax: power.hv ~> cap ~> power.lv
-    trait can_bridge_by_name<input_name="anode", output_name="cathode">
+    trait can_bridge_by_name<input_name = "anode", output_name = "cathode">

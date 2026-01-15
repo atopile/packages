@@ -57,15 +57,15 @@ module TI_TLV75901 from AdjustableLDO:
 
     # --- Enable ---
     # enable by default
-    _enable.line ~ power_in.vcc
+    _enable.line ~ power_in.hv
 
     # --- Other connections ---
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Package Connections ---
-    power_in.vcc ~ package.IN
-    power_in.gnd ~ package.GND
-    power_out.vcc ~ package.OUT
-    power_out.gnd ~ package.EP
+    power_in.hv ~ package.IN
+    power_in.lv ~ package.GND
+    power_out.hv ~ package.OUT
+    power_out.lv ~ package.EP
     _enable.line ~ package.EN
     feedback_divider.output.line ~ package.FB
