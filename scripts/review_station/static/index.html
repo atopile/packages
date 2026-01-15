@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>atopile Package Review Station</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script type="module" src="/kicanvas.js"></script>
+    <script type="module" src="/model-viewer.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <aside id="left">
+        <div class="toolbar">
+          <div class="title">atopile Package Review</div>
+          <input id="filter" type="text" placeholder="Filter packages…" />
+        </div>
+        <div id="pkgList" class="list"></div>
+      </aside>
+
+      <main id="right">
+        <div class="header">
+          <div>
+            <div id="pkgTitle" class="pkgTitle">Select a package</div>
+            <div id="pkgSub" class="pkgSub"></div>
+            <div class="headerTabs">
+              <div class="tabs" role="tablist" aria-label="Viewer tabs">
+                <button id="tabViewer" class="tabBtn" type="button">Viewer</button>
+                <button id="tabDiff" class="tabBtn" type="button">Diff</button>
+              </div>
+              <button id="themeBtn" class="miniBtn" type="button" title="Theme: Auto / Dark / Light">Theme: Auto</button>
+              <div id="debugHud" class="debugHud" style="display:none;"></div>
+            </div>
+          </div>
+          <div class="actions">
+            <input id="reviewer" type="text" placeholder="Reviewer name (optional)" />
+            <input id="targetAtopile" type="text" placeholder="Target atopile (e.g. ^0.14.0)" value="^0.14.0" />
+            <button id="cursorBtn" disabled>Open in Cursor</button>
+            <button id="openBtn" disabled>Open in KiCad</button>
+            <button id="restartBtn" disabled>Restart</button>
+            <button id="approveBtn" disabled>Approve</button>
+            <button id="unapproveBtn" disabled>Unapprove</button>
+            <button id="publishBtn" disabled>Publish</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <section class="card" id="cardSummary">
+            <div class="cardTitle">Status & Summary</div>
+            <div id="summary">—</div>
+          </section>
+
+          <section class="card" id="cardLayout">
+            <div class="cardTitle row">
+              <span>Layout (KiCanvas)</span>
+              <select id="buildSelect"></select>
+            </div>
+            <div class="kicanvasWrap">
+              <kicanvas-embed id="kv" controls="full" zoom="objects" controlslist="nodownload"></kicanvas-embed>
+            </div>
+          </section>
+
+          <section class="card" id="cardDiff" style="display:none;">
+            <div class="cardTitle row">
+              <span>Review (Diff)</span>
+              <button id="refreshDiffBtn" class="miniBtn" style="height:28px;">Refresh</button>
+            </div>
+            <div id="diffMeta" class="diffMetaBox"></div>
+            <div class="diffWrap">
+              <pre id="diffViewer" class="pre"></pre>
+            </div>
+          </section>
+
+          <section class="card" id="cardTodo">
+            <div class="cardTitle row">
+              <span>Feedback / TODO</span>
+              <span class="muted" style="font-size:11px;">Autosave</span>
+            </div>
+            <textarea id="todo" spellcheck="false" placeholder="Write feedback/tasks here…"></textarea>
+            <div id="todoHint" class="hint"></div>
+          </section>
+
+          <section class="card" id="cardLogs">
+            <div class="cardTitle row">
+              <span>Logs</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <select id="logStageSelect"></select>
+                <select id="logSelect"></select>
+                <input id="logSearch" type="text" placeholder="Search…" style="width: 200px;" />
+              </div>
+            </div>
+            <pre id="logViewer" class="pre"></pre>
+            <div class="hint" id="logHint"></div>
+          </section>
+
+          <section class="card" id="cardModel">
+            <div class="cardTitle row">
+              <span>3D Model</span>
+              <span class="muted" style="font-size:11px;">(build-dependent)</span>
+            </div>
+            <div class="kicanvasWrap">
+              <model-viewer
+                id="mv"
+                camera-controls
+                tone-mapping="neutral"
+                exposure="1.2"
+                shadow-intensity="0.7"
+                shadow-softness="0.8"
+              ></model-viewer>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
