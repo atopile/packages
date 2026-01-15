@@ -153,8 +153,10 @@ def extract_bus_info(
         logging.getLogger("faebryk.core.node").setLevel(logging.INFO)
         print(f"Found {len(bus_groups)} bus groups")
 
-        # Process each bus group
-        bus_id_counter = 0
+        # First pass: collect info for each bus group
+        # Groups with the same parent interface will be merged
+        parent_to_groups: dict[str, list[dict]] = {}  # parent_uuid -> list of group info
+        ungrouped = []
 
         for representative, members in bus_groups.items():
             # Collect all net names for this bus
@@ -168,29 +170,94 @@ def extract_bus_info(
             if not bus_nets:
                 continue
 
-            # Find the bus type by looking at ALL members (not just representative)
-            # Some members are pads, but others are the actual interface electricals
-            bus_type, bus_instance = None, None
+            # Find the bus type by checking ALL members and picking the most specific
+            # Also get the parent interface UUID for merging
+            all_found_types: list[tuple[str, str, int, str | None]] = []
             for member in members:
-                bus_type, bus_instance = _find_bus_type(member)
-                if bus_type:
-                    break  # Found a type, stop looking
+                member_type, member_instance, parent_uuid = _find_bus_type(member)
+                if member_type:
+                    priority = BUS_TYPE_PRIORITY.get(member_type, 0)
+                    all_found_types.append((member_type, member_instance, priority, parent_uuid))
+
+            # Pick the most specific type (highest priority)
+            bus_type, bus_instance, parent_uuid = None, None, None
+            if all_found_types:
+                all_found_types.sort(key=lambda x: x[2], reverse=True)
+                bus_type, bus_instance, _, parent_uuid = all_found_types[0]
+
+            group_info = {
+                "type": bus_type,
+                "instance": bus_instance,
+                "nets": bus_nets,
+                "parent_uuid": parent_uuid,
+            }
+
+            # Debug: show what we're grouping for power buses
+            if bus_type == "ElectricPower" and bus_nets:
+                print(f"  DEBUG ElectricPower: instance={bus_instance}, nets={list(bus_nets)[:3]}, uuid={parent_uuid[:12] if parent_uuid else None}")
+
+            # Group by parent interface UUID for merging
+            # This merges things like ElectricPower.hv and ElectricPower.lv into one bus
+            # Also merges I2C.sda and I2C.scl, SPI signals, etc.
+            if parent_uuid and bus_type:
+                if parent_uuid not in parent_to_groups:
+                    parent_to_groups[parent_uuid] = []
+                parent_to_groups[parent_uuid].append(group_info)
+            else:
+                ungrouped.append(group_info)
+
+        # Second pass: merge groups with same parent and create final buses
+        bus_id_counter = 0
+
+        # Process merged groups (protocol buses like I2C, SPI with same parent)
+        for parent_uuid, groups in parent_to_groups.items():
+            # Merge all nets from groups with same parent
+            merged_nets: set[str] = set()
+            for g in groups:
+                merged_nets.update(g["nets"])
+
+            # Use the type/instance from the first group (they should all be the same)
+            bus_type = groups[0]["type"]
+            bus_instance = groups[0]["instance"]
 
             # Generate bus_id
-            if bus_type:
-                base_id = f"{bus_type}:{bus_instance}"
-            else:
-                base_id = f"bus_{bus_id_counter}"
-            bus_id_counter += 1
-
-            # Ensure unique bus_id
+            base_id = f"{bus_type}:{bus_instance}"
             bus_id = base_id
             suffix = 1
             while bus_id in buses:
                 bus_id = f"{base_id}_{suffix}"
                 suffix += 1
 
-            # Store bus info
+            buses[bus_id] = {
+                "id": bus_id,
+                "type": bus_type or "Unknown",
+                "instance": bus_instance or "unknown",
+                "nets": [{"name": n} for n in sorted(merged_nets)],
+                "color": BUS_COLORS.get(bus_type, "#888888"),
+            }
+
+            for net_name in merged_nets:
+                if net_name not in net_to_bus:
+                    net_to_bus[net_name] = bus_id
+
+        # Process ungrouped buses
+        for group_info in ungrouped:
+            bus_type = group_info["type"]
+            bus_instance = group_info["instance"]
+            bus_nets = group_info["nets"]
+
+            if bus_type:
+                base_id = f"{bus_type}:{bus_instance}"
+            else:
+                base_id = f"bus_{bus_id_counter}"
+            bus_id_counter += 1
+
+            bus_id = base_id
+            suffix = 1
+            while bus_id in buses:
+                bus_id = f"{base_id}_{suffix}"
+                suffix += 1
+
             buses[bus_id] = {
                 "id": bus_id,
                 "type": bus_type or "Unknown",
@@ -199,7 +266,6 @@ def extract_bus_info(
                 "color": BUS_COLORS.get(bus_type, "#888888"),
             }
 
-            # Map net names to this bus
             for net_name in bus_nets:
                 if net_name not in net_to_bus:
                     net_to_bus[net_name] = bus_id
@@ -211,10 +277,7 @@ def extract_bus_info(
     }
 
 
-_debug_count = 0
-
-
-def _find_bus_type(electrical) -> tuple[str | None, str | None]:
+def _find_bus_type(electrical) -> tuple[str | None, str | None, str | None]:
     """
     Find the bus type by tracing up the FULL hierarchy from an electrical.
     Collects all interface types and returns the most specific one.
@@ -222,16 +285,17 @@ def _find_bus_type(electrical) -> tuple[str | None, str | None]:
     Example hierarchy: line -> MOSI (ElectricLogic) -> SPI
     We want to return SPI, not ElectricLogic.
 
-    Returns (bus_type, instance_name) or (None, None).
+    Returns (bus_type, instance_name, parent_interface_id) or (None, None, None).
+    The parent_interface_id is used to merge groups that belong to the same interface.
     """
-    global _debug_count
     import faebryk.core.node as fabll
 
     try:
         hierarchy = electrical.get_hierarchy()
 
         # Collect all interface types found in hierarchy
-        found_types: list[tuple[str, str, int]] = []  # (type_name, instance_name, priority)
+        # (type_name, instance_name, priority, node_uuid)
+        found_types: list[tuple[str, str, int, str]] = []
 
         # Walk up hierarchy collecting all interface types
         for i, (node, name) in enumerate(hierarchy):
@@ -239,38 +303,29 @@ def _find_bus_type(electrical) -> tuple[str | None, str | None]:
             if i == len(hierarchy) - 1:
                 continue
 
-            # Check if this is an interface
-            is_interface = node.has_trait(fabll.is_interface)
-            type_name = node.get_type_name()
-
-            # Debug first few
-            if _debug_count < 5:
-                print(f"  [{i}] {name}: is_interface={is_interface}, type={type_name}")
-
             # Skip nodes without is_interface trait (like resistors, capacitors)
-            if not is_interface:
+            if not node.has_trait(fabll.is_interface):
                 continue
 
             # Get the type name from the graph
+            type_name = node.get_type_name()
             if type_name and type_name in BUS_INTERFACE_TYPES:
                 priority = BUS_TYPE_PRIORITY.get(type_name, 0)
                 instance = name if name and not name.startswith("0x") else type_name
-                found_types.append((type_name, instance, priority))
-
-        if _debug_count < 5:
-            print(f"  -> Found types: {found_types}")
-            _debug_count += 1
+                # Use node's UUID as identifier for merging
+                node_uuid = node.instance.node().get_uuid()
+                found_types.append((type_name, instance, priority, node_uuid))
 
         # Return the most specific type (highest priority)
         if found_types:
             found_types.sort(key=lambda x: x[2], reverse=True)
-            best_type, best_instance, _ = found_types[0]
-            return (best_type, best_instance)
+            best_type, best_instance, _, parent_uuid = found_types[0]
+            return (best_type, best_instance, parent_uuid)
 
     except Exception as e:
         logger.debug(f"Error finding bus type: {e}")
 
-    return (None, None)
+    return (None, None, None)
 
 
 # For testing

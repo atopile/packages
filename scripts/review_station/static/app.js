@@ -18,6 +18,41 @@ const el = (tag, attrs = {}, children = []) => {
   return n;
 };
 
+// Strip auto-generated content from todo for cleaner display
+const AUTO_BEGIN = "<!-- AUTO:BEGIN -->";
+const AUTO_END = "<!-- AUTO:END -->";
+const stripAutoContent = (text) => {
+  if (!text) return "";
+  const beginIdx = text.indexOf(AUTO_BEGIN);
+  const endIdx = text.indexOf(AUTO_END);
+  if (beginIdx === -1 || endIdx === -1) return text;
+  // Remove the auto section and any trailing whitespace
+  const before = text.slice(0, beginIdx).trimEnd();
+  const after = text.slice(endIdx + AUTO_END.length).trimStart();
+  return (before + (before && after ? "\n\n" : "") + after).trim();
+};
+
+// Highlight a specific line in log content for inline log viewer
+const highlightLogLine = (logText, lineNum) => {
+  if (!logText) return "<span class='muted'>No content</span>";
+  const lines = logText.split("\n");
+  const escapeHtml = (str) => str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return lines.map((line, i) => {
+    const lineNumber = i + 1;
+    const isHighlighted = lineNum && lineNumber === lineNum;
+    const escapedLine = escapeHtml(line);
+    const lineNumSpan = `<span class="logLineNum">${String(lineNumber).padStart(4)}</span>`;
+    if (isHighlighted) {
+      return `<div class="logLine highlighted">${lineNumSpan}${escapedLine}</div>`;
+    }
+    return `<div class="logLine">${lineNumSpan}${escapedLine}</div>`;
+  }).join("");
+};
+
 const state = {
   runDir: null,
   updatedAt: null,
@@ -47,6 +82,15 @@ const state = {
   diffInfo: null,
   viewTab: "viewer", // "viewer" | "diff"
   lastViewTab: null,
+  // Issues panel
+  issues: null, // { issues: [], error_count, warning_count, total_count }
+  issuesFetchedAt: 0,
+  issueFilter: "all", // "all" | "errors" | "warnings"
+  issueSearch: "",
+  showLogs: false, // Toggle between issues and raw logs view
+  expandedIssue: null, // Index of currently expanded issue (for inline log viewer)
+  expandedIssueLog: "", // Log content for expanded issue
+  expandedIssueLoading: false,
 };
 
 // Debug / instrumentation (client-side)
@@ -458,6 +502,13 @@ function renderRight() {
   const mv = $("#mv");
   const cardLayout = $("#cardLayout");
   const cardLogs = $("#cardLogs");
+  const cardIssues = $("#cardIssues");
+  const issuesList = $("#issuesList");
+  const issuesHint = $("#issuesHint");
+  const issueFilterSelect = $("#issueFilterSelect");
+  const issueSearch = $("#issueSearch");
+  const toggleLogsBtn = $("#toggleLogsBtn");
+  const hideLogsBtn = $("#hideLogsBtn");
   const cardModel = $("#cardModel");
   const cardDiff = $("#cardDiff");
   const diffMeta = $("#diffMeta");
@@ -488,8 +539,13 @@ function renderRight() {
     logSearch.value = "";
     logViewer.textContent = "";
     logHint.textContent = "";
+    if (issuesList) issuesList.innerHTML = "";
+    if (issuesHint) issuesHint.textContent = "";
+    if (issueSearch) issueSearch.value = "";
     mv.removeAttribute("src");
     if (cardDiff) cardDiff.style.display = "none";
+    if (cardIssues) cardIssues.style.display = "flex";
+    if (cardLogs) cardLogs.style.display = "none";
     if (grid) grid.classList.remove("modeDiff");
     return;
   }
@@ -522,7 +578,8 @@ function renderRight() {
   if (state.viewTab === "diff") {
     if (grid) grid.classList.add("modeDiff");
     cardLayout.style.display = "none";
-    cardLogs.style.display = "none";
+    if (cardLogs) cardLogs.style.display = "none";
+    if (cardIssues) cardIssues.style.display = "none";
     cardModel.style.display = "none";
     cardDiff.style.display = "flex";
 
@@ -557,7 +614,7 @@ function renderRight() {
   } else {
     if (grid) grid.classList.remove("modeDiff");
     cardLayout.style.display = "flex";
-    cardLogs.style.display = "flex";
+    // Issues vs Logs visibility handled later in this function
     cardModel.style.display = "flex";
     cardDiff.style.display = "none";
   }
@@ -646,9 +703,9 @@ function renderRight() {
   const totalSecs = sum(job.build_seconds) + (job.verify_seconds || 0);
   summary.innerHTML = summaryHtml(job, { totalWarn, totalErr, totalSecs });
 
-  // TODO editor
+  // TODO editor - show only user content, hide auto-generated summary
   if (!state.dirtyTodo) {
-    todo.value = detail.todo || "";
+    todo.value = stripAutoContent(detail.todo || "");
   }
   todoHint.textContent = state.dirtyTodo
     ? "Saving…"
@@ -667,6 +724,176 @@ function renderRight() {
   } else {
     mv.removeAttribute("src");
     state.mvKey = null;
+  }
+
+  // Issues panel vs Logs toggle
+  if (cardIssues && cardLogs) {
+    if (state.showLogs) {
+      cardIssues.style.display = "none";
+      cardLogs.style.display = "flex";
+    } else {
+      cardIssues.style.display = "flex";
+      cardLogs.style.display = "none";
+    }
+  }
+
+  // Wire toggle buttons (idempotent)
+  if (toggleLogsBtn && !toggleLogsBtn._wired) {
+    toggleLogsBtn.addEventListener("click", async () => {
+      state.showLogs = true;
+      if (!state.logIndex) await fetchLogIndex();
+      pickDefaultLogForStage();
+      await fetchLog(false);
+      renderRight();
+    });
+    toggleLogsBtn._wired = true;
+  }
+  if (hideLogsBtn && !hideLogsBtn._wired) {
+    hideLogsBtn.addEventListener("click", () => {
+      state.showLogs = false;
+      renderRight();
+    });
+    hideLogsBtn._wired = true;
+  }
+
+  // Issues panel rendering
+  if (issuesList && !state.showLogs) {
+    const issues = state.issues?.issues || [];
+    const filterType = state.issueFilter || "all";
+    const searchQ = (state.issueSearch || "").toLowerCase().trim();
+
+    // Filter issues
+    const filtered = issues.filter((issue) => {
+      if (filterType === "errors" && issue.type !== "error") return false;
+      if (filterType === "warnings" && issue.type !== "warning") return false;
+      if (searchQ && !issue.message.toLowerCase().includes(searchQ)) return false;
+      return true;
+    });
+
+    issuesList.innerHTML = "";
+
+    if (filtered.length === 0) {
+      if (issues.length === 0) {
+        issuesList.innerHTML = `
+          <div class="issuesEmpty">
+            <span class="checkmark">✓</span>
+            <span>No issues found</span>
+            <span class="muted" style="font-size:12px;">Build completed without errors or warnings</span>
+          </div>
+        `;
+      } else {
+        issuesList.innerHTML = `
+          <div class="issuesEmpty">
+            <span class="muted">No matching issues</span>
+            <span class="muted" style="font-size:12px;">Try adjusting your filter</span>
+          </div>
+        `;
+      }
+    } else {
+      filtered.forEach((issue, idx) => {
+        const isExpanded = state.expandedIssue === idx;
+        const item = el("div", { class: `issueItem ${issue.type}${isExpanded ? " expanded" : ""}` }, [
+          el("span", { class: `issueType ${issue.type}`, text: issue.type }),
+          el("div", { class: "issueContent" }, [
+            el("div", { class: "issueMessage", text: issue.message }),
+            el("div", { class: "issueSource", text: `${issue.source}${issue.line_num ? ` (line ${issue.line_num})` : ""}` }),
+          ]),
+          el("span", { class: "issueMeta" }, [
+            el("span", { text: issue.stage || "" }),
+            el("span", { class: "issueExpandIcon", text: isExpanded ? "▼" : "▶" }),
+          ]),
+        ]);
+
+        // Click to toggle inline log viewer
+        item.addEventListener("click", async () => {
+          if (state.expandedIssue === idx) {
+            // Collapse if clicking the same issue
+            state.expandedIssue = null;
+            state.expandedIssueLog = "";
+            renderRight();
+          } else {
+            // Expand this issue (and collapse any other)
+            state.expandedIssue = idx;
+            state.expandedIssueLoading = true;
+            state.expandedIssueLog = "";
+            renderRight();
+
+            // Fetch the log content for this issue
+            if (issue.log_id) {
+              try {
+                const pkg = state.selected;
+                const resp = await fetch(`/log/${encodeURIComponent(pkg)}/${encodeURIComponent(issue.log_id)}`);
+                if (resp.ok) {
+                  const text = await resp.text();
+                  state.expandedIssueLog = text;
+                } else {
+                  state.expandedIssueLog = `Failed to load log (${resp.status})`;
+                }
+              } catch (e) {
+                state.expandedIssueLog = `Error loading log: ${e.message}`;
+              }
+            } else {
+              state.expandedIssueLog = "No log file associated with this issue";
+            }
+            state.expandedIssueLoading = false;
+            renderRight();
+
+            // Scroll the log viewer to the relevant line
+            setTimeout(() => {
+              const logPre = issuesList.querySelector(`.issueLogViewer[data-idx="${idx}"]`);
+              if (logPre && issue.line_num) {
+                const lines = state.expandedIssueLog.split("\n");
+                const lineHeight = 14; // approx for 11px mono
+                const targetScroll = Math.max(0, (issue.line_num - 3)) * lineHeight;
+                logPre.scrollTop = targetScroll;
+              }
+            }, 50);
+          }
+        });
+        issuesList.appendChild(item);
+
+        // If this issue is expanded, add inline log viewer
+        if (isExpanded) {
+          const logContent = state.expandedIssueLoading
+            ? "Loading..."
+            : highlightLogLine(state.expandedIssueLog, issue.line_num);
+          const logViewer = el("div", { class: `issueLogViewer ${issue.type}`, "data-idx": idx });
+          logViewer.innerHTML = logContent;
+          issuesList.appendChild(logViewer);
+        }
+      });
+    }
+
+    // Update hint
+    if (issuesHint) {
+      const errCount = state.issues?.error_count || 0;
+      const warnCount = state.issues?.warning_count || 0;
+      issuesHint.textContent = `${errCount} error${errCount !== 1 ? "s" : ""}, ${warnCount} warning${warnCount !== 1 ? "s" : ""} • click an issue to expand log`;
+    }
+  }
+
+  // Wire issue filter/search (idempotent)
+  if (issueFilterSelect && !issueFilterSelect._wired) {
+    issueFilterSelect.addEventListener("change", () => {
+      state.issueFilter = issueFilterSelect.value;
+      state.expandedIssue = null;  // Collapse expanded issue when filter changes
+      state.expandedIssueLog = "";
+      renderRight();
+    });
+    issueFilterSelect._wired = true;
+  }
+  if (issueSearch && !issueSearch._wired) {
+    issueSearch.addEventListener("input", () => {
+      state.issueSearch = issueSearch.value;
+      state.expandedIssue = null;  // Collapse expanded issue when search changes
+      state.expandedIssueLog = "";
+      renderRight();
+    });
+    issueSearch._wired = true;
+  }
+  // Keep filter select in sync
+  if (issueFilterSelect) {
+    issueFilterSelect.value = state.issueFilter || "all";
   }
 
   // Logs viewer (stage -> log)
@@ -818,6 +1045,23 @@ async function fetchLogIndex() {
   }
 }
 
+async function fetchIssues() {
+  if (!state.selected) return;
+  try {
+    const d = await apiGet(`/api/package/${encodeURIComponent(state.selected)}/issues`);
+    state.issues = d || null;
+    state.issuesFetchedAt = Date.now();
+  } catch (e) {
+    state.issues = {
+      issues: [{ type: "error", message: `Failed to load issues: ${String(e)}`, source: "system", stage: "other", line_num: 0 }],
+      error_count: 1,
+      warning_count: 0,
+      total_count: 1,
+    };
+    state.issuesFetchedAt = Date.now();
+  }
+}
+
 function pickDefaultLogForStage() {
   const idx = state.logIndex?.stages || {};
   const stageKeys = Object.keys(idx);
@@ -866,8 +1110,17 @@ async function selectPackage(name) {
   state.logIndex = null;
   state.diffInfo = null;
   state.dirtyTodo = false;
+  state.issues = null;
+  state.showLogs = false;  // Reset to issues view
+  state.issueFilter = "all";
+  state.issueSearch = "";
+  state.expandedIssue = null;  // Reset expanded issue
+  state.expandedIssueLog = "";
+  state.expandedIssueLoading = false;
   setHash(name);
   await fetchSelectedDetail(false);
+  // Fetch issues first (primary view)
+  await fetchIssues();
   await fetchLogIndex();
   pickDefaultLogForStage();
   // Default tab: if already approved, land in Diff; else Viewer.
@@ -971,8 +1224,14 @@ async function refresh(keepDetail = true) {
       state.selectedLog = null;
       state.selectedLogContent = "";
       state.logIndex = null;
+      state.issues = null;
     } else {
       await fetchSelectedDetail(keepDetail);
+      // Refresh issues periodically (every 5 seconds or if never fetched)
+      const issueAge = Date.now() - (state.issuesFetchedAt || 0);
+      if (!state.showLogs && (!state.issues || issueAge > 5000)) {
+        await fetchIssues();
+      }
       // Logs are fetched on-demand (on selection / build change / manual actions).
       if (state.viewTab === "diff") await fetchDiff();
     }

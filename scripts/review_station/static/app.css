@@ -59,7 +59,7 @@
   --ctp-red: #d20f39;
   --ctp-maroon: #e64553;
   --ctp-peach: #fe640b;
-  --ctp-yellow: #df8e1d;
+  --ctp-yellow: #b58900;
   --ctp-green: #40a02b;
   --ctp-teal: #179299;
   --ctp-sky: #04a5e5;
@@ -82,9 +82,12 @@
   --bg0: var(--ctp-base);
   --bg1: var(--ctp-mantle);
   --bg2: var(--ctp-crust);
-  --card: rgba(0, 0, 0, 0.04);
-  --card2: rgba(0, 0, 0, 0.06);
-  --stroke: rgba(0, 0, 0, 0.10);
+  --card: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-header: rgba(0, 0, 0, 0.03);
+  --stroke: rgba(0, 0, 0, 0.12);
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.15);
   --text: var(--ctp-text);
   --muted: var(--ctp-subtext0);
   --faint: var(--ctp-overlay0);
@@ -93,7 +96,7 @@
   --bad: var(--ctp-red);
   --blue: var(--ctp-blue);
   --purple: var(--ctp-mauve);
-  --shadow: 0 14px 50px rgba(76, 79, 105, 0.18);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* Explicit dark override (same as default tokens, but forces dark even if system is light) */
@@ -153,7 +156,7 @@
     --ctp-red: #d20f39;
     --ctp-maroon: #e64553;
     --ctp-peach: #fe640b;
-    --ctp-yellow: #df8e1d;
+    --ctp-yellow: #b58900;
     --ctp-green: #40a02b;
     --ctp-teal: #179299;
     --ctp-sky: #04a5e5;
@@ -176,9 +179,12 @@
     --bg0: var(--ctp-base);
     --bg1: var(--ctp-mantle);
     --bg2: var(--ctp-crust);
-    --card: rgba(0, 0, 0, 0.04);
-    --card2: rgba(0, 0, 0, 0.06);
-    --stroke: rgba(0, 0, 0, 0.10);
+    --card: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-header: rgba(0, 0, 0, 0.03);
+    --stroke: rgba(0, 0, 0, 0.12);
+    --input-bg: #ffffff;
+    --input-border: rgba(0, 0, 0, 0.15);
     --text: var(--ctp-text);
     --muted: var(--ctp-subtext0);
     --faint: var(--ctp-overlay0);
@@ -187,7 +193,7 @@
     --bad: var(--ctp-red);
     --blue: var(--ctp-blue);
     --purple: var(--ctp-mauve);
-    --shadow: 0 14px 50px rgba(76, 79, 105, 0.18);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -696,11 +702,166 @@ model-viewer {
   white-space: pre-wrap;
 }
 
+/* Issues list */
+.issuesList {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  min-height: 0;
+}
+
+.issueItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  margin-bottom: 6px;
+  background: rgba(17, 17, 27, 0.35);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.issueItem:hover {
+  background: rgba(49, 50, 68, 0.55);
+  border-color: rgba(69, 71, 90, 0.55);
+}
+.issueItem.error {
+  border-left: 3px solid var(--bad);
+}
+.issueItem.warning {
+  border-left: 3px solid var(--warn);
+}
+
+.issueType {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  align-self: start;
+}
+.issueType.error {
+  background: rgba(243, 139, 168, 0.18);
+  color: var(--ctp-red);
+}
+.issueType.warning {
+  background: rgba(249, 226, 175, 0.18);
+  color: var(--ctp-yellow);
+}
+
+.issueContent {
+  min-width: 0;
+}
+.issueMessage {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.issueSource {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.issueMeta {
+  font-size: 11px;
+  color: var(--faint);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.issuesEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  font-size: 14px;
+  gap: 8px;
+}
+.issuesEmpty .checkmark {
+  font-size: 32px;
+  color: var(--good);
+}
+
+.issuesSummary {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(17, 17, 27, 0.35);
+}
+
+/* Issue expand icon */
+.issueExpandIcon {
+  margin-left: 6px;
+  font-size: 9px;
+  opacity: 0.6;
+}
+.issueItem.expanded {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: 0;
+}
+.issueItem.expanded .issueExpandIcon {
+  opacity: 1;
+}
+
+/* Inline log viewer for expanded issues */
+.issueLogViewer {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.35;
+  background: rgba(17, 17, 27, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  margin-bottom: 6px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre;
+}
+.issueLogViewer.error {
+  border-left: 3px solid var(--bad);
+}
+.issueLogViewer.warning {
+  border-left: 3px solid var(--warn);
+}
+
+.logLine {
+  padding: 0 8px;
+  display: block;
+}
+.logLine.highlighted {
+  background: rgba(243, 139, 168, 0.15);
+  border-left: 2px solid var(--bad);
+  margin-left: -2px;
+}
+.issueLogViewer.warning .logLine.highlighted {
+  background: rgba(249, 226, 175, 0.15);
+  border-left-color: var(--warn);
+}
+.logLineNum {
+  display: inline-block;
+  width: 40px;
+  color: var(--faint);
+  text-align: right;
+  padding-right: 10px;
+  user-select: none;
+}
+
 /* grid placement */
 #cardSummary { grid-area: summary; }
 #cardLayout  { grid-area: layout; }
-#cardTodo    { grid-area: todo; }
-#cardLogs    { grid-area: logs; }
+#cardIssues  { grid-area: todo; }
+#cardLogs    { grid-area: todo; }
+#cardTodo    { grid-area: logs; }
 #cardModel   { grid-area: model; }
 #cardDiff    { grid-area: layout; }
 .grid.modeDiff #cardDiff { grid-area: diff; }
@@ -714,8 +875,8 @@ model-viewer {
       "summary"
       "layout"
       "model"
-      "logs"
-      "todo";
+      "todo"
+      "logs";
   }
 }
 
@@ -724,3 +885,221 @@ model-viewer {
 ::-webkit-scrollbar-track { background: var(--ctp-mantle); }
 ::-webkit-scrollbar-thumb { background: var(--ctp-surface1); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ctp-surface2); }
+
+/* ===== LIGHT MODE OVERRIDES ===== */
+:root[data-theme="light"] body,
+:root:not([data-theme]) body {
+  background: linear-gradient(135deg, #f8f9fc 0%, #e8ebf2 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) body {
+    background: radial-gradient(1100px 850px at 12% 0%, rgba(203, 166, 247, 0.18) 0%, var(--bg0) 55%),
+      radial-gradient(900px 650px at 88% 0%, rgba(137, 180, 250, 0.14) 0%, var(--bg0) 55%);
+  }
+}
+
+:root[data-theme="light"] aside#left,
+:root:not([data-theme]) aside#left {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) aside#left {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+  }
+}
+
+:root[data-theme="light"] .card,
+:root:not([data-theme]) .card {
+  background: var(--card);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .card {
+    background: rgba(24, 24, 37, 0.70);
+  }
+}
+
+:root[data-theme="light"] .cardTitle,
+:root:not([data-theme]) .cardTitle {
+  background: var(--card-header, rgba(0, 0, 0, 0.03));
+  border-bottom-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .cardTitle {
+    background: rgba(17, 17, 27, 0.55);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+:root[data-theme="light"] #filter,
+:root[data-theme="light"] #reviewer,
+:root[data-theme="light"] #targetAtopile,
+:root[data-theme="light"] #logSearch,
+:root[data-theme="light"] #issueSearch,
+:root[data-theme="light"] select,
+:root:not([data-theme]) #filter,
+:root:not([data-theme]) #reviewer,
+:root:not([data-theme]) #targetAtopile,
+:root:not([data-theme]) #logSearch,
+:root:not([data-theme]) #issueSearch,
+:root:not([data-theme]) select {
+  background: var(--input-bg, #ffffff);
+  border-color: var(--input-border, rgba(0, 0, 0, 0.15));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) #filter,
+  :root:not([data-theme]) #reviewer,
+  :root:not([data-theme]) #targetAtopile,
+  :root:not([data-theme]) #logSearch,
+  :root:not([data-theme]) #issueSearch,
+  :root:not([data-theme]) select {
+    background: rgba(17, 17, 27, 0.55);
+    border-color: rgba(49, 50, 68, 1);
+  }
+}
+
+:root[data-theme="light"] button,
+:root:not([data-theme]) button {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--stroke);
+}
+:root[data-theme="light"] button:hover,
+:root:not([data-theme]) button:hover {
+  background: rgba(0, 0, 0, 0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) button {
+    background: rgba(49, 50, 68, 0.55);
+    border-color: rgba(49, 50, 68, 1);
+  }
+  :root:not([data-theme]) button:hover {
+    background: rgba(69, 71, 90, 0.70);
+  }
+}
+
+:root[data-theme="light"] .pill,
+:root:not([data-theme]) .pill {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .pill {
+    background: rgba(17, 17, 27, 0.45);
+    border-color: rgba(49, 50, 68, 1);
+  }
+}
+
+:root[data-theme="light"] .tabs,
+:root[data-theme="light"] .miniBtn,
+:root:not([data-theme]) .tabs,
+:root:not([data-theme]) .miniBtn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .tabs,
+  :root:not([data-theme]) .miniBtn {
+    background: rgba(17, 17, 27, 0.35);
+    border-color: rgba(49, 50, 68, 1);
+  }
+}
+
+:root[data-theme="light"] .pkgRow:hover,
+:root:not([data-theme]) .pkgRow:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .pkgRow:hover {
+    background: rgba(49, 50, 68, 0.55);
+    border-color: rgba(69, 71, 90, 0.75);
+  }
+}
+
+:root[data-theme="light"] .issueItem,
+:root:not([data-theme]) .issueItem {
+  background: rgba(0, 0, 0, 0.02);
+}
+:root[data-theme="light"] .issueItem:hover,
+:root:not([data-theme]) .issueItem:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .issueItem {
+    background: rgba(17, 17, 27, 0.35);
+  }
+  :root:not([data-theme]) .issueItem:hover {
+    background: rgba(49, 50, 68, 0.55);
+    border-color: rgba(69, 71, 90, 0.55);
+  }
+}
+
+:root[data-theme="light"] .hint,
+:root:not([data-theme]) .hint {
+  background: rgba(0, 0, 0, 0.02);
+  border-top-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .hint {
+    background: rgba(17, 17, 27, 0.42);
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+:root[data-theme="light"] .kicanvasWrap,
+:root[data-theme="light"] .diffWrap,
+:root:not([data-theme]) .kicanvasWrap,
+:root:not([data-theme]) .diffWrap {
+  background: rgba(0, 0, 0, 0.02);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .kicanvasWrap,
+  :root:not([data-theme]) .diffWrap {
+    background: rgba(17, 17, 27, 0.35);
+  }
+}
+
+:root[data-theme="light"] #todo,
+:root:not([data-theme]) #todo {
+  background: transparent;
+}
+
+:root[data-theme="light"] .progTrack,
+:root:not([data-theme]) .progTrack {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--stroke);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .progTrack {
+    background: rgba(49, 50, 68, 0.55);
+    border-color: rgba(49, 50, 68, 1);
+  }
+}
+
+:root[data-theme="light"] .issueLogViewer,
+:root:not([data-theme]) .issueLogViewer {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--stroke);
+}
+:root[data-theme="light"] .logLine.highlighted,
+:root:not([data-theme]) .logLine.highlighted {
+  background: rgba(210, 15, 57, 0.08);
+}
+:root[data-theme="light"] .issueLogViewer.warning .logLine.highlighted,
+:root:not([data-theme]) .issueLogViewer.warning .logLine.highlighted {
+  background: rgba(181, 137, 0, 0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .issueLogViewer {
+    background: rgba(17, 17, 27, 0.65);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  :root:not([data-theme]) .logLine.highlighted {
+    background: rgba(243, 139, 168, 0.15);
+  }
+  :root:not([data-theme]) .issueLogViewer.warning .logLine.highlighted {
+    background: rgba(249, 226, 175, 0.15);
+  }
+}

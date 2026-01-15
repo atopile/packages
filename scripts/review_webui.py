@@ -1999,6 +1999,147 @@ class ReviewRun:
 
         return {"package": package, "stages": stages}
 
+    def list_issues(self, package: str) -> dict[str, Any]:
+        """
+        Extract and aggregate all errors/warnings from logs for quick review.
+
+        Returns structured list of issues with:
+        - type: "error" | "warning"
+        - message: the log line content
+        - source: which log file/build step produced it
+        - line_num: line number in the log file (for reference)
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        run_logs_dir = (Path(job.run_dir) / "logs").resolve()
+        pkg_build_latest = (Path(job.package_dir) / "build" / "logs" / "latest").resolve()
+
+        issues: list[dict[str, Any]] = []
+
+        # Patterns for matching errors/warnings in Rich-style logs
+        # Match lines like: "ERROR  some message" or "│ ERROR │ message"
+        error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
+        warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
+        # Also match Python traceback starts
+        traceback_pattern = re.compile(r"^Traceback \(most recent call last\):", re.MULTILINE)
+
+        def extract_from_log(
+            log_path: Path,
+            source_label: str,
+            stage: str,
+            max_bytes: int = 2_000_000,
+        ) -> None:
+            """Extract errors/warnings from a single log file."""
+            if not log_path.exists():
+                return
+            try:
+                with log_path.open("rb") as f:
+                    data = f.read(max_bytes)
+                txt = data.decode("utf-8", errors="replace")
+            except Exception:
+                return
+
+            lines = txt.splitlines()
+            in_traceback = False
+            traceback_start = 0
+
+            for i, line in enumerate(lines):
+                line_num = i + 1
+
+                # Track tracebacks as error blocks
+                if traceback_pattern.match(line):
+                    in_traceback = True
+                    traceback_start = line_num
+                    continue
+
+                if in_traceback:
+                    # End of traceback: blank line or new log entry
+                    if not line.strip() or (error_pattern.search(line) or warning_pattern.search(line)):
+                        in_traceback = False
+                    else:
+                        continue
+
+                # Match explicit ERROR/WARNING markers
+                if error_pattern.search(line):
+                    # Clean up the line - remove ANSI codes and excessive whitespace
+                    clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+                    # Skip empty or too-short messages
+                    if len(clean_line) > 10:
+                        issues.append({
+                            "type": "error",
+                            "message": clean_line,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                            "log_id": f"run__{log_path.name}" if "run__" not in source_label else source_label,
+                        })
+                elif warning_pattern.search(line):
+                    clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+                    if len(clean_line) > 10:
+                        issues.append({
+                            "type": "warning",
+                            "message": clean_line,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                            "log_id": f"run__{log_path.name}" if "run__" not in source_label else source_label,
+                        })
+
+        # Extract from review-station build logs
+        for b in job.build_names:
+            fname = f"build.{b}.log"
+            p = run_logs_dir / fname
+            extract_from_log(p, f"build ({b})", "build")
+
+        # Extract from verify log
+        v = run_logs_dir / "verify.log"
+        extract_from_log(v, "verify", "verify")
+
+        # Extract from package internal logs (build/logs/latest/<build>/*)
+        if pkg_build_latest.exists():
+            for b in job.build_names:
+                bdir = pkg_build_latest / b
+                if not bdir.exists() or not bdir.is_dir():
+                    continue
+                for p in sorted(bdir.iterdir()):
+                    if not p.is_file():
+                        continue
+                    if not (p.name.endswith(".log") or p.name.endswith(".txt")):
+                        continue
+                    extract_from_log(p, f"{b} / {p.name}", "build")
+
+        # Sort: errors first, then by stage (build before verify), then by line number
+        stage_order = {"build": 0, "verify": 1, "other": 2}
+        issues.sort(key=lambda x: (
+            0 if x["type"] == "error" else 1,
+            stage_order.get(x["stage"], 2),
+            x["line_num"],
+        ))
+
+        # Deduplicate similar messages (keep first occurrence)
+        seen_messages: set[str] = set()
+        unique_issues: list[dict[str, Any]] = []
+        for issue in issues:
+            # Normalize message for dedup (remove line numbers, timestamps)
+            norm = re.sub(r"\d+", "N", issue["message"][:100])
+            if norm not in seen_messages:
+                seen_messages.add(norm)
+                unique_issues.append(issue)
+
+        # Summary counts
+        error_count = sum(1 for i in unique_issues if i["type"] == "error")
+        warning_count = sum(1 for i in unique_issues if i["type"] == "warning")
+
+        return {
+            "package": package,
+            "issues": unique_issues,
+            "error_count": error_count,
+            "warning_count": warning_count,
+            "total_count": len(unique_issues),
+        }
+
     # (worker threads removed; builds are executed in worker *processes*)
 
 
@@ -2144,6 +2285,21 @@ class Server:
                         ).strip("/")
                         try:
                             return self._send_json(HTTPStatus.OK, run.list_logs(pkg))
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
+                    if path.startswith("/api/package/") and path.endswith("/issues"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/issues")
+                        ).strip("/")
+                        try:
+                            return self._send_json(HTTPStatus.OK, run.list_issues(pkg))
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
