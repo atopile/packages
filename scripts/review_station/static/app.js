@@ -326,27 +326,27 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   const buildNames = job.build_names || [];
   let buildTable = "";
   if (buildNames.length > 0) {
-    // Parse the build_progress to extract stage name if available
-    const progressStage = job.build_progress ? job.build_progress.split(" ")[0] : "";
-
     const tableRows = buildNames.map((name) => {
-      const rc = job.build_rc?.[name];
+      const hasResult = job.build_rc && Object.prototype.hasOwnProperty.call(job.build_rc, name);
+      const rc = hasResult ? job.build_rc[name] : null;
       const warn = job.build_warn?.[name] || 0;
       const err = job.build_err?.[name] || 0;
       const secs = job.build_seconds?.[name];
 
       let statusIcon, statusClass, stageText;
-      if (rc === undefined || rc === null) {
+      if (!hasResult) {
         // Not started or in progress
         if (job.status === "building") {
+          // Build is running - all incomplete targets show as building
+          // (ato build may process them in parallel)
           statusIcon = "●";
           statusClass = "inprogress";
-          // Show the current stage from build_progress
-          stageText = progressStage || "building";
+          stageText = job.build_progress || "building";
         } else {
+          // Build hasn't started yet
           statusIcon = "○";
           statusClass = "pending";
-          stageText = "queued";
+          stageText = "—";
         }
       } else if (Number(rc) !== 0) {
         statusIcon = "✗";
@@ -387,7 +387,8 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       if (vrc === undefined || vrc === null) {
         vIcon = "●";
         vClass = "inprogress";
-        vStage = "verifying";
+        // Show actual progress during verify if available
+        vStage = (job.status === "verifying" && job.build_progress) ? job.build_progress : "verifying";
       } else if (Number(vrc) !== 0) {
         vIcon = "✗";
         vClass = "failed";

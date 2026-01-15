@@ -45,3 +45,8 @@ module Usage:
     wroom_module.i2c ~ i2c
     wroom_module.spi ~ spi
     wroom_module.i2s ~ i2s
+
+    # Test ERC error - connecting module to interface directly
+    test_res = new Resistor
+    test_res ~ power_3v3.hv
+    power_3v3 ~> test_res ~> power_3v3.lv
