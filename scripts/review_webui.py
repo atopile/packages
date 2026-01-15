@@ -884,7 +884,7 @@ class ReviewRun:
         max_ready: int = 10,
         server_origin: str = "http://127.0.0.1:8787",
         packages_repo_root: Path | None = None,
-        enable_publish: bool = False,
+        publish_anyway: bool = False,
         registry_url: str = "https://packages.atopileapi.com",
         registry_refresh_seconds: float = 60.0,
     ):
@@ -901,7 +901,9 @@ class ReviewRun:
         self.open_cmd = open_cmd
         self.max_ready = max(1, max_ready)
         self.server_origin = server_origin.rstrip("/")
-        self.enable_publish = enable_publish
+        # If True, allow publishing even if build/verify have not completed successfully.
+        # Useful for testing the git/gh plumbing or for emergency pushes.
+        self.publish_anyway = bool(publish_anyway)
         self.registry_url = registry_url.rstrip("/")
         self.registry_refresh_seconds = max(5.0, float(registry_refresh_seconds))
 
@@ -1128,6 +1130,10 @@ class ReviewRun:
         payload = {
             "run_dir": str(self.run_dir),
             "updated_at": _now_ts(),
+            "config": {
+                # If True, the server will allow publishing even if build/verify are incomplete/failed.
+                "publish_anyway": bool(getattr(self, "publish_anyway", False)),
+            },
             "packages": {k: v.to_public() for k, v in self._jobs.items()},
             "queue": list(self._queue),
         }
@@ -1632,14 +1638,38 @@ class ReviewRun:
         This allows reviewers to push WIP branches safely while keeping their
         current local branch (with many packages in progress) unchanged.
         """
-        if not self.enable_publish:
-            raise PermissionError(
-                "Publishing disabled (start server with --enable-publish)"
-            )
-
         job = self.get_job(package)
         if not job:
             raise KeyError(package)
+
+        # By default, publishing is only allowed once build + verify have completed successfully.
+        # This keeps the action safe to click during long review runs.
+        if not self.publish_anyway:
+            build_names = list(job.build_names or [])
+            missing_builds = [b for b in build_names if job.build_rc.get(b) is None]
+            bad_builds = [
+                b
+                for b in build_names
+                if (job.build_rc.get(b) is not None and int(job.build_rc.get(b)) != 0)
+            ]
+            verify_missing = job.verify_rc is None
+            verify_bad = job.verify_rc is not None and int(job.verify_rc) != 0
+
+            if missing_builds or bad_builds or verify_missing or verify_bad:
+                reasons: list[str] = []
+                if missing_builds:
+                    reasons.append(f"build incomplete: {', '.join(missing_builds)}")
+                if bad_builds:
+                    reasons.append(f"build failed: {', '.join(bad_builds)}")
+                if verify_missing:
+                    reasons.append("verify incomplete")
+                if verify_bad:
+                    reasons.append(f"verify failed (rc={job.verify_rc})")
+                raise PermissionError(
+                    "Publish blocked until build+verify succeed. "
+                    + "; ".join(reasons)
+                    + ". Start server with --publish-anyway to override."
+                )
 
         pkg_rel = f"packages/{package}"
         series = _series_tag_from_requires_atopile(target_requires_atopile)
@@ -2671,10 +2701,10 @@ def serve(
             help="Command used to open a file in Cursor (e.g. 'cursor', 'open -a Cursor')."
         ),
     ] = "",
-    enable_publish: Annotated[
+    publish_anyway: Annotated[
         bool,
         typer.Option(
-            help="Enable publish actions (git branch/commit + optional gh PR/merge)."
+            help="Allow publishing even if build/verify are not successful (unsafe; overrides publish guard)."
         ),
     ] = False,
     registry_url: Annotated[
@@ -2757,7 +2787,7 @@ def serve(
         max_ready=max_ready,
         server_origin=server_origin,
         packages_repo_root=packages_repo_root,
-        enable_publish=enable_publish,
+        publish_anyway=publish_anyway,
         registry_url=registry_url,
         registry_refresh_seconds=registry_refresh_seconds,
     )

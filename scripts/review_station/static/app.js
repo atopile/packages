@@ -626,9 +626,17 @@ function renderRight() {
   openBtn.disabled = !state.selectedBuild || !job.layout_paths || !job.layout_paths[state.selectedBuild];
   approveBtn.disabled = approved;
   unapproveBtn.disabled = !approved;
-  // For now, allow clicking Publish regardless of build/verify/approval so we can test
-  // branch creation + push flow. Backend still requires --enable-publish.
-  publishBtn.disabled = false;
+  // Publish is guarded: only allowed once all builds + verify completed with rc=0,
+  // unless the server is started with --publish-anyway (unsafe override).
+  const cfg = state.stateConfig || {};
+  const publishAnyway = !!cfg.publish_anyway;
+  const buildNames = (job.build_names || []).slice();
+  const allBuildsDone = buildNames.length > 0 && buildNames.every((b) => job.build_rc && job.build_rc[b] != null);
+  const allBuildsOk = buildNames.length > 0 && buildNames.every((b) => Number(job.build_rc?.[b]) === 0);
+  const verifyDone = job.verify_rc != null;
+  const verifyOk = Number(job.verify_rc) === 0;
+  const publishable = allBuildsDone && allBuildsOk && verifyDone && verifyOk;
+  publishBtn.disabled = !(publishAnyway || publishable);
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
@@ -771,6 +779,7 @@ async function fetchState() {
   const s = await apiGet("/api/state");
   state.runDir = s.run_dir;
   state.updatedAt = s.updated_at;
+  state.stateConfig = s.config || {};
   state.packages = s.packages || {};
   state.queue = s.queue || [];
 }

@@ -13,7 +13,7 @@ Local tooling to review and upgrade many packages efficiently, with a modern web
   - 3D model viewer (for `*.pcba.glb`)
 - Supports sharding work across reviewers (`--shard-count/--shard-index`)
 - Throttles queueing so only a limited number of packages are “ready for review” at a time (`--max-ready`)
-- Can optionally publish via git/gh when enabled (`--enable-publish`)
+- Can publish via git/gh once builds + verify succeeded (guarded by default)
 - Shows **Published ✅** status by polling the packages registry for the latest version (marks published when `0.14.x`)
 
 ## Requirements
@@ -22,6 +22,53 @@ Local tooling to review and upgrade many packages efficiently, with a modern web
 - `ato` available on PATH **or** a sibling `../atopile/.venv` with `python -m atopile` available
 - (Optional) GitHub CLI `gh` for publish automation
 - (Optional) KiCad installed (for “Open in KiCad”)
+
+## How the flow works
+
+The review station runs a **multi-stage pipeline per package**, while keeping a cap on how many
+packages are waiting for human attention.
+
+### States (high-level)
+
+- **queue**: waiting to be processed
+- **building**: running `ato build` (single invocation; ato handles per-target concurrency internally)
+- **verifying**: running `ato package verify -s`
+- **awaiting_review**: build + verify finished (pass or fail) and the package is “ready for human”
+- **approved**: reviewer clicked Approve (metadata only; does not stop background work)
+- **pushing_branch / branch_pushed / pr_opened**: publish flow stages (git/gh)
+- **error**: unexpected exception while processing
+
+### “max-ready” throttle
+
+`--max-ready` limits how many packages can be in “awaiting_review/approved” at once, so the UI doesn’t
+fill up with hundreds of completed items while your machine keeps churning.
+
+### Pause/Resume and “Do next”
+
+- **Pause**: stops (or prevents) processing for that package until resumed
+- **Do next**: pins the package to the front of the queue (useful when you want to review something now)
+
+### What Publish does (safe by default)
+
+Publishing is **server-side guarded** and only allowed once:
+
+- **all build targets** finished with **rc=0**
+- **verify** finished with **rc=0**
+
+When you click **Publish**, the server will:
+
+- Create/reset a branch named `package-update-<compiler-series>-<package>`
+- Use a **git worktree** (so your current working branch is untouched)
+- Copy **only** `packages/<package>/` into the worktree
+- Rewrite `requires-atopile` to the chosen target (UI “Target atopile” field)
+- Bump the package version (minor bump policy)
+- Commit and **force-push** the branch (overwrites if it already exists)
+- If `gh` is available and authenticated: open a PR to merge into `main` (no auto-merge)
+
+### Unsafe override
+
+If you need to test the git/gh plumbing even when builds are failing/incomplete, start the server with
+`--publish-anyway`. This bypasses the publish guard.
 
 ## Run
 
@@ -50,7 +97,12 @@ uv run scripts/review_station/review_webui.py \
   --kill-existing
 ```
 
-### Enable publish buttons
+### Publishing
+
+Publishing is **enabled by default**, but the server blocks publish unless **all build targets**
+and **verify** completed successfully (rc=0).
+
+If you really need to bypass this guard (unsafe), start the server with `--publish-anyway`.
 
 ```bash
 uv run scripts/review_station/review_webui.py \
@@ -58,7 +110,7 @@ uv run scripts/review_station/review_webui.py \
   --jobs 4 \
   --max-ready 10 \
   --port 8787 \
-  --enable-publish \
+  --publish-anyway \
   --kill-existing
 ```
 
