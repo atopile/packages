@@ -395,20 +395,27 @@ def _review_worker_process(
                         pass
 
                 # Also check ato's build status files (in package's build/logs/latest/<build>/status.txt)
+                # Collect progress for ALL active builds
                 if not progress:
                     try:
+                        import re
                         latest_logs = cwd / "build" / "logs" / "latest"
                         if latest_logs.exists():
+                            build_statuses = {}
                             for status_path in latest_logs.glob("*/status.txt"):
                                 try:
                                     build_name = status_path.parent.name
                                     txt = status_path.read_text(encoding="utf-8").strip()
                                     if txt:
-                                        # Include build name for context
-                                        progress = f"{build_name}: {txt}"
-                                        break
+                                        # Strip Rich markup like [green]...[/green]
+                                        txt = re.sub(r"\[/?[a-z_]+\]", "", txt)
+                                        build_statuses[build_name] = txt
                                 except Exception:
                                     pass
+                            if build_statuses:
+                                # Send as JSON so frontend can parse per-build status
+                                import json
+                                progress = json.dumps(build_statuses)
                     except Exception:
                         pass
 
@@ -1426,6 +1433,26 @@ class ReviewRun:
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
+
+    def sort_queue(self, order: str = "asc") -> None:
+        """Sort the queue alphabetically (asc=A-Z, desc=Z-A)."""
+        with self._lock:
+            # Only sort packages that are still in queue (not_started, paused, skipped)
+            queued = [
+                name
+                for name in self._queue
+                if self._jobs[name].status in ("not_started", "paused", "skipped")
+            ]
+            not_queued = [name for name in self._queue if name not in queued]
+
+            if order == "desc":
+                queued.sort(reverse=True)
+            else:
+                queued.sort()
+
+            # Keep non-queued items in their current order, append sorted queue
+            self._queue = not_queued + queued
+        self._write_state()
 
     def get_whoami(self) -> dict[str, Any]:
         return {
@@ -2650,6 +2677,17 @@ class Server:
                 try:
                     u = urlparse(self.path)
                     path = u.path
+
+                    if path == "/api/sort_queue":
+                        try:
+                            payload = self._read_json()
+                            order = payload.get("order", "asc")
+                            run.sort_queue(order)
+                            return self._send_json(HTTPStatus.OK, {"ok": True})
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
 
                     if path.startswith("/api/package/") and path.endswith("/todo"):
                         pkg = unquote(

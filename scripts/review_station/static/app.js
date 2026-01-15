@@ -326,6 +326,19 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   const buildNames = job.build_names || [];
   let buildTable = "";
   if (buildNames.length > 0) {
+    // Parse per-build progress if available (JSON format: {"build_name": "status"})
+    let perBuildProgress = {};
+    if (job.build_progress) {
+      try {
+        const parsed = JSON.parse(job.build_progress);
+        if (typeof parsed === "object" && parsed !== null) {
+          perBuildProgress = parsed;
+        }
+      } catch {
+        // Not JSON - legacy single string format
+      }
+    }
+
     const tableRows = buildNames.map((name) => {
       const hasResult = job.build_rc && Object.prototype.hasOwnProperty.call(job.build_rc, name);
       const rc = hasResult ? job.build_rc[name] : null;
@@ -337,11 +350,23 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       if (!hasResult) {
         // Not started or in progress
         if (job.status === "building") {
-          // Build is running - all incomplete targets show as building
-          // (ato build may process them in parallel)
-          statusIcon = "●";
-          statusClass = "inprogress";
-          stageText = job.build_progress || "building";
+          // Check for per-build progress
+          const buildProgress = perBuildProgress[name];
+          if (buildProgress) {
+            statusIcon = "●";
+            statusClass = "inprogress";
+            stageText = buildProgress;
+          } else if (Object.keys(perBuildProgress).length > 0) {
+            // Other builds have progress but not this one - it's queued
+            statusIcon = "○";
+            statusClass = "pending";
+            stageText = "queued";
+          } else {
+            // No per-build progress - show generic building
+            statusIcon = "●";
+            statusClass = "inprogress";
+            stageText = "building";
+          }
         } else {
           // Build hasn't started yet
           statusIcon = "○";
@@ -416,14 +441,9 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       </tr>`;
     }
 
-    // Progress banner when building
-    const progressBanner = (job.status === "building" && job.build_progress)
-      ? `<div class="buildProgressBanner">${escHtml(job.build_progress)}</div>`
-      : "";
 
     buildTable = `
       <div class="buildTable">
-        ${progressBanner}
         <table>
           <thead><tr><th></th><th>Target</th><th>Stage</th><th></th><th>Time</th></tr></thead>
           <tbody>${tableRows}${verifyRow}</tbody>
@@ -510,17 +530,36 @@ function renderList() {
   root.innerHTML = "";
 
   const filter = (state.filter || "").toLowerCase().trim();
-  // Render in queue order (this makes "Do next" feel immediate and meaningful).
-  // Append any packages not present in the queue (defensive).
-  const queueNames = Array.isArray(state.queue) ? state.queue.slice() : [];
-  const extra = Object.keys(state.packages).filter((n) => !queueNames.includes(n));
-  extra.sort((a, b) => a.localeCompare(b));
-  let names = (queueNames.length ? queueNames : Object.keys(state.packages).sort((a, b) => a.localeCompare(b))).concat(extra);
 
-  // Apply sort order (A-Z or Z-A)
-  if (state.sortOrder === "desc") {
-    names = names.slice().reverse();
+  // Categorize packages by status
+  const active = [];      // building, verifying - always at top
+  const completed = [];   // error, awaiting_review, approved, etc. - already processed
+  const queued = [];      // not_started, paused, skipped - in queue
+
+  for (const name of Object.keys(state.packages)) {
+    const j = state.packages[name];
+    if (j.status === "building" || j.status === "verifying") {
+      active.push(name);
+    } else if (j.status === "not_started" || j.status === "paused" || j.status === "skipped") {
+      queued.push(name);
+    } else {
+      completed.push(name);
+    }
   }
+
+  // Sort each category
+  const sortFn = state.sortOrder === "desc"
+    ? (a, b) => b.localeCompare(a)
+    : (a, b) => a.localeCompare(b);
+
+  // Active: keep in queue order (first started first)
+  // Completed: sort by user preference
+  completed.sort(sortFn);
+  // Queued: sort by user preference (this affects which gets picked next)
+  queued.sort(sortFn);
+
+  // Combine: active first, then completed, then queued
+  const names = [...active, ...completed, ...queued];
 
   const visible = names.filter((n) => !filter || n.toLowerCase().includes(filter));
 
@@ -559,9 +598,24 @@ function renderList() {
     // Show build progress when actively building/verifying
     const isActive = j.status === "building" || j.status === "verifying";
     if (isActive && j.build_progress) {
+      // Parse JSON format or show raw string
+      let progressText = j.build_progress;
+      try {
+        const parsed = JSON.parse(j.build_progress);
+        if (typeof parsed === "object" && parsed !== null) {
+          // Show first active build's progress
+          const entries = Object.entries(parsed);
+          if (entries.length > 0) {
+            const [buildName, status] = entries[0];
+            progressText = `${buildName}: ${status}`;
+          }
+        }
+      } catch {
+        // Not JSON - use as is
+      }
       metaPills.push(el("span", { class: "pill purple buildProgress" }, [
         el("span", { class: "dot" }),
-        el("span", { text: j.build_progress }),
+        el("span", { text: progressText }),
       ]));
     }
 
@@ -1434,10 +1488,16 @@ function wireGlobal() {
     state.filter = e.target.value || "";
     renderList();
   });
-  $("#sortToggle")?.addEventListener("click", () => {
+  $("#sortToggle")?.addEventListener("click", async () => {
     state.sortOrder = state.sortOrder === "asc" ? "desc" : "asc";
     const btn = $("#sortToggle");
     if (btn) btn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
+    // Update backend queue order so next build picks from correct end
+    try {
+      await apiPost("/api/sort_queue", { order: state.sortOrder });
+    } catch (e) {
+      console.error("Failed to sort queue:", e);
+    }
     renderList();
   });
   $("#themeBtn")?.addEventListener("click", () => {
