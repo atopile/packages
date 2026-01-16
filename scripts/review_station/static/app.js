@@ -746,6 +746,7 @@ function renderRight() {
   const approveBtn = $("#approveBtn");
   const unapproveBtn = $("#unapproveBtn");
   const publishBtn = $("#publishBtn");
+  const uprevBtn = $("#uprevBtn");
   const restartBtn = $("#restartBtn");
   const cursorBtn = $("#cursorBtn");
   const logStageSelect = $("#logStageSelect"); // may be null if user has an old cached HTML
@@ -786,6 +787,7 @@ function renderRight() {
     approveBtn.disabled = true;
     unapproveBtn.disabled = true;
     publishBtn.disabled = true;
+    uprevBtn.disabled = true;
     restartBtn.disabled = true;
     cursorBtn.disabled = true;
     if (logStageSelect) logStageSelect.innerHTML = "";
@@ -955,6 +957,8 @@ function renderRight() {
   const verifyOk = Number(job.verify_rc) === 0;
   const publishable = allBuildsDone && allBuildsOk && verifyDone && verifyOk;
   publishBtn.disabled = !(publishAnyway || publishable);
+  // Uprev is enabled if package has a registry version (already published)
+  uprevBtn.disabled = !job.registry_published_version && !job.package_identifier;
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
@@ -1518,6 +1522,30 @@ async function publishSelected() {
   await refresh(true);
 }
 
+async function uprevSelected() {
+  const pkg = state.selected;
+  if (!pkg) {
+    alert("No package selected");
+    return;
+  }
+  const reviewer = ($("#reviewer").value || "").trim() || null;
+  console.log("[UPREV] Making API call...", { pkg, reviewer });
+  try {
+    const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/uprev`, { reviewer });
+    console.log("[UPREV] API response:", res);
+    const { old_version, new_version, pr_url } = res?.result || {};
+    if (pr_url) {
+      alert(`Uprev successful!\n${old_version} → ${new_version}\nPR: ${pr_url}`);
+    } else if (new_version) {
+      alert(`Uprev successful!\n${old_version} → ${new_version}`);
+    }
+  } catch (e) {
+    console.error("[UPREV] API error:", e);
+    alert(`Uprev failed: ${String(e)}`);
+  }
+  await refresh(true);
+}
+
 async function openInKicad() {
   const pkg = state.selected;
   const build = state.selectedBuild;
@@ -1621,6 +1649,7 @@ function wireGlobal() {
   $("#approveBtn").addEventListener("click", approveSelected);
   $("#unapproveBtn").addEventListener("click", unapproveSelected);
   $("#publishBtn").addEventListener("click", publishSelected);
+  $("#uprevBtn").addEventListener("click", uprevSelected);
   $("#restartBtn").addEventListener("click", restartSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);

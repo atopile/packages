@@ -772,6 +772,12 @@ def _bump_minor(version: str) -> str:
     return f"{major}.{minor + 1}.0"
 
 
+def _bump_patch(version: str) -> str:
+    major_s, minor_s, patch_s = version.strip().split(".")
+    major, minor, patch = int(major_s), int(minor_s), int(patch_s)
+    return f"{major}.{minor}.{patch + 1}"
+
+
 def _rewrite_ato_yaml_for_publish(
     ato_yaml: Path, required_atopile: str = "^0.14.0"
 ) -> tuple[str | None, str | None]:
@@ -2664,6 +2670,162 @@ class ReviewRun:
 
         return {"branch": branch, "pushed": pushed, "pr_url": pr_url, "commands": out}
 
+    def uprev_and_publish(
+        self,
+        package: str,
+        *,
+        reviewer: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Quick uprev: read version from origin/main, bump patch, and create PR.
+
+        Uses `git show` to read ato.yaml directly from origin/main, ensuring
+        we always bump from the current main version (no merge conflicts).
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        who = self.get_whoami()
+        reviewer = reviewer or who.get("name")
+
+        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["git", *args],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        def run_gh(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["gh", *args],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        out: list[dict[str, Any]] = []
+        repo = self.packages_repo_root
+        pkg_rel = f"packages/{package}"
+
+        # 1. Fetch latest origin/main
+        r = run_git(["fetch", "origin", "main"], cwd=repo)
+        out.append({"cmd": "fetch origin main", "rc": r.returncode, "err": r.stderr})
+        if r.returncode != 0:
+            raise RuntimeError(f"git fetch failed:\n{r.stderr}")
+
+        # 2. Read ato.yaml directly from origin/main using git show
+        ato_yaml_ref = f"origin/main:{pkg_rel}/ato.yaml"
+        r = run_git(["show", ato_yaml_ref], cwd=repo)
+        out.append({"cmd": f"show {ato_yaml_ref}", "rc": r.returncode})
+        if r.returncode != 0:
+            raise FileNotFoundError(f"Could not read {ato_yaml_ref}:\n{r.stderr}")
+
+        txt = r.stdout
+
+        # 3. Extract current version from main
+        m = re.search(r'(?m)^\s*version:\s*"?(\d+\.\d+\.\d+)"?\s*$', txt)
+        if not m:
+            raise ValueError("Could not find version in ato.yaml")
+
+        old_version = m.group(1)
+        new_version = _bump_patch(old_version)
+
+        # 4. Update version in the content
+        txt2 = re.sub(
+            r'(?m)^(\s*version:\s*)("?)(\d+\.\d+\.\d+)\2\s*$',
+            rf'\g<1>"{new_version}"',
+            txt,
+            count=1,
+        )
+
+        # 5. Create a fresh branch from origin/main
+        branch = f"uprev-{_slugify_branch_component(package)}-v{new_version.replace('.', '-')}"
+
+        worktrees_root = (self.run_dir / "_publish_worktrees").resolve()
+        worktrees_root.mkdir(parents=True, exist_ok=True)
+        wt_dir = worktrees_root / branch
+
+        # Cleanup any prior worktree
+        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+
+        # Create fresh worktree from origin/main
+        r = run_git(
+            ["worktree", "add", "--force", "-B", branch, str(wt_dir), "origin/main"],
+            cwd=repo,
+        )
+        out.append({"cmd": "worktree add", "rc": r.returncode, "err": r.stderr})
+        if r.returncode != 0:
+            raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
+
+        # 6. Write the updated ato.yaml
+        wt_pkg = wt_dir / pkg_rel
+        ato_yaml_path = wt_pkg / "ato.yaml"
+        ato_yaml_path.write_text(txt2, encoding="utf-8")
+
+        # Commit
+        cm = f"{package}: uprev to v{new_version}\n\nVersion: {old_version} -> {new_version}"
+        for cmd in (
+            ["add", "--", pkg_rel],
+            ["commit", "-m", cm],
+        ):
+            r = run_git(cmd, cwd=wt_dir)
+            out.append({"cmd": cmd, "rc": r.returncode, "err": r.stderr})
+            if r.returncode != 0 and cmd[0] == "commit":
+                run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+                raise RuntimeError(f"git {cmd} failed:\n{r.stderr}")
+
+        # Push
+        r = run_git(["push", "--force", "-u", "origin", branch], cwd=wt_dir)
+        out.append({"cmd": "push", "rc": r.returncode, "err": r.stderr})
+        pushed = r.returncode == 0
+
+        # Create PR
+        pr_url: str | None = None
+        if pushed and shutil.which("gh"):
+            pr_title = f"{package}: uprev to v{new_version}"
+            pr_body = f"Version bump: {old_version} → {new_version}\n\nReviewer: {reviewer or 'unknown'}"
+
+            # Check if PR already exists
+            r = run_gh(["pr", "view", "--head", branch, "--json", "url"], cwd=wt_dir)
+            if r.returncode == 0 and r.stdout.strip():
+                pr_info = json.loads(r.stdout.strip())
+                pr_url = pr_info.get("url")
+            else:
+                # Create new PR
+                r = run_gh(
+                    ["pr", "create", "--title", pr_title, "--body", pr_body, "--head", branch, "--base", "main"],
+                    cwd=wt_dir,
+                )
+                out.append({"cmd": "pr create", "rc": r.returncode, "err": r.stderr})
+                if r.returncode == 0:
+                    pr_url = (r.stdout or "").strip().splitlines()[-1] if (r.stdout or "").strip() else None
+
+        # Cleanup worktree
+        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+
+        # Update job state
+        with self._lock:
+            job.published_branch = branch
+            job.published_at = _now_ts()
+            job.published_pr_url = pr_url
+            job.published_pr_title = f"{package}: uprev to v{new_version}" if pr_url else None
+            job.status = "pr_opened" if pr_url else "branch_pushed"
+            job.publish_error = None
+        self._write_state()
+
+        return {
+            "branch": branch,
+            "pushed": pushed,
+            "pr_url": pr_url,
+            "old_version": old_version,
+            "new_version": new_version,
+            "commands": out,
+        }
+
     def open_kicad(self, package: str, build: str) -> None:
         job = self.get_job(package)
         if not job:
@@ -3919,6 +4081,31 @@ class Server:
                                         run._write_state()
                             except Exception:
                                 pass
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    # POST /api/package/{name}/uprev - quick version bump and PR
+                    if path.startswith("/api/package/") and path.endswith("/uprev"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/uprev")
+                        ).strip("/")
+                        print(f"[UPREV] Starting uprev for {pkg}", flush=True)
+                        try:
+                            payload = self._read_json()
+                            reviewer = payload.get("reviewer")
+                            res = run.uprev_and_publish(pkg, reviewer=reviewer)
+                            print(f"[UPREV] {pkg} SUCCESS: {res.get('old_version')} -> {res.get('new_version')}, pr_url={res.get('pr_url')}", flush=True)
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "result": res}
+                            )
+                        except KeyError:
+                            print(f"[UPREV] {pkg} NOT FOUND", flush=True)
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            print(f"[UPREV] {pkg} FAILED: {type(e).__name__}: {e}", flush=True)
                             return self._send_json(
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
