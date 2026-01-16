@@ -10,7 +10,6 @@ import Resistor
 
 from "parts/Analog_Devices_ADXL375BCCZ_RL7/Analog_Devices_ADXL375BCCZ_RL7.ato" import Analog_Devices_ADXL375BCCZ_RL7_package
 
-
 module ADI_ADXL375:
     """
     Analog Devices ADXL375 ±200G 3-axis accelerometer with I²C interface.
@@ -37,11 +36,13 @@ module ADI_ADXL375:
     # --- I²C bus ---
     i2c.sda.reference ~ power_digital
     i2c.scl.reference ~ power_digital
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.address_lines[0].line ~ package.SDO_ALTADDRESS
     addressor.address_lines[0].reference ~ power_digital
     assert addressor.base is 0x53
     assert addressor.address is i2c.address
+    # Default to base address (0x53), can be overridden by user
+    i2c.address.default = 0x53
 
     # --- Decoupling capacitors ---
     decoupling_capacitors = new Capacitor[2]
