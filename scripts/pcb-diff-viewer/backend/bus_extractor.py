@@ -155,7 +155,9 @@ def extract_bus_info(
 
         # First pass: collect info for each bus group
         # Groups with the same parent interface will be merged
-        parent_to_groups: dict[str, list[dict]] = {}  # parent_uuid -> list of group info
+        parent_to_groups: dict[
+            str, list[dict]
+        ] = {}  # parent_uuid -> list of group info
         ungrouped = []
 
         for representative, members in bus_groups.items():
@@ -177,7 +179,9 @@ def extract_bus_info(
                 member_type, member_instance, parent_uuid = _find_bus_type(member)
                 if member_type:
                     priority = BUS_TYPE_PRIORITY.get(member_type, 0)
-                    all_found_types.append((member_type, member_instance, priority, parent_uuid))
+                    all_found_types.append(
+                        (member_type, member_instance, priority, parent_uuid)
+                    )
 
             # Pick the most specific type (highest priority)
             bus_type, bus_instance, parent_uuid = None, None, None
@@ -194,7 +198,9 @@ def extract_bus_info(
 
             # Debug: show what we're grouping for power buses
             if bus_type == "ElectricPower" and bus_nets:
-                print(f"  DEBUG ElectricPower: instance={bus_instance}, nets={list(bus_nets)[:3]}, uuid={parent_uuid[:12] if parent_uuid else None}")
+                print(
+                    f"  DEBUG ElectricPower: instance={bus_instance}, nets={list(bus_nets)[:3]}, uuid={parent_uuid[:12] if parent_uuid else None}"
+                )
 
             # Group by parent interface UUID for merging
             # This merges things like ElectricPower.hv and ElectricPower.lv into one bus

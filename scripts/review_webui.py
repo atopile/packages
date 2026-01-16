@@ -612,6 +612,25 @@ def _count_log_levels_path(p: Path, *, max_bytes: int = 2_000_000) -> tuple[int,
     return _count_log_levels(txt)
 
 
+def _get_git_hash(cwd: Path) -> str | None:
+    """
+    Get the short git hash of the repo at cwd.
+    """
+    try:
+        r = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode == 0:
+            return r.stdout.strip()
+    except Exception:
+        pass
+    return None
+
+
 def _safe_cmd_version(cmd: list[str], *, cwd: Path) -> str | None:
     """
     Best-effort version probe for a CLI.
@@ -642,48 +661,67 @@ def _pr_title_and_body(
     target_requires_atopile: str,
     old_version: str | None,
     new_version: str | None,
-    ato_version: str | None,
+    git_hash: str | None,
+    changelog: str | None = None,
 ) -> tuple[str, str]:
     """
     Deterministic PR title/body (avoid gh --fill so this is stable across reruns).
+
+    Format:
+    Title: {package}: package update to v{new_version}, ato:{target_requires_atopile}
+    Body: build targets, verify status, version, requires ato, changelog
     """
-    title = f"{package}: update for {target_requires_atopile}"
+    # Title format: package: package update to vX.Y.Z, ato:^0.14.0
+    version_part = f"to v{new_version}, " if new_version else ""
+    title = f"{package}: package update {version_part}ato:{target_requires_atopile}"
 
     lines: list[str] = []
-    lines.append(f"Package: `{package}`")
-    lines.append(f"Branch: `{branch}`")
-    if old_version and new_version:
-        lines.append(f"Version: `{old_version}` → `{new_version}`")
-    lines.append(f"Target atopile: `{target_requires_atopile}`")
-    if ato_version:
-        lines.append(f"Built with: `{ato_version}`")
-    lines.append("")
 
-    lines.append("## Build stats")
-    lines.append(f"- Built at: `{job.started_at or '?'} → {job.finished_at or '?'}`")
-    lines.append(
-        f"- Machine: `{platform.node()}`  user: `{getpass.getuser()}`  os: `{platform.platform()}`"
-    )
-    lines.append(f"- Review run dir: `{job.run_dir}`")
+    # Build targets section
+    lines.append("**Build targets:**")
     for b in job.build_names:
-        sec = job.build_seconds.get(b)
-        sec_str = f"{sec:.1f}s" if isinstance(sec, (int, float)) else "?"
-        lines.append(
-            f"- Build `{b}`: rc={job.build_rc.get(b)}  warn/err={job.build_warn.get(b,0)}/{job.build_err.get(b,0)}  time={sec_str}"
-        )
-    if job.verify_rc is not None:
-        vsec = job.verify_seconds
-        vsec_str = f"{vsec:.1f}s" if isinstance(vsec, (int, float)) else "?"
-        lines.append(
-            f"- Verify: rc={job.verify_rc}  warn/err={(job.verify_warn or 0)}/{(job.verify_err or 0)}  time={vsec_str}"
-        )
+        rc = job.build_rc.get(b, "?")
+        lines.append(f"- `{b}` = rc{rc}")
     lines.append("")
 
-    lines.append("## Review metadata")
-    lines.append(f"- Approved by: `{job.approved_by or ''}`")
-    lines.append(f"- Approved at: `{job.approved_at or ''}`")
-    lines.append(f"- Published by: `{reviewer or ''}`")
-    lines.append(f"- Published at: `{_now_ts()}`")
+    # Package verify
+    if job.verify_rc is not None:
+        lines.append(f"**Package Verify:** rc{job.verify_rc}")
+    lines.append("")
+
+    # Version
+    if old_version and new_version:
+        lines.append(f"**Version:** {old_version} → {new_version}")
+    elif new_version:
+        lines.append(f"**Version:** {new_version}")
+    lines.append("")
+
+    # Requires ato
+    lines.append(f"**Requires ato:** {target_requires_atopile}")
+    lines.append("")
+
+    # Changelog section
+    lines.append("**Changelog:**")
+    if changelog:
+        for line in changelog.strip().split("\n"):
+            lines.append(f"- {line.strip()}")
+    else:
+        lines.append("- Package update for new atopile version")
+    lines.append("")
+
+    # Metadata (collapsed details)
+    lines.append("<details>")
+    lines.append("<summary>Build metadata</summary>")
+    lines.append("")
+    lines.append(f"- Built at: `{job.started_at or '?'}` → `{job.finished_at or '?'}`")
+    lines.append(f"- Machine: `{platform.node()}`")
+    lines.append(f"- User: `{getpass.getuser()}`")
+    if git_hash:
+        lines.append(f"- Repo commit: `{git_hash}`")
+    lines.append(f"- Approved by: `{job.approved_by or 'N/A'}`")
+    lines.append(f"- Published by: `{reviewer or 'N/A'}`")
+    lines.append("")
+    lines.append("</details>")
 
     body = "\n".join(lines).strip() + "\n"
     return title, body
@@ -1029,14 +1067,32 @@ def _update_todo_auto_section(
     auto.append(f"- `{job.package_dir}/usage.ato` - usage example")
     auto.append(f"- `{job.package_dir}/ato.yaml` - build config")
     auto.append("")
+    auto.append("### ⚠️ IMPORTANT: Use API to communicate with user!")
+    auto.append("")
+    auto.append("The user is watching a live dashboard. **Use these commands to communicate:**")
+    auto.append("1. **Send `started` message FIRST** - so user knows you're working on it")
+    auto.append("2. **Post progress updates** - user sees these in real-time")
+    auto.append("3. **Request help if stuck** - highlights package for user attention")
+    auto.append("4. **Send `finished` message LAST** - when done (success or giving up)")
+    auto.append("")
     auto.append("### API Commands")
     auto.append("")
     auto.append("```bash")
+    auto.append("# FIRST: Mark yourself as working on this package")
+    auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
+    auto.append('  -d \'{"message": "Starting work on this package", "type": "started"}\'')
+    auto.append("")
     auto.append("# Check build queue health")
     auto.append(f"curl -s '{health_url}' | jq .")
     auto.append("")
     auto.append("# Check current build status (includes progress, elapsed time, hints)")
     auto.append(f"curl -s '{status_url}' | jq .")
+    auto.append("")
+    auto.append("# Stream real-time updates (SSE) - great for watching builds")
+    auto.append(f"curl -N '{server_origin}/api/package/{pkg_encoded}/stream'")
+    auto.append("")
+    auto.append("# Bump to front of queue (priority rebuild)")
+    auto.append(f"curl -X POST '{server_origin}/api/package/{pkg_encoded}/prioritize'")
     auto.append("")
     auto.append("# List available log files")
     auto.append(f"curl -s '{logs_url}' | jq .")
@@ -1054,13 +1110,16 @@ def _update_todo_auto_section(
     auto.append("# Request human assistance (highlights package in UI)")
     auto.append(f"curl -X POST '{help_url}' -H 'Content-Type: application/json' \\")
     auto.append('  -d \'{"reason": "Need help understanding the circuit topology"}\'')
+    auto.append("")
+    auto.append("# LAST: Mark yourself as done (success or giving up)")
+    auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
+    auto.append('  -d \'{"message": "Fixed all issues, build passes", "type": "finished"}\'')
     auto.append("```")
     auto.append("")
     auto.append("**Tips:**")
-    auto.append("- **Send `started` message first** to mark package as being worked on")
-    auto.append("- Send `finished` message when done (success or giving up)")
     auto.append("- Status shows `current_step` and `build_progress` while building")
-    auto.append("- If build appears stuck, use the restart endpoint")
+    auto.append("- Use `/api/package/{name}/prioritize` (POST) to bump to front of queue")
+    auto.append("- Use `/api/package/{name}/stream` (GET) for real-time SSE updates")
     auto.append("- Message types: `started`, `finished`, `info`, `progress`, `warning`, `error`, `question`")
     auto.append("")
     auto.append("---")
@@ -1208,6 +1267,9 @@ class JobState:
     published_pr_url: str | None = None
     published_pr_title: str | None = None
     published_pr_body: str | None = None
+
+    # Flag to skip PR check after manual restart (allows re-publishing to existing branch)
+    skip_pr_check: bool = False
 
     # AI agent interaction
     agent_messages: list[dict[str, Any]] = field(default_factory=list)
@@ -1480,7 +1542,8 @@ class ReviewRun:
                     # Keep partial build results but allow rebuild
 
                 # If build/verify passed, check if there's already a PR for this package
-                if j.status == "awaiting_review":
+                # Skip this check if package was manually restarted (to allow re-publishing)
+                if j.status == "awaiting_review" and not j.skip_pr_check:
                     existing = _check_existing_pr_for_package(
                         package=pkg,
                         repo_root=self.packages_repo_root,
@@ -1493,6 +1556,9 @@ class ReviewRun:
                             j.status = "pr_opened"
                         else:
                             j.status = "branch_pushed"
+
+                # Reset skip_pr_check flag after use
+                j.skip_pr_check = False
 
         self._write_state()
         # Keep todo updated after each completion.
@@ -1699,12 +1765,15 @@ class ReviewRun:
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
-    def restart(self, package: str, priority: bool = True) -> None:
+    def restart(self, package: str, priority: bool = True, clear_publish_state: bool = True) -> None:
         """
         Restart a package build.
 
         If priority=True (default), pauses one running job to make room and
         starts this package immediately for faster debugging iteration.
+
+        If clear_publish_state=True (default), clears any previous publish state
+        so the package can be rebuilt and re-published to update an existing branch/PR.
         """
         paused_pkg = None
         with self._lock:
@@ -1751,6 +1820,18 @@ class ReviewRun:
             )
             job.approved_by = None
             job.approved_at = None
+
+            # Clear publish state so package can be re-published after rebuild
+            if clear_publish_state:
+                job.published_branch = None
+                job.published_at = None
+                job.published_target_requires_atopile = None
+                job.publish_error = None
+                job.published_pr_url = None
+                job.published_pr_title = None
+                job.published_pr_body = None
+                # Skip PR check after rebuild so status stays as awaiting_review
+                job.skip_pr_check = True
             job.cancel_requested = False
             job.skip_reason = None
             job.skip_requested_at = None
@@ -2217,15 +2298,6 @@ class ReviewRun:
 
         who = self.get_whoami()
         reviewer = reviewer or job.approved_by or who.get("name")
-        meta = f"[reviewer:{reviewer or 'unknown'}]"
-        cm = (
-            commit_message or ""
-        ).strip() or f"{package}: package update {meta} [ato:{target_requires_atopile}]"
-        # Add useful telemetry
-        cm += f"\n\nBuilds: " + ", ".join(
-            [f"{b}=rc{job.build_rc.get(b)}" for b in job.build_names]
-        )
-        cm += f"\nVerify: rc{job.verify_rc}"
 
         def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
             return subprocess.run(
@@ -2310,8 +2382,20 @@ class ReviewRun:
         old_v, new_v = _rewrite_ato_yaml_for_publish(
             wt_pkg / "ato.yaml", required_atopile=target_requires_atopile
         )
+
+        # Generate commit message (now that we know the version)
+        version_part = f"to v{new_v}, " if new_v else ""
+        cm = (
+            commit_message or ""
+        ).strip() or f"{package}: package update {version_part}ato:{target_requires_atopile}"
+        # Add build stats
+        cm += "\n\nBuild targets:"
+        for b in job.build_names:
+            cm += f"\n  {b} = rc{job.build_rc.get(b)}"
+        cm += f"\nPackage Verify: rc{job.verify_rc}"
         if old_v and new_v:
             cm += f"\nVersion: {old_v} -> {new_v}"
+        cm += f"\nRequires ato: {target_requires_atopile}"
 
         # Commit only this package directory
         for cmd in (
@@ -2345,7 +2429,7 @@ class ReviewRun:
         if not pushed:
             raise RuntimeError(f"git push failed:\n{r.stderr}")
 
-        ato_version = _safe_cmd_version(self.ato_cmd, cwd=repo)
+        git_hash = _get_git_hash(repo)
         pr_title, pr_body = _pr_title_and_body(
             job=job,
             package=package,
@@ -2354,7 +2438,7 @@ class ReviewRun:
             target_requires_atopile=target_requires_atopile,
             old_version=old_v,
             new_version=new_v,
-            ato_version=ato_version,
+            git_hash=git_hash,
         )
 
         # Create or reuse PR (best-effort, requires `gh`).
@@ -2932,6 +3016,78 @@ class Server:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
+
+                    # SSE streaming endpoint for watching package status in real-time
+                    if path.startswith("/api/package/") and path.endswith("/stream"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/stream")
+                        ).strip("/")
+                        job = run.get_job(pkg)
+                        if not job:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        # Send SSE headers
+                        self.send_response(HTTPStatus.OK)
+                        self.send_header("Content-Type", "text/event-stream")
+                        self.send_header("Cache-Control", "no-cache")
+                        self.send_header("Connection", "keep-alive")
+                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self.end_headers()
+
+                        import json as _json
+                        last_status = None
+                        last_progress = None
+                        last_msg_count = 0
+                        try:
+                            while True:
+                                job = run.get_job(pkg)
+                                if not job:
+                                    break
+                                # Send update if status, progress, or messages changed
+                                current_status = job.status
+                                current_progress = job.build_progress
+                                current_msg_count = len(job.agent_messages)
+
+                                if (current_status != last_status or
+                                    current_progress != last_progress or
+                                    current_msg_count != last_msg_count):
+
+                                    event_data = {
+                                        "package": pkg,
+                                        "status": job.status,
+                                        "build_progress": job.build_progress,
+                                        "current_step": job.current_step,
+                                        "error": job.error,
+                                        "finished": job.finished_at is not None,
+                                        "messages": job.agent_messages[-5:] if job.agent_messages else [],
+                                    }
+                                    self.wfile.write(f"data: {_json.dumps(event_data)}\n\n".encode())
+                                    self.wfile.flush()
+
+                                    last_status = current_status
+                                    last_progress = current_progress
+                                    last_msg_count = current_msg_count
+
+                                # Exit if job is finished
+                                if job.finished_at:
+                                    # Send final status
+                                    final_data = {
+                                        "package": pkg,
+                                        "status": job.status,
+                                        "finished": True,
+                                        "build_rc": dict(job.build_rc),
+                                        "verify_rc": job.verify_rc,
+                                        "error": job.error,
+                                    }
+                                    self.wfile.write(f"data: {_json.dumps(final_data)}\n\n".encode())
+                                    self.wfile.flush()
+                                    break
+
+                                time.sleep(0.3)  # Check every 300ms
+                        except (BrokenPipeError, ConnectionResetError):
+                            pass  # Client disconnected
+                        return
 
                     if path.startswith("/api/package/") and path.endswith("/issues"):
                         pkg = unquote(
@@ -3535,6 +3691,8 @@ class Server:
                         pkg = unquote(
                             path.removeprefix("/api/package/").removesuffix("/publish")
                         ).strip("/")
+                        print(f"[PUBLISH] Starting publish for {pkg}", flush=True)
+                        _log_line(f"{_now_ts()} PUBLISH: Starting publish for {pkg}")
                         try:
                             payload = self._read_json()
                             reviewer = payload.get("reviewer")
@@ -3542,24 +3700,34 @@ class Server:
                             target_requires_atopile = (
                                 payload.get("target_requires_atopile") or "^0.14.0"
                             )
+                            print(f"[PUBLISH] {pkg} reviewer={reviewer} target={target_requires_atopile}", flush=True)
+                            _log_line(f"{_now_ts()} PUBLISH: {pkg} reviewer={reviewer} target={target_requires_atopile}")
                             res = run.publish(
                                 pkg,
                                 commit_message=commit_message,
                                 reviewer=reviewer,
                                 target_requires_atopile=target_requires_atopile,
                             )
+                            print(f"[PUBLISH] {pkg} SUCCESS pr_url={res.get('pr_url')}", flush=True)
+                            _log_line(f"{_now_ts()} PUBLISH: {pkg} SUCCESS pr_url={res.get('pr_url')}")
                             return self._send_json(
                                 HTTPStatus.OK, {"ok": True, "result": res}
                             )
                         except PermissionError as e:
+                            print(f"[PUBLISH] {pkg} PERMISSION ERROR: {e}", flush=True)
+                            _log_line(f"{_now_ts()} PUBLISH: {pkg} PERMISSION ERROR: {e}")
                             return self._send_json(
                                 HTTPStatus.FORBIDDEN, {"error": str(e)}
                             )
                         except KeyError:
+                            print(f"[PUBLISH] {pkg} NOT FOUND", flush=True)
+                            _log_line(f"{_now_ts()} PUBLISH: {pkg} NOT FOUND")
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
                         except Exception as e:
+                            print(f"[PUBLISH] {pkg} FAILED: {type(e).__name__}: {e}", flush=True)
+                            _log_line(f"{_now_ts()} PUBLISH: {pkg} FAILED: {type(e).__name__}: {e}")
                             # Record the failure on the job for visibility in the UI.
                             try:
                                 j = run.get_job(pkg)

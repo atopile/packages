@@ -1489,16 +1489,31 @@ async function restartSelected() {
 
 async function publishSelected() {
   const pkg = state.selected;
-  if (!pkg) return;
+  console.log("[PUBLISH] publishSelected called, pkg=", pkg);
+  if (!pkg) {
+    console.log("[PUBLISH] No package selected, returning");
+    return;
+  }
   const reviewer = ($("#reviewer").value || "").trim() || null;
   const target_requires_atopile = ($("#targetAtopile").value || "").trim() || "^0.14.0";
   const commit_message = state.publish.commitMessage || "";
+  console.log("[PUBLISH] Making API call...", { pkg, reviewer, target_requires_atopile });
   try {
     const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/publish`, { reviewer, commit_message, target_requires_atopile });
+    console.log("[PUBLISH] API response:", res);
     state.publish.lastResult = res.result || res;
     state.publish.error = null;
+    // Show success with PR URL if available
+    const prUrl = res?.result?.pr_url;
+    if (prUrl) {
+      alert(`Published! PR: ${prUrl}`);
+    } else if (res?.result?.branch) {
+      alert(`Published to branch: ${res.result.branch}`);
+    }
   } catch (e) {
+    console.error("[PUBLISH] API error:", e);
     state.publish.error = String(e);
+    alert(`Publish failed: ${String(e)}`);
   }
   await refresh(true);
 }
@@ -1633,14 +1648,49 @@ function wireGlobal() {
     }
   });
 
-  // Copy Agent Instructions button - just copies the prompt
+  // Copy Agent Instructions button - copies prompt with key commands
   $("#openAndCopyBtn")?.addEventListener("click", async () => {
     const pkg = state.selected;
     if (!pkg) return;
     const job = state.packages[pkg];
     if (!job) return;
     const todoPath = job.todo_path || `${job.package_dir}/review.todo.md`;
-    const prompt = `Please read this file and fix the package following the instructions inside:\n\n${todoPath}\n\nThe file contains build errors/warnings that need to be fixed, along with API endpoints you can use to trigger rebuilds and check status.`;
+    const pkgEncoded = encodeURIComponent(pkg);
+    const origin = window.location.origin;
+
+    const prompt = `Please read this file and fix the package following the instructions inside:
+
+${todoPath}
+
+**IMPORTANT: Use the API commands below to communicate with the user!**
+The user is watching a dashboard that shows your messages in real-time.
+Always send a "started" message first, post progress updates, and send "finished" when done.
+
+\`\`\`bash
+# 1. FIRST: Mark yourself as working on this package (shows in UI)
+curl -X POST '${origin}/api/package/${pkgEncoded}/message' -H 'Content-Type: application/json' -d '{"message": "Starting work on this package", "type": "started"}'
+
+# 2. Post progress updates as you work (user sees these live)
+curl -X POST '${origin}/api/package/${pkgEncoded}/message' -H 'Content-Type: application/json' -d '{"message": "Fixing import error in main module...", "type": "progress"}'
+
+# 3. Check build status (queue position, progress, errors)
+curl -s '${origin}/api/package/${pkgEncoded}/status' | jq .
+
+# 4. Bump to front of queue for priority rebuild
+curl -X POST '${origin}/api/package/${pkgEncoded}/prioritize'
+
+# 5. Trigger rebuild after making fixes
+curl -X POST '${origin}/api/package/${pkgEncoded}/restart'
+
+# 6. Stream real-time build output
+curl -N '${origin}/api/package/${pkgEncoded}/stream'
+
+# 7. Request help if stuck (highlights package for user attention)
+curl -X POST '${origin}/api/package/${pkgEncoded}/request_help' -H 'Content-Type: application/json' -d '{"reason": "Need clarification on circuit topology"}'
+
+# 8. LAST: Mark yourself as done
+curl -X POST '${origin}/api/package/${pkgEncoded}/message' -H 'Content-Type: application/json' -d '{"message": "Fixed all issues, build passes", "type": "finished"}'
+\`\`\``;
 
     try {
       await navigator.clipboard.writeText(prompt);
@@ -1676,7 +1726,8 @@ async function bootstrap() {
   }
 
   // Poll. Keep it snappy but not noisy.
-  setInterval(() => refresh(true).catch(() => {}), 1200);
+  // Poll every 600ms for responsive updates during active builds
+  setInterval(() => refresh(true).catch(() => {}), 600);
 }
 
 bootstrap().catch((e) => {
