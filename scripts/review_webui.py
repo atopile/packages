@@ -846,9 +846,9 @@ def _check_existing_pr_for_package(
     target_requires_atopile: str = "^0.14.0",
 ) -> dict[str, Any] | None:
     """
-    Check if there's an existing open PR for this package on GitHub.
+    Check if there's an existing PR (open or merged) for this package on GitHub.
 
-    Returns dict with branch/pr_url if found, None otherwise.
+    Returns dict with branch/pr_url/merged if found, None otherwise.
     Requires `gh` CLI to be installed and authenticated.
     """
     if not shutil.which("gh"):
@@ -858,7 +858,7 @@ def _check_existing_pr_for_package(
     expected_branch = f"package-update-{_slugify_branch_component(series)}-{_slugify_branch_component(package)}"
 
     try:
-        # Check if there's an open PR for this branch
+        # Check if there's an open or merged PR for this branch
         result = subprocess.run(
             ["gh", "pr", "view", "--head", expected_branch, "--json", "url,state,title"],
             cwd=repo_root,
@@ -869,12 +869,55 @@ def _check_existing_pr_for_package(
         if result.returncode == 0 and result.stdout.strip():
             import json as json_mod
             pr_info = json_mod.loads(result.stdout.strip())
-            if pr_info.get("state") == "OPEN":
+            state = pr_info.get("state")
+            if state == "OPEN":
                 return {
                     "branch": expected_branch,
                     "pr_url": pr_info.get("url"),
                     "pr_title": pr_info.get("title"),
+                    "merged": False,
                 }
+            elif state == "MERGED":
+                return {
+                    "branch": expected_branch,
+                    "pr_url": pr_info.get("url"),
+                    "pr_title": pr_info.get("title"),
+                    "merged": True,
+                }
+    except Exception:
+        pass
+
+    # Search for merged PRs by title pattern (for cases where branch was deleted)
+    # This catches PRs that were merged with the standard title format
+    try:
+        search_query = f"{package}: package update"
+        result = subprocess.run(
+            [
+                "gh", "pr", "list",
+                "--state", "merged",
+                "--search", search_query,
+                "--json", "url,title,mergedAt",
+                "--limit", "5",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            import json as json_mod
+            prs = json_mod.loads(result.stdout.strip())
+            # Look for a PR with matching package name and 0.14 in title
+            for pr in prs:
+                title = pr.get("title", "")
+                # Match PRs like "adi-adxl345: package update to v0.2.0, ato:^0.14.0"
+                if title.startswith(f"{package}:") and "0.14" in title:
+                    return {
+                        "branch": expected_branch,
+                        "pr_url": pr.get("url"),
+                        "pr_title": title,
+                        "merged": True,
+                    }
     except Exception:
         pass
 
@@ -891,6 +934,7 @@ def _check_existing_pr_for_package(
             return {
                 "branch": expected_branch,
                 "pr_url": None,
+                "merged": False,
             }
     except Exception:
         pass
@@ -1354,6 +1398,7 @@ class ReviewRun:
             # before a build has completed (layouts are typically checked into the package).
             js.layout_paths = _find_layout_pcb_paths(pkg_dir, build_names)
             js.model_paths = _find_model_glb_paths(pkg_dir, build_names)
+
             self._jobs[pkg_dir.name] = js
             self._queue.append(pkg_dir.name)
 
@@ -1401,6 +1446,133 @@ class ReviewRun:
         )
         t.start()
         self._threads.append(t)
+
+        # Background thread to check for existing PRs while builds run
+        t = threading.Thread(
+            target=self._check_existing_prs_background,
+            name="pr-checker",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
+
+    def _check_existing_prs_background(self) -> None:
+        """
+        Background thread that checks for existing PRs/branches while builds run.
+
+        If a package is found to already be published (merged PR or on registry),
+        we update its status and cancel any running build for it.
+        """
+        # Small delay to let server fully start
+        time.sleep(0.5)
+
+        with self._lock:
+            packages_to_check = list(self._jobs.keys())
+
+        for pkg_name in packages_to_check:
+            if self._stop:
+                break
+
+            already_published = False
+            pr_info: dict[str, Any] | None = None
+
+            # First, quick check: is this package already on the registry for 0.14.x?
+            try:
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if job and job.registry_updated_014:
+                        already_published = True
+
+                # If not yet checked by registry poller, do a quick registry check
+                if not already_published and job and job.package_identifier:
+                    ident = job.package_identifier
+                    ident_path = quote(ident, safe="/")
+                    url = f"{self.registry_url}/v1/package/{ident_path}"
+                    req = Request(url, headers={"User-Agent": "packages-review-station/0"})
+                    with urlopen(req, timeout=5) as r:
+                        data = json.loads(r.read().decode("utf-8"))
+                    latest_version = ((data or {}).get("info") or {}).get("version", "")
+
+                    # Get release info to check requires_atopile
+                    if latest_version:
+                        rel_url = f"{self.registry_url}/v1/package/{ident_path}/releases/{quote(latest_version, safe='')}"
+                        rel_req = Request(rel_url, headers={"User-Agent": "packages-review-station/0"})
+                        with urlopen(rel_req, timeout=5) as rr:
+                            rel_data = json.loads(rr.read().decode("utf-8"))
+                        requires_atopile = ((rel_data or {}).get("info") or {}).get("requires_atopile", "")
+
+                        # Already published for 0.14.x?
+                        if re.match(r"^\^?0\.14\.\d+", requires_atopile):
+                            already_published = True
+                            with self._lock:
+                                if job:
+                                    job.registry_published_version = latest_version
+                                    job.registry_requires_atopile = requires_atopile
+                                    job.registry_updated_014 = True
+            except Exception:
+                pass  # Registry check failed, fall through to PR check
+
+            # If already on registry for 0.14, mark as published
+            if already_published:
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if job and job.status in ("not_started", "building", "verifying"):
+                        job.status = "published"
+                        if pkg_name in self._queue:
+                            self._queue.remove(pkg_name)
+                        if hasattr(self, "_mp_cancel"):
+                            try:
+                                self._mp_cancel[pkg_name] = True
+                            except Exception:
+                                pass
+                self._write_state()
+                time.sleep(0.02)
+                continue
+
+            # Fall back to PR check
+            try:
+                pr_info = _check_existing_pr_for_package(
+                    package=pkg_name,
+                    repo_root=self.packages_repo_root,
+                )
+                if pr_info:
+                    with self._lock:
+                        job = self._jobs.get(pkg_name)
+                        if not job:
+                            continue
+
+                        # Determine new status
+                        if pr_info.get("merged"):
+                            new_status = "published"
+                        elif pr_info.get("pr_url"):
+                            new_status = "pr_opened"
+                        else:
+                            new_status = "branch_pushed"
+
+                        # Only update if package hasn't already completed or errored
+                        if job.status in ("not_started", "building", "verifying"):
+                            job.published_branch = pr_info.get("branch")
+                            job.published_pr_url = pr_info.get("pr_url")
+                            job.published_pr_title = pr_info.get("pr_title")
+                            job.status = new_status
+
+                            # Remove from queue if still queued
+                            if pkg_name in self._queue:
+                                self._queue.remove(pkg_name)
+
+                            # Cancel build if running
+                            if hasattr(self, "_mp_cancel"):
+                                try:
+                                    self._mp_cancel[pkg_name] = True
+                                except Exception:
+                                    pass
+
+                    self._write_state()
+            except Exception:
+                pass  # Don't crash the thread on individual failures
+
+            # Small delay between checks to avoid hammering APIs
+            time.sleep(0.02)
 
     def stop(self) -> None:
         self._stop = True
@@ -1521,7 +1693,11 @@ class ReviewRun:
                 j.build_progress = None  # Clear progress when complete
 
                 status = msg.get("status")
-                if status in (
+                # Don't overwrite "published"/"pr_opened"/"branch_pushed" with "paused"
+                # (background checker may have already marked this package)
+                if j.status in ("published", "pr_opened", "branch_pushed"):
+                    pass  # Keep the status set by background checker
+                elif status in (
                     "awaiting_review",
                     "error",
                     "paused",
@@ -1552,7 +1728,10 @@ class ReviewRun:
                         j.published_branch = existing.get("branch")
                         j.published_pr_url = existing.get("pr_url")
                         j.published_pr_title = existing.get("pr_title")
-                        if existing.get("pr_url"):
+                        if existing.get("merged"):
+                            # PR was already merged - package is published for this series
+                            j.status = "published"
+                        elif existing.get("pr_url"):
                             j.status = "pr_opened"
                         else:
                             j.status = "branch_pushed"
