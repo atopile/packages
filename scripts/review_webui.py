@@ -67,6 +67,7 @@ Status = Literal[
     "paused",
     "skipped",  # backward-compat for older run dirs
     "error",
+    "needs_input",  # AI requested human assistance
 ]
 
 AUTO_BEGIN = "<!-- AUTO:BEGIN -->"
@@ -859,6 +860,119 @@ def _check_existing_pr_for_package(
     return None
 
 
+def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
+    """
+    Extract all errors/warnings from logs for a job.
+
+    Returns list of issues with:
+    - type: "error" | "warning"
+    - message: the log line content
+    - source: which log file/build step produced it
+    """
+    run_logs_dir = (Path(job.run_dir) / "logs").resolve()
+    pkg_build_latest = (Path(job.package_dir) / "build" / "logs" / "latest").resolve()
+
+    issues: list[dict[str, Any]] = []
+
+    # Patterns for matching errors/warnings
+    error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
+    warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
+    traceback_pattern = re.compile(r"^Traceback \(most recent call last\):", re.MULTILINE)
+
+    def extract_from_log(
+        log_path: Path,
+        source_label: str,
+        stage: str,
+        max_bytes: int = 2_000_000,
+    ) -> None:
+        """Extract errors/warnings from a single log file."""
+        if not log_path.exists():
+            return
+        try:
+            with log_path.open("rb") as f:
+                data = f.read(max_bytes)
+            txt = data.decode("utf-8", errors="replace")
+        except Exception:
+            return
+
+        lines = txt.splitlines()
+        in_traceback = False
+
+        for i, line in enumerate(lines):
+            line_num = i + 1
+
+            if traceback_pattern.match(line):
+                in_traceback = True
+                continue
+
+            if in_traceback:
+                if not line.strip() or error_pattern.search(line) or warning_pattern.search(line):
+                    in_traceback = False
+                else:
+                    continue
+
+            if error_pattern.search(line):
+                clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+                if len(clean_line) > 10:
+                    issues.append({
+                        "type": "error",
+                        "message": clean_line,
+                        "source": source_label,
+                        "stage": stage,
+                        "line_num": line_num,
+                    })
+            elif warning_pattern.search(line):
+                clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+                if len(clean_line) > 10:
+                    issues.append({
+                        "type": "warning",
+                        "message": clean_line,
+                        "source": source_label,
+                        "stage": stage,
+                        "line_num": line_num,
+                    })
+
+    # Extract from review-station build logs
+    for b in job.build_names:
+        fname = f"build.{b}.log"
+        extract_from_log(run_logs_dir / fname, f"build ({b})", "build")
+
+    # Extract from verify log
+    extract_from_log(run_logs_dir / "verify.log", "verify", "verify")
+
+    # Extract from package internal logs
+    if pkg_build_latest.exists():
+        for b in job.build_names:
+            bdir = pkg_build_latest / b
+            if not bdir.exists() or not bdir.is_dir():
+                continue
+            for p in sorted(bdir.iterdir()):
+                if not p.is_file():
+                    continue
+                if not (p.name.endswith(".log") or p.name.endswith(".txt")):
+                    continue
+                extract_from_log(p, f"{b} / {p.name}", "build")
+
+    # Sort: errors first, then by stage, then by line number
+    stage_order = {"build": 0, "verify": 1, "other": 2}
+    issues.sort(key=lambda x: (
+        0 if x["type"] == "error" else 1,
+        stage_order.get(x["stage"], 2),
+        x["line_num"],
+    ))
+
+    # Deduplicate similar messages
+    seen_messages: set[str] = set()
+    unique_issues: list[dict[str, Any]] = []
+    for issue in issues:
+        norm = re.sub(r"\d+", "N", issue["message"][:100])
+        if norm not in seen_messages:
+            seen_messages.add(norm)
+            unique_issues.append(issue)
+
+    return unique_issues
+
+
 def _update_todo_auto_section(
     *,
     todo_path: Path,
@@ -892,8 +1006,52 @@ def _update_todo_auto_section(
         vl = f"{server_origin}/log/{job.package}/verify.log"
         verify_line = f"- **verify**: rc={job.verify_rc} warn/err={(job.verify_warn or 0)}/{(job.verify_err or 0)} time={(job.verify_seconds or 0):.1f}s log: `{vl}`"
 
+    # API URLs for this package
+    pkg_encoded = job.package.replace(" ", "%20")
+    status_url = f"{server_origin}/api/package/{pkg_encoded}/status"
+    rebuild_url = f"{server_origin}/api/package/{pkg_encoded}/restart"
+    issues_url = f"{server_origin}/api/package/{pkg_encoded}/issues"
+
+    message_url = f"{server_origin}/api/package/{pkg_encoded}/message"
+    help_url = f"{server_origin}/api/package/{pkg_encoded}/request_help"
+
     auto = []
     auto.append(AUTO_BEGIN)
+    auto.append("## Instructions for AI")
+    auto.append("")
+    auto.append(f"**Package**: `{job.package}`")
+    auto.append(f"**Directory**: `{job.package_dir}`")
+    auto.append("")
+    auto.append("Review and fix the errors and warnings listed below. The main source files are:")
+    auto.append(f"- `{job.package_dir}/{job.package}.ato` - main module")
+    auto.append(f"- `{job.package_dir}/usage.ato` - usage example")
+    auto.append(f"- `{job.package_dir}/ato.yaml` - build config")
+    auto.append("")
+    auto.append("### API Commands")
+    auto.append("")
+    auto.append("```bash")
+    auto.append("# Check current build status")
+    auto.append(f"curl -s '{status_url}' | jq .")
+    auto.append("")
+    auto.append("# Trigger a rebuild after making fixes")
+    auto.append(f"curl -X POST '{rebuild_url}'")
+    auto.append("")
+    auto.append("# Get detailed list of errors/warnings")
+    auto.append(f"curl -s '{issues_url}' | jq .")
+    auto.append("")
+    auto.append("# Post a progress message (shown live in UI)")
+    auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
+    auto.append('  -d \'{"message": "Working on fixing import errors...", "type": "progress"}\'')
+    auto.append("")
+    auto.append("# Request human assistance (highlights package in UI)")
+    auto.append(f"curl -X POST '{help_url}' -H 'Content-Type: application/json' \\")
+    auto.append('  -d \'{"reason": "Need help understanding the circuit topology"}\'')
+    auto.append("```")
+    auto.append("")
+    auto.append("Message types: `info`, `progress`, `warning`, `error`, `question`")
+    auto.append("")
+    auto.append("---")
+    auto.append("")
     auto.append("## Auto summary (do not edit)")
     auto.append(f"- **status**: `{job.status}`")
     if job.package_identifier:
@@ -930,6 +1088,42 @@ def _update_todo_auto_section(
     auto.append("")
     auto.append("### Verify")
     auto.append(verify_line or "- (not run yet)")
+
+    # Extract and include issues (errors/warnings)
+    try:
+        issues = _extract_issues_for_job(job)
+        if issues:
+            errors = [i for i in issues if i["type"] == "error"]
+            warnings = [i for i in issues if i["type"] == "warning"]
+
+            auto.append("")
+            auto.append(f"### Issues ({len(errors)} errors, {len(warnings)} warnings)")
+
+            if errors:
+                auto.append("")
+                auto.append("#### Errors")
+                for issue in errors[:20]:  # Limit to first 20
+                    # Truncate long messages
+                    msg = issue["message"]
+                    if len(msg) > 120:
+                        msg = msg[:117] + "..."
+                    auto.append(f"- `{issue['source']}`: {msg}")
+                if len(errors) > 20:
+                    auto.append(f"- ... and {len(errors) - 20} more errors")
+
+            if warnings:
+                auto.append("")
+                auto.append("#### Warnings")
+                for issue in warnings[:20]:  # Limit to first 20
+                    msg = issue["message"]
+                    if len(msg) > 120:
+                        msg = msg[:117] + "..."
+                    auto.append(f"- `{issue['source']}`: {msg}")
+                if len(warnings) > 20:
+                    auto.append(f"- ... and {len(warnings) - 20} more warnings")
+    except Exception:
+        pass  # Don't fail todo update if issue extraction fails
+
     auto.append(AUTO_END)
     auto_text = "\n".join(auto) + "\n"
 
@@ -1001,6 +1195,11 @@ class JobState:
     published_pr_url: str | None = None
     published_pr_title: str | None = None
     published_pr_body: str | None = None
+
+    # AI agent interaction
+    agent_messages: list[dict[str, Any]] = field(default_factory=list)
+    needs_input_reason: str | None = None  # Why the AI requested help
+    needs_input_at: str | None = None
 
     def to_public(self) -> dict[str, Any]:
         return asdict(self)
@@ -1347,6 +1546,94 @@ class ReviewRun:
         # Re-append auto section after edits so logs/links stay handy.
         _update_todo_auto_section(
             todo_path=p, job=job, server_origin=self.server_origin
+        )
+
+    def add_agent_message(self, package: str, message: str, msg_type: str = "info") -> dict[str, Any]:
+        """
+        Add a message from an AI agent. Messages are stored in memory and shown in the UI.
+
+        Args:
+            package: The package name
+            message: The message text
+            msg_type: One of "info", "progress", "warning", "error", "question"
+
+        Returns:
+            The created message object
+        """
+        with self._lock:
+            job = self._jobs.get(package)
+            if not job:
+                raise KeyError(package)
+            msg_obj = {
+                "id": f"msg-{len(job.agent_messages)}",
+                "type": msg_type,
+                "message": message,
+                "timestamp": _now_ts(),
+            }
+            job.agent_messages.append(msg_obj)
+        self._write_state()
+        return msg_obj
+
+    def get_agent_messages(self, package: str) -> list[dict[str, Any]]:
+        """Get all agent messages for a package."""
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+        return list(job.agent_messages)
+
+    def clear_agent_messages(self, package: str) -> None:
+        """Clear all agent messages for a package."""
+        with self._lock:
+            job = self._jobs.get(package)
+            if not job:
+                raise KeyError(package)
+            job.agent_messages.clear()
+        self._write_state()
+
+    def request_user_help(self, package: str, reason: str) -> None:
+        """
+        AI agent requests human assistance. Puts the package in 'needs_input' status.
+
+        Args:
+            package: The package name
+            reason: Why help is needed (shown in UI)
+        """
+        with self._lock:
+            job = self._jobs.get(package)
+            if not job:
+                raise KeyError(package)
+            # Only transition if not currently building
+            if job.status in ("building", "verifying"):
+                raise ValueError("Cannot request help while build is running")
+            job.status = "needs_input"
+            job.needs_input_reason = reason
+            job.needs_input_at = _now_ts()
+            # Also add as a message
+            job.agent_messages.append({
+                "id": f"msg-{len(job.agent_messages)}",
+                "type": "question",
+                "message": f"🆘 Help requested: {reason}",
+                "timestamp": _now_ts(),
+            })
+        self._write_state()
+        _update_todo_auto_section(
+            todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
+        )
+
+    def resolve_help_request(self, package: str) -> None:
+        """Mark a help request as resolved, returning to awaiting_review status."""
+        with self._lock:
+            job = self._jobs.get(package)
+            if not job:
+                raise KeyError(package)
+            if job.status != "needs_input":
+                return
+            job.status = "awaiting_review"
+            job.needs_input_reason = None
+            job.needs_input_at = None
+        self._write_state()
+        _update_todo_auto_section(
+            todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
     def approve(self, package: str, reviewer: str | None) -> None:
@@ -1946,10 +2233,10 @@ class ReviewRun:
             shutil.rmtree(wt_pkg)
 
         def _ignore(_dir: str, names: list[str]) -> set[str]:
-            # Never copy build outputs into publish branches.
+            # Never copy build outputs or review notes into publish branches.
             ignore = set()
             for n in names:
-                if n in {"build", ".pytest_cache", "__pycache__"}:
+                if n in {"build", ".pytest_cache", "__pycache__", "review.todo.md"}:
                     ignore.add(n)
             return ignore
 
@@ -2099,6 +2386,50 @@ class ReviewRun:
         # Open the todo file in the current Cursor window
         cmd = [*shlex.split(cursor_cmd), "--reuse-window", str(todo_file)]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def start_agent_for_package(self, package: str) -> dict[str, Any]:
+        """
+        Start the Cursor Agent CLI to fix a package.
+
+        Returns info about the spawned process.
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        todo_file = Path(job.todo_path)
+        if not todo_file.exists():
+            raise FileNotFoundError(f"Todo file not found: {todo_file}")
+
+        # Check if cursor agent is available
+        cursor_agent = shutil.which("cursor")
+        if not cursor_agent:
+            raise FileNotFoundError("Cursor CLI not found in PATH")
+
+        prompt = f"Please read {todo_file} and fix the package following the instructions inside. The file contains build errors/warnings and API endpoints for triggering rebuilds."
+
+        # Start cursor agent in the package directory
+        cmd = [
+            cursor_agent, "agent",
+            "--workspace", str(job.package_dir),
+            prompt
+        ]
+
+        # Start in background - agent runs interactively in a new terminal
+        proc = subprocess.Popen(
+            cmd,
+            cwd=job.package_dir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+        return {
+            "pid": proc.pid,
+            "package": package,
+            "workspace": job.package_dir,
+            "todo_file": str(todo_file),
+        }
 
     def list_logs(self, package: str) -> dict[str, Any]:
         """
@@ -2507,6 +2838,19 @@ class Server:
                                 HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                             )
 
+                    # Agent messages endpoint (GET)
+                    if path.startswith("/api/package/") and path.endswith("/messages"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/messages")
+                        ).strip("/")
+                        try:
+                            messages = run.get_agent_messages(pkg)
+                            return self._send_json(HTTPStatus.OK, {"package": pkg, "messages": messages})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+
                     if path.startswith("/api/package/") and path.endswith("/issues"):
                         pkg = unquote(
                             path.removeprefix("/api/package/").removesuffix("/issues")
@@ -2521,6 +2865,33 @@ class Server:
                             return self._send_json(
                                 HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                             )
+
+                    # Simple status endpoint for AI agents
+                    if path.startswith("/api/package/") and path.endswith("/status"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/status")
+                        ).strip("/")
+                        job = run.get_job(pkg)
+                        if not job:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        # Return concise status for AI consumption
+                        status_info = {
+                            "package": pkg,
+                            "status": job.status,
+                            "error": job.error,
+                            "build_rc": dict(job.build_rc),
+                            "verify_rc": job.verify_rc,
+                            "build_errors": dict(job.build_err),
+                            "build_warnings": dict(job.build_warn),
+                            "verify_errors": job.verify_err,
+                            "verify_warnings": job.verify_warn,
+                            "started_at": job.started_at,
+                            "finished_at": job.finished_at,
+                            "pr_url": job.published_pr_url,
+                        }
+                        return self._send_json(HTTPStatus.OK, status_info)
 
                     if path.startswith("/api/package/"):
                         pkg = unquote(path.removeprefix("/api/package/")).strip("/")
@@ -2873,6 +3244,31 @@ class Server:
                                 HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                             )
 
+                    # Start Cursor Agent for a package
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/start_agent"
+                    ):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/start_agent"
+                            )
+                        ).strip("/")
+                        try:
+                            result = run.start_agent_for_package(pkg)
+                            return self._send_json(HTTPStatus.OK, {"ok": True, **result})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except FileNotFoundError as e:
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
                     if path.startswith("/api/package/") and path.endswith("/restart"):
                         pkg = unquote(
                             path.removeprefix("/api/package/").removesuffix("/restart")
@@ -2887,6 +3283,79 @@ class Server:
                         except Exception as e:
                             return self._send_json(
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    # AI agent message endpoint
+                    if path.startswith("/api/package/") and path.endswith("/message"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/message")
+                        ).strip("/")
+                        try:
+                            payload = self._read_json()
+                            message = payload.get("message", "")
+                            msg_type = payload.get("type", "info")
+                            if not message:
+                                return self._send_json(
+                                    HTTPStatus.BAD_REQUEST, {"error": "message is required"}
+                                )
+                            msg_obj = run.add_agent_message(pkg, message, msg_type)
+                            return self._send_json(HTTPStatus.OK, {"ok": True, "message": msg_obj})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
+                    # AI agent request help endpoint
+                    if path.startswith("/api/package/") and path.endswith("/request_help"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/request_help")
+                        ).strip("/")
+                        try:
+                            payload = self._read_json()
+                            reason = payload.get("reason", "AI needs human assistance")
+                            run.request_user_help(pkg, reason)
+                            return self._send_json(HTTPStatus.OK, {"ok": True, "status": "needs_input"})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except ValueError as e:
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
+                    # Resolve help request endpoint
+                    if path.startswith("/api/package/") and path.endswith("/resolve_help"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/resolve_help")
+                        ).strip("/")
+                        try:
+                            run.resolve_help_request(pkg)
+                            return self._send_json(HTTPStatus.OK, {"ok": True})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+
+                    # Clear agent messages endpoint
+                    if path.startswith("/api/package/") and path.endswith("/clear_messages"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/clear_messages")
+                        ).strip("/")
+                        try:
+                            run.clear_agent_messages(pkg)
+                            return self._send_json(HTTPStatus.OK, {"ok": True})
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
 
                     if path.startswith("/api/package/") and path.endswith("/pause"):

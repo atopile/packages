@@ -202,6 +202,7 @@ const statusLabel = (s) => ({
   paused: "paused",
   skipped: "paused",
   error: "error",
+  needs_input: "needs help",
 }[s] || s);
 
 const statusPillClass = (s) => {
@@ -211,6 +212,7 @@ const statusPillClass = (s) => {
   if (s === "branch_pushed") return "blue";
   if (s === "paused" || s === "skipped") return "warn";
   if (s === "error") return "bad";
+  if (s === "needs_input") return "urgent";
   return "";
 };
 
@@ -577,7 +579,8 @@ function renderList() {
       case "building": return j.status === "building" || j.status === "verifying";
       case "error": return j.status === "error" || err > 0;
       case "warning": return warn > 0 && err === 0;
-      case "review": return j.status === "awaiting_review";
+      case "review": return j.status === "awaiting_review" || j.status === "needs_input";
+      case "help": return j.status === "needs_input";
       case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";
       default: return true;
     }
@@ -687,8 +690,9 @@ function renderList() {
 
     // Highlight packages needing attention (awaiting review OR already published/pushed)
     const needsAttention = ["awaiting_review", "publishing", "branch_pushed", "pr_opened"].includes(j.status);
+    const needsHelp = j.status === "needs_input";
     root.append(el("div", {
-      class: `pkgRow ${selected ? "selected" : ""} ${needsAttention ? "attention" : ""}`,
+      class: `pkgRow ${selected ? "selected" : ""} ${needsHelp ? "needs-help" : ""} ${needsAttention ? "attention" : ""}`,
       onClick: () => selectPackage(name),
     }, [
       el("div", {}, [
@@ -764,6 +768,13 @@ function renderRight() {
     if (issuesList) issuesList.innerHTML = "";
     if (issuesHint) issuesHint.textContent = "";
     if (issueSearch) issueSearch.value = "";
+    // Clear agent messages area
+    const agentMsgsEl = $("#agentMessages");
+    if (agentMsgsEl) agentMsgsEl.innerHTML = "";
+    const clearMsgsBtn = $("#clearMessagesBtn");
+    if (clearMsgsBtn) clearMsgsBtn.style.display = "none";
+    const resolveHelpBtn = $("#resolveHelpBtn");
+    if (resolveHelpBtn) resolveHelpBtn.style.display = "none";
     mv.removeAttribute("src");
     if (cardDiff) cardDiff.style.display = "none";
     if (cardIssues) cardIssues.style.display = "flex";
@@ -932,6 +943,31 @@ function renderRight() {
   todoHint.textContent = state.dirtyTodo
     ? "Saving…"
     : (state.lastTodoSavedAt ? `Saved ${state.lastTodoSavedAt}` : `File: ${job.todo_path}`);
+
+  // Agent messages
+  const agentMsgsEl = $("#agentMessages");
+  const clearMsgsBtn = $("#clearMessagesBtn");
+  const resolveHelpBtn = $("#resolveHelpBtn");
+  const messages = job.agent_messages || [];
+  if (agentMsgsEl) {
+    if (messages.length > 0) {
+      agentMsgsEl.innerHTML = messages.map((m) => `
+        <div class="agentMsg ${m.type || 'info'}">
+          <div class="msgTime">${m.timestamp || ''}</div>
+          <div class="msgText">${escHtml(m.message)}</div>
+        </div>
+      `).join("");
+      agentMsgsEl.scrollTop = agentMsgsEl.scrollHeight; // Auto-scroll to latest
+    } else {
+      agentMsgsEl.innerHTML = "";
+    }
+  }
+  if (clearMsgsBtn) {
+    clearMsgsBtn.style.display = messages.length > 0 ? "inline-block" : "none";
+  }
+  if (resolveHelpBtn) {
+    resolveHelpBtn.style.display = job.status === "needs_input" ? "inline-block" : "none";
+  }
 
   // 3D model viewer
   const modelPaths = job.model_paths || {};
@@ -1546,6 +1582,48 @@ function wireGlobal() {
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);
   $("#openLogsBtn").addEventListener("click", openLogsInCursor);
+
+  // Agent message buttons
+  $("#clearMessagesBtn")?.addEventListener("click", async () => {
+    const pkg = state.selected;
+    if (!pkg) return;
+    try {
+      await apiPost(`/api/package/${encodeURIComponent(pkg)}/clear_messages`, {});
+      await refresh(true);
+    } catch (e) {
+      alert(`Failed to clear messages: ${String(e)}`);
+    }
+  });
+  $("#resolveHelpBtn")?.addEventListener("click", async () => {
+    const pkg = state.selected;
+    if (!pkg) return;
+    try {
+      await apiPost(`/api/package/${encodeURIComponent(pkg)}/resolve_help`, {});
+      await refresh(true);
+    } catch (e) {
+      alert(`Failed to resolve help: ${String(e)}`);
+    }
+  });
+
+  // Copy Agent Instructions button - just copies the prompt
+  $("#openAndCopyBtn")?.addEventListener("click", async () => {
+    const pkg = state.selected;
+    if (!pkg) return;
+    const job = state.packages[pkg];
+    if (!job) return;
+    const todoPath = job.todo_path || `${job.package_dir}/review.todo.md`;
+    const prompt = `Please read this file and fix the package following the instructions inside:\n\n${todoPath}\n\nThe file contains build errors/warnings that need to be fixed, along with API endpoints you can use to trigger rebuilds and check status.`;
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      const btn = $("#openAndCopyBtn");
+      const orig = btn.textContent;
+      btn.textContent = "✓ Copied!";
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    } catch (e) {
+      alert(`Failed to copy: ${String(e)}`);
+    }
+  });
 }
 
 async function bootstrap() {

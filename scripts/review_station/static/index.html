@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>atopile Package Review Station</title>
+    <title>Package Review Station</title>
     <link rel="stylesheet" href="/app.css" />
     <script type="module" src="/kicanvas.js"></script>
     <script type="module" src="/model-viewer.min.js"></script>
@@ -12,7 +12,7 @@
     <div id="app">
       <aside id="left">
         <div class="toolbar">
-          <div class="title">atopile Package Review</div>
+          <div class="title">Package Review</div>
           <div class="filterRow">
             <input id="filter" type="text" placeholder="Filter packages…" />
             <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
@@ -23,6 +23,7 @@
             <button class="statusFilterBtn" data-status="error">Errors</button>
             <button class="statusFilterBtn" data-status="warning">Warnings</button>
             <button class="statusFilterBtn" data-status="review">Review</button>
+            <button class="statusFilterBtn help" data-status="help">Help</button>
             <button class="statusFilterBtn" data-status="queue">Queue</button>
           </div>
         </div>
@@ -86,10 +87,14 @@
             <div class="cardTitle row">
               <span>Feedback / TODO</span>
               <div style="display:flex; gap:8px; align-items:center;">
+                <button id="clearMessagesBtn" class="miniBtn" type="button" style="display:none;">Clear</button>
+                <button id="resolveHelpBtn" class="miniBtn" type="button" style="display:none;">Resolve Help</button>
                 <span class="muted" style="font-size:11px;">Autosave</span>
                 <button id="openLogsBtn" class="miniBtn" type="button">Open Notes</button>
+                <button id="openAndCopyBtn" class="miniBtn" type="button" title="Open file in Cursor + copy prompt for AI">Copy Agent Instructions</button>
               </div>
             </div>
+            <div id="agentMessages" class="agentMessages"></div>
             <textarea id="todo" spellcheck="false" placeholder="Write feedback/tasks here…"></textarea>
             <div id="todoHint" class="hint"></div>
           </section>
