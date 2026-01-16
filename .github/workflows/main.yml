@@ -68,18 +68,23 @@ jobs:
       - run: ato build ${{ matrix.package }} --target all --frozen
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-      #TODO: put back -s
-      - run: ato package verify
+      - run: ato package verify -s
         working-directory: ${{ matrix.package }}
 
-      - uses: atopile/publish-package@v1
-        name: Publish package
+      - name: Publish dry run
+        working-directory: ${{ matrix.package }}
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish --dry-run
+
+      - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        with:
-          package-entrypoint: ${{ matrix.package }}
-          skip-duplicate-versions: true
-          package-version: "" # Use the embedded version key
-          ato-config: ${{ matrix.package }}/ato.yaml
+        working-directory: ${{ matrix.package }}
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish
 
       - name: Archive build logs
         id: archive_logs
