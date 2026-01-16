@@ -801,6 +801,64 @@ def _slugify_branch_component(s: str) -> str:
     return s or "x"
 
 
+def _check_existing_pr_for_package(
+    package: str,
+    repo_root: Path,
+    target_requires_atopile: str = "^0.14.0",
+) -> dict[str, Any] | None:
+    """
+    Check if there's an existing open PR for this package on GitHub.
+
+    Returns dict with branch/pr_url if found, None otherwise.
+    Requires `gh` CLI to be installed and authenticated.
+    """
+    if not shutil.which("gh"):
+        return None
+
+    series = _series_tag_from_requires_atopile(target_requires_atopile)
+    expected_branch = f"package-update-{_slugify_branch_component(series)}-{_slugify_branch_component(package)}"
+
+    try:
+        # Check if there's an open PR for this branch
+        result = subprocess.run(
+            ["gh", "pr", "view", "--head", expected_branch, "--json", "url,state,title"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            import json as json_mod
+            pr_info = json_mod.loads(result.stdout.strip())
+            if pr_info.get("state") == "OPEN":
+                return {
+                    "branch": expected_branch,
+                    "pr_url": pr_info.get("url"),
+                    "pr_title": pr_info.get("title"),
+                }
+    except Exception:
+        pass
+
+    # Also check if the branch exists on remote (even without PR)
+    try:
+        result = subprocess.run(
+            ["git", "ls-remote", "--heads", "origin", expected_branch],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0 and expected_branch in (result.stdout or ""):
+            return {
+                "branch": expected_branch,
+                "pr_url": None,
+            }
+    except Exception:
+        pass
+
+    return None
+
+
 def _update_todo_auto_section(
     *,
     todo_path: Path,
@@ -1197,6 +1255,21 @@ class ReviewRun:
                     j.status = "error"
                     j.error = j.error or f"unknown worker status: {status!r}"
 
+                # If build/verify passed, check if there's already a PR for this package
+                if j.status == "awaiting_review":
+                    existing = _check_existing_pr_for_package(
+                        package=pkg,
+                        repo_root=self.packages_repo_root,
+                    )
+                    if existing:
+                        j.published_branch = existing.get("branch")
+                        j.published_pr_url = existing.get("pr_url")
+                        j.published_pr_title = existing.get("pr_title")
+                        if existing.get("pr_url"):
+                            j.status = "pr_opened"
+                        else:
+                            j.status = "branch_pushed"
+
         self._write_state()
         # Keep todo updated after each completion.
         job = self.get_job(pkg)
@@ -1343,6 +1416,8 @@ class ReviewRun:
             job.build_entries = _read_ato_yaml_build_entries(
                 Path(job.package_dir) / "ato.yaml"
             )
+            # Move to front of queue so it builds next
+            self._queue = [package] + [p for p in self._queue if p != package]
         self._write_state()
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
@@ -1810,6 +1885,15 @@ class ReviewRun:
                 check=False,
             )
 
+        def run_gh(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["gh", *args],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
         out: list[dict[str, Any]] = []
         repo = self.packages_repo_root
         src_pkg = repo / pkg_rel
@@ -1926,7 +2010,7 @@ class ReviewRun:
         pr_url: str | None = None
         if shutil.which("gh"):
             # Try to find existing PR for this branch first (common when re-running publish).
-            r = run_git(
+            r = run_gh(
                 ["pr", "view", "--head", branch, "--json", "url", "--jq", ".url"],
                 cwd=wt_repo,
             )
@@ -1936,7 +2020,7 @@ class ReviewRun:
             if r.returncode == 0 and (r.stdout or "").strip():
                 pr_url = (r.stdout or "").strip()
             else:
-                r = run_git(
+                r = run_gh(
                     ["pr", "create", "--title", pr_title, "--body", pr_body, "--head", branch, "--base", "main"],
                     cwd=wt_repo,
                 )
@@ -2000,19 +2084,20 @@ class ReviewRun:
 
     def open_logs_in_cursor(self, package: str, cursor_cmd: str) -> None:
         """
-        Open the package's logs folder in Cursor.
+        Open the package's review.todo.md file in Cursor (reusing current window).
 
-        Opens the run logs directory which contains all build/verify logs.
+        This file contains feedback notes and autogenerated build summary.
         """
         job = self.get_job(package)
         if not job:
             raise KeyError(package)
 
-        run_logs_dir = Path(job.run_dir) / "logs"
-        if not run_logs_dir.exists():
-            raise FileNotFoundError(f"Logs directory not found: {run_logs_dir}")
+        todo_file = Path(job.todo_path)
+        if not todo_file.exists():
+            raise FileNotFoundError(f"Todo file not found: {todo_file}")
 
-        cmd = [*shlex.split(cursor_cmd), str(run_logs_dir)]
+        # Open the todo file in the current Cursor window
+        cmd = [*shlex.split(cursor_cmd), "--reuse-window", str(todo_file)]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def list_logs(self, package: str) -> dict[str, Any]:

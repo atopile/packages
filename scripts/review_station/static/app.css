@@ -258,6 +258,63 @@ aside#left {
 .sortBtn:active {
   transform: scale(0.97);
 }
+
+/* Status filter buttons */
+.statusFilters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  margin-top: 8px;
+}
+.statusFilterBtn {
+  padding: 3px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.statusFilterBtn:hover {
+  background: rgba(137, 180, 250, 0.1);
+  border-color: var(--purple);
+  color: var(--text);
+}
+.statusFilterBtn.active {
+  background: rgba(137, 180, 250, 0.2);
+  border-color: var(--purple);
+  color: var(--purple);
+}
+.statusFilterBtn[data-status="building"].active {
+  background: rgba(137, 180, 250, 0.2);
+  border-color: var(--ctp-blue);
+  color: var(--ctp-blue);
+}
+.statusFilterBtn[data-status="error"].active {
+  background: rgba(243, 139, 168, 0.15);
+  border-color: var(--ctp-red);
+  color: var(--ctp-red);
+}
+.statusFilterBtn[data-status="warning"].active {
+  background: rgba(249, 226, 175, 0.15);
+  border-color: var(--ctp-yellow);
+  color: var(--ctp-yellow);
+}
+.statusFilterBtn[data-status="review"].active {
+  background: rgba(166, 227, 161, 0.15);
+  border-color: var(--ctp-green);
+  color: var(--ctp-green);
+}
+.statusFilterBtn[data-status="queue"].active {
+  background: rgba(147, 153, 178, 0.15);
+  border-color: var(--ctp-subtext0);
+  color: var(--ctp-subtext0);
+}
+
 .title {
   font-weight: 700;
   letter-spacing: 0.2px;

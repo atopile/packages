@@ -59,6 +59,7 @@ const state = {
   packages: {}, // name -> JobState
   queue: [],
   filter: "",
+  statusFilter: "all", // "all", "building", "error", "warning", "review", "queue"
   sortOrder: "asc", // "asc" (A-Z) or "desc" (Z-A)
   selected: null,
   selectedDetail: null, // { job, todo, excerpts }
@@ -561,7 +562,26 @@ function renderList() {
   // Combine: active first, then completed, then queued
   const names = [...active, ...completed, ...queued];
 
-  const visible = names.filter((n) => !filter || n.toLowerCase().includes(filter));
+  // Apply text filter and status filter
+  const visible = names.filter((n) => {
+    // Text filter
+    if (filter && !n.toLowerCase().includes(filter)) return false;
+
+    // Status filter
+    const j = state.packages[n];
+    const warn = sum(j.build_warn) + (j.verify_warn || 0);
+    const err = sum(j.build_err) + (j.verify_err || 0);
+
+    switch (state.statusFilter) {
+      case "all": return true;
+      case "building": return j.status === "building" || j.status === "verifying";
+      case "error": return j.status === "error" || err > 0;
+      case "warning": return warn > 0 && err === 0;
+      case "review": return j.status === "awaiting_review";
+      case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";
+      default: return true;
+    }
+  });
 
   for (const name of visible) {
     const j = state.packages[name];
@@ -665,8 +685,8 @@ function renderList() {
     }
     if (j.finished_at) metrics.push(el("div", { class: "metric", text: `done ${j.finished_at.split(" ")[1]}` }));
 
-    // Highlight packages needing attention
-    const needsAttention = j.status === "awaiting_review" || j.status === "publishing";
+    // Highlight packages needing attention (awaiting review OR already published/pushed)
+    const needsAttention = ["awaiting_review", "publishing", "branch_pushed", "pr_opened"].includes(j.status);
     root.append(el("div", {
       class: `pkgRow ${selected ? "selected" : ""} ${needsAttention ? "attention" : ""}`,
       onClick: () => selectPackage(name),
@@ -1488,6 +1508,20 @@ function wireGlobal() {
     state.filter = e.target.value || "";
     renderList();
   });
+
+  // Status filter buttons
+  const statusFilters = document.querySelectorAll(".statusFilterBtn");
+  statusFilters.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.statusFilter = btn.dataset.status || "all";
+      // Update active state on buttons
+      statusFilters.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderList();
+    });
+  });
+
+
   $("#sortToggle")?.addEventListener("click", async () => {
     state.sortOrder = state.sortOrder === "asc" ? "desc" : "asc";
     const btn = $("#sortToggle");
