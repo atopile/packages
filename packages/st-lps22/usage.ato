@@ -29,5 +29,9 @@ module Usage:
     # Connect power supply
     power_3v3 ~ sensor.power
 
+    # Provide I2C bus reference voltage
+    power_3v3 ~ i2c.scl.reference
+    power_3v3 ~ i2c.sda.reference
+
     # Configure I²C address to 0x5C (SA0 pin will be pulled low)
     sensor.i2c.address = 0x5C

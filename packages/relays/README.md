@@ -95,8 +95,8 @@ module Usage:
     # Power - normally open, switching both vcc and gnd
     input_power = new ElectricPower
     output_power = new ElectricPower
-    input_power.hv ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.hv
-    input_power.lv ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.lv
+    input_power.vcc ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.vcc
+    input_power.gnd ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.gnd
 ```
 
 ## Builds

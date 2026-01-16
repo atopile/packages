@@ -5,7 +5,7 @@ import ElectricPower
 import I2C
 import Capacitor
 import Resistor
-import has_single_electric_reference
+import has_single_electric_reference_shared
 
 from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 from "parts/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14/Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14.ato" import Shenzhen_Allvision_Tech_N087_2832TSWYG02_H14_package
@@ -109,27 +109,27 @@ module Allvision_OLED12832:
     iref_resistor = new Resistor
     iref_resistor.resistance = 560kohm +/- 10%
     iref_resistor.package = "0402"
-    iref_resistor.unnamed[1] ~ power_3v3.lv
+    iref_resistor.p2 ~ power_3v3.gnd
 
     # Reset pullup
     # Reset pullup resistor
     reset_pullup = new Resistor
     reset_pullup.resistance = 10kohm +/- 10%
     reset_pullup.package = "0402"
-    reset_pullup.unnamed[1] ~ power_3v3.hv
+    reset_pullup.p2 ~ power_3v3.vcc
 
-    # trait has_single_electric_reference<ground_only=True> # Broken AttributeError: 'NoneType' object has no attribute 'lv'
+    # trait has_single_electric_reference_shared<gnd_only=True> # Broken AttributeError: 'NoneType' object has no attribute 'lv'
 
     # --- Package ---
-    package.VDD ~ _power_vdd.hv
-    package.VSS ~ _power_vdd.lv
-    package.VBAT ~ _power_vbat.hv
-    package.VCOMH ~ _power_vcomh.hv
-    package.VBREF ~ _power_vbat_ref.hv
-    package.VCC ~ _power_vcc.hv
+    package.VDD ~ _power_vdd.vcc
+    package.VSS ~ _power_vdd.gnd
+    package.VBAT ~ _power_vbat.vcc
+    package.VCOMH ~ _power_vcomh.vcc
+    package.VBREF ~ _power_vbat_ref.vcc
+    package.VCC ~ _power_vcc.vcc
     package.SDA ~ i2c.sda.line
     package.SCL ~ i2c.scl.line
-    package.nRES ~ reset_pullup.unnamed[0]
-    package.IREF ~ iref_resistor.unnamed[0]
+    package.nRES ~ reset_pullup.p1
+    package.IREF ~ iref_resistor.p1
     package.C1N ~> charge_pump_cap_1 ~> package.C1P
     package.C2N ~> charge_pump_cap_2 ~> package.C2P

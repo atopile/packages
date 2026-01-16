@@ -11,10 +11,10 @@ import SPI
 import UART
 import USB2_0
 
-import has_single_electric_reference
+import has_single_electric_reference_shared
 
-from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package  # C3294462
-from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package  # C2897424
+from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package # C3294462
+from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package # C2897424
 
 module SaleaeHeader from SaleaeHeaderRightAngle_2:
     pass
@@ -36,12 +36,12 @@ module SaleaeHeaderVertical:
     channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    trait has_single_electric_reference<ground_only = True>
+    trait has_single_electric_reference_shared<gnd_only=True>
 
-    channels[0].reference.lv ~ package.1
-    channels[1].reference.lv ~ package.3
-    channels[2].reference.lv ~ package.5
-    channels[3].reference.lv ~ package.7
+    channels[0].reference_shim.lv ~ package.1
+    channels[1].reference_shim.lv ~ package.3
+    channels[2].reference_shim.lv ~ package.5
+    channels[3].reference_shim.lv ~ package.7
 
     for channel in channels:
         assert channel.reference.voltage within -25V to 25V
@@ -58,13 +58,14 @@ module SaleaeHeaderVertical:
     i2c = new I2C
     i2c.scl ~ channels[0]
     i2c.sda ~ channels[1]
-    i2c.scl.reference.lv ~ channels[0].reference.lv
+    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
 
     # UART
     uart = new UART
     uart.base_uart.tx ~ channels[2]
     uart.base_uart.rx ~ channels[3]
-    uart.base_uart.tx.reference.lv ~ channels[0].reference.lv
+    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
+
 
 module SaleaeHeaderRightAngle:
     package = new HCTL_PM254_2_04_W_8_5_package
@@ -83,12 +84,12 @@ module SaleaeHeaderRightAngle:
     channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    trait has_single_electric_reference<ground_only = True>
+    trait has_single_electric_reference_shared<gnd_only=True>
 
-    channels[0].reference.lv ~ package.1
-    channels[1].reference.lv ~ package.3
-    channels[2].reference.lv ~ package.5
-    channels[3].reference.lv ~ package.7
+    channels[0].reference_shim.lv ~ package.1
+    channels[1].reference_shim.lv ~ package.3
+    channels[2].reference_shim.lv ~ package.5
+    channels[3].reference_shim.lv ~ package.7
 
     for channel in channels:
         assert channel.reference.voltage within -25V to 25V
@@ -105,13 +106,13 @@ module SaleaeHeaderRightAngle:
     i2c = new I2C
     i2c.scl ~ channels[0]
     i2c.sda ~ channels[1]
-    i2c.scl.reference.lv ~ channels[0].reference.lv
+    i2c.scl.reference_shim.lv ~ channels[0].reference_shim.lv
 
     # UART
     uart = new UART
     uart.base_uart.tx ~ channels[2]
     uart.base_uart.rx ~ channels[3]
-    uart.base_uart.tx.reference.lv ~ channels[0].reference.lv
+    uart.base_uart.tx.reference_shim.lv ~ channels[0].reference_shim.lv
 
 module SaleaeHeaderRightAngle_1:
     headers = new SaleaeHeaderRightAngle[1]

@@ -1,14 +1,12 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
 
 import Capacitor
 import ElectricPower
 import ElectricLogic
 import I2C
 import Resistor
-import has_single_electric_reference
 
 from "parts/Texas_Instruments_DRV2605LDGSR/Texas_Instruments_DRV2605LDGSR.ato" import Texas_Instruments_DRV2605LDGSR_package
 from "parts/UNI_ROYAL_0402WGF1002TCE/UNI_ROYAL_0402WGF1002TCE.ato" import UNI_ROYAL_0402WGF1002TCE_package
@@ -61,11 +59,9 @@ module TI_DRV2605L:
     """
     trigger.required = False
 
-    trait has_single_electric_reference
-
     # --- Power supply ---
-    power.hv ~ package.VDD
-    power.lv ~ package.GND
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
     assert power.voltage within 2.0V to 5.2V
 
     # --- I2C interface ---
@@ -73,6 +69,8 @@ module TI_DRV2605L:
     i2c.address = 0x5A
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
 
     # --- I2C pull-up resistors ---
     # Built-in 10k pullups on breakout boards, but adding external for reliability
@@ -81,8 +79,8 @@ module TI_DRV2605L:
         r.resistance = 10kohm +/- 1%
         r.package = "0402"
 
-    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
-    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
+    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
+    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
 
     # --- Enable control ---
     enable.line ~ package.EN
@@ -92,7 +90,7 @@ module TI_DRV2605L:
     enable_pullup = new Resistor
     enable_pullup.resistance = 10kohm +/- 20%
     enable_pullup.package = "0402"
-    power.hv ~> enable_pullup ~> enable.line
+    power.vcc ~> enable_pullup ~> enable.line
 
     # --- Trigger input ---
     trigger.line ~ package.IN_TRIG
@@ -102,28 +100,28 @@ module TI_DRV2605L:
     trigger_pulldown = new Resistor
     trigger_pulldown.resistance = 10kohm +/- 20%
     trigger_pulldown.package = "0402"
-    trigger.line ~> trigger_pulldown ~> power.lv
+    trigger.line ~> trigger_pulldown ~> power.gnd
 
     # --- Haptic motor output ---
-    haptic_output.hv ~ package.OUTpos
-    haptic_output.lv ~ package.OUTneg
+    haptic_output.vcc ~ package.OUTpos
+    haptic_output.gnd ~ package.OUTneg
 
     # --- Voltage regulator capacitor ---
     # REG pin needs 1µF ceramic capacitor to ground
     reg_cap = new Capacitor
     reg_cap.capacitance = 1uF +/- 20%
     reg_cap.package = "0603"
-    package.REG ~> reg_cap ~> power.lv
+    package.REG ~> reg_cap ~> power.gnd
 
     # --- Decoupling capacitors ---
     # VDD decoupling
     vdd_cap = new Capacitor
     vdd_cap.capacitance = 100nF +/- 20%
     vdd_cap.package = "0402"
-    power.hv ~> vdd_cap ~> power.lv
+    power.vcc ~> vdd_cap ~> power.gnd
 
     # Bulk capacitor for VDD
     bulk_cap = new Capacitor
     bulk_cap.capacitance = 10uF +/- 20%
     bulk_cap.package = "0805"
-    power.hv ~> bulk_cap ~> power.lv
+    power.vcc ~> bulk_cap ~> power.gnd

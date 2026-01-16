@@ -68,8 +68,8 @@ module Maxim_MAX17048:
     # --- Internal connections ---
 
     # Power connections
-    power.hv ~ package.VDD
-    power.lv ~ package.GND
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
 
     # I2C connections
     i2c.scl.line ~ package.SCL
@@ -84,10 +84,10 @@ module Maxim_MAX17048:
     qstrt.reference ~ power
 
     # CTG pin (current gain configuration) - typically connected to ground
-    power.lv ~ package.CTG
+    power.gnd ~ package.CTG
 
     # Exposed pad connection (thermal and electrical ground)
-    power.lv ~ package.EP
+    power.gnd ~ package.EP
 
     # Alert pin (connection commented out due to build cache issue)
     alert.line ~ package.nALRT

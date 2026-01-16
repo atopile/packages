@@ -10,10 +10,13 @@ from "atopile/st-ldk220/st-ldk220.ato" import LDK220M_R
 module MCU:
     """Host MCU providing power rail."""
 
+    trait has_part_removed
+
     power = new ElectricPower
     assert power.voltage is 3.3V +/- 5%
 
     trait has_part_removed
+
 
 module Usage:
     """Minimal example for the LDK220M-R LDO."""

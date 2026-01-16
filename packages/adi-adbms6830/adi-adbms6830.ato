@@ -94,7 +94,7 @@ module ADI_ADBMS6830:
     """
     SPI interface for communication with port A of the ADBMS6830
     """
-    spi.has_single_electric_reference.reference.lv ~ vreg.lv
+    spi.reference_shim.lv ~ vreg.lv
     spi_cs.reference.lv ~ vreg.lv
 
     gpios = new ElectricSignal[9]
@@ -149,9 +149,8 @@ module ADI_ADBMS6830:
     vreg_input_filter.resistor.package = "1206"
     vreg_input_filter.capacitor.capacitance = 10nF +/- 20%
     vreg_input_filter.capacitor.package = "0805"
-    vreg_input_filter.filter.cutoff_frequency = 30kHz to 70kHz
-    vreg_input_filter.in_.reference.lv ~ vbat.lv
-    vreg_input_filter.out.reference.lv ~ vbat.lv
+    vreg_input_filter.cutoff_frequency = 30kHz to 70kHz
+    vreg_input_filter.reference_shim.lv ~ vbat.lv
     assert vreg_input_filter.capacitor.max_voltage within 100V to 200V
 
     vreg_drive_filter = new FilterElectricalRC
@@ -159,25 +158,23 @@ module ADI_ADBMS6830:
     vreg_drive_filter.resistor.package = "0402"
     vreg_drive_filter.capacitor.capacitance = 10nF +/- 20%
     vreg_drive_filter.capacitor.package = "0402"
-    vreg_drive_filter.filter.cutoff_frequency = 1MHz to 3MHz
-    vreg_drive_filter.in_.reference.lv ~ vreg.lv
-    vreg_drive_filter.out.reference.lv ~ vreg.lv
+    vreg_drive_filter.cutoff_frequency = 1MHz to 3MHz
+    vreg_drive_filter.reference_shim.lv ~ vreg.lv
 
     vplus_filter = new FilterElectricalRC
     vplus_filter.resistor.resistance = 1kohm +/- 10%
     vplus_filter.resistor.package = "0805"
     vplus_filter.capacitor.capacitance = 10nF +/- 20%
     vplus_filter.capacitor.package = "0805"
-    vplus_filter.filter.cutoff_frequency = 10kHz to 30kHz
-    vplus_filter.in_.reference.lv ~ vbat.lv
-    vplus_filter.out.reference.lv ~ vbat.lv
+    vplus_filter.cutoff_frequency = 10kHz to 30kHz
+    vplus_filter.reference_shim.lv ~ vbat.lv
 
     vbat.hv ~> vreg_input_filter ~> npn ~> vreg_fb ~> vreg.hv
     vreg_drive.line ~> vreg_drive_filter ~> npn.base
     vreg.lv ~ vbat.lv
 
     vbat.hv ~> vplus_filter ~> asic_vp.hv
-    vbat.lv ~ vplus_filter.in_.reference.lv
+    vbat.lv ~ vplus_filter.reference_shim.lv
     # vbat.hv ~ cell_stack[-1].hv
     vbat.lv ~ cell_stack[0].lv
 
@@ -344,9 +341,9 @@ module ADI_ADBMS6830:
     cell_balance_inputs[15].p.line ~ package.S16P
 
     # Cell input filters
-    cell_input_filters = new ADBMS6830InputFilters<number_of_cells = 16, sense_filter_resistance_ohms = 200, sense_filter_capacitance_nF = 10, max_balance_current_mA = 100, total_number_of_channels = 16>
+    cell_input_filters = new ADBMS6830InputFilters<number_of_cells=16,sense_filter_resistance_ohms=200,sense_filter_capacitance_nF=10,max_balance_current_mA=100,total_number_of_channels=16>
 
-    # TODO: zip connect when zip available
+    #TODO: zip connect when zip available
     # cell_input_filters.cell_inputs ~ cell_stack
     cell_input_filters.cell_inputs[0] ~ cell_stack[0]
     cell_input_filters.cell_inputs[1] ~ cell_stack[1]
@@ -451,23 +448,25 @@ module ADI_ADBMS6830:
     cell_sense_inputs[14].p.line.override_net_name = "C15"
     cell_sense_inputs[15].p.line.override_net_name = "C16"
 
-# temp_sensor_1 = new TempSensor
-# temp_sensor_1.power.hv ~ package.VREF1
-# temp_sensor_1.power.lv ~ package.Vneg
-# temp_sensor_1.output.io ~ package.GPIO1
+#     temp_sensor_1 = new TempSensor
+#     temp_sensor_1.power.vcc ~ package.VREF1
+#     temp_sensor_1.power.gnd ~ package.Vneg
+#     temp_sensor_1.output.io ~ package.GPIO1
 
-# temp_sensor_2 = new TempSensor
-# temp_sensor_2.power.hv~ package.VREF1
-# temp_sensor_2.output.io ~ package.GPIO2
-# temp_sensor_2.power.lvackage.Vneg
+#     temp_sensor_2 = new TempSensor
+#     temp_sensor_2.power.vcc ~ package.VREF1
+#     temp_sensor_2.output.io ~ package.GPIO2
+#     temp_sensor_2.power.gnd ~ package.Vneg
+
 
 # module TempSensor from ResistorVoltageDivider:
-# # 100kΩ 100uA 100mW ±1% 4250K ±1% 0402 NTC Thermistors ROHS
-# r_top.mpn = "C77130"
-# r_top.footprint = "R0402"
-# r_top.value = 100kohm +/- 1%
-# r_bottom.value = 100kohm +/- 1%
-# r_bottom.footprint = "R0402"
+#     # 100kΩ 100uA 100mW ±1% 4250K ±1% 0402 NTC Thermistors ROHS
+#     r_top.mpn = "C77130"
+#     r_top.footprint = "R0402"
+#     r_top.value = 100kohm +/- 1%
+#     r_bottom.value = 100kohm +/- 1%
+#     r_bottom.footprint = "R0402"
+
 
 module Diodes_Incorporated_FZT853TA from BJT:
     package = new Diodes_Incorporated_FZT853TA_package
@@ -478,9 +477,9 @@ module Diodes_Incorporated_FZT853TA from BJT:
 
     doping_type = "NPN"
 
+
     # # component BLM15HD182SN1D
     # mpn = "C76888"
-
 component BLM15HD182SN1D from Inductor:
     lcsc_id = "C76888"
     unnamed[0] ~ pin 1

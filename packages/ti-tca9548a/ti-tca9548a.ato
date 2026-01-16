@@ -85,7 +85,7 @@ module TI_TCA9548A:
     reset.line ~> reset_pullup ~> reset.reference.hv
 
     # I2C Address Configuration (3 bits = 8 possible addresses)
-    addressor = new Addressor<address_bits = 3>
+    addressor = new Addressor<address_bits=3>
     addressor.base = 0x70
     addressor.address_lines[0].line ~ package.A0
     addressor.address_lines[1].line ~ package.A1
@@ -93,8 +93,6 @@ module TI_TCA9548A:
     for address_line in addressor.address_lines:
         address_line.reference ~ power
     assert addressor.address is i2c.address
-    # Default to base address (0x70), can be overridden by user
-    i2c.address.default = 0x70
 
     # Connect I2C channels to package
     i2cs[0].sda.line ~ package.SD0

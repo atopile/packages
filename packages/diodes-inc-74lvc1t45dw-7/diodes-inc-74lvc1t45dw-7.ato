@@ -58,8 +58,8 @@ module Diodes_Inc_74LVC1T45DW_7:
     dir = new ElectricLogic
     """
     Direction control pin
-    HIGH (power_a.hv): A to B transmission
-    LOW (power_a.lv): B to A transmission
+    HIGH (power_a.vcc): A to B transmission
+    LOW (power_a.gnd): B to A transmission
     Referenced to power_a supply
     """
 
@@ -74,12 +74,12 @@ module Diodes_Inc_74LVC1T45DW_7:
 
     # --- Package pin connections ---
     # Power connections
-    power_a.hv ~ package.VCCA
-    power_b.hv ~ package.VCCB
+    power_a.vcc ~ package.VCCA
+    power_b.vcc ~ package.VCCB
 
     # Shared ground connection
-    power_a.lv ~ package.GND
-    power_b.lv ~ package.GND
+    power_a.gnd ~ package.GND
+    power_b.gnd ~ package.GND
 
     # Signal connections
     signal_a.line ~ package.A
@@ -88,8 +88,8 @@ module Diodes_Inc_74LVC1T45DW_7:
 
     # --- Direction control ---
     # Direction control is exposed as 'dir' interface
-    # Connect to power_a.hv for A -> B direction
-    # Connect to power_a.lv for B -> A direction
+    # Connect to power_a.vcc for A -> B direction
+    # Connect to power_a.gnd for B -> A direction
 
     # --- Power decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -98,11 +98,12 @@ module Diodes_Inc_74LVC1T45DW_7:
         cap.package = "0402"
 
     # Connect decoupling capacitors
-    power_a.hv ~> decoupling_caps[0] ~> power_a.lv
-    power_b.hv ~> decoupling_caps[1] ~> power_b.lv
+    power_a.vcc ~> decoupling_caps[0] ~> power_a.gnd
+    power_b.vcc ~> decoupling_caps[1] ~> power_b.gnd
 
     # --- Bridging trait for level shifting chains ---
     trait can_bridge_by_name<input_name = "signal_a", output_name = "signal_b">
+
 
 module Level_Shifter_3V3_to_5V:
     """
@@ -139,7 +140,8 @@ module Level_Shifter_3V3_to_5V:
     signal_5v ~ shifter.signal_b
 
     # Set direction: 3.3V -> 5V (A -> B)
-    shifter.dir.line ~ power_3v3.hv
+    shifter.dir.line ~ power_3v3.vcc
+
 
 module Bidirectional_Level_Shifter:
     """

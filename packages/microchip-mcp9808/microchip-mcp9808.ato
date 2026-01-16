@@ -59,7 +59,7 @@ module Microchip_MCP9808:
     # --- Power consumption specifications ---
     # Operating current: 200µA typical, 400µA maximum
     # Shutdown current: 0.1µA typical, 2µA maximum
-    power.max_current = 0.1uA to 400uA  # Depends on operating mode
+    power.current = 0.1uA to 400uA  # Depends on operating mode
 
     # Connect main power to package
     power.hv ~ package.VDD
@@ -76,7 +76,7 @@ module Microchip_MCP9808:
 
     # I2C address selection via A2, A1, A0 pins
     # Base address 0x18 (0011000b) + A2A1A0
-    addressor = new Addressor<address_bits = 3>
+    addressor = new Addressor<address_bits=3>
     addressor.base = 0x18  # Base address when all address pins to GND
     addressor.address_lines[0].line ~ package.A0  # LSB
     addressor.address_lines[1].line ~ package.A1
@@ -84,8 +84,6 @@ module Microchip_MCP9808:
     for address_line in addressor.address_lines:
         address_line.reference ~ power
     assert addressor.address is i2c.address
-    # Default to base address (0x18), can be overridden by user
-    i2c.address.default = 0x18
 
     # I2C pull-up resistors (required for proper I2C operation)
     i2c_pullups = new Resistor[2]

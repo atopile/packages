@@ -60,8 +60,6 @@ module Sensirion_SHT31:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
-    # Default to base address (0x44), can be overridden by user
-    i2c.address.default = 0x44
 
     # --- Decoupling capacitors ---
     decoupling = new Capacitor[2]

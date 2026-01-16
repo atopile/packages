@@ -9,11 +9,6 @@ import Electrical
 import ElectricLogic
 import can_bridge_by_name
 
-# Import base types from relay_core for re-export
-from "atopile/relays/relay_core.ato" import Coil, SwitchNC, SwitchNO, PowerSwitchNC, PowerSwitchNO
-from "atopile/relays/relay_core.ato" import Relay, RelaySPST, RelaySPDT, RelayDPDT
-
-# Import part-specific relay types
 from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG.ato" import RelaySPDT3A5V
 from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG.ato" import RelaySPDT3A12V
 from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG.ato" import RelaySPDT3A24V
@@ -35,8 +30,144 @@ from "parts/Omron_Electronics_G5V_1_DC24/Omron_Electronics_G5V_1_DC24.ato" impor
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
-""" Low side NFET switch for controlling a relay coil """
 
+""" Example parts """
+# module LogicLevelRelayDPDT3A5V from LogicLevelRelay:
+#     relay -> RelayDPDT3A5V
+    # pass
+
+module LogicLevelRelaySPDT3A5V from LogicLevelRelayHack:
+    relay = new RelaySPDT3A5V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT3A12V from LogicLevelRelayHack:
+    relay = new RelaySPDT3A12V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT3A24V from LogicLevelRelayHack:
+    relay = new RelaySPDT3A24V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT5A5V from LogicLevelRelayHack:
+    relay = new RelayDPDT5A5V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT5A12V from LogicLevelRelayHack:
+    relay = new RelayDPDT5A12V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT5A24V from LogicLevelRelayHack:
+    relay = new RelayDPDT5A24V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT8A5V from LogicLevelRelayHack:
+    relay = new RelayDPDT8A5V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT8A12V from LogicLevelRelayHack:
+    relay = new RelayDPDT8A12V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT8A24V from LogicLevelRelayHack:
+    relay = new RelayDPDT8A24V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT1A3V from LogicLevelRelayHack:
+    relay = new RelayDPDT1A3V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT1A5V from LogicLevelRelayHack:
+    relay = new RelayDPDT1A5V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT1A12V from LogicLevelRelayHack:
+    relay = new RelayDPDT1A12V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelayDPDT1A24V from LogicLevelRelayHack:
+    relay = new RelayDPDT1A24V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT1A3V from LogicLevelRelayHack:
+    relay = new RelaySPDT1A3V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT1A5V from LogicLevelRelayHack:
+    relay = new RelaySPDT1A5V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT1A12V from LogicLevelRelayHack:
+    relay = new RelaySPDT1A12V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+module LogicLevelRelaySPDT1A24V from LogicLevelRelayHack:
+    relay = new RelaySPDT1A24V
+    relay.coil.input ~> coil.input
+    relay.coil.output ~> coil.output
+    coil_power.voltage = relay.coil.voltage
+
+""" Relay components """
+module Coil:
+    input = new Electrical
+    output = new Electrical
+    voltage: V
+    trait can_bridge_by_name<input_name="input", output_name="output">
+
+module SwitchNC:
+    common = new Electrical
+    normally_closed = new Electrical
+    trait can_bridge_by_name<input_name="common", output_name="normally_closed">
+
+module SwitchNO:
+    common = new Electrical
+    normally_open = new Electrical
+    trait can_bridge_by_name<input_name="common", output_name="normally_open">
+
+module PowerSwitchNC:
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+module PowerSwitchNO:
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+
+""" Low side NFET switch for controlling a relay coil """
 module LowSideNFETSwitch:
     enable = new ElectricLogic
     gate_resistor = new Resistor
@@ -61,9 +192,52 @@ module LowSideNFETSwitch:
     enable.line ~> gate_resistor ~> mosfet.source
 
     # Bridge
-    trait can_bridge_by_name<input_name = "_input", output_name = "_output">
+    trait can_bridge_by_name<input_name="_input", output_name="_output">
 
-""" Logic level relay driver base module """
+
+""" Base relay module """
+module Relay:
+    coil = new Coil
+
+""" Standard relay formats """
+module RelaySPST from Relay:
+    pass
+
+module RelaySPDT from Relay:
+    switch_nc = new SwitchNC
+    switch_no = new SwitchNO
+
+module RelayDPDT from Relay:
+    switch_nc = new SwitchNC[2]
+    switch_no = new SwitchNO[2]
+
+
+# """ Logic level driver for relays """
+# TODO: use this instead when specialization is working
+# module LogicLevelRelay:
+#     coil_power = new ElectricPower
+#     enable = new ElectricLogic
+#     relay = new Relay
+#     coil_switch = new LowSideNFETSwitch
+#     indicator_led = new LEDIndicatorGreen
+
+#     coil_power.require
+
+#     # Parameters
+#     coil_power.voltage = relay.coil.voltage
+
+#     # Enable connection
+#     enable ~ coil_switch.enable
+
+#     # Coil connection
+#     coil_power.hv ~ relay.coil.input
+#     relay.coil.output ~> coil_switch ~> coil_power.lv
+
+#     # Led connection + config
+#     indicator_led.power.voltage = coil_power.voltage
+#     indicator_led.current = 0.5mA +/- 10%
+#     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
+
 
 module LogicLevelRelayHack:
     coil_power = new ElectricPower
@@ -79,113 +253,10 @@ module LogicLevelRelayHack:
     coil_power.hv ~> coil ~> coil_switch ~> coil_power.lv
 
     # Led connection + config
-    assert indicator_led.power.voltage is coil_power.voltage
+    indicator_led.power.voltage = coil_power.voltage
     indicator_led.current = 0.5mA +/- 10%
     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
 
-""" Logic level relay variants """
-
-module LogicLevelRelaySPDT3A5V from LogicLevelRelayHack:
-    relay = new RelaySPDT3A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT3A12V from LogicLevelRelayHack:
-    relay = new RelaySPDT3A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT3A24V from LogicLevelRelayHack:
-    relay = new RelaySPDT3A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT5A5V from LogicLevelRelayHack:
-    relay = new RelayDPDT5A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT5A12V from LogicLevelRelayHack:
-    relay = new RelayDPDT5A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT5A24V from LogicLevelRelayHack:
-    relay = new RelayDPDT5A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT8A5V from LogicLevelRelayHack:
-    relay = new RelayDPDT8A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT8A12V from LogicLevelRelayHack:
-    relay = new RelayDPDT8A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT8A24V from LogicLevelRelayHack:
-    relay = new RelayDPDT8A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT1A3V from LogicLevelRelayHack:
-    relay = new RelayDPDT1A3V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT1A5V from LogicLevelRelayHack:
-    relay = new RelayDPDT1A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT1A12V from LogicLevelRelayHack:
-    relay = new RelayDPDT1A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelayDPDT1A24V from LogicLevelRelayHack:
-    relay = new RelayDPDT1A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT1A3V from LogicLevelRelayHack:
-    relay = new RelaySPDT1A3V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT1A5V from LogicLevelRelayHack:
-    relay = new RelaySPDT1A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT1A12V from LogicLevelRelayHack:
-    relay = new RelaySPDT1A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
-
-module LogicLevelRelaySPDT1A24V from LogicLevelRelayHack:
-    relay = new RelaySPDT1A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    assert coil_power.voltage is relay.coil.voltage
 
 # Power relays:
 # HK4100F Series:

@@ -12,6 +12,7 @@ from "parts/Worldsemi_WS2812C/Worldsemi_WS2812C.ato" import Worldsemi_WS2812C_pa
 from "parts/Worldsemi_WS2812C_2020_V1/Worldsemi_WS2812C_2020_V1.ato" import Worldsemi_WS2812C_2020_V1_package
 from "parts/Worldsemi_WS2812C_4020/Worldsemi_WS2812C_4020.ato" import Worldsemi_WS2812C_4020_package
 
+
 module Worldsemi_WS2812C_2020:
     """
     Driver for Worldsemi WS2812C addressable RGB LED.
@@ -58,8 +59,8 @@ module Worldsemi_WS2812C_2020:
     power ~ data_out.reference
 
     # --- Package connections ---
-    power.hv ~ package.VDD
-    power.lv ~ package.GND
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
 
     # --- Data input protection ---
     data_protection_r = new Resistor
@@ -74,7 +75,7 @@ module Worldsemi_WS2812C_2020:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd
 
     # --- Bridging trait for LED strips ---
     trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
@@ -125,8 +126,8 @@ module Worldsemi_WS2812C_4020:
     power ~ data_out.reference
 
     # --- Package connections ---
-    power.hv ~ package.VDD
-    power.lv ~ package.VSS
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
 
     # --- Data input protection ---
     data_protection_r = new Resistor
@@ -141,7 +142,7 @@ module Worldsemi_WS2812C_4020:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd
 
     # --- Bridging trait for LED strips ---
     trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
@@ -192,8 +193,8 @@ module Worldsemi_WS2812C_5050:
     power ~ data_out.reference
 
     # --- Package connections ---
-    power.hv ~ package.VDD
-    power.lvackage.VSS
+    power.vcc ~ package.VDD
+    power.gnd ~ package.VSS
 
     # --- Data input protection ---
     data_protection_r = new Resistor
@@ -208,10 +209,11 @@ module Worldsemi_WS2812C_5050:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd
 
     # --- Bridging trait for LED strips ---
     trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
 
 module WS2812C_5050_Strip:
     """
@@ -247,6 +249,7 @@ module WS2812C_5050_Strip:
 
     # --- Bridging trait for LED strips ---
     trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
 
 module WS2812C_5050_Matrix:
     """

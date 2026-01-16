@@ -96,8 +96,6 @@ module Microchip_MCP23017:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
-    # Default to base address (0x20), can be overridden by user
-    i2c.address.default = 0x20
 
     # --- Reset & interrupt lines ---
     reset.reference ~ power

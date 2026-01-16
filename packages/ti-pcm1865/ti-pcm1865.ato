@@ -89,8 +89,6 @@ module Texas_Instruments_PCM1865:
     addressor.address_lines[0].line ~ package.MS_AD
     addressor.address_lines[0].reference ~ _power_iovdd
     assert addressor.address is i2c.address
-    # Default to base address (0x4A), can be overridden by user
-    i2c.address.default = 0x4A
 
     # Select I2C mode
     package.MD0 ~ package.DGND

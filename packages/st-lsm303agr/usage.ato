@@ -9,8 +9,12 @@ from "atopile/st-lsm303agr/st-lsm303agr.ato" import ST_LSM303AGR
 module MCU:
     """Host MCU providing I²C bus and power rail."""
 
+    trait has_part_removed
+
     power = new ElectricPower
     i2c = new I2C
+
+    trait has_part_removed
 
 module Usage:
     """Minimal example for the ST_LSM303AGR accelerometer."""

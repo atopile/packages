@@ -67,8 +67,6 @@ module ST_LIS331:
     addressor.base = 0x19  # Default address with internal pull-up on SDO/SA0
     addressor.address_lines[0].reference ~ power_io
     assert addressor.address is i2c.address
-    # Default to base address (0x19), can be overridden by user
-    i2c.address.default = 0x19
 
     # I2C pull-up resistors (soft pullups)
     i2c_pullups = new Resistor[2]

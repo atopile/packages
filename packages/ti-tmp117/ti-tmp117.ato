@@ -49,11 +49,12 @@ module TI_TMP117:
     Configurable for temperature limits, data ready, etc.
     """
 
+
     # --- Power connections ---
-    power.hv ~ package.Vpos
-    power.lv ~ package.GND
+    power.vcc ~ package.Vpos
+    power.gnd ~ package.GND
     # Connect exposed pad to GND for thermal performance
-    package.EP ~ power.lv
+    package.EP ~ power.gnd
     assert power.voltage within 1.8V to 5.5V
 
     # --- I²C interface ---
@@ -80,8 +81,6 @@ module TI_TMP117:
     addressor.address_line.reference ~ power
     addressor.i2c ~ i2c
     assert addressor.address is i2c.address
-    # Default to base address (0x48), can be overridden by user
-    i2c.address.default = 0x48
 
     # --- Alert pin ---
     alert.line ~ package.ALERT

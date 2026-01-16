@@ -31,7 +31,7 @@ module Microchip_MCP4728:
     I²C bus interface (7-bit addr 0x60-0x67, factory programmed)
     """
     i2c.required = True
-    i2c.has_single_electric_reference.reference ~ power
+    i2c.reference_shim ~ power
 
     # DAC output signals
     vouts = new ElectricLogic[4]

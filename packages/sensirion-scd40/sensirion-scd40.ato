@@ -42,7 +42,7 @@ module Sensirion_SCD40:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.resistance = 4.7kohm +/- 1%
+        resistor.value = 4.7k +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv

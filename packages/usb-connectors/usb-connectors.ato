@@ -28,6 +28,7 @@ module USB2_0TypeCVerticalConnector from USBTypeCConnector_driver:
     # specialize package
     connector -> VerticalUSBTypeCConnector_model
 
+
 module USB2_0TypeCHorizontalConnector from USBTypeCConnector_driver:
     """
     USB 2.0 Type-C connector
@@ -38,6 +39,7 @@ module USB2_0TypeCHorizontalConnector from USBTypeCConnector_driver:
     """
     # specialize package
     connector -> HorizontalUSBTypeCConnector_model
+
 
 module USBTypeCConnector_driver:
     """
@@ -73,8 +75,10 @@ module USBTypeCConnector_driver:
     connector.shield ~ usb.usb_if.buspower.lv
     # esd_protection.usb_in.usb_if.buspower.lv ~ connector.power_vbus.lv`
 
+
     connector.cc[0].line ~> cc_resistors[0] ~> usb.usb_if.buspower.lv
     connector.cc[1].line ~> cc_resistors[1] ~> usb.usb_if.buspower.lv
+
 
 module FusedUSB2_0:
     """Connects two USB2_0 interfaces with a fuse in between"""
@@ -88,7 +92,8 @@ module FusedUSB2_0:
     usb_in.usb_if.buspower.lv ~ usb_out.usb_if.buspower.lv
     usb_in.usb_if.d ~ usb_out.usb_if.d
 
-    trait can_bridge_by_name<input_name = "usb_in", output_name = "usb_out">
+    trait can_bridge_by_name<input_name="usb_in", output_name="usb_out">
+
 
 module UniversalUSBTypeCConnector_model:
     """USB type-C connector driver"""
@@ -101,12 +106,13 @@ module UniversalUSBTypeCConnector_model:
 
     power_vbus ~ usb.usb_if.buspower
 
+
 module HorizontalUSBTypeCConnector_model from UniversalUSBTypeCConnector_model:
     """Horizontal 14 pin USB type-C connector"""
     package = new SHOU_HAN_TYPE_C_16PIN_2MD_073_package
 
     # connections to package
-    usb.usb_if.buspower.lv ~ package.GND
+    usb.usb_if.buspower.gnd ~ package.GND
     cc[0].line ~ package.CC1
     cc[1].line ~ package.CC2
     sbu[0].line ~ package.SBU1
@@ -119,12 +125,13 @@ module HorizontalUSBTypeCConnector_model from UniversalUSBTypeCConnector_model:
     power_vbus.hv ~ package.VBUS
     power_vbus.lv ~ package.GND
 
+
 module VerticalUSBTypeCConnector_model from UniversalUSBTypeCConnector_model:
     """Vertical 14 pin USB type-C connector"""
     package = new Jing_Extension_of_the_Electronic_Co_918_418K2022Y40000_package
 
     # connections to package
-    usb.usb_if.buspower.lv ~ package.G
+    usb.usb_if.buspower.gnd ~ package.G
     cc[0].line ~ package.CC1
     cc[1].line ~ package.CC2
     shield ~ package.0
@@ -136,6 +143,7 @@ module VerticalUSBTypeCConnector_model from UniversalUSBTypeCConnector_model:
     power_vbus.hv ~ package.V
     power_vbus.lv ~ package.G
 
+
 module BHFUSE_BSMD0805_050_15V_model from Fuse:
     package = new BHFUSE_BSMD0805_050_15V_package
 
@@ -145,6 +153,7 @@ module BHFUSE_BSMD0805_050_15V_model from Fuse:
     # pins
     unnamed[0] ~ package.1
     unnamed[1] ~ package.2
+
 
 module TECH_PUBLIC_USBLC6_2SC6_model:
     package = new STMicroelectronics_USBLC6_2SC6_package
@@ -163,7 +172,7 @@ module TECH_PUBLIC_USBLC6_2SC6_model:
 
     usb_in ~ usb_out
 
-    trait can_bridge_by_name<input_name = "usb_in", output_name = "usb_out">
+    trait can_bridge_by_name<input_name="usb_in", output_name="usb_out">
 
     # decoupling capacitor
     decoupling_capacitor = new Capacitor

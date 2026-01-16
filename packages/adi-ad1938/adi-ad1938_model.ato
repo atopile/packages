@@ -6,10 +6,11 @@ import ElectricLogic
 import Electrical
 import I2S
 import Capacitor
+import MultiCapacitor
 import Resistor
 import SPI
 import DifferentialPair
-import has_single_electric_reference
+import has_single_electric_reference_shared
 import has_part_removed
 
 from "atopile/adi-ad1938/adi-ad1938_family.ato" import Analog_Devices_AD1938_package_family
@@ -58,6 +59,7 @@ module Analog_Devices_AD1938_model:
 
     dac_channels[3].analog_left.line ~ package.OL4
     dac_channels[3].analog_right.line ~ package.OR4
+
 
     adc_channels[0].analog_left.p.line ~ package.ADC1LP
     adc_channels[0].analog_left.n.line ~ package.ADC1LN
@@ -123,12 +125,14 @@ module Analog_Devices_AD1938_model:
     reset_disable.required = True
 
     # logic references
-    trait has_single_electric_reference<ground_only = True>
+    trait has_single_electric_reference_shared<gnd_only=True>
 
-    spi.has_single_electric_reference.reference ~ power_io
-    spi_cs.reference ~ power_io
-
-    for i2s in i2s_ins:
-        i2s.has_single_electric_reference.reference ~ power_io
-    for i2s in i2s_outs:
-        i2s.has_single_electric_reference.reference ~ power_io
+    for logic in [
+        spi,
+        spi_cs
+    ]:
+        logic.reference_shim ~ power_io
+    for logic in i2s_ins:
+        logic.reference_shim ~ power_io
+    for logic in i2s_outs:
+        logic.reference_shim ~ power_io

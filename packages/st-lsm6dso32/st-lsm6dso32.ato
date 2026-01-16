@@ -51,10 +51,10 @@ module ST_LSM6DSO32:
     i2c = new I2C
     """
     I²C bus interface (mandatory)
-    7-bit addresses: 0x6A (SDO_SA0 = GND) / 0x6B (SDO_SA0 = VDD)
+    7-bit addresses: 0x6A (SDO_SA0=GND) / 0x6B (SDO_SA0=VDD)
     """
     i2c.required = True
-    i2c.has_single_electric_reference.reference ~ power_vddio
+    i2c.reference_shim ~ power_vddio
 
     # Optional SPI interface (alternative to I2C)
     spi = new SPI
@@ -63,7 +63,7 @@ module ST_LSM6DSO32:
     When used, CS pin must be actively controlled
     """
     spi.required = False
-    spi.has_single_electric_reference.reference ~ power_vddio
+    spi.reference_shim ~ power_vddio
 
     # Chip select for SPI
     cs = new ElectricLogic
@@ -103,13 +103,11 @@ module ST_LSM6DSO32:
     # LSM6DSO32 has configurable address via SA0 pin
     # SA0 to GND: 0x6A, SA0 to VDD: 0x6B
     # Default to 0x6A (SA0 connected to GND)
-    addressor = new Addressor<address_bits = 1>
+    addressor = new Addressor<address_bits=1>
     addressor.base = 0x6A
     addressor.address_lines[0].line ~ sdo_sa0.line
     addressor.address_lines[0].reference ~ power_vddio
     assert addressor.address is i2c.address
-    # Default to base address (0x6A), can be overridden by user
-    i2c.address.default = 0x6A
     assert i2c.address within 0x6A to 0x6B
 
     # --- CS pull-up for I2C mode ---

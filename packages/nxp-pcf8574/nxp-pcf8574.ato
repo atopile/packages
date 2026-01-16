@@ -58,8 +58,6 @@ module NXP_PCF8574:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
-    # Default to base address (0x20), can be overridden by user
-    i2c.address.default = 0x20
 
     # --- Interrupt line ---
     interrupt.reference ~ power

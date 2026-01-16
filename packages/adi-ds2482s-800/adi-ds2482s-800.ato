@@ -46,19 +46,17 @@ module ADI_DS2482S_800:
         channel.required = False
 
     # --- Internal power rail ---
-    power.hv ~ package.VCC
-    power.lv ~ package.GND
+    power.vcc ~ package.VCC
+    power.gnd ~ package.GND
 
     # --- I2C interface ---
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
     # I2C address configuration (3 address pins: AD0, AD1, AD2)
-    addressor = new Addressor<address_bits = 3>
+    addressor = new Addressor<address_bits=3>
     addressor.base = 0x18
     assert addressor.address is i2c.address
-    # Default to base address (0x18), can be overridden by user
-    i2c.address.default = 0x18
 
     # Connect address pins
     addressor.address_lines[0].line ~ package.AD0
@@ -88,15 +86,15 @@ module ADI_DS2482S_800:
     for capacitor in power_caps:
         capacitor.capacitance = 100nF +/- 20%
         capacitor.package = "0402"
-        power.hv ~> capacitor ~> power.lv
+        power.vcc ~> capacitor ~> power.gnd
 
     # --- I2C pull-up resistors ---
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 5%
     scl_pullup.package = "0402"
-    power.hv ~> scl_pullup ~> i2c.scl.line
+    power.vcc ~> scl_pullup ~> i2c.scl.line
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 5%
     sda_pullup.package = "0402"
-    power.hv ~> sda_pullup ~> i2c.sda.line
+    power.vcc ~> sda_pullup ~> i2c.sda.line

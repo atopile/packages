@@ -14,9 +14,9 @@ module Invensense_MPU6050:
     """TDK InvenSense MPU-6050 6-axis IMU (I²C).
 
     Exposes:
-        * i2c – I²C bus interface
-        * power_core – Core supply (2.375 V – 3.46 V)
-        * power_io – Digital I/O supply (1.71 V – 3.6 V)
+      * i2c        – I²C bus interface
+      * power_core – Core supply (2.375 V – 3.46 V)
+      * power_io   – Digital I/O supply (1.71 V – 3.6 V)
     """
 
     # --- Package ---
@@ -42,13 +42,13 @@ module Invensense_MPU6050:
     i2c.required = True
 
     # --- Power connections ---
-    power_core.hv ~ package.VDD
-    power_core.lv ~ package.GND
-    power_core.lv ~ package.EP
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    power_core.gnd ~ package.EP
     assert power_core.voltage within 2.375V to 3.46V
 
-    power_io.hv ~ package.VLOGIC
-    power_io.lv ~ power_core.lv
+    power_io.vcc ~ package.VLOGIC
+    power_io.gnd ~ power_core.gnd
     assert power_io.voltage within 1.71V to 3.6V
 
     # --- I²C bus ---
@@ -59,21 +59,19 @@ module Invensense_MPU6050:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 10%
     scl_pullup.package = "0402"
-    i2c.scl.line ~> scl_pullup ~> power_io.hv
+    i2c.scl.line ~> scl_pullup ~> power_io.vcc
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 10%
     sda_pullup.package = "0402"
-    i2c.sda.line ~> sda_pullup ~> power_io.hv
+    i2c.sda.line ~> sda_pullup ~> power_io.vcc
 
     # --- I²C address selection (AD0 pin) ---
-    addressor = new Addressor<address_bits = 1>
+    addressor = new Addressor<address_bits=1>
     addressor.address_lines[0].line ~ package.AD0
     addressor.address_lines[0].reference ~ power_io
     assert addressor.base is 0x68
     assert addressor.address is i2c.address
-    # Default to base address (0x68), can be overridden by user
-    i2c.address.default = 0x68
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -81,5 +79,5 @@ module Invensense_MPU6050:
         cap.capacitance = 100nF +/- 20%
         cap.package = "C0402"
 
-    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
-    power_io.hv ~> decoupling_caps[1] ~> power_core.lv
+    power_core.vcc ~> decoupling_caps[0] ~> power_core.gnd
+    power_io.vcc ~> decoupling_caps[1] ~> power_core.gnd

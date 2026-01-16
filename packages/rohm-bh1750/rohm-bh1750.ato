@@ -11,6 +11,7 @@ import FilterElectricalRC
 
 from "parts/ROHM_Semicon_BH1750FVI_TR/ROHM_Semicon_BH1750FVI_TR.ato" import ROHM_Semicon_BH1750FVI_TR_package
 
+
 module ROHM_BH1750:
     """
     Digital ambient light sensor with I²C interface.
@@ -37,7 +38,7 @@ module ROHM_BH1750:
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
     i2c_address_pulldown_resistor = new Resistor
-    i2c_address_pulldown_resistor.resistance = 10kohm +/- 10%
+    i2c_address_pulldown_resistor.value = 10kohm +/- 10%
     i2c_address_pulldown_resistor.package = "0402"
     power.lv ~> i2c_address_pulldown_resistor ~> package.ADDR
     i2c.address = 0x23
@@ -58,6 +59,8 @@ module ROHM_BH1750:
 
     # --- DVI low-pass filter ---
     dvi_lowpass = new FilterElectricalRC
+    dvi_lowpass.in_.line ~ power.hv
+    dvi_lowpass.in_.reference ~ power
     dvi_lowpass.resistor.resistance = 1kohm +/- 10%
     dvi_lowpass.resistor.package = "0402"
     dvi_lowpass.capacitor.capacitance = 0.1uF +/- 10%
@@ -69,4 +72,4 @@ module ROHM_BH1750:
     package.SDA ~ i2c.sda.line
     package.SCL ~ i2c.scl.line
     package.EP ~ power.lv
-    power.hv ~> dvi_lowpass ~> package.DVI
+    package.DVI ~ dvi_lowpass.out.line

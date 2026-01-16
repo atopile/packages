@@ -29,9 +29,9 @@ module OPSCO_SK6805_SIDE:
     - Operating temperature: -25°C to +80°C
 
     Exposes:
-        * power – Power supply (5V ±0.5V)
-        * data_in – Data input signal
-        * data_out – Data output signal (for chaining)
+      * power        – Power supply (5V ±0.5V)
+      * data_in      – Data input signal
+      * data_out     – Data output signal (for chaining)
     """
 
     # --- Package ---
@@ -60,8 +60,8 @@ module OPSCO_SK6805_SIDE:
     data_out.required = False
 
     # --- Power connections ---
-    power.hv ~ package.VDD
-    power.lv ~ package.GND
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
     assert power.voltage within 4.5V to 5.5V
 
     # --- Data signal connections ---
@@ -78,4 +78,4 @@ module OPSCO_SK6805_SIDE:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd

@@ -49,6 +49,7 @@ module Analog_Devices_ADAU145x_model:
 
     regulator_vdrive ~ package.VDRIVE
 
+
     # peripherals
     spi = new SPI
     spi_cs = new ElectricLogic
@@ -58,6 +59,7 @@ module Analog_Devices_ADAU145x_model:
     spi.mosi.line ~ package.MOSI_ADDR1
     spi_cs.line ~ package.SS_ADDR0
 
+
     spi_master = new SPI
     spi_master_cs = new ElectricLogic
 
@@ -66,8 +68,9 @@ module Analog_Devices_ADAU145x_model:
     spi_master.mosi.line ~ package.MOSI_M_MP1
     spi_master_cs.line ~ package.SS_M_MP0
 
+
     i2c = new I2C
-    addressor = new Addressor<address_bits = 2>
+    addressor = new Addressor<address_bits=2>
 
     i2c.scl.line ~ package.SCLK_SCL
     i2c.sda.line ~ package.MISO_SDA
@@ -141,6 +144,7 @@ module Analog_Devices_ADAU145x_model:
     aux_adc_inputs[4].line ~ package.AUXADC4
     aux_adc_inputs[5].line ~ package.AUXADC5
 
+
     spdif_in = new ElectricSignal
     spdif_out = new ElectricSignal
 
@@ -179,9 +183,9 @@ module Analog_Devices_ADAU145x_model:
     selfboot_enable.line ~ package.SELFBOOT
 
     # logic references - connect voltage domain references to power_io
-    # Types with has_single_electric_reference trait use has_single_electric_reference.reference
+    # Types with has_single_electric_reference trait use reference_shim
     for logic in [spi, i2c, i2c_master, spi_master, addressor]:
-        logic.has_single_electric_reference.reference ~ power_io
+        logic.reference_shim ~ power_io
 
     # ElectricLogic/ElectricSignal types use .reference directly
     for logic in [spi_cs, spi_master_cs, reset_disable, selfboot_enable]:
@@ -195,6 +199,6 @@ module Analog_Devices_ADAU145x_model:
     for logic in aux_adc_inputs:
         logic.reference ~ power_io
     for logic in i2s_ins:
-        logic.has_single_electric_reference.reference ~ power_io
+        logic.reference_shim ~ power_io
     for logic in i2s_outs:
-        logic.has_single_electric_reference.reference ~ power_io
+        logic.reference_shim ~ power_io

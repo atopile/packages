@@ -4,7 +4,7 @@ import I2S
 import PDM
 import ElectricSignal
 import ElectricPower
-import has_single_electric_reference
+import has_single_electric_reference_shared
 import has_part_removed
 
 module Microphone:
@@ -31,7 +31,7 @@ module MicrophoneI2S from Microphone:
     i2s.required = True
     power.required = True
 
-    trait has_single_electric_reference
+    trait has_single_electric_reference_shared
 
 module MicrophonePDM from Microphone:
     """
@@ -42,4 +42,4 @@ module MicrophonePDM from Microphone:
     pdm.required = True
     power.required = True
 
-    trait has_single_electric_reference
+    trait has_single_electric_reference_shared

@@ -1,0 +1,31 @@
+import SPI, ElectricPower, ElectricSignal
+from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_package
+
+
+module TF_01A:
+    card_slot = new _TF_01A
+    power = new ElectricPower
+    spi = new SPI
+    spi_cs = new ElectricSignal
+
+    # Power
+    power.vcc ~ card_slot.VDD
+    power.gnd ~ card_slot.VSS
+    power.gnd ~ card_slot.GND
+
+    # SPI
+    power ~ spi.sclk.reference
+    spi.miso.line ~ card_slot.DAT0_D0_
+    spi.mosi.line ~ card_slot.CMD_DI_
+    spi.sclk.line ~ card_slot.CLK_SCLK_
+    spi_cs.line ~ card_slot.CDDAT3_CS_
+    power.gnd ~ card_slot.GND
+
+
+component _TF_01A from Korean_Hroparts_Elec_TF_01A_package:
+    signal DAT2_RSV_ ~ DAT2RSV
+    signal CDDAT3_CS_ ~ CDDAT3CS
+    signal CMD_DI_ ~ CMDDI
+    signal CLK_SCLK_ ~ CLKSCLK
+    signal DAT0_D0_ ~ DAT0D0
+    signal DAT1_RSV_ ~ DAT1RSV

@@ -22,7 +22,7 @@ module Trinamic_TMC5160_Dev_Board:
 
     # --- Power supplies ---
     power_motor = new ElectricPower
-    assert power_motor.voltage within 9V to 36V  # Based on FET selection
+    assert power_motor.voltage within 9V to 36V # Based on FET selection
 
     power_vccio = new ElectricPower
     assert power_vccio.voltage within 3.0V to 5.25V
@@ -66,8 +66,8 @@ module Trinamic_TMC5160_Dev_Board:
     motor_b2 ~ tmc5160.motor_b_bm2
 
     # --- External Interfaces ---
-    # Note: power_motor and power_vccio net names are set in the TMC5160 module
-    # Only set net names for signals that are unique to the dev board
+    power_vccio.vcc.override_net_name = "power-vccio"
+    power_vccio.lv.override_net_name = "gnd"
     chip_select.line.override_net_name = "chip-select"
     spi.sclk.line.override_net_name = "spi-sclk"
     spi.mosi.line.override_net_name = "spi-mosi"
@@ -76,6 +76,9 @@ module Trinamic_TMC5160_Dev_Board:
     drive_enable.line.override_net_name = "n-drive-enable"
     refl_step.line.override_net_name = "refl_step"
     refr_dir.line.override_net_name = "refr_dir"
+
+    power_motor.hv.override_net_name = "power-motor"
+    power_motor.lv.override_net_name = "gnd"
     motor_a1.line.override_net_name = "motor-a1"
     motor_a2.line.override_net_name = "motor-a2"
     motor_b1.line.override_net_name = "motor-b1"
@@ -103,16 +106,15 @@ module Trinamic_TMC5160_Dev_Board:
     bootstrap_capacitors = new Capacitor[4]
     for capacitor in bootstrap_capacitors:
         capacitor.capacitance = 220nF +/- 20%
+        capacitor.max_voltage = 50V
         capacitor.package = "0603"
-        capacitor.lcsc_id = "C344195"
 
     # --- Shunt ----
     shunt_resistors = new Resistor[2]
     for shunt_resistor in shunt_resistors:
         shunt_resistor.resistance = 75mohm +/- 1%
-        shunt_resistor.package = "R1206"
+        shunt_resistor.package = "1206"
         shunt_resistor.max_power = 1W
-        shunt_resistor.lcsc_id = "C2904225"
 
     shunt_sense_resistors = new Resistor[4]
     for resistor in shunt_sense_resistors:
@@ -122,8 +124,8 @@ module Trinamic_TMC5160_Dev_Board:
     full_bridge_decoupling_capacitors = new Capacitor[2]
     for capacitor in full_bridge_decoupling_capacitors:
         capacitor.capacitance = 470nF +/- 20%
+        capacitor.max_voltage = 50V
         capacitor.package = "0603"
-        capacitor.lcsc_id = "C513577"
 
     # --- Full Bridges ---
     full_bridge_a = new FullBridge
@@ -156,6 +158,7 @@ module Trinamic_TMC5160_Dev_Board:
     tmc5160.motor_b_current_sense.p.line ~> shunt_sense_resistors[2] ~> full_bridge_b.bridge_power.lv
     tmc5160.motor_b_current_sense.n.line ~> shunt_sense_resistors[3] ~> power_motor.lv
 
+
     # --- Configuration pins ---
     # SPI Mode Configuration - Enable SPI interface
     spi_mode_pullup = new Resistor
@@ -180,15 +183,15 @@ module FullBridge:
         bridge_power.hv
                 |
             +---+---+
-            | |
-        high_fet1 high_fet2
-            | |
-            | |
+            |       |
+      high_fet1  high_fet2
+            |       |
+            |       |
     bridge_middle1 bridge_middle2
-            | |
-            | |
-        low_fet1 low_fet2
-            | |
+            |       |
+            |       |
+        low_fet1   low_fet2
+            |       |
             +---+---+
                 |
             bridge_power.lv

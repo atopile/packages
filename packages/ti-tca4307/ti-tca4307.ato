@@ -71,8 +71,8 @@ module TI_TCA4307:
     assert power.voltage within 2.3V to 5.5V
 
     # --- Package connections ---
-    package.VCC ~ power.hv
-    package.GND ~ power.lv
+    package.VCC ~ power.vcc
+    package.GND ~ power.gnd
     package.EN ~ enable.line
     package.READY ~ ready.line
     package.SCLIN ~ i2c_upstream.scl.line
@@ -92,32 +92,32 @@ module TI_TCA4307:
     enable_pullup = new Resistor
     enable_pullup.resistance = 10kohm +/- 20%
     enable_pullup.package = "0402"
-    power.hv ~> enable_pullup ~> enable.line
+    power.vcc ~> enable_pullup ~> enable.line
 
     # --- Ready pin pull-up ---
     ready_pullup = new Resistor
     ready_pullup.resistance = 10kohm +/- 20%
     ready_pullup.package = "0402"
-    power.hv ~> ready_pullup ~> ready.line
+    power.vcc ~> ready_pullup ~> ready.line
 
     # --- I2C pull-up resistors (upstream) ---
     i2c_upstream_pullups = new Resistor[2]
     for r in i2c_upstream_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c_upstream.scl.line ~> i2c_upstream_pullups[0] ~> i2c_upstream.scl.reference.hv
-    i2c_upstream.sda.line ~> i2c_upstream_pullups[1] ~> i2c_upstream.sda.reference.hv
+    i2c_upstream.scl.line ~> i2c_upstream_pullups[0] ~> i2c_upstream.scl.reference.vcc
+    i2c_upstream.sda.line ~> i2c_upstream_pullups[1] ~> i2c_upstream.sda.reference.vcc
 
     # --- I2C pull-up resistors (downstream) ---
     i2c_downstream_pullups = new Resistor[2]
     for r in i2c_downstream_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c_downstream.scl.line ~> i2c_downstream_pullups[0] ~> i2c_downstream.scl.reference.hv
-    i2c_downstream.sda.line ~> i2c_downstream_pullups[1] ~> i2c_downstream.sda.reference.hv
+    i2c_downstream.scl.line ~> i2c_downstream_pullups[0] ~> i2c_downstream.scl.reference.vcc
+    i2c_downstream.sda.line ~> i2c_downstream_pullups[1] ~> i2c_downstream.sda.reference.vcc
 
     # --- Decoupling capacitors ---
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd

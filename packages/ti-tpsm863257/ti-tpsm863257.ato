@@ -9,9 +9,9 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import has_single_electric_reference
-import AdjustableRegulator
+import has_single_electric_reference_shared
 
+from "regulators.ato" import AdjustableRegulator
 from "parts/TEXAS_INSTRUMENTS_TPSM863257RDXR/TEXAS_INSTRUMENTS_TPSM863257RDXR.ato" import TEXAS_INSTRUMENTS_TPSM863257RDXR_package
 
 module TPSM863257 from AdjustableRegulator:
@@ -110,4 +110,4 @@ module TPSM863257 from AdjustableRegulator:
     # SW pin is internal switching node - do not connect (leave floating as per datasheet)
 
     # --- Shared reference trait ---
-    trait has_single_electric_reference<ground_only = True>
+    trait has_single_electric_reference_shared<gnd_only=True>

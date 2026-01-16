@@ -11,7 +11,8 @@ import ElectricSignal
 
 from "parts/Texas_Instruments_TPS54560DDAR/Texas_Instruments_TPS54560DDAR.ato" import Texas_Instruments_TPS54560DDAR_package
 from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U
-import AdjustableRegulator
+from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT
+from "regulators.ato" import AdjustableRegulator
 
 module TI_TPS54560 from AdjustableRegulator:
     """
@@ -29,7 +30,7 @@ module TI_TPS54560 from AdjustableRegulator:
     diode = new STMicroelectronics_STPS340U
     input_caps = new Capacitor[3]
     output_caps = new Capacitor[4]
-    inductor = new Inductor
+    inductor = new Sunlord_SWPA8040S5R6NT
     bootstrap_capacitor = new Capacitor
     compensation_resistor = new Resistor
     compensation_capacitors = new Capacitor[2]
@@ -44,11 +45,6 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Set feedback reference voltage
     assert reference_voltage is 0.8V +/- 0.1%
-
-    # Inductor
-    inductor.inductance = 5.6uH +/- 30%
-    assert inductor.max_current >= power_out.max_current
-    inductor.package = "SMD8x8mm"
 
     # Input caps
     for cap in input_caps:
@@ -81,29 +77,29 @@ module TI_TPS54560 from AdjustableRegulator:
     # Switching frequency resistor
     switching_frequency_resistor.max_voltage = 30V to 100V
     switching_frequency_resistor.package = "0402"
-    switching_frequency_resistor.resistance = 162kohm +/- 2%  # 600kHz
+    switching_frequency_resistor.resistance = 162kohm +/- 2% # 600kHz
 
     # Power
-    power_in.hv ~ package.VIN
-    power_in.lv ~ package.GND
-    power_out.lv ~ package.GND
-    power_out.lv ~ package.EP
+    power_in.vcc ~ package.VIN
+    power_in.gnd ~ package.GND
+    power_out.gnd ~ package.GND
+    power_out.gnd ~ package.EP
 
     # Input Filtering
     for cap in input_caps:
         power_in ~ cap.power
 
     # Output Stage
-    package.SW ~> inductor ~> power_out.hv
-    package.SW <~ diode <~ power_out.lv
+    package.SW ~> inductor ~> power_out.vcc
+    package.SW <~ diode <~ power_out.gnd
     for cap in output_caps:
         power_out ~ cap.power
 
     # Compensation
-    package.COMP ~> compensation_resistor ~> compensation_capacitors[0] ~> power_in.lv
-    package.COMP ~> compensation_capacitors[1] ~> power_in.lv
+    package.COMP ~> compensation_resistor ~> compensation_capacitors[0] ~> power_in.gnd
+    package.COMP ~> compensation_capacitors[1] ~> power_in.gnd
     package.BOOT ~> bootstrap_capacitor ~> package.SW
-    package.RT_CLK ~> switching_frequency_resistor ~> power_in.lv
+    package.RT_CLK ~> switching_frequency_resistor ~> power_in.gnd
 
     # Feedback
     power_out ~ feedback_divider.power
@@ -113,4 +109,4 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Enable
     enable.line ~ package.EN
-    enable.reference.lv ~ power_in.lv
+    enable.reference.gnd ~ power_in.gnd

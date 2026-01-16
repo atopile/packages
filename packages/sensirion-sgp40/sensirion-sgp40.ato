@@ -38,15 +38,15 @@ module Sensirion_SGP40:
 
     # --- Power supply ---
     # VDD - Core logic power supply
-    power_core.hv ~ package.VDD
-    power_core.lv ~ package.VSS
-    power_core.lv ~ package.GND
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.VSS
+    power_core.gnd ~ package.GND
     assert power_core.voltage within 1.7V to 3.6V
 
     # VDDH - Heater power supply (can be same as VDD or separate)
-    power_heater.hv ~ package.VDDH
-    power_heater.lv ~ package.GND
-    power_heater.lv ~ package.VSS
+    power_heater.vcc ~ package.VDDH
+    power_heater.gnd ~ package.GND
+    power_heater.gnd ~ package.VSS
     assert power_heater.voltage within 1.7V to 3.6V
 
     # --- I2C interface ---
@@ -61,22 +61,22 @@ module Sensirion_SGP40:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 20%
     scl_pullup.package = "0402"
-    power_core.hv ~> scl_pullup ~> i2c.scl.line
+    power_core.vcc ~> scl_pullup ~> i2c.scl.line
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 20%
     sda_pullup.package = "0402"
-    power_core.hv ~> sda_pullup ~> i2c.sda.line
+    power_core.vcc ~> sda_pullup ~> i2c.sda.line
 
     # --- Decoupling capacitors ---
     # Core supply decoupling
     decoupling_cap_core = new Capacitor
     decoupling_cap_core.capacitance = 100nF +/- 20%
     decoupling_cap_core.package = "0402"
-    power_core.hv ~> decoupling_cap_core ~> power_core.lv
+    power_core.vcc ~> decoupling_cap_core ~> power_core.gnd
 
     # Heater supply decoupling (if separate from core)
     decoupling_cap_heater = new Capacitor
     decoupling_cap_heater.capacitance = 100nF +/- 20%
     decoupling_cap_heater.package = "0402"
-    power_heater.hv ~> decoupling_cap_heater ~> power_heater.lv
+    power_heater.vcc ~> decoupling_cap_heater ~> power_heater.gnd

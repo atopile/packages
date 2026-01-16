@@ -23,7 +23,7 @@ import SPI
 import JTAG
 import MultiSPI
 import XtalIF
-import has_single_electric_reference
+import has_single_electric_reference_shared
 
 from "atopile/buttons/buttons.ato" import Button
 from "atopile/buttons/buttons.ato" import VerticalButton
@@ -46,8 +46,7 @@ module ESP32_C3_MINI_1_base_model from ESP32_C3FH4_model:
     power_rtc ~ power
     power_radio ~ power
 
-    trait has_single_electric_reference
-    has_single_electric_reference.reference ~ power
+    trait has_single_electric_reference_shared
 
 module ESP32_C3_MINI_1_model from ESP32_C3_MINI_1_base_model:
     """
@@ -106,18 +105,18 @@ module ESP32_C3_MINI_1:
     """
     Reference driver for ESP32-C3-MINI-1 series of modules
     """
-    esp32_c3 = new ESP32_C3_MINI_1_model  # defaults to ESP32-C3-MINI-1-N4 package
+    esp32_c3 = new ESP32_C3_MINI_1_model # defaults to ESP32-C3-MINI-1-N4 package
 
     # external interfaces
     power = new ElectricPower
     power.required = True
     gpio = new ElectricLogic[22]
-    mspi = new MultiSPI[3]<data_lane_count = 4>
+    mspi = new MultiSPI[3]<data_lane_count=4>
     uart = new UART[2]
     i2c = new I2C
     i2s = new I2S
     spi = new SPI
-    usb_if = new USB2_0_IF  # TODO: should be USB2_0_IF.Data
+    usb_if = new USB2_0_IF # TODO: should be USB2_0_IF.Data
     jtag = new JTAG
     adc1 = new ElectricSignal[5]
     adc2 = new ElectricSignal
@@ -168,8 +167,8 @@ module ESP32_C3_MINI_1:
     boot_mode_resistors = new Resistor[2]
 
     # connections
-    power.hv ~> decoupling_capacitor_bulk ~> power.lv
-    power.hv ~> decoupling_capacitor_small ~> power.lv
+    power ~ decoupling_capacitor_bulk.power
+    power ~ decoupling_capacitor_small.power
 
     power.lv ~> boot_switch ~> gpio[9].line
     power.hv ~> boot_pullup_resistor ~> esp32_c3.gpio[9].line

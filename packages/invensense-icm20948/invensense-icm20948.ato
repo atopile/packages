@@ -86,16 +86,16 @@ module Invensense_ICM20948:
     aux_i2c.required = False
 
     # --- Power connections ---
-    power_core.hv ~ package.VDD
-    power_core.lv ~ package.GND
-    power_core.lv ~ package.EP
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    power_core.gnd ~ package.EP
 
-    power_io.hv ~ package.VDDIO
-    power_io.lv ~ package.GND
-    power_io.lv ~ package.EP
+    power_io.vcc ~ package.VDDIO
+    power_io.gnd ~ package.GND
+    power_io.gnd ~ package.EP
 
     # Connect exposed pad to ground for thermal and electrical performance
-    power_core.lv ~ package.EP
+    power_core.gnd ~ package.EP
 
     # --- I2C interface connections ---
     i2c.scl.line ~ package.SCL_SCLK
@@ -131,28 +131,26 @@ module Invensense_ICM20948:
     # The I2C address is determined by the SDO/AD0 pin using Addressor
     # - SDO/AD0 = GND: Address 0x68
     # - SDO/AD0 = VDD: Address 0x69
-    addressor = new Addressor<address_bits = 1>
+    addressor = new Addressor<address_bits=1>
     addressor.base = 0x68
     addressor.address_lines[0].line ~ package.SDO_AD0
     addressor.address_lines[0].reference ~ power_io
     assert addressor.address is i2c.address
-    # Default to base address (0x68), can be overridden by user
-    i2c.address.default = 0x68
 
     # --- I2C Pull-up resistors ---
     i2c_pullups = new Resistor[2]
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    power_io.hv ~> i2c_pullups[0] ~> i2c.scl.line
-    power_io.hv ~> i2c_pullups[1] ~> i2c.sda.line
+    power_io.vcc ~> i2c_pullups[0] ~> i2c.scl.line
+    power_io.vcc ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- SPI Chip Select Configuration ---
     # For I2C mode, nCS must be pulled high
     cs_pullup = new Resistor
     cs_pullup.resistance = 10kohm +/- 20%
     cs_pullup.package = "0402"
-    power_io.hv ~> cs_pullup ~> package.nCS
+    power_io.vcc ~> cs_pullup ~> package.nCS
 
     # --- Voltage regulator output ---
     # REGOUT provides regulated 1.8V output (up to 50mA)
@@ -168,18 +166,18 @@ module Invensense_ICM20948:
     power_core_cap.capacitance = 100nF +/- 20%
     power_core_cap.package = "0402"
     assert power_core_cap.max_voltage >= power_core.voltage * 1.5
-    power_core.hv ~> power_core_cap ~> power_core.lv
+    power_core.vcc ~> power_core_cap ~> power_core.gnd
 
     # I/O power supply decoupling
     power_io_cap = new Capacitor
     power_io_cap.capacitance = 100nF +/- 20%
     power_io_cap.package = "0402"
     assert power_io_cap.max_voltage >= power_io.voltage * 1.5
-    power_io.hv ~> power_io_cap ~> power_io.lv
+    power_io.vcc ~> power_io_cap ~> power_io.gnd
 
     # Additional core power filtering (recommended by datasheet)
     power_core_filter = new Capacitor
     power_core_filter.capacitance = 10nF +/- 20%
     power_core_filter.package = "0402"
     assert power_core_filter.max_voltage >= power_core.voltage * 1.5
-    power_core.hv ~> power_core_filter ~> power_core.lv
+    power_core.vcc ~> power_core_filter ~> power_core.gnd

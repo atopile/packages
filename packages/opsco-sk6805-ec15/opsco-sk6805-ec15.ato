@@ -30,9 +30,9 @@ module OPSCO_SK6805_EC15:
     - Wavelengths: R(620-625nm), G(520-530nm), B(460-470nm)
 
     Exposes:
-        * power – Power supply (5V ±0.5V)
-        * data_in – Data input signal
-        * data_out – Data output signal (for chaining)
+      * power        – Power supply (5V ±0.5V)
+      * data_in      – Data input signal
+      * data_out     – Data output signal (for chaining)
     """
 
     # --- Package ---
@@ -61,8 +61,8 @@ module OPSCO_SK6805_EC15:
     data_out.required = False
 
     # --- Power connections ---
-    power.hv ~ package.VDD
-    power.lv ~ package.GND
+    power.vcc ~ package.VDD
+    power.gnd ~ package.GND
     assert power.voltage within 4.5V to 5.5V
 
     # --- Data signal connections ---
@@ -74,7 +74,7 @@ module OPSCO_SK6805_EC15:
 
     # --- Enable bridging for chaining LEDs ---
     # Note: Bridging capabilities for LED chaining
-    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+    trait can_bridge_by_name<input_name="data_in", output_name="data_out">
 
     # --- Power decoupling ---
     # Note: For ultra-compact designs, external decoupling may be minimal
@@ -82,4 +82,4 @@ module OPSCO_SK6805_EC15:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0201"  # Smallest available for space constraint
-    power.hv ~> decoupling_cap ~> power.lv
+    power.vcc ~> decoupling_cap ~> power.gnd

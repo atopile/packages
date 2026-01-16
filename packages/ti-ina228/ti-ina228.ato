@@ -26,7 +26,7 @@ module TI_INA228:
     • Common-Mode Voltage: -0.3V to +85V (VBUS pin)
     • Shunt Voltage Range: ±163.84mV (programmable to ±40.96mV)
     • Supply Voltage: 2.7V to 5.5V
-    • Supply Current: ~ 1.4mA typical
+    • Supply Current: ~1.4mA typical
     • Input Bias Current: 2.5nA maximum (excellent for precision)
     • Offset Voltage: ±1µV maximum
     • Gain Error: ±0.05% maximum
@@ -35,13 +35,13 @@ module TI_INA228:
     • Alert Response Time: 75µs typical
 
     External connections provided by this driver:
-    • power – Device supply (2.7V to 5.5V)
-    • power_in – High-side sense input (before shunt, up to 85V)
-    • power_out – High-side sense output (after shunt)
-    • i2c – I²C bus (16 selectable addresses: 0x40-0x4F)
-    • alert – Open-drain ALERT pin (over-limit interrupt)
-    • a0_config – Address pin A0 (connect to GND, VS, SDA, or SCL)
-    • a1_config – Address pin A1 (connect to GND, VS, SDA, or SCL)
+    • power        – Device supply (2.7V to 5.5V)
+    • power_in     – High-side sense input (before shunt, up to 85V)
+    • power_out    – High-side sense output (after shunt)
+    • i2c          – I²C bus (16 selectable addresses: 0x40-0x4F)
+    • alert        – Open-drain ALERT pin (over-limit interrupt)
+    • a0_config    – Address pin A0 (connect to GND, VS, SDA, or SCL)
+    • a1_config    – Address pin A1 (connect to GND, VS, SDA, or SCL)
 
     SAFETY WARNING: VBUS pin can handle up to 85V. Ensure proper PCB isolation
     and follow high-voltage design practices when using voltages above 30V.
@@ -69,9 +69,7 @@ module TI_INA228:
     i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
-    # I2C logic reference (for pullup to VCC)
-    i2c.scl.reference ~ power
-    i2c.sda.reference ~ power
+    i2c.single_electric_reference.reference ~ power
 
     # --- I2C pullup resistors ---
     pullup_scl = new Resistor
@@ -80,8 +78,8 @@ module TI_INA228:
     pullup_sda.resistance = 10kohm +/- 5%
     pullup_scl.package = "0402"
     pullup_sda.package = "0402"
-    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.hv
-    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.hv
+    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.vcc
+    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.vcc
 
     # --- ALERT output ---
     alert = new ElectricLogic
@@ -96,7 +94,7 @@ module TI_INA228:
     alert_pullup = new Resistor
     alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
-    alert.line ~> alert_pullup ~> alert.reference.hv
+    alert.line ~> alert_pullup ~> alert.reference.vcc
 
     # --- Shunt measurement path ---
     # PCB Layout Guidelines:
@@ -119,7 +117,7 @@ module TI_INA228:
     Maximum expected current for automatic shunt resistor sizing
     """
     # Default to 1 A to provide initial constraint (can be overridden by instantiations)
-    max_current.default = 1A
+    max_current = 1A
 
     # INA228 default full-scale shunt drop (programmable). Use 163.84 mV typical.
     shunt_drop = 163.84mV
@@ -164,7 +162,7 @@ module TI_INA228:
     assert power_in.voltage within -0.3V to 85V
 
     # Mark module as a bridge so it can be inserted inline in power path
-    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
 
     # --- Decoupling capacitor on VS ---
     decouple = new Capacitor
@@ -183,8 +181,6 @@ module TI_INA228:
     addressor.i2c ~ i2c
     addressor.base = 0x40
     assert addressor.address is i2c.address
-    # Default to base address (0x40), can be overridden by user
-    i2c.address.default = 0x40
     addressor.address_line_a0.line ~ package.A0
     addressor.address_line_a0.reference ~ power
     addressor.address_line_a1.line ~ package.A1
