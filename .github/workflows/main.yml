@@ -58,9 +58,10 @@ jobs:
       # FIXME: handle deps properly
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
-      - uses: atopile/setup-atopile@v1.6
+      - uses: atopile/setup-atopile@feature/setup_from_branch
         with:
           ato-config: ${{ matrix.package }}/ato.yaml
+          branch: feature/fabll_part2
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
