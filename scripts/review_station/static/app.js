@@ -61,6 +61,7 @@ const state = {
   filter: "",
   statusFilter: "all", // "all", "building", "error", "warning", "review", "queue"
   sortOrder: "asc", // "asc" (A-Z) or "desc" (Z-A)
+  recentlyTouched: {}, // name -> timestamp (ms) - for recency-based sorting
   selected: null,
   selectedDetail: null, // { job, todo, excerpts }
   selectedBuild: null,
@@ -533,39 +534,62 @@ function renderList() {
   root.innerHTML = "";
 
   const filter = (state.filter || "").toLowerCase().trim();
+  const now = Date.now();
 
-  // Categorize packages by status
-  const active = [];      // building, verifying - always at top
-  const completed = [];   // error, awaiting_review, approved, etc. - already processed
-  const queued = [];      // not_started, paused, skipped - in queue
-  const published = [];   // published, pr_opened, branch_pushed - done, at bottom
+  // Recency decay: score decays over 5 minutes (300000ms)
+  // Returns 0-100 based on how recently the package was touched
+  const recencyScore = (name) => {
+    const touched = state.recentlyTouched[name];
+    if (!touched) return 0;
+    const age = now - touched;
+    const decayMs = 5 * 60 * 1000; // 5 minutes
+    if (age > decayMs) return 0;
+    return Math.round(100 * (1 - age / decayMs));
+  };
 
-  for (const name of Object.keys(state.packages)) {
-    const j = state.packages[name];
-    if (j.status === "building" || j.status === "verifying") {
-      active.push(name);
-    } else if (j.status === "not_started" || j.status === "paused" || j.status === "skipped") {
-      queued.push(name);
-    } else if (j.status === "published" || j.status === "pr_opened" || j.status === "branch_pushed") {
-      published.push(name);
-    } else {
-      completed.push(name);
+  // Status priority score (higher = more important to see)
+  const statusScore = (j) => {
+    switch (j.status) {
+      case "building": return 1000;
+      case "verifying": return 1000;
+      case "error": return 800;
+      case "needs_input": return 750;
+      case "awaiting_review": return 700;
+      case "approved": return 600;
+      case "not_started": return 200;
+      case "paused": return 150;
+      case "skipped": return 100;
+      case "pr_opened": return 50;
+      case "branch_pushed": return 50;
+      case "published": return 10;
+      default: return 300;
     }
-  }
+  };
 
-  // Sort each category
+  // Combined score: status priority + recency boost
+  const packageScore = (name) => {
+    const j = state.packages[name];
+    const status = statusScore(j);
+    const recency = recencyScore(name);
+    // Recency can boost a package up to 500 points (enough to jump categories)
+    return status + (recency * 5);
+  };
+
+  // Get all packages and sort by score (descending)
+  const allNames = Object.keys(state.packages);
+
+  // Secondary sort: alphabetical within same score tier
   const sortFn = state.sortOrder === "desc"
     ? (a, b) => b.localeCompare(a)
     : (a, b) => a.localeCompare(b);
 
-  // Active: keep in queue order (first started first)
-  // Completed/Queued/Published: sort by user preference
-  completed.sort(sortFn);
-  queued.sort(sortFn);
-  published.sort(sortFn);
-
-  // Combine: active first, then completed, then queued, then published at bottom
-  const names = [...active, ...completed, ...queued, ...published];
+  // Sort by score first, then alphabetically for ties
+  const names = allNames.sort((a, b) => {
+    const scoreA = packageScore(a);
+    const scoreB = packageScore(b);
+    if (scoreA !== scoreB) return scoreB - scoreA; // Higher score first
+    return sortFn(a, b);
+  });
 
   // Apply text filter and status filter
   const visible = names.filter((n) => {
@@ -583,7 +607,8 @@ function renderList() {
       case "error": return j.status === "error" || err > 0;
       case "warning": return warn > 0 && err === 0;
       case "review": return j.status === "awaiting_review" || j.status === "needs_input";
-      case "published": return j.status === "published" || j.status === "pr_opened" || j.status === "branch_pushed";
+      case "pr": return j.status === "pr_opened" || j.status === "branch_pushed";
+      case "published": return j.status === "published";
       case "help": return j.status === "needs_input";
       case "agent": return j.agent_working === true;
       case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";
@@ -644,6 +669,12 @@ function renderList() {
       metaPills.push(el("span", { class: "pill warn" }, [
         el("span", { class: "dot" }),
         el("span", { text: "registry err" }),
+      ]));
+    }
+    // Show PR author for published/pr_opened packages
+    if (j.published_pr_author) {
+      metaPills.push(el("span", { class: "pill neutral" }, [
+        el("span", { text: `@${j.published_pr_author}` }),
       ]));
     }
     if (warn) metaPills.push(el("span", { class: "pill warn" }, [el("span", { class: "dot" }), el("span", { text: `${warn} warnings` })]));
@@ -792,6 +823,10 @@ function renderRight() {
     unapproveBtn.disabled = true;
     publishBtn.disabled = true;
     uprevBtn.disabled = true;
+    const syncBtn = $("#syncBtn");
+    if (syncBtn) syncBtn.disabled = true;
+    const githubBtn = $("#githubBtn");
+    if (githubBtn) githubBtn.disabled = true;
     restartBtn.disabled = true;
     cursorBtn.disabled = true;
     if (logStageSelect) logStageSelect.innerHTML = "";
@@ -871,13 +906,6 @@ function renderRight() {
     `;
 
     diffViewer.innerHTML = renderDiffToHtml(state.diff || "(loading diff…)");
-    if (!refreshDiffBtn._wired) {
-      refreshDiffBtn.addEventListener("click", async () => {
-        await fetchDiff();
-        renderRight();
-      });
-      refreshDiffBtn._wired = true;
-    }
   } else {
     if (grid) grid.classList.remove("modeDiff");
     cardLayout.style.display = "flex";
@@ -963,6 +991,19 @@ function renderRight() {
   publishBtn.disabled = !(publishAnyway || publishable);
   // Uprev is enabled if package has a registry version (already published)
   uprevBtn.disabled = !job.registry_published_version && !job.package_identifier;
+  // Sync is always enabled when a package is selected
+  const syncBtn = $("#syncBtn");
+  if (syncBtn) syncBtn.disabled = false;
+  // GitHub button enabled if there's a PR URL or pushed branch
+  // Use state.packages for consistency with openGitHub() which also uses that source
+  const githubBtn = $("#githubBtn");
+  if (githubBtn) {
+    const stateJob = state.packages[job.package];
+    const prUrl = stateJob?.published_pr_url || job.published_pr_url;
+    const branch = stateJob?.published_branch || job.published_branch;
+    const hasGitHub = prUrl || branch;
+    githubBtn.disabled = !hasGitHub;
+  }
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
@@ -1424,6 +1465,8 @@ async function fetchLog(soft = false) {
 async function selectPackage(name) {
   if (state.selected === name) return;
   state.selected = name;
+  // Track when this package was touched for recency sorting
+  state.recentlyTouched[name] = Date.now();
   state.selectedBuild = null;
   state.selectedDetail = null;
   state.selectedLogStage = "build";
@@ -1550,6 +1593,72 @@ async function uprevSelected() {
   await refresh(true);
 }
 
+async function syncSelected() {
+  const pkg = state.selected;
+  if (!pkg) {
+    alert("No package selected");
+    return;
+  }
+
+  // First check if there's a diff
+  const btn = $("#syncBtn");
+  const originalText = btn?.textContent;
+  if (btn) btn.textContent = "Checking...";
+
+  try {
+    const diffRes = await apiGet(`/api/package/${encodeURIComponent(pkg)}/main_diff`);
+
+    if (!diffRes.has_diff) {
+      alert("Already in sync with origin/main");
+      if (btn) btn.textContent = originalText;
+      return;
+    }
+
+    // Show diff and confirm
+    const confirmMsg = `Sync ${pkg} from origin/main?\n\nChanges:\n${diffRes.diff_stat || "(file changes)"}`;
+    if (!confirm(confirmMsg)) {
+      if (btn) btn.textContent = originalText;
+      return;
+    }
+
+    if (btn) btn.textContent = "Syncing...";
+    const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/sync`, {});
+    console.log("[SYNC] API response:", res);
+
+    const { version } = res?.result || {};
+    alert(`Synced successfully!\nNow at version: ${version || "unknown"}`);
+  } catch (e) {
+    console.error("[SYNC] API error:", e);
+    alert(`Sync failed: ${String(e)}`);
+  }
+
+  if (btn) btn.textContent = originalText;
+  await refresh(true);
+}
+
+function openGitHub() {
+  const pkg = state.selected;
+  if (!pkg) return;
+
+  // Check both state.packages and selectedDetail for the URL/branch
+  const stateJob = state.packages[pkg];
+  const detailJob = state.selectedDetail?.job;
+
+  const prUrl = stateJob?.published_pr_url || detailJob?.published_pr_url;
+  const branch = stateJob?.published_branch || detailJob?.published_branch;
+
+  // Use PR URL if available, otherwise link to branch compare page
+  if (prUrl) {
+    window.open(prUrl, "_blank");
+  } else if (branch) {
+    // Open GitHub compare page to create PR or view branch
+    const compareUrl = `https://github.com/atopile/packages/compare/main...${encodeURIComponent(branch)}`;
+    window.open(compareUrl, "_blank");
+  } else {
+    alert(`No PR URL or branch found for ${pkg}`);
+  }
+}
+
 async function openInKicad() {
   const pkg = state.selected;
   const build = state.selectedBuild;
@@ -1606,7 +1715,10 @@ async function refresh(keepDetail = true) {
         await fetchIssues();
       }
       // Logs are fetched on-demand (on selection / build change / manual actions).
-      if (state.viewTab === "diff") await fetchDiff();
+      // Auto-refresh diff when viewing diff tab (useful when agent is making changes)
+      if (state.viewTab === "diff") {
+        await fetchDiff();
+      }
     }
   }
   renderRight();
@@ -1654,10 +1766,18 @@ function wireGlobal() {
   $("#unapproveBtn").addEventListener("click", unapproveSelected);
   $("#publishBtn").addEventListener("click", publishSelected);
   $("#uprevBtn").addEventListener("click", uprevSelected);
+  $("#syncBtn")?.addEventListener("click", syncSelected);
+  $("#githubBtn")?.addEventListener("click", openGitHub);
   $("#restartBtn").addEventListener("click", restartSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);
   $("#openLogsBtn").addEventListener("click", openLogsInCursor);
+
+  // Diff refresh button
+  $("#refreshDiffBtn")?.addEventListener("click", async () => {
+    await fetchDiff();
+    renderRight();
+  });
 
   // Agent message buttons
   $("#clearMessagesBtn")?.addEventListener("click", async () => {

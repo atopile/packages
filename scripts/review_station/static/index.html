@@ -14,7 +14,7 @@
         <div class="toolbar">
           <div class="title">Package Review</div>
           <div class="filterRow">
-            <input id="filter" type="text" placeholder="Filter packages…" />
+          <input id="filter" type="text" placeholder="Filter packages…" />
             <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
           </div>
           <div class="statusFilters" id="statusFilters">
@@ -23,7 +23,8 @@
             <button class="statusFilterBtn" data-status="error">Err</button>
             <button class="statusFilterBtn" data-status="warning">Warn</button>
             <button class="statusFilterBtn" data-status="review">Review</button>
-            <button class="statusFilterBtn" data-status="published">Pub</button>
+            <button class="statusFilterBtn" data-status="pr">PR</button>
+            <button class="statusFilterBtn" data-status="published">Done</button>
             <button class="statusFilterBtn" data-status="queue">Queue</button>
             <button class="statusFilterBtn agent" data-status="agent">Agent</button>
             <button class="statusFilterBtn help" data-status="help">Help</button>
@@ -55,7 +56,9 @@
             <button id="approveBtn" disabled>Approve</button>
             <button id="unapproveBtn" disabled>Unapprove</button>
             <button id="publishBtn" disabled>Publish</button>
-            <button id="uprevBtn" disabled title="Get current registry version, bump minor, create PR">Uprev</button>
+            <button id="uprevBtn" disabled title="Get current registry version, bump patch, create PR">Uprev</button>
+            <button id="syncBtn" disabled title="Sync local package from origin/main">Sync</button>
+            <button id="githubBtn" disabled title="Open PR on GitHub">GitHub</button>
           </div>
         </div>
 
@@ -92,7 +95,7 @@
               <div style="display:flex; gap:8px; align-items:center;">
                 <button id="clearMessagesBtn" class="miniBtn" type="button" style="display:none;">Clear</button>
                 <button id="resolveHelpBtn" class="miniBtn" type="button" style="display:none;">Resolve Help</button>
-                <span class="muted" style="font-size:11px;">Autosave</span>
+              <span class="muted" style="font-size:11px;">Autosave</span>
                 <button id="openLogsBtn" class="miniBtn" type="button">Open Notes</button>
                 <button id="openAndCopyBtn" class="miniBtn" type="button" title="Open file in Cursor + copy prompt for AI">Copy Agent Instructions</button>
               </div>

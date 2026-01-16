@@ -310,6 +310,7 @@ def _review_worker_process(
     cancel_flags: Any,
     ato_cmd: list[str],
     keep_picked_parts: bool,
+    skip_datasheets: bool,
     jobs_per_pkg: int,
 ) -> None:
     """
@@ -400,13 +401,16 @@ def _review_worker_process(
                 if not progress:
                     try:
                         import re
+
                         latest_logs = cwd / "build" / "logs" / "latest"
                         if latest_logs.exists():
                             build_statuses = {}
                             for status_path in latest_logs.glob("*/status.txt"):
                                 try:
                                     build_name = status_path.parent.name
-                                    txt = status_path.read_text(encoding="utf-8").strip()
+                                    txt = status_path.read_text(
+                                        encoding="utf-8"
+                                    ).strip()
                                     if txt:
                                         # Strip Rich markup like [green]...[/green]
                                         txt = re.sub(r"\[/?[a-z_]+\]", "", txt)
@@ -416,6 +420,7 @@ def _review_worker_process(
                             if build_statuses:
                                 # Send as JSON so frontend can parse per-build status
                                 import json
+
                                 progress = json.dumps(build_statuses)
                     except Exception:
                         pass
@@ -459,12 +464,28 @@ def _review_worker_process(
         logs_dir = pkg_run_dir / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
 
+        # Clean build: remove gitignored files/directories before building
+        # This ensures reproducible builds without stale artifacts
+        result_q.put({"type": "progress", "package": pkg, "step": "cleaning"})
+        try:
+            # git clean -fdX removes only ignored files (safe, won't delete untracked source files)
+            subprocess.run(
+                ["git", "clean", "-fdX", "--", "."],
+                cwd=pkg_dir,
+                capture_output=True,
+                check=False,
+            )
+        except Exception:
+            pass  # Continue even if clean fails
+
         # Build
         build_log_path = logs_dir / "build.log"
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
-        cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs)), "-t", "all"]
+        cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs))]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
+        if skip_datasheets:
+            cmd.extend(["--exclude-target", "datasheets"])
         status_file = logs_dir / "build_status.txt"
         b_rc, b_secs, b_warn, b_err = run_cmd_to_log(
             cmd=cmd,
@@ -507,7 +528,9 @@ def _review_worker_process(
         for name in list(task.get("build_names") or []):
             bname = str(name)
             candidate = pkg_dir / "build" / "logs" / "latest" / bname / "build.log"
-            build_logs[bname] = str(candidate) if candidate.exists() else str(build_log_path)
+            build_logs[bname] = (
+                str(candidate) if candidate.exists() else str(build_log_path)
+            )
             rec = per_target.get(bname)
             if rec:
                 st = str(rec.get("status", "success"))
@@ -866,7 +889,15 @@ def _check_existing_pr_for_package(
     try:
         # Check if there's an open or merged PR for this branch
         result = subprocess.run(
-            ["gh", "pr", "view", "--head", expected_branch, "--json", "url,state,title"],
+            [
+                "gh",
+                "pr",
+                "view",
+                "--head",
+                expected_branch,
+                "--json",
+                "url,state,title,author",
+            ],
             cwd=repo_root,
             capture_output=True,
             text=True,
@@ -874,13 +905,20 @@ def _check_existing_pr_for_package(
         )
         if result.returncode == 0 and result.stdout.strip():
             import json as json_mod
+
             pr_info = json_mod.loads(result.stdout.strip())
             state = pr_info.get("state")
+            author = (pr_info.get("author") or {}).get("login")
+            print(
+                f"[PR CHECK] {package}: state={state}, author={author}, url={pr_info.get('url')}",
+                flush=True,
+            )
             if state == "OPEN":
                 return {
                     "branch": expected_branch,
                     "pr_url": pr_info.get("url"),
                     "pr_title": pr_info.get("title"),
+                    "pr_author": author,
                     "merged": False,
                 }
             elif state == "MERGED":
@@ -888,6 +926,7 @@ def _check_existing_pr_for_package(
                     "branch": expected_branch,
                     "pr_url": pr_info.get("url"),
                     "pr_title": pr_info.get("title"),
+                    "pr_author": author,
                     "merged": True,
                 }
     except Exception:
@@ -899,11 +938,17 @@ def _check_existing_pr_for_package(
         search_query = f"{package}: package update"
         result = subprocess.run(
             [
-                "gh", "pr", "list",
-                "--state", "merged",
-                "--search", search_query,
-                "--json", "url,title,mergedAt",
-                "--limit", "5",
+                "gh",
+                "pr",
+                "list",
+                "--state",
+                "merged",
+                "--search",
+                search_query,
+                "--json",
+                "url,title,mergedAt,author",
+                "--limit",
+                "5",
             ],
             cwd=repo_root,
             capture_output=True,
@@ -912,16 +957,19 @@ def _check_existing_pr_for_package(
         )
         if result.returncode == 0 and result.stdout.strip():
             import json as json_mod
+
             prs = json_mod.loads(result.stdout.strip())
             # Look for a PR with matching package name and 0.14 in title
             for pr in prs:
                 title = pr.get("title", "")
+                author = (pr.get("author") or {}).get("login")
                 # Match PRs like "adi-adxl345: package update to v0.2.0, ato:^0.14.0"
                 if title.startswith(f"{package}:") and "0.14" in title:
                     return {
                         "branch": expected_branch,
                         "pr_url": pr.get("url"),
                         "pr_title": title,
+                        "pr_author": author,
                         "merged": True,
                     }
     except Exception:
@@ -965,7 +1013,9 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
     # Patterns for matching errors/warnings
     error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
     warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
-    traceback_pattern = re.compile(r"^Traceback \(most recent call last\):", re.MULTILINE)
+    traceback_pattern = re.compile(
+        r"^Traceback \(most recent call last\):", re.MULTILINE
+    )
 
     def extract_from_log(
         log_path: Path,
@@ -994,7 +1044,11 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
                 continue
 
             if in_traceback:
-                if not line.strip() or error_pattern.search(line) or warning_pattern.search(line):
+                if (
+                    not line.strip()
+                    or error_pattern.search(line)
+                    or warning_pattern.search(line)
+                ):
                     in_traceback = False
                 else:
                     continue
@@ -1002,23 +1056,27 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
             if error_pattern.search(line):
                 clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
                 if len(clean_line) > 10:
-                    issues.append({
-                        "type": "error",
-                        "message": clean_line,
-                        "source": source_label,
-                        "stage": stage,
-                        "line_num": line_num,
-                    })
+                    issues.append(
+                        {
+                            "type": "error",
+                            "message": clean_line,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                        }
+                    )
             elif warning_pattern.search(line):
                 clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
                 if len(clean_line) > 10:
-                    issues.append({
-                        "type": "warning",
-                        "message": clean_line,
-                        "source": source_label,
-                        "stage": stage,
-                        "line_num": line_num,
-                    })
+                    issues.append(
+                        {
+                            "type": "warning",
+                            "message": clean_line,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                        }
+                    )
 
     # Extract from review-station build logs
     for b in job.build_names:
@@ -1043,11 +1101,13 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
 
     # Sort: errors first, then by stage, then by line number
     stage_order = {"build": 0, "verify": 1, "other": 2}
-    issues.sort(key=lambda x: (
-        0 if x["type"] == "error" else 1,
-        stage_order.get(x["stage"], 2),
-        x["line_num"],
-    ))
+    issues.sort(
+        key=lambda x: (
+            0 if x["type"] == "error" else 1,
+            stage_order.get(x["stage"], 2),
+            x["line_num"],
+        )
+    )
 
     # Deduplicate similar messages
     seen_messages: set[str] = set()
@@ -1112,25 +1172,35 @@ def _update_todo_auto_section(
     auto.append(f"**Package**: `{job.package}`")
     auto.append(f"**Directory**: `{job.package_dir}`")
     auto.append("")
-    auto.append("Review and fix the errors and warnings listed below. The main source files are:")
+    auto.append(
+        "Review and fix the errors and warnings listed below. The main source files are:"
+    )
     auto.append(f"- `{job.package_dir}/{job.package}.ato` - main module")
     auto.append(f"- `{job.package_dir}/usage.ato` - usage example")
     auto.append(f"- `{job.package_dir}/ato.yaml` - build config")
     auto.append("")
     auto.append("### ⚠️ IMPORTANT: Use API to communicate with user!")
     auto.append("")
-    auto.append("The user is watching a live dashboard. **Use these commands to communicate:**")
-    auto.append("1. **Send `started` message FIRST** - so user knows you're working on it")
+    auto.append(
+        "The user is watching a live dashboard. **Use these commands to communicate:**"
+    )
+    auto.append(
+        "1. **Send `started` message FIRST** - so user knows you're working on it"
+    )
     auto.append("2. **Post progress updates** - user sees these in real-time")
     auto.append("3. **Request help if stuck** - highlights package for user attention")
-    auto.append("4. **Send `finished` message LAST** - when done (success or giving up)")
+    auto.append(
+        "4. **Send `finished` message LAST** - when done (success or giving up)"
+    )
     auto.append("")
     auto.append("### API Commands")
     auto.append("")
     auto.append("```bash")
     auto.append("# FIRST: Mark yourself as working on this package")
     auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
-    auto.append('  -d \'{"message": "Starting work on this package", "type": "started"}\'')
+    auto.append(
+        '  -d \'{"message": "Starting work on this package", "type": "started"}\''
+    )
     auto.append("")
     auto.append("# Check build queue health")
     auto.append(f"curl -s '{health_url}' | jq .")
@@ -1155,7 +1225,9 @@ def _update_todo_auto_section(
     auto.append("")
     auto.append("# Post a progress message (shown live in UI)")
     auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
-    auto.append('  -d \'{"message": "Working on fixing import errors...", "type": "progress"}\'')
+    auto.append(
+        '  -d \'{"message": "Working on fixing import errors...", "type": "progress"}\''
+    )
     auto.append("")
     auto.append("# Request human assistance (highlights package in UI)")
     auto.append(f"curl -X POST '{help_url}' -H 'Content-Type: application/json' \\")
@@ -1163,14 +1235,20 @@ def _update_todo_auto_section(
     auto.append("")
     auto.append("# LAST: Mark yourself as done (success or giving up)")
     auto.append(f"curl -X POST '{message_url}' -H 'Content-Type: application/json' \\")
-    auto.append('  -d \'{"message": "Fixed all issues, build passes", "type": "finished"}\'')
+    auto.append(
+        '  -d \'{"message": "Fixed all issues, build passes", "type": "finished"}\''
+    )
     auto.append("```")
     auto.append("")
     auto.append("**Tips:**")
     auto.append("- Status shows `current_step` and `build_progress` while building")
-    auto.append("- Use `/api/package/{name}/prioritize` (POST) to bump to front of queue")
+    auto.append(
+        "- Use `/api/package/{name}/prioritize` (POST) to bump to front of queue"
+    )
     auto.append("- Use `/api/package/{name}/stream` (GET) for real-time SSE updates")
-    auto.append("- Message types: `started`, `finished`, `info`, `progress`, `warning`, `error`, `question`")
+    auto.append(
+        "- Message types: `started`, `finished`, `info`, `progress`, `warning`, `error`, `question`"
+    )
     auto.append("")
     auto.append("---")
     auto.append("")
@@ -1317,6 +1395,7 @@ class JobState:
     published_pr_url: str | None = None
     published_pr_title: str | None = None
     published_pr_body: str | None = None
+    published_pr_author: str | None = None  # GitHub username who created the PR
 
     # Flag to skip PR check after manual restart (allows re-publishing to existing branch)
     skip_pr_check: bool = False
@@ -1342,6 +1421,7 @@ class ReviewRun:
         run_dir: Path,
         ato_cmd: list[str],
         keep_picked_parts: bool,
+        skip_datasheets: bool = False,
         open_cmd: str,
         max_ready: int = 10,
         server_origin: str = "http://127.0.0.1:8787",
@@ -1360,6 +1440,7 @@ class ReviewRun:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self.ato_cmd = ato_cmd
         self.keep_picked_parts = keep_picked_parts
+        self.skip_datasheets = skip_datasheets
         self.open_cmd = open_cmd
         self.max_ready = max(1, max_ready)
         self.server_origin = server_origin.rstrip("/")
@@ -1431,6 +1512,7 @@ class ReviewRun:
                     self._mp_cancel,
                     self.ato_cmd,
                     self.keep_picked_parts,
+                    self.skip_datasheets,
                     max(1, (os.cpu_count() or 4) // max(1, self.jobs)),
                 ),
                 daemon=True,
@@ -1468,12 +1550,118 @@ class ReviewRun:
 
         If a package is found to already be published (merged PR or on registry),
         we update its status and cancel any running build for it.
+
+        Priority order:
+        1. Currently building packages (stop wasted builds early)
+        2. Queue order (check what's coming up next)
+        3. Everything else
         """
         # Small delay to let server fully start
         time.sleep(0.5)
 
         with self._lock:
-            packages_to_check = list(self._jobs.keys())
+            # Prioritize: building first, then queue order, then rest
+            building = [
+                n
+                for n, j in self._jobs.items()
+                if j.status in ("building", "verifying")
+            ]
+            queued = [n for n in self._queue if n not in building]
+            rest = [
+                n for n in self._jobs.keys() if n not in building and n not in queued
+            ]
+            packages_to_check = building + queued + rest
+
+            # Fetch author for packages with PR URL but missing author
+            missing_author_with_url = [
+                (n, j.published_pr_url)
+                for n, j in self._jobs.items()
+                if j.published_pr_url and not j.published_pr_author
+            ]
+            # Also find PRs for published packages that don't have a PR URL
+            missing_pr_info = [
+                n
+                for n, j in self._jobs.items()
+                if j.status == "published" and not j.published_pr_url
+            ]
+
+        # Quick pass: fetch author for PRs that are missing it
+        for pkg_name, pr_url in missing_author_with_url:
+            if self._stop:
+                break
+            try:
+                # Use gh pr view with the URL directly
+                result = subprocess.run(
+                    ["gh", "pr", "view", pr_url, "--json", "author"],
+                    cwd=self.packages_repo_root,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    data = json.loads(result.stdout.strip())
+                    author = (data.get("author") or {}).get("login")
+                    if author:
+                        with self._lock:
+                            job = self._jobs.get(pkg_name)
+                            if job:
+                                job.published_pr_author = author
+                                print(f"[PR AUTHOR] {pkg_name}: @{author}", flush=True)
+                        self._write_state()
+            except Exception:
+                pass
+            time.sleep(0.05)  # Small delay between requests
+
+        # Search for PRs for published packages that don't have PR info
+        for pkg_name in missing_pr_info:
+            if self._stop:
+                break
+            try:
+                # Search for merged PRs by package name
+                search_query = f"{pkg_name}: package update"
+                result = subprocess.run(
+                    [
+                        "gh",
+                        "pr",
+                        "list",
+                        "--state",
+                        "merged",
+                        "--search",
+                        search_query,
+                        "--json",
+                        "url,title,author",
+                        "--limit",
+                        "5",
+                    ],
+                    cwd=self.packages_repo_root,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    prs = json.loads(result.stdout.strip())
+                    for pr in prs:
+                        title = pr.get("title", "")
+                        # Match PRs like "pkg-name: package update to vX.Y.Z"
+                        if title.startswith(f"{pkg_name}:"):
+                            author = (pr.get("author") or {}).get("login")
+                            pr_url = pr.get("url")
+                            with self._lock:
+                                job = self._jobs.get(pkg_name)
+                                if job:
+                                    if pr_url:
+                                        job.published_pr_url = pr_url
+                                    if author:
+                                        job.published_pr_author = author
+                                    print(
+                                        f"[PR SEARCH] {pkg_name}: @{author}, url={pr_url}",
+                                        flush=True,
+                                    )
+                            self._write_state()
+                            break
+            except Exception:
+                pass
+            time.sleep(0.1)  # Rate limit
 
         for pkg_name in packages_to_check:
             if self._stop:
@@ -1494,7 +1682,9 @@ class ReviewRun:
                     ident = job.package_identifier
                     ident_path = quote(ident, safe="/")
                     url = f"{self.registry_url}/v1/package/{ident_path}"
-                    req = Request(url, headers={"User-Agent": "packages-review-station/0"})
+                    req = Request(
+                        url, headers={"User-Agent": "packages-review-station/0"}
+                    )
                     with urlopen(req, timeout=5) as r:
                         data = json.loads(r.read().decode("utf-8"))
                     latest_version = ((data or {}).get("info") or {}).get("version", "")
@@ -1502,10 +1692,14 @@ class ReviewRun:
                     # Get release info to check requires_atopile
                     if latest_version:
                         rel_url = f"{self.registry_url}/v1/package/{ident_path}/releases/{quote(latest_version, safe='')}"
-                        rel_req = Request(rel_url, headers={"User-Agent": "packages-review-station/0"})
+                        rel_req = Request(
+                            rel_url, headers={"User-Agent": "packages-review-station/0"}
+                        )
                         with urlopen(rel_req, timeout=5) as rr:
                             rel_data = json.loads(rr.read().decode("utf-8"))
-                        requires_atopile = ((rel_data or {}).get("info") or {}).get("requires_atopile", "")
+                        requires_atopile = ((rel_data or {}).get("info") or {}).get(
+                            "requires_atopile", ""
+                        )
 
                         # Already published for 0.14.x?
                         if re.match(r"^\^?0\.14\.\d+", requires_atopile):
@@ -1560,6 +1754,7 @@ class ReviewRun:
                             job.published_branch = pr_info.get("branch")
                             job.published_pr_url = pr_info.get("pr_url")
                             job.published_pr_title = pr_info.get("pr_title")
+                            job.published_pr_author = pr_info.get("pr_author")
                             job.status = new_status
 
                             # Remove from queue if still queued
@@ -1609,9 +1804,7 @@ class ReviewRun:
                 1 for j in self._jobs.values() if j.status in ("awaiting_review",)
             )
             in_flight = sum(
-                1
-                for j in self._jobs.values()
-                if j.status in ("building", "verifying")
+                1 for j in self._jobs.values() if j.status in ("building", "verifying")
             )
             if ready >= self.max_ready:
                 return
@@ -1714,7 +1907,11 @@ class ReviewRun:
                     j.error = j.error or f"unknown worker status: {status!r}"
 
                 # Auto-resume jobs that were paused for priority rebuild
-                if j.status == "paused" and j.skip_reason and "paused for priority rebuild" in j.skip_reason:
+                if (
+                    j.status == "paused"
+                    and j.skip_reason
+                    and "paused for priority rebuild" in j.skip_reason
+                ):
                     j.status = "not_started"
                     j.cancel_requested = False
                     j.skip_reason = None
@@ -1734,6 +1931,7 @@ class ReviewRun:
                         j.published_branch = existing.get("branch")
                         j.published_pr_url = existing.get("pr_url")
                         j.published_pr_title = existing.get("pr_title")
+                        j.published_pr_author = existing.get("pr_author")
                         if existing.get("merged"):
                             # PR was already merged - package is published for this series
                             j.status = "published"
@@ -1771,7 +1969,9 @@ class ReviewRun:
         self._state_cache = payload
         # Compact JSON: much cheaper to generate and transmit than pretty JSON.
         self._state_cache_json = (
-            json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+            json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode(
+                "utf-8"
+            )
             + b"\n"
         )
 
@@ -1824,7 +2024,9 @@ class ReviewRun:
             todo_path=p, job=job, server_origin=self.server_origin
         )
 
-    def add_agent_message(self, package: str, message: str, msg_type: str = "info") -> dict[str, Any]:
+    def add_agent_message(
+        self, package: str, message: str, msg_type: str = "info"
+    ) -> dict[str, Any]:
         """
         Add a message from an AI agent. Messages are stored in memory and shown in the UI.
 
@@ -1895,12 +2097,14 @@ class ReviewRun:
             job.needs_input_reason = reason
             job.needs_input_at = _now_ts()
             # Also add as a message
-            job.agent_messages.append({
-                "id": f"msg-{len(job.agent_messages)}",
-                "type": "question",
-                "message": f"🆘 Help requested: {reason}",
-                "timestamp": _now_ts(),
-            })
+            job.agent_messages.append(
+                {
+                    "id": f"msg-{len(job.agent_messages)}",
+                    "type": "question",
+                    "message": f"🆘 Help requested: {reason}",
+                    "timestamp": _now_ts(),
+                }
+            )
         self._write_state()
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
@@ -1950,7 +2154,9 @@ class ReviewRun:
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
-    def restart(self, package: str, priority: bool = True, clear_publish_state: bool = True) -> None:
+    def restart(
+        self, package: str, priority: bool = True, clear_publish_state: bool = True
+    ) -> None:
         """
         Restart a package build.
 
@@ -1972,7 +2178,8 @@ class ReviewRun:
             # Priority restart: pause another running job to make room
             if priority:
                 running_jobs = [
-                    (name, j) for name, j in self._jobs.items()
+                    (name, j)
+                    for name, j in self._jobs.items()
                     if j.status in ("building", "verifying") and name != package
                 ]
                 if running_jobs:
@@ -2015,6 +2222,7 @@ class ReviewRun:
                 job.published_pr_url = None
                 job.published_pr_title = None
                 job.published_pr_body = None
+                job.published_pr_author = None
                 # Skip PR check after rebuild so status stays as awaiting_review
                 job.skip_pr_check = True
             job.cancel_requested = False
@@ -2190,11 +2398,16 @@ class ReviewRun:
         job = self.get_job(package)
         if not job:
             raise KeyError(package)
+
+        # packages_repo_root is already the git repo root (e.g., /path/to/packages)
+        # packages are in packages_repo_root/packages/<name>
+        repo = self.packages_repo_root
         pkg_rel = f"packages/{package}"
 
         shown_pathspecs = [
             f":(glob){pkg_rel}/**/*.ato",
             f":(glob){pkg_rel}/**/README.md",
+            f":(glob){pkg_rel}/ato.yaml",
             f":(exclude,glob){pkg_rel}/**/parts/**",
         ]
 
@@ -2225,10 +2438,11 @@ class ReviewRun:
             return dict(sorted(c.items(), key=lambda kv: (-kv[1], kv[0])))
 
         for base in ("origin/main", "main"):
-            # Full change list for the package dir
+            # Use "base" (not "base...HEAD") to include working directory changes
+            # This shows uncommitted changes as they're being edited
             all_r = subprocess.run(
-                ["git", "diff", "--name-only", f"{base}...HEAD", "--", pkg_rel],
-                cwd=self.packages_repo_root,
+                ["git", "diff", "--name-only", base, "--", pkg_rel],
+                cwd=repo,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2241,11 +2455,11 @@ class ReviewRun:
                     "git",
                     "diff",
                     "--name-only",
-                    f"{base}...HEAD",
+                    base,
                     "--",
                     *shown_pathspecs,
                 ],
-                cwd=self.packages_repo_root,
+                cwd=repo,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2254,8 +2468,8 @@ class ReviewRun:
                 continue
 
             diff_r = subprocess.run(
-                ["git", "diff", f"{base}...HEAD", "--", *shown_pathspecs],
-                cwd=self.packages_repo_root,
+                ["git", "diff", base, "--", *shown_pathspecs],
+                cwd=repo,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2571,8 +2785,9 @@ class ReviewRun:
         # Generate commit message (now that we know the version)
         version_part = f"to v{new_v}, " if new_v else ""
         cm = (
-            commit_message or ""
-        ).strip() or f"{package}: package update {version_part}ato:{target_requires_atopile}"
+            (commit_message or "").strip()
+            or f"{package}: package update {version_part}ato:{target_requires_atopile}"
+        )
         # Add build stats
         cm += "\n\nBuild targets:"
         for b in job.build_names:
@@ -2635,21 +2850,68 @@ class ReviewRun:
                 cwd=wt_repo,
             )
             out.append(
-                {"cmd": ["gh", "pr", "view", "--head", branch, "--json", "url", "--jq", ".url"], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+                {
+                    "cmd": [
+                        "gh",
+                        "pr",
+                        "view",
+                        "--head",
+                        branch,
+                        "--json",
+                        "url",
+                        "--jq",
+                        ".url",
+                    ],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
             )
             if r.returncode == 0 and (r.stdout or "").strip():
                 pr_url = (r.stdout or "").strip()
             else:
                 r = run_gh(
-                    ["pr", "create", "--title", pr_title, "--body", pr_body, "--head", branch, "--base", "main"],
+                    [
+                        "pr",
+                        "create",
+                        "--title",
+                        pr_title,
+                        "--body",
+                        pr_body,
+                        "--head",
+                        branch,
+                        "--base",
+                        "main",
+                    ],
                     cwd=wt_repo,
                 )
                 out.append(
-                    {"cmd": ["gh", "pr", "create", "--title", pr_title, "--body", "<…>", "--head", branch, "--base", "main"], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+                    {
+                        "cmd": [
+                            "gh",
+                            "pr",
+                            "create",
+                            "--title",
+                            pr_title,
+                            "--body",
+                            "<…>",
+                            "--head",
+                            branch,
+                            "--base",
+                            "main",
+                        ],
+                        "rc": r.returncode,
+                        "out": r.stdout,
+                        "err": r.stderr,
+                    }
                 )
                 if r.returncode == 0:
                     # gh prints the URL on success (usually last line)
-                    pr_url = (r.stdout or "").strip().splitlines()[-1] if (r.stdout or "").strip() else None
+                    pr_url = (
+                        (r.stdout or "").strip().splitlines()[-1]
+                        if (r.stdout or "").strip()
+                        else None
+                    )
 
         # Cleanup worktree to avoid accumulating many working dirs.
         run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
@@ -2797,12 +3059,27 @@ class ReviewRun:
             else:
                 # Create new PR
                 r = run_gh(
-                    ["pr", "create", "--title", pr_title, "--body", pr_body, "--head", branch, "--base", "main"],
+                    [
+                        "pr",
+                        "create",
+                        "--title",
+                        pr_title,
+                        "--body",
+                        pr_body,
+                        "--head",
+                        branch,
+                        "--base",
+                        "main",
+                    ],
                     cwd=wt_dir,
                 )
                 out.append({"cmd": "pr create", "rc": r.returncode, "err": r.stderr})
                 if r.returncode == 0:
-                    pr_url = (r.stdout or "").strip().splitlines()[-1] if (r.stdout or "").strip() else None
+                    pr_url = (
+                        (r.stdout or "").strip().splitlines()[-1]
+                        if (r.stdout or "").strip()
+                        else None
+                    )
 
         # Cleanup worktree
         run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
@@ -2812,7 +3089,9 @@ class ReviewRun:
             job.published_branch = branch
             job.published_at = _now_ts()
             job.published_pr_url = pr_url
-            job.published_pr_title = f"{package}: uprev to v{new_version}" if pr_url else None
+            job.published_pr_title = (
+                f"{package}: uprev to v{new_version}" if pr_url else None
+            )
             job.status = "pr_opened" if pr_url else "branch_pushed"
             job.publish_error = None
         self._write_state()
@@ -2824,6 +3103,120 @@ class ReviewRun:
             "old_version": old_version,
             "new_version": new_version,
             "commands": out,
+        }
+
+    def check_main_diff(self, package: str) -> dict[str, Any]:
+        """
+        Check if local package directory differs from origin/main.
+        Returns diff info if there are changes.
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        # Use the actual repo root (parent of packages_repo_root)
+        # packages_repo_root is typically /path/to/packages/packages
+        # but git commands need /path/to/packages
+        repo = self.packages_repo_root.parent
+        pkg_rel = f"packages/{package}"
+
+        print(
+            f"[DIFF] Checking diff for {package} in {repo}, path={pkg_rel}", flush=True
+        )
+
+        # Fetch latest main
+        r = subprocess.run(
+            ["git", "fetch", "origin", "main"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode != 0:
+            print(f"[DIFF] fetch failed: {r.stderr}", flush=True)
+
+        # Check diff between local and origin/main
+        r = subprocess.run(
+            ["git", "diff", "--stat", "origin/main", "--", pkg_rel],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if r.returncode != 0:
+            print(f"[DIFF] diff --stat failed: {r.stderr}", flush=True)
+
+        has_diff = bool(r.stdout.strip())
+
+        # Get full diff if there are changes
+        diff_text = ""
+        if has_diff:
+            r2 = subprocess.run(
+                ["git", "diff", "origin/main", "--", pkg_rel],
+                cwd=repo,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            diff_text = r2.stdout
+
+        return {
+            "has_diff": has_diff,
+            "diff_stat": r.stdout.strip() if has_diff else "",
+            "diff": diff_text,
+        }
+
+    def sync_from_main(self, package: str) -> dict[str, Any]:
+        """
+        Sync local package directory from origin/main.
+        Essentially: git checkout origin/main -- packages/<package>/
+        """
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        # Use the actual repo root (parent of packages_repo_root)
+        repo = self.packages_repo_root.parent
+        pkg_rel = f"packages/{package}"
+
+        print(f"[SYNC] Syncing {package} from origin/main in {repo}", flush=True)
+
+        # Fetch latest main
+        r = subprocess.run(
+            ["git", "fetch", "origin", "main"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git fetch failed: {r.stderr}")
+
+        # Checkout package directory from origin/main
+        r = subprocess.run(
+            ["git", "checkout", "origin/main", "--", pkg_rel],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git checkout failed: {r.stderr}")
+
+        # Get the version that was synced
+        ato_yaml = repo / pkg_rel / "ato.yaml"
+        version = None
+        if ato_yaml.exists():
+            txt = ato_yaml.read_text(encoding="utf-8")
+            m = re.search(r'(?m)^\s*version:\s*"?(\d+\.\d+\.\d+)"?\s*$', txt)
+            if m:
+                version = m.group(1)
+
+        return {
+            "synced": True,
+            "package": package,
+            "version": version,
         }
 
     def open_kicad(self, package: str, build: str) -> None:
@@ -2898,11 +3291,7 @@ class ReviewRun:
         prompt = f"Please read {todo_file} and fix the package following the instructions inside. The file contains build errors/warnings and API endpoints for triggering rebuilds."
 
         # Start cursor agent in the package directory
-        cmd = [
-            cursor_agent, "agent",
-            "--workspace", str(job.package_dir),
-            prompt
-        ]
+        cmd = [cursor_agent, "agent", "--workspace", str(job.package_dir), prompt]
 
         # Start in background - agent runs interactively in a new terminal
         proc = subprocess.Popen(
@@ -2933,7 +3322,9 @@ class ReviewRun:
             raise KeyError(package)
 
         run_logs_dir = (Path(job.run_dir) / "logs").resolve()
-        pkg_build_latest = (Path(job.package_dir) / "build" / "logs" / "latest").resolve()
+        pkg_build_latest = (
+            Path(job.package_dir) / "build" / "logs" / "latest"
+        ).resolve()
 
         def safe_rel_child(root: Path, child: Path) -> bool:
             try:
@@ -2942,7 +3333,11 @@ class ReviewRun:
             except Exception:
                 return False
 
-        stages: dict[str, list[dict[str, Any]]] = {"build": [], "verify": [], "other": []}
+        stages: dict[str, list[dict[str, Any]]] = {
+            "build": [],
+            "verify": [],
+            "other": [],
+        }
 
         # Review-station build logs (one per build target)
         for b in job.build_names:
@@ -3012,7 +3407,11 @@ class ReviewRun:
                         continue
                     name_l = p.name.lower()
                     e = 1 if ".error." in name_l or name_l.endswith(".error.log") else 0
-                    w = 1 if ".warning." in name_l or name_l.endswith(".warning.log") else 0
+                    w = (
+                        1
+                        if ".warning." in name_l or name_l.endswith(".warning.log")
+                        else 0
+                    )
                     stages["build"].append(
                         {
                             "id": f"pkg__latest__{b}__{p.name}",
@@ -3041,7 +3440,9 @@ class ReviewRun:
             raise KeyError(package)
 
         run_logs_dir = (Path(job.run_dir) / "logs").resolve()
-        pkg_build_latest = (Path(job.package_dir) / "build" / "logs" / "latest").resolve()
+        pkg_build_latest = (
+            Path(job.package_dir) / "build" / "logs" / "latest"
+        ).resolve()
 
         issues: list[dict[str, Any]] = []
 
@@ -3050,7 +3451,9 @@ class ReviewRun:
         error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
         warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
         # Also match Python traceback starts
-        traceback_pattern = re.compile(r"^Traceback \(most recent call last\):", re.MULTILINE)
+        traceback_pattern = re.compile(
+            r"^Traceback \(most recent call last\):", re.MULTILINE
+        )
 
         def extract_from_log(
             log_path: Path,
@@ -3084,39 +3487,47 @@ class ReviewRun:
 
                 if in_traceback:
                     # End of traceback: blank line or new log entry
-                    if not line.strip() or (error_pattern.search(line) or warning_pattern.search(line)):
+                    if not line.strip() or (
+                        error_pattern.search(line) or warning_pattern.search(line)
+                    ):
                         in_traceback = False
                     else:
                         continue
 
                 # Match explicit ERROR/WARNING markers
                 # Determine log_id - use override if provided, otherwise fall back to run__ prefix
-                effective_log_id = log_id_override if log_id_override else f"run__{log_path.name}"
+                effective_log_id = (
+                    log_id_override if log_id_override else f"run__{log_path.name}"
+                )
 
                 if error_pattern.search(line):
                     # Clean up the line - remove ANSI codes and excessive whitespace
                     clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
                     # Skip empty or too-short messages
                     if len(clean_line) > 10:
-                        issues.append({
-                            "type": "error",
-                            "message": clean_line,
-                            "source": source_label,
-                            "stage": stage,
-                            "line_num": line_num,
-                            "log_id": effective_log_id,
-                        })
+                        issues.append(
+                            {
+                                "type": "error",
+                                "message": clean_line,
+                                "source": source_label,
+                                "stage": stage,
+                                "line_num": line_num,
+                                "log_id": effective_log_id,
+                            }
+                        )
                 elif warning_pattern.search(line):
                     clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
                     if len(clean_line) > 10:
-                        issues.append({
-                            "type": "warning",
-                            "message": clean_line,
-                            "source": source_label,
-                            "stage": stage,
-                            "line_num": line_num,
-                            "log_id": effective_log_id,
-                        })
+                        issues.append(
+                            {
+                                "type": "warning",
+                                "message": clean_line,
+                                "source": source_label,
+                                "stage": stage,
+                                "line_num": line_num,
+                                "log_id": effective_log_id,
+                            }
+                        )
 
         # Extract from review-station build logs
         for b in job.build_names:
@@ -3141,15 +3552,19 @@ class ReviewRun:
                         continue
                     # Use pkg__latest__<build>__<filename> format for package logs
                     pkg_log_id = f"pkg__latest__{b}__{p.name}"
-                    extract_from_log(p, f"{b} / {p.name}", "build", log_id_override=pkg_log_id)
+                    extract_from_log(
+                        p, f"{b} / {p.name}", "build", log_id_override=pkg_log_id
+                    )
 
         # Sort: errors first, then by stage (build before verify), then by line number
         stage_order = {"build": 0, "verify": 1, "other": 2}
-        issues.sort(key=lambda x: (
-            0 if x["type"] == "error" else 1,
-            stage_order.get(x["stage"], 2),
-            x["line_num"],
-        ))
+        issues.sort(
+            key=lambda x: (
+                0 if x["type"] == "error" else 1,
+                stage_order.get(x["stage"], 2),
+                x["line_num"],
+            )
+        )
 
         # Deduplicate similar messages (keep first occurrence)
         seen_messages: set[str] = set()
@@ -3301,26 +3716,51 @@ class Server:
                         # Health check for AI agents to verify service is running
                         with run._lock:
                             total = len(run._jobs)
-                            building = sum(1 for j in run._jobs.values() if j.status in ("building", "verifying"))
-                            queued = sum(1 for j in run._jobs.values() if j.status == "not_started")
-                            completed = sum(1 for j in run._jobs.values() if j.status in ("awaiting_review", "approved", "pr_opened", "branch_pushed"))
-                            errors = sum(1 for j in run._jobs.values() if j.status == "error")
-                        return self._send_json(HTTPStatus.OK, {
-                            "status": "ok",
-                            "total_packages": total,
-                            "building": building,
-                            "queued": queued,
-                            "completed": completed,
-                            "errors": errors,
-                            "queue_order": run._queue[:10],  # First 10 in queue
-                        })
+                            building = sum(
+                                1
+                                for j in run._jobs.values()
+                                if j.status in ("building", "verifying")
+                            )
+                            queued = sum(
+                                1
+                                for j in run._jobs.values()
+                                if j.status == "not_started"
+                            )
+                            completed = sum(
+                                1
+                                for j in run._jobs.values()
+                                if j.status
+                                in (
+                                    "awaiting_review",
+                                    "approved",
+                                    "pr_opened",
+                                    "branch_pushed",
+                                )
+                            )
+                            errors = sum(
+                                1 for j in run._jobs.values() if j.status == "error"
+                            )
+                        return self._send_json(
+                            HTTPStatus.OK,
+                            {
+                                "status": "ok",
+                                "total_packages": total,
+                                "building": building,
+                                "queued": queued,
+                                "completed": completed,
+                                "errors": errors,
+                                "queue_order": run._queue[:10],  # First 10 in queue
+                            },
+                        )
 
                     if path.startswith("/api/package/") and path.endswith("/diff"):
                         pkg = unquote(
                             path.removeprefix("/api/package/").removesuffix("/diff")
                         ).strip("/")
                         try:
-                            return self._send_json(HTTPStatus.OK, run.git_diff_info(pkg))
+                            return self._send_json(
+                                HTTPStatus.OK, run.git_diff_info(pkg)
+                            )
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
@@ -3352,7 +3792,9 @@ class Server:
                         ).strip("/")
                         try:
                             messages = run.get_agent_messages(pkg)
-                            return self._send_json(HTTPStatus.OK, {"package": pkg, "messages": messages})
+                            return self._send_json(
+                                HTTPStatus.OK, {"package": pkg, "messages": messages}
+                            )
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
@@ -3377,6 +3819,7 @@ class Server:
                         self.end_headers()
 
                         import json as _json
+
                         last_status = None
                         last_progress = None
                         last_msg_count = 0
@@ -3390,10 +3833,11 @@ class Server:
                                 current_progress = job.build_progress
                                 current_msg_count = len(job.agent_messages)
 
-                                if (current_status != last_status or
-                                    current_progress != last_progress or
-                                    current_msg_count != last_msg_count):
-
+                                if (
+                                    current_status != last_status
+                                    or current_progress != last_progress
+                                    or current_msg_count != last_msg_count
+                                ):
                                     event_data = {
                                         "package": pkg,
                                         "status": job.status,
@@ -3401,9 +3845,13 @@ class Server:
                                         "current_step": job.current_step,
                                         "error": job.error,
                                         "finished": job.finished_at is not None,
-                                        "messages": job.agent_messages[-5:] if job.agent_messages else [],
+                                        "messages": job.agent_messages[-5:]
+                                        if job.agent_messages
+                                        else [],
                                     }
-                                    self.wfile.write(f"data: {_json.dumps(event_data)}\n\n".encode())
+                                    self.wfile.write(
+                                        f"data: {_json.dumps(event_data)}\n\n".encode()
+                                    )
                                     self.wfile.flush()
 
                                     last_status = current_status
@@ -3421,7 +3869,9 @@ class Server:
                                         "verify_rc": job.verify_rc,
                                         "error": job.error,
                                     }
-                                    self.wfile.write(f"data: {_json.dumps(final_data)}\n\n".encode())
+                                    self.wfile.write(
+                                        f"data: {_json.dumps(final_data)}\n\n".encode()
+                                    )
                                     self.wfile.flush()
                                     break
 
@@ -3460,8 +3910,13 @@ class Server:
                         if job.started_at and not job.finished_at:
                             try:
                                 from datetime import datetime
-                                started = datetime.fromisoformat(job.started_at.replace("Z", "+00:00"))
-                                elapsed = (datetime.now(started.tzinfo) - started).total_seconds()
+
+                                started = datetime.fromisoformat(
+                                    job.started_at.replace("Z", "+00:00")
+                                )
+                                elapsed = (
+                                    datetime.now(started.tzinfo) - started
+                                ).total_seconds()
                             except Exception:
                                 pass
                         # Calculate queue position
@@ -3470,7 +3925,13 @@ class Server:
                         if job.status == "not_started":
                             try:
                                 queue_position = run._queue.index(pkg) + 1
-                                queue_total = len([p for p in run._queue if run._jobs[p].status == "not_started"])
+                                queue_total = len(
+                                    [
+                                        p
+                                        for p in run._queue
+                                        if run._jobs[p].status == "not_started"
+                                    ]
+                                )
                             except (ValueError, KeyError):
                                 pass
                         # Return concise status for AI consumption
@@ -3480,7 +3941,9 @@ class Server:
                             "current_step": job.current_step,
                             "build_progress": job.build_progress,
                             "elapsed_seconds": round(elapsed, 1) if elapsed else None,
-                            "queue_position": f"{queue_position} of {queue_total}" if queue_position else None,
+                            "queue_position": f"{queue_position} of {queue_total}"
+                            if queue_position
+                            else None,
                             "error": job.error,
                             "build_rc": dict(job.build_rc),
                             "verify_rc": job.verify_rc,
@@ -3498,6 +3961,25 @@ class Server:
                             },
                         }
                         return self._send_json(HTTPStatus.OK, status_info)
+
+                    # GET /api/package/{name}/main_diff - check if package differs from origin/main
+                    if path.startswith("/api/package/") and path.endswith("/main_diff"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/main_diff"
+                            )
+                        ).strip("/")
+                        try:
+                            result = run.check_main_diff(pkg)
+                            return self._send_json(HTTPStatus.OK, result)
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
 
                     if path.startswith("/api/package/"):
                         pkg = unquote(path.removeprefix("/api/package/")).strip("/")
@@ -3729,7 +4211,9 @@ class Server:
 
                     return self._send(HTTPStatus.OK, ct, p.read_bytes())
                 except Exception as e:
-                    _log_line(f"{_now_ts()} EXC GET {self.path}: {type(e).__name__}: {e}")
+                    _log_line(
+                        f"{_now_ts()} EXC GET {self.path}: {type(e).__name__}: {e}"
+                    )
                     return self._send_json(
                         HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                     )
@@ -3808,9 +4292,13 @@ class Server:
                                 HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                             )
 
-                    if path.startswith("/api/package/") and path.endswith("/open_cursor"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/open_cursor"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/open_cursor")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/open_cursor"
+                            )
                         ).strip("/")
                         try:
                             payload = self._read_json()
@@ -3861,7 +4349,9 @@ class Server:
                         ).strip("/")
                         try:
                             result = run.start_agent_for_package(pkg)
-                            return self._send_json(HTTPStatus.OK, {"ok": True, **result})
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, **result}
+                            )
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
@@ -3902,10 +4392,13 @@ class Server:
                             msg_type = payload.get("type", "info")
                             if not message:
                                 return self._send_json(
-                                    HTTPStatus.BAD_REQUEST, {"error": "message is required"}
+                                    HTTPStatus.BAD_REQUEST,
+                                    {"error": "message is required"},
                                 )
                             msg_obj = run.add_agent_message(pkg, message, msg_type)
-                            return self._send_json(HTTPStatus.OK, {"ok": True, "message": msg_obj})
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "message": msg_obj}
+                            )
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
@@ -3916,15 +4409,21 @@ class Server:
                             )
 
                     # AI agent request help endpoint
-                    if path.startswith("/api/package/") and path.endswith("/request_help"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/request_help"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/request_help")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/request_help"
+                            )
                         ).strip("/")
                         try:
                             payload = self._read_json()
                             reason = payload.get("reason", "AI needs human assistance")
                             run.request_user_help(pkg, reason)
-                            return self._send_json(HTTPStatus.OK, {"ok": True, "status": "needs_input"})
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "status": "needs_input"}
+                            )
                         except KeyError:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
@@ -3939,9 +4438,13 @@ class Server:
                             )
 
                     # Resolve help request endpoint
-                    if path.startswith("/api/package/") and path.endswith("/resolve_help"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/resolve_help"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/resolve_help")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/resolve_help"
+                            )
                         ).strip("/")
                         try:
                             run.resolve_help_request(pkg)
@@ -3952,9 +4455,13 @@ class Server:
                             )
 
                     # Clear agent messages endpoint
-                    if path.startswith("/api/package/") and path.endswith("/clear_messages"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/clear_messages"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/clear_messages")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/clear_messages"
+                            )
                         ).strip("/")
                         try:
                             run.clear_agent_messages(pkg)
@@ -3996,9 +4503,13 @@ class Server:
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
 
-                    if path.startswith("/api/package/") and path.endswith("/prioritize"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/prioritize"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/prioritize")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/prioritize"
+                            )
                         ).strip("/")
                         try:
                             run.prioritize(pkg)
@@ -4014,7 +4525,9 @@ class Server:
 
                     if path.startswith("/api/package/") and path.endswith("/unapprove"):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/unapprove")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/unapprove"
+                            )
                         ).strip("/")
                         try:
                             run.unapprove(pkg)
@@ -4041,22 +4554,34 @@ class Server:
                             target_requires_atopile = (
                                 payload.get("target_requires_atopile") or "^0.14.0"
                             )
-                            print(f"[PUBLISH] {pkg} reviewer={reviewer} target={target_requires_atopile}", flush=True)
-                            _log_line(f"{_now_ts()} PUBLISH: {pkg} reviewer={reviewer} target={target_requires_atopile}")
+                            print(
+                                f"[PUBLISH] {pkg} reviewer={reviewer} target={target_requires_atopile}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PUBLISH: {pkg} reviewer={reviewer} target={target_requires_atopile}"
+                            )
                             res = run.publish(
                                 pkg,
                                 commit_message=commit_message,
                                 reviewer=reviewer,
                                 target_requires_atopile=target_requires_atopile,
                             )
-                            print(f"[PUBLISH] {pkg} SUCCESS pr_url={res.get('pr_url')}", flush=True)
-                            _log_line(f"{_now_ts()} PUBLISH: {pkg} SUCCESS pr_url={res.get('pr_url')}")
+                            print(
+                                f"[PUBLISH] {pkg} SUCCESS pr_url={res.get('pr_url')}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PUBLISH: {pkg} SUCCESS pr_url={res.get('pr_url')}"
+                            )
                             return self._send_json(
                                 HTTPStatus.OK, {"ok": True, "result": res}
                             )
                         except PermissionError as e:
                             print(f"[PUBLISH] {pkg} PERMISSION ERROR: {e}", flush=True)
-                            _log_line(f"{_now_ts()} PUBLISH: {pkg} PERMISSION ERROR: {e}")
+                            _log_line(
+                                f"{_now_ts()} PUBLISH: {pkg} PERMISSION ERROR: {e}"
+                            )
                             return self._send_json(
                                 HTTPStatus.FORBIDDEN, {"error": str(e)}
                             )
@@ -4067,8 +4592,13 @@ class Server:
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
                         except Exception as e:
-                            print(f"[PUBLISH] {pkg} FAILED: {type(e).__name__}: {e}", flush=True)
-                            _log_line(f"{_now_ts()} PUBLISH: {pkg} FAILED: {type(e).__name__}: {e}")
+                            print(
+                                f"[PUBLISH] {pkg} FAILED: {type(e).__name__}: {e}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PUBLISH: {pkg} FAILED: {type(e).__name__}: {e}"
+                            )
                             # Record the failure on the job for visibility in the UI.
                             try:
                                 j = run.get_job(pkg)
@@ -4095,7 +4625,10 @@ class Server:
                             payload = self._read_json()
                             reviewer = payload.get("reviewer")
                             res = run.uprev_and_publish(pkg, reviewer=reviewer)
-                            print(f"[UPREV] {pkg} SUCCESS: {res.get('old_version')} -> {res.get('new_version')}, pr_url={res.get('pr_url')}", flush=True)
+                            print(
+                                f"[UPREV] {pkg} SUCCESS: {res.get('old_version')} -> {res.get('new_version')}, pr_url={res.get('pr_url')}",
+                                flush=True,
+                            )
                             return self._send_json(
                                 HTTPStatus.OK, {"ok": True, "result": res}
                             )
@@ -4105,16 +4638,47 @@ class Server:
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
                         except Exception as e:
-                            print(f"[UPREV] {pkg} FAILED: {type(e).__name__}: {e}", flush=True)
+                            print(
+                                f"[UPREV] {pkg} FAILED: {type(e).__name__}: {e}",
+                                flush=True,
+                            )
                             return self._send_json(
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
 
-                    return self._send_json(
-                        HTTPStatus.NOT_FOUND, {"error": "not found"}
-                    )
+                    # POST /api/package/{name}/sync - sync package from origin/main
+                    if path.startswith("/api/package/") and path.endswith("/sync"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/sync")
+                        ).strip("/")
+                        print(f"[SYNC] Syncing {pkg} from origin/main", flush=True)
+                        try:
+                            res = run.sync_from_main(pkg)
+                            print(
+                                f"[SYNC] {pkg} SUCCESS: synced to v{res.get('version')}",
+                                flush=True,
+                            )
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "result": res}
+                            )
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            print(
+                                f"[SYNC] {pkg} FAILED: {type(e).__name__}: {e}",
+                                flush=True,
+                            )
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    return self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
                 except Exception as e:
-                    _log_line(f"{_now_ts()} EXC POST {self.path}: {type(e).__name__}: {e}")
+                    _log_line(
+                        f"{_now_ts()} EXC POST {self.path}: {type(e).__name__}: {e}"
+                    )
                     return self._send_json(
                         HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                     )
@@ -4164,6 +4728,12 @@ def serve(
         bool,
         typer.Option(help="Pass --keep-picked-parts to builds (faster, stable picks)."),
     ] = True,
+    skip_datasheets: Annotated[
+        bool,
+        typer.Option(
+            help="Pass --skip-datasheets to builds (skip downloading datasheets)."
+        ),
+    ] = False,
     out_dir: Annotated[
         Path,
         typer.Option(
@@ -4295,6 +4865,7 @@ def serve(
         run_dir=run_dir,
         ato_cmd=ato_cmd_list,
         keep_picked_parts=keep_picked_parts,
+        skip_datasheets=skip_datasheets,
         open_cmd=open_cmd,
         max_ready=max_ready,
         server_origin=server_origin,
