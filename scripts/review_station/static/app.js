@@ -538,6 +538,7 @@ function renderList() {
   const active = [];      // building, verifying - always at top
   const completed = [];   // error, awaiting_review, approved, etc. - already processed
   const queued = [];      // not_started, paused, skipped - in queue
+  const published = [];   // published, pr_opened, branch_pushed - done, at bottom
 
   for (const name of Object.keys(state.packages)) {
     const j = state.packages[name];
@@ -545,6 +546,8 @@ function renderList() {
       active.push(name);
     } else if (j.status === "not_started" || j.status === "paused" || j.status === "skipped") {
       queued.push(name);
+    } else if (j.status === "published" || j.status === "pr_opened" || j.status === "branch_pushed") {
+      published.push(name);
     } else {
       completed.push(name);
     }
@@ -556,13 +559,13 @@ function renderList() {
     : (a, b) => a.localeCompare(b);
 
   // Active: keep in queue order (first started first)
-  // Completed: sort by user preference
+  // Completed/Queued/Published: sort by user preference
   completed.sort(sortFn);
-  // Queued: sort by user preference (this affects which gets picked next)
   queued.sort(sortFn);
+  published.sort(sortFn);
 
-  // Combine: active first, then completed, then queued
-  const names = [...active, ...completed, ...queued];
+  // Combine: active first, then completed, then queued, then published at bottom
+  const names = [...active, ...completed, ...queued, ...published];
 
   // Apply text filter and status filter
   const visible = names.filter((n) => {
@@ -580,6 +583,7 @@ function renderList() {
       case "error": return j.status === "error" || err > 0;
       case "warning": return warn > 0 && err === 0;
       case "review": return j.status === "awaiting_review" || j.status === "needs_input";
+      case "published": return j.status === "published" || j.status === "pr_opened" || j.status === "branch_pushed";
       case "help": return j.status === "needs_input";
       case "agent": return j.agent_working === true;
       case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";

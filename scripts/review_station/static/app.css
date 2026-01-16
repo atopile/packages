@@ -233,20 +233,22 @@ aside#left {
 }
 .filterRow {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .filterRow #filter {
   flex: 1;
+  min-width: 0;
 }
 .sortBtn {
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 5px 8px;
+  border-radius: 6px;
   border: 1px solid var(--stroke);
   background: var(--card);
   color: var(--text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
+  flex-shrink: 0;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s;
@@ -262,13 +264,13 @@ aside#left {
 /* Status filter buttons */
 .statusFilters {
   display: flex;
-  gap: 4px;
-  flex-wrap: nowrap;
-  margin-top: 8px;
+  gap: 3px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 .statusFilterBtn {
-  padding: 3px 6px;
-  border-radius: 10px;
+  padding: 2px 5px;
+  border-radius: 6px;
   border: 1px solid var(--stroke);
   background: transparent;
   color: var(--muted);
@@ -277,7 +279,6 @@ aside#left {
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 .statusFilterBtn:hover {
   background: rgba(137, 180, 250, 0.1);
@@ -313,6 +314,11 @@ aside#left {
   background: rgba(147, 153, 178, 0.15);
   border-color: var(--ctp-subtext0);
   color: var(--ctp-subtext0);
+}
+.statusFilterBtn[data-status="published"].active {
+  background: rgba(166, 227, 161, 0.2);
+  border-color: var(--ctp-teal);
+  color: var(--ctp-teal);
 }
 .statusFilterBtn[data-status="agent"] {
   border-color: rgba(203, 166, 247, 0.3);
