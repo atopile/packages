@@ -64,7 +64,7 @@ jobs:
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }} --target all --frozen
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
       #TODO: put back -s
