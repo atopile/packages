@@ -1014,6 +1014,8 @@ def _update_todo_auto_section(
 
     message_url = f"{server_origin}/api/package/{pkg_encoded}/message"
     help_url = f"{server_origin}/api/package/{pkg_encoded}/request_help"
+    logs_url = f"{server_origin}/api/package/{pkg_encoded}/logs"
+    health_url = f"{server_origin}/api/health"
 
     auto = []
     auto.append(AUTO_BEGIN)
@@ -1030,8 +1032,14 @@ def _update_todo_auto_section(
     auto.append("### API Commands")
     auto.append("")
     auto.append("```bash")
-    auto.append("# Check current build status")
+    auto.append("# Check build queue health")
+    auto.append(f"curl -s '{health_url}' | jq .")
+    auto.append("")
+    auto.append("# Check current build status (includes progress, elapsed time, hints)")
     auto.append(f"curl -s '{status_url}' | jq .")
+    auto.append("")
+    auto.append("# List available log files")
+    auto.append(f"curl -s '{logs_url}' | jq .")
     auto.append("")
     auto.append("# Trigger a rebuild after making fixes")
     auto.append(f"curl -X POST '{rebuild_url}'")
@@ -1048,7 +1056,12 @@ def _update_todo_auto_section(
     auto.append('  -d \'{"reason": "Need help understanding the circuit topology"}\'')
     auto.append("```")
     auto.append("")
-    auto.append("Message types: `info`, `progress`, `warning`, `error`, `question`")
+    auto.append("**Tips:**")
+    auto.append("- **Send `started` message first** to mark package as being worked on")
+    auto.append("- Send `finished` message when done (success or giving up)")
+    auto.append("- Status shows `current_step` and `build_progress` while building")
+    auto.append("- If build appears stuck, use the restart endpoint")
+    auto.append("- Message types: `started`, `finished`, `info`, `progress`, `warning`, `error`, `question`")
     auto.append("")
     auto.append("---")
     auto.append("")
@@ -1198,6 +1211,8 @@ class JobState:
 
     # AI agent interaction
     agent_messages: list[dict[str, Any]] = field(default_factory=list)
+    agent_working: bool = False  # True if an LLM is actively working on this package
+    agent_working_since: str | None = None
     needs_input_reason: str | None = None  # Why the AI requested help
     needs_input_at: str | None = None
 
@@ -1454,6 +1469,16 @@ class ReviewRun:
                     j.status = "error"
                     j.error = j.error or f"unknown worker status: {status!r}"
 
+                # Auto-resume jobs that were paused for priority rebuild
+                if j.status == "paused" and j.skip_reason and "paused for priority rebuild" in j.skip_reason:
+                    j.status = "not_started"
+                    j.cancel_requested = False
+                    j.skip_reason = None
+                    j.skip_requested_at = None
+                    j.error = None
+                    j.finished_at = None
+                    # Keep partial build results but allow rebuild
+
                 # If build/verify passed, check if there's already a PR for this package
                 if j.status == "awaiting_review":
                     existing = _check_existing_pr_for_package(
@@ -1555,7 +1580,7 @@ class ReviewRun:
         Args:
             package: The package name
             message: The message text
-            msg_type: One of "info", "progress", "warning", "error", "question"
+            msg_type: One of "info", "progress", "warning", "error", "question", "started", "finished"
 
         Returns:
             The created message object
@@ -1564,13 +1589,23 @@ class ReviewRun:
             job = self._jobs.get(package)
             if not job:
                 raise KeyError(package)
+
+            ts = _now_ts()
             msg_obj = {
                 "id": f"msg-{len(job.agent_messages)}",
                 "type": msg_type,
                 "message": message,
-                "timestamp": _now_ts(),
+                "timestamp": ts,
             }
             job.agent_messages.append(msg_obj)
+
+            # Handle special message types that affect package state
+            if msg_type == "started":
+                job.agent_working = True
+                job.agent_working_since = ts
+            elif msg_type == "finished":
+                job.agent_working = False
+
         self._write_state()
         return msg_obj
 
@@ -1664,14 +1699,35 @@ class ReviewRun:
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
-    def restart(self, package: str) -> None:
+    def restart(self, package: str, priority: bool = True) -> None:
+        """
+        Restart a package build.
+
+        If priority=True (default), pauses one running job to make room and
+        starts this package immediately for faster debugging iteration.
+        """
+        paused_pkg = None
         with self._lock:
             job = self._jobs.get(package)
             if not job:
                 raise KeyError(package)
-            # Don't interrupt active jobs in v1.
+            # If this job is currently running, can't restart it
             if job.status in ("building", "verifying"):
                 raise ValueError("Job is currently running")
+
+            # Priority restart: pause another running job to make room
+            if priority:
+                running_jobs = [
+                    (name, j) for name, j in self._jobs.items()
+                    if j.status in ("building", "verifying") and name != package
+                ]
+                if running_jobs:
+                    # Pause the first running job (will be resumed later via queue)
+                    paused_pkg, paused_job = running_jobs[0]
+                    paused_job.cancel_requested = True
+                    paused_job.skip_requested_at = _now_ts()
+                    paused_job.skip_reason = f"paused for priority rebuild of {package}"
+
             # Reset state but keep reviewer notes file.
             job.status = "not_started"
             job.started_at = None
@@ -1705,6 +1761,14 @@ class ReviewRun:
             )
             # Move to front of queue so it builds next
             self._queue = [package] + [p for p in self._queue if p != package]
+
+        # Signal worker process to cancel the paused job (if any)
+        if paused_pkg and hasattr(self, "_mp_cancel"):
+            try:
+                self._mp_cancel[paused_pkg] = True
+            except Exception:
+                pass
+
         self._write_state()
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
@@ -2808,6 +2872,24 @@ class Server:
                     if path == "/api/whoami":
                         return self._send_json(HTTPStatus.OK, run.get_whoami())
 
+                    if path == "/api/health":
+                        # Health check for AI agents to verify service is running
+                        with run._lock:
+                            total = len(run._jobs)
+                            building = sum(1 for j in run._jobs.values() if j.status in ("building", "verifying"))
+                            queued = sum(1 for j in run._jobs.values() if j.status == "not_started")
+                            completed = sum(1 for j in run._jobs.values() if j.status in ("awaiting_review", "approved", "pr_opened", "branch_pushed"))
+                            errors = sum(1 for j in run._jobs.values() if j.status == "error")
+                        return self._send_json(HTTPStatus.OK, {
+                            "status": "ok",
+                            "total_packages": total,
+                            "building": building,
+                            "queued": queued,
+                            "completed": completed,
+                            "errors": errors,
+                            "queue_order": run._queue[:10],  # First 10 in queue
+                        })
+
                     if path.startswith("/api/package/") and path.endswith("/diff"):
                         pkg = unquote(
                             path.removeprefix("/api/package/").removesuffix("/diff")
@@ -2876,10 +2958,32 @@ class Server:
                             return self._send_json(
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
+                        # Calculate elapsed time if running
+                        elapsed = None
+                        if job.started_at and not job.finished_at:
+                            try:
+                                from datetime import datetime
+                                started = datetime.fromisoformat(job.started_at.replace("Z", "+00:00"))
+                                elapsed = (datetime.now(started.tzinfo) - started).total_seconds()
+                            except Exception:
+                                pass
+                        # Calculate queue position
+                        queue_position = None
+                        queue_total = None
+                        if job.status == "not_started":
+                            try:
+                                queue_position = run._queue.index(pkg) + 1
+                                queue_total = len([p for p in run._queue if run._jobs[p].status == "not_started"])
+                            except (ValueError, KeyError):
+                                pass
                         # Return concise status for AI consumption
                         status_info = {
                             "package": pkg,
                             "status": job.status,
+                            "current_step": job.current_step,
+                            "build_progress": job.build_progress,
+                            "elapsed_seconds": round(elapsed, 1) if elapsed else None,
+                            "queue_position": f"{queue_position} of {queue_total}" if queue_position else None,
                             "error": job.error,
                             "build_rc": dict(job.build_rc),
                             "verify_rc": job.verify_rc,
@@ -2890,6 +2994,11 @@ class Server:
                             "started_at": job.started_at,
                             "finished_at": job.finished_at,
                             "pr_url": job.published_pr_url,
+                            "hints": {
+                                "logs_endpoint": f"/api/package/{pkg}/logs",
+                                "issues_endpoint": f"/api/package/{pkg}/issues",
+                                "restart_endpoint": f"/api/package/{pkg}/restart (POST) - pauses another job for priority",
+                            },
                         }
                         return self._send_json(HTTPStatus.OK, status_info)
 

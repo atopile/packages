@@ -581,6 +581,7 @@ function renderList() {
       case "warning": return warn > 0 && err === 0;
       case "review": return j.status === "awaiting_review" || j.status === "needs_input";
       case "help": return j.status === "needs_input";
+      case "agent": return j.agent_working === true;
       case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";
       default: return true;
     }
@@ -594,10 +595,37 @@ function renderList() {
     const err = sum(j.build_err) + (j.verify_err || 0);
 
     const metaPills = [];
+
+    // Show queue position for queued packages
+    const isQueued = j.status === "not_started" || j.status === "paused" || j.status === "skipped";
+    if (isQueued && Array.isArray(state.queue)) {
+      const queuePosition = state.queue.filter(p => {
+        const pj = state.packages[p];
+        return pj && (pj.status === "not_started" || pj.status === "paused" || pj.status === "skipped");
+      }).indexOf(name) + 1;
+      const queueTotal = state.queue.filter(p => {
+        const pj = state.packages[p];
+        return pj && (pj.status === "not_started" || pj.status === "paused" || pj.status === "skipped");
+      }).length;
+      if (queuePosition > 0) {
+        metaPills.push(el("span", { class: "pill neutral" }, [
+          el("span", { text: `#${queuePosition}/${queueTotal}` }),
+        ]));
+      }
+    }
+
     metaPills.push(el("span", { class: `pill ${statusPillClass(j.status)}` }, [
       el("span", { class: "dot" }),
       el("span", { text: statusLabel(j.status) }),
     ]));
+    // Show agent working indicator
+    if (j.agent_working) {
+      metaPills.push(el("span", { class: "pill purple" }, [
+        el("span", { class: "dot" }),
+        el("span", { text: "🤖 agent" }),
+      ]));
+    }
+
     if (j.registry_updated_014) {
       metaPills.push(el("span", { class: "pill good" }, [
         el("span", { class: "dot" }),
