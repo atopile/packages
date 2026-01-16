@@ -58,18 +58,14 @@ jobs:
       # FIXME: handle deps properly
       # ideally it'd determine if the package is in the same repo and, if so,
       # install via file instead
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v5
-
-      - name: Install atopile from feature branch
-        run: |
-          uv tool install "atopile @ git+https://github.com/atopile/atopile.git@feature/fabll_part2"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
+      - uses: atopile/setup-atopile@feature/setup_from_branch
+        with:
+          ato-config: ${{ matrix.package }}/ato.yaml
+          pr: "1528"
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build ${{ matrix.package }} -t all
+      - run: ato build ${{ matrix.package }} --target all --frozen
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
       - run: ato package verify -s
