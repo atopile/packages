@@ -65,8 +65,7 @@ jobs:
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      # Note: --frozen removed since building against a branch may introduce changes
-      - run: ato build ${{ matrix.package }} --target all
+      - run: ato build ${{ matrix.package }} -t all
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
