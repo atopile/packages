@@ -462,7 +462,7 @@ def _review_worker_process(
         # Build
         build_log_path = logs_dir / "build.log"
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
-        cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs))]
+        cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs)), "-t", "all"]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
         status_file = logs_dir / "build_status.txt"
