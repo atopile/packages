@@ -10,7 +10,7 @@ import Electrical
 import ElectricLogic
 import ElectricPower
 import ElectricSignal
-import has_single_electric_reference_shared
+import has_single_electric_reference
 import I2C
 import I2S
 import MultiCapacitor
@@ -24,26 +24,25 @@ from "parts/Nexperia_PBSS5350X_115/Nexperia_PBSS5350X_115.ato" import Nexperia_P
 from "parts/TAE_TXM12_288M0004322FBCDO00T/TAE_TXM12_288M0004322FBCDO00T.ato" import TAE_TXM12_288M0004322FBCDO00T_driver
 from "parts/GENERIC_TESTPOINT/GENERIC_TESTPOINT.ato" import GENERIC_TESTPOINT
 
-
-module _BypassCapacitor from Capacitor:
-    big_cap = new Capacitor
-    small_cap = new Capacitor
-
-    for c in [big_cap, small_cap]:
-        unnamed[0] ~> c ~> unnamed[1]
-
-    big_cap.capacitance = 100nF +/- 10%
-    small_cap.capacitance = 10nF +/- 10%
-
-    big_cap.package = "0402"
-    small_cap.package = "0402"
-
+# DISABLED: _BypassCapacitor - causes instantiation issues
+# module _BypassCapacitor from Capacitor:
+# big_cap = new Capacitor
+# small_cap = new Capacitor
+#
+# for c in [big_cap, small_cap]:
+# unnamed[0] ~> c ~> unnamed[1]
+#
+# big_cap.capacitance = 100nF +/- 10%
+# small_cap.capacitance = 10nF +/- 10%
+#
+# big_cap.package = "0402"
+# small_cap.package = "0402"
 
 module _PLLFilter:
     input = new Electrical
     output = new Electrical
 
-    trait can_bridge_by_name
+    trait can_bridge_by_name<input_name = "input", output_name = "output">
 
     r = new Resistor
     c1 = new Capacitor
@@ -56,34 +55,31 @@ module _PLLFilter:
     input ~> r ~> c1 ~> output
     input ~> c2 ~> output
 
-module _BridgeableXTAL from Crystal:
-    trait can_bridge_by_name<input_name="unnamed[0]", output_name="unnamed[1]">
-
 module _OscillatorDriver:
     """
     Drives the ADAU145x on-chip crystal oscillator.
     Implements the recommended circuit from the datasheet:
         • 100 Ω damping resistor on XTALOUT.
         • Crystal between XTALOUT and XTALIN (frequency 3.072 MHz–24.576 MHz, nominal 12.288 MHz).
-        • Two load capacitors (~22 pF) from each pin to ground.
+        • Two load capacitors ( ~ 22 pF) from each pin to ground.
     """
 
     # Ports
-    input  = new Electrical
+    input = new Electrical
     output = new Electrical
     ground = new Electrical
 
-    trait can_bridge_by_name
+    trait can_bridge_by_name<input_name = "input", output_name = "output">
 
     # Components
-    xtal   = new _BridgeableXTAL
+    xtal = new Crystal
     r_damp = new Resistor
     c_load = new Capacitor[2]
 
     # ‑-- Assertions ---------------------------------------------------------
     assert xtal.frequency within 3.072MHz to 24.576MHz
     # I don't believe this is correct, but it's what the datasheet says
-    #assert xtal.shunt_capacitance within 7pF +/- 10%
+    # assert xtal.shunt_capacitance within 7pF +/- 10%
     assert xtal.shunt_capacitance within 7pF +/- 30%
 
     assert r_damp.resistance within 100ohm +/- 10%
@@ -103,9 +99,10 @@ module _OscillatorDriver:
     input ~> r_damp ~> xtal ~> output
     xtal.unnamed[0] ~> c_load[0] ~> ground
     xtal.unnamed[1] ~> c_load[1] ~> ground
-    xtal.gnd ~> ground
+    xtal.gnd ~ ground
 
 # Hacking using local test point part
+
 module TestPoint from GENERIC_TESTPOINT:
     pass
 
@@ -155,7 +152,7 @@ module ADI_ADAU145x:
     # --- Decoupling capacitors ---
     bulk_decoupling_power_caps = new Capacitor[4]
     # TODO verify pin neighbours with chip
-    decoupling_power_io = new MultiCapacitor<count=4>
+    decoupling_power_io = new MultiCapacitor<count = 4>
     model.power_io.hv ~> decoupling_power_io ~> model.power_io.lv
     model.package.IOVDD[0] ~> decoupling_power_io.capacitors[0] ~> model.package.DGND[0]
     model.package.IOVDD[1] ~> decoupling_power_io.capacitors[1] ~> model.package.DGND[1]
@@ -163,12 +160,12 @@ module ADI_ADAU145x:
     model.package.IOVDD[3] ~> decoupling_power_io.capacitors[3] ~> model.package.DGND[7]
     model.package.IOVDD[0] ~> bulk_decoupling_power_caps[0] ~> model.package.DGND[0]
 
-    decoupling_power_analog = new MultiCapacitor<count=1>
+    decoupling_power_analog = new MultiCapacitor<count = 1>
     model.power_analog.hv ~> decoupling_power_analog ~> model.power_analog.lv
     model.package.AVDD[0] ~> decoupling_power_analog.capacitors[0] ~> model.package.AGND[0]
     model.package.AVDD[0] ~> bulk_decoupling_power_caps[1] ~> model.package.AGND[0]
 
-    decoupling_power_digital = new MultiCapacitor<count=4>
+    decoupling_power_digital = new MultiCapacitor<count = 4>
     model.power_digital.hv ~> decoupling_power_digital ~> model.power_digital.lv
     model.package.DVDD[0] ~> decoupling_power_digital.capacitors[0] ~> model.package.DGND[2]
     model.package.DVDD[1] ~> decoupling_power_digital.capacitors[1] ~> model.package.DGND[4]
@@ -176,25 +173,25 @@ module ADI_ADAU145x:
     model.package.DVDD[3] ~> decoupling_power_digital.capacitors[3] ~> model.package.DGND[8]
     model.package.DVDD[0] ~> bulk_decoupling_power_caps[2] ~> model.package.DGND[2]
 
-    decoupling_power_pll = new MultiCapacitor<count=1>
+    decoupling_power_pll = new MultiCapacitor<count = 1>
     model.power_pll.hv ~> decoupling_power_pll ~> model.power_pll.lv
     model.package.PVDD[0] ~> decoupling_power_pll.capacitors[0] ~> model.package.PGND[0]
     model.package.PVDD[0] ~> bulk_decoupling_power_caps[3] ~> model.package.PGND[0]
 
     for c in decoupling_power_io.capacitors:
-        #c -> _BypassCapacitor
+        # c -> _BypassCapacitor
         c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_analog.capacitors:
-        #c -> _BypassCapacitor
+        # c -> _BypassCapacitor
         c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_digital.capacitors:
-        #c -> _BypassCapacitor
+        # c -> _BypassCapacitor
         c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in decoupling_power_pll.capacitors:
-        #c -> _BypassCapacitor
+        # c -> _BypassCapacitor
         c.package = "0402"
         c.capacitance = 100nF +/- 10%
     for c in bulk_decoupling_power_caps:
@@ -221,7 +218,7 @@ module ADI_ADAU145x:
     output_debug_resistor.resistance = 0ohm +/- 0.05
     output_debug_resistor.package = "R0603"
 
-    bjt_pnp = new BJT #	DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
+    bjt_pnp = new BJT  # DC I gain is >=200 at 1A, needs 6cm^2 of layout to dissipate 1W at 60C amb
     bjt_pnp.doping_type = "PNP"
     bjt_pnp.lcsc_id = "C426844"
     model.package.IOVDD[0] ~ bjt_pnp.emitter

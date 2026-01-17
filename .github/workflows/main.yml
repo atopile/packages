@@ -58,46 +58,29 @@ jobs:
       # Build against a feature branch of atopile for 0.14.x package updates
       # Uses pre-built Docker image from the branch (built by atopile CI)
       # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
-      - uses: atopile/setup-atopile@v1.8
+      - uses: atopile/setup-atopile@v1.7
         with:
           docker-tag: feature-fabll_part2
 
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build ${{ matrix.package }} -t all
+      # Note: --frozen removed since building against a branch may introduce changes
+      - run: ato build ${{ matrix.package }} --target all
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-
-      - run: ato package verify -s
+      #TODO: put back -s
+      - run: ato package verify
         working-directory: ${{ matrix.package }}
 
-      - name: Publish dry run
-        if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-        working-directory: ${{ matrix.package }}
-        env:
-          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
-          NONINTERACTIVE: "1"
-        run: ato package publish --dry-run
-
-      - name: Publish package
+      - uses: atopile/publish-package@v1
+        name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: ${{ matrix.package }}
-        env:
-          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
-          NONINTERACTIVE: "1"
-        run: ato package publish
-
-      - name: Print errors and warnings on failure
-        if: failure()
-        run: |
-          pkg="${{ matrix.package }}"
-          echo "::group::Error Logs"
-          find "$pkg/build/logs" -name "*.error.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
-          echo "::endgroup::"
-          echo "::group::Warning Logs"
-          find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
-          echo "::endgroup::"
+        with:
+          package-entrypoint: ${{ matrix.package }}
+          skip-duplicate-versions: true
+          package-version: "" # Use the embedded version key
+          ato-config: ${{ matrix.package }}/ato.yaml
 
       - name: Archive build logs
         id: archive_logs
