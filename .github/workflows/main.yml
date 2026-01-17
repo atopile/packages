@@ -105,11 +105,10 @@ jobs:
 
       - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: ${{ matrix.package }}
         env:
           ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
           NONINTERACTIVE: "1"
-        run: ato package publish
+        run: ato package publish ${{ matrix.package }}
 
       - name: Print errors and warnings on failure
         if: failure()
