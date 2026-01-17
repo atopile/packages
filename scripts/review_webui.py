@@ -1022,6 +1022,8 @@ def _fetch_ci_status_for_pr(
 
     try:
         # Get check runs for the PR
+        # Note: gh pr checks doesn't have a 'conclusion' field, only 'state'
+        # Available fields: bucket, completedAt, description, event, link, name, startedAt, state, workflow
         result = subprocess.run(
             [
                 "gh",
@@ -1029,7 +1031,7 @@ def _fetch_ci_status_for_pr(
                 "checks",
                 pr_url,
                 "--json",
-                "name,state,conclusion,detailsUrl,completedAt,startedAt",
+                "name,state,link,completedAt,startedAt,bucket",
             ],
             cwd=repo_root,
             capture_output=True,
@@ -1051,8 +1053,10 @@ def _fetch_ci_status_for_pr(
 
         for check in checks:
             name = check.get("name", "")
+            # State can be: PENDING, QUEUED, IN_PROGRESS, COMPLETED, WAITING, REQUESTED, FAILURE, SUCCESS, etc.
             state = check.get("state", "").upper()
-            conclusion = check.get("conclusion", "")
+            # bucket can be: pass, fail, pending, skipping
+            bucket = check.get("bucket", "").lower()
 
             # Check for the specific matrix job for this package
             if package in name:
@@ -1067,13 +1071,25 @@ def _fetch_ci_status_for_pr(
             elif state == "QUEUED":
                 overall_status = "queued"
 
-            if conclusion and conclusion.lower() != "success":
-                overall_conclusion = conclusion.lower()
+            # Derive conclusion from bucket or state
+            if bucket == "fail" or state == "FAILURE":
+                overall_conclusion = "failure"
+            elif bucket == "skipping":
+                overall_conclusion = "skipped"
 
         if package_job:
             state = package_job.get("state", "").lower()
-            conclusion = package_job.get("conclusion", "")
-            details_url = package_job.get("detailsUrl", "")
+            bucket = package_job.get("bucket", "").lower()
+            # Derive conclusion from bucket: pass->success, fail->failure, pending->None, skipping->skipped
+            if bucket == "pass":
+                conclusion = "success"
+            elif bucket == "fail":
+                conclusion = "failure"
+            elif bucket == "skipping":
+                conclusion = "skipped"
+            else:
+                conclusion = None
+            details_url = package_job.get("link", "")
 
             # Extract run ID from details URL
             # URL format: https://github.com/owner/repo/actions/runs/12345/job/67890
@@ -1086,7 +1102,7 @@ def _fetch_ci_status_for_pr(
 
             return {
                 "status": state if state else overall_status,
-                "conclusion": conclusion.lower() if conclusion else None,
+                "conclusion": conclusion if conclusion else None,
                 "run_id": run_id,
                 "run_url": details_url,
                 "job_name": package_job.get("name"),
@@ -1111,6 +1127,122 @@ def _fetch_ci_status_for_pr(
         return {"error": f"Error fetching CI status: {e}"}
 
 
+def _extract_meaningful_issues(
+    content: str,
+    issue_type: str,
+    source: str,
+    log_id: str,
+) -> list[dict[str, Any]]:
+    """
+    Extract error/warning messages from log content.
+    Uses the same extraction logic as local logs for consistency.
+    """
+    import re
+
+    issues: list[dict[str, Any]] = []
+    seen_messages: set[str] = set()  # Dedupe
+
+    # Same patterns as local log extraction
+    error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
+    warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
+
+    # Patterns to skip (noise that shouldn't be separate issues)
+    skip_patterns = [
+        r"^\s*\|[\s\-\|]+\|\s*$",  # Markdown table separator: |---|---|
+        r"^\s*\|\s*Path\s*\|",  # Markdown table header: | Path | Before | After |
+        r"^\s*\|\s*\*\*\.",  # Markdown table row with bold path: | **.kicad_pcb... |
+        r"^Original layout:",  # Context line, not an error
+        r"^Updated layout:",  # Context line, not an error
+        r"^Diff:",  # Context line, not an error
+        r"^\*\*[^*]+\*\*$",  # Standalone bold path
+        r"^\[\d{2}:\d{2}:\d{2}\]\s*$",  # Timestamp only
+        r"^\[\d{2}:\d{2}:\d{2}\]\s*(ERROR|WARNING|INFO)\s*$",  # Timestamp + level, no message
+        r"^-+$",  # Separator dashes
+        r"^=+$",  # Separator equals
+    ]
+
+    lines = content.splitlines()
+    for line_num, raw_line in enumerate(lines, 1):
+        line = raw_line.strip()
+
+        # Skip empty or very short lines
+        if len(line) < 10:
+            continue
+
+        # Clean up the line - remove ANSI codes
+        clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+
+        # Skip if too short after cleaning
+        if len(clean_line) < 10:
+            continue
+
+        # Skip noise patterns
+        should_skip = False
+        for pattern in skip_patterns:
+            if re.search(pattern, clean_line):
+                should_skip = True
+                break
+        if should_skip:
+            continue
+
+        # Check for ERROR or WARNING markers
+        is_error = error_pattern.search(clean_line)
+        is_warning = warning_pattern.search(clean_line)
+
+        if not is_error and not is_warning:
+            # For CI error logs, include meaningful non-marker lines
+            # But only if they look like actual error messages
+            if ".error" in log_id.lower():
+                # Include lines that look like errors (tracebacks, failure messages)
+                if not any(
+                    kw in clean_line.lower()
+                    for kw in [
+                        "traceback",
+                        "exception",
+                        "failed",
+                        "error",
+                        "cannot",
+                        "built as frozen",
+                        "could not",
+                        "no such",
+                        "not found",
+                    ]
+                ):
+                    continue
+            else:
+                continue
+
+        # Determine the actual issue type
+        actual_type = issue_type
+        if is_error:
+            actual_type = "error"
+        elif is_warning:
+            actual_type = "warning"
+
+        # Dedupe based on normalized message
+        norm_key = re.sub(r"\d+", "N", clean_line[:100]).lower()
+        if norm_key in seen_messages:
+            continue
+        seen_messages.add(norm_key)
+
+        issues.append(
+            {
+                "type": actual_type,
+                "message": clean_line[:500],
+                "source": source,
+                "stage": "ci",
+                "line_num": line_num,
+                "log_id": log_id,
+            }
+        )
+
+        # Limit issues per log file
+        if len(issues) >= 50:
+            break
+
+    return issues
+
+
 def _fetch_ci_logs_for_package(
     pr_url: str,
     package: str,
@@ -1118,10 +1250,15 @@ def _fetch_ci_logs_for_package(
     max_lines: int = 500,
 ) -> dict[str, Any]:
     """
-    Fetch CI logs for a package from GitHub Actions.
+    Fetch CI logs for a package from GitHub Actions artifacts.
+
+    The CI workflow uploads build logs as artifacts with structure:
+    - packages/<package>/build/logs/latest/<build-target>/*.error.log
+    - packages/<package>/build/logs/latest/<build-target>/*.warning.log
+    - packages/<package>/build/logs/latest/summary.md
 
     Returns dict with:
-    - logs: Log content (truncated)
+    - logs: Combined log content
     - issues: List of extracted errors/warnings
     - error: Error message if fetching failed
     """
@@ -1139,33 +1276,199 @@ def _fetch_ci_logs_for_package(
             }
 
         run_id = ci_status.get("run_id")
-        job_name = ci_status.get("job_name")
-
         if not run_id:
             return {"logs": "", "issues": [], "error": "No run ID available"}
 
-        # Fetch logs for the run
+        # Create a temp directory to download artifacts
+        import tempfile
+
+        with tempfile.TemporaryDirectory(prefix="ci_logs_") as tmpdir:
+            tmppath = Path(tmpdir)
+
+            # Download artifacts for this run
+            # Artifact name pattern: build-logs-packages-<package>-<run_id>-<attempt>
+            result = subprocess.run(
+                ["gh", "run", "download", str(run_id), "--dir", str(tmppath)],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=120,
+            )
+
+            if result.returncode != 0:
+                # Fall back to console logs if artifact download fails
+                return _fetch_ci_console_logs(run_id, package, repo_root, max_lines)
+
+            # Find the artifact directory for this package
+            # Structure: <tmpdir>/<artifact-name>/<artifact-name>.zip
+            # After extraction: packages/<package>/build/logs/...
+            issues: list[dict[str, Any]] = []
+            logs_parts: list[str] = []
+
+            print(
+                f"[CI LOGS DEBUG] Artifact download complete, tmpdir contents: {list(tmppath.iterdir())}",
+                flush=True,
+            )
+
+            # Look for any artifact directories
+            for artifact_dir in tmppath.iterdir():
+                if not artifact_dir.is_dir():
+                    continue
+
+                # Check for nested zip file and extract it
+                for f in artifact_dir.iterdir():
+                    if f.suffix == ".zip":
+                        import zipfile
+
+                        with zipfile.ZipFile(f, "r") as zf:
+                            zf.extractall(artifact_dir)
+
+                # Look for logs in the extracted content
+                # Pattern: packages/<package>/build/logs/latest/<target>/*.log
+                logs_base = artifact_dir / "packages" / package / "build" / "logs"
+                print(
+                    f"[CI LOGS DEBUG] Checking logs_base: {logs_base} (exists: {logs_base.exists()})",
+                    flush=True,
+                )
+                if not logs_base.exists():
+                    # Try without packages prefix
+                    logs_base = artifact_dir / package / "build" / "logs"
+                    print(
+                        f"[CI LOGS DEBUG] Trying alt logs_base: {logs_base} (exists: {logs_base.exists()})",
+                        flush=True,
+                    )
+                if not logs_base.exists():
+                    # List what IS in the artifact_dir for debugging
+                    try:
+                        contents = list(artifact_dir.rglob("*"))[:20]
+                        print(
+                            f"[CI LOGS DEBUG] artifact_dir contents (first 20): {contents}",
+                            flush=True,
+                        )
+                    except Exception as e:
+                        print(
+                            f"[CI LOGS DEBUG] Could not list artifact_dir: {e}",
+                            flush=True,
+                        )
+                    continue
+
+                latest_dir = logs_base / "latest"
+                if not latest_dir.exists():
+                    print(
+                        f"[CI LOGS DEBUG] latest_dir not found: {latest_dir}",
+                        flush=True,
+                    )
+                    continue
+
+                print(f"[CI LOGS DEBUG] Found logs at: {latest_dir}", flush=True)
+
+                # Create a persistent directory to save CI logs
+                # This allows the /log/ endpoint to serve them later
+                ci_logs_dest = repo_root / package / "build" / "ci_logs" / "latest"
+                ci_logs_dest.mkdir(parents=True, exist_ok=True)
+
+                # Read summary.md if available
+                summary_path = latest_dir / "summary.md"
+                if summary_path.exists():
+                    logs_parts.append(
+                        f"=== CI Build Summary ===\n{summary_path.read_text()}\n"
+                    )
+
+                # Process each build target directory
+                for target_dir in sorted(latest_dir.iterdir()):
+                    if not target_dir.is_dir():
+                        continue
+
+                    target_name = target_dir.name
+                    target_dest = ci_logs_dest / target_name
+                    target_dest.mkdir(parents=True, exist_ok=True)
+
+                    # Read error logs
+                    for log_file in sorted(target_dir.glob("*.error.log")):
+                        content = log_file.read_text(encoding="utf-8", errors="replace")
+                        if content.strip():
+                            stage_name = log_file.stem.replace(".error", "")
+                            log_id = f"ci__{target_name}__{stage_name}.error.log"
+                            logs_parts.append(
+                                f"=== CI {target_name}/{stage_name} errors ===\n{content}\n"
+                            )
+                            # Save to persistent location
+                            (target_dest / f"{stage_name}.error.log").write_text(
+                                content, encoding="utf-8"
+                            )
+                            # Extract meaningful issues from error log
+                            extracted = _extract_meaningful_issues(
+                                content,
+                                "error",
+                                f"{target_name} / {stage_name}",
+                                log_id,
+                            )
+                            issues.extend(extracted)
+
+                    # Read warning logs
+                    for log_file in sorted(target_dir.glob("*.warning.log")):
+                        content = log_file.read_text(encoding="utf-8", errors="replace")
+                        if content.strip():
+                            stage_name = log_file.stem.replace(".warning", "")
+                            log_id = f"ci__{target_name}__{stage_name}.warning.log"
+                            logs_parts.append(
+                                f"=== CI {target_name}/{stage_name} warnings ===\n{content}\n"
+                            )
+                            # Save to persistent location
+                            (target_dest / f"{stage_name}.warning.log").write_text(
+                                content, encoding="utf-8"
+                            )
+                            # Extract meaningful issues from warning log
+                            extracted = _extract_meaningful_issues(
+                                content,
+                                "warning",
+                                f"{target_name} / {stage_name}",
+                                log_id,
+                            )
+                            issues.extend(extracted)
+
+            if not logs_parts and not issues:
+                # No artifact logs found, fall back to console logs
+                return _fetch_ci_console_logs(run_id, package, repo_root, max_lines)
+
+            logs = "\n".join(logs_parts)
+
+            # Truncate if too long
+            lines = logs.splitlines()
+            if len(lines) > max_lines:
+                lines = lines[-max_lines:]
+                logs = f"... (truncated, showing last {max_lines} lines)\n" + "\n".join(
+                    lines
+                )
+
+            return {"logs": logs, "issues": issues, "error": None}
+
+    except subprocess.TimeoutExpired:
+        return {"logs": "", "issues": [], "error": "Timeout fetching CI artifacts"}
+    except Exception as e:
+        return {"logs": "", "issues": [], "error": f"Error fetching CI logs: {e}"}
+
+
+def _fetch_ci_console_logs(
+    run_id: str,
+    package: str,
+    repo_root: Path,
+    max_lines: int = 500,
+) -> dict[str, Any]:
+    """
+    Fallback: fetch console logs from GitHub Actions run.
+    Used when artifact download fails.
+    """
+    try:
         result = subprocess.run(
-            ["gh", "run", "view", run_id, "--log", "--job", job_name]
-            if job_name
-            else ["gh", "run", "view", run_id, "--log"],
+            ["gh", "run", "view", str(run_id), "--log"],
             cwd=repo_root,
             capture_output=True,
             text=True,
             check=False,
             timeout=60,
         )
-
-        if result.returncode != 0:
-            # Try without job filter
-            result = subprocess.run(
-                ["gh", "run", "view", run_id, "--log"],
-                cwd=repo_root,
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=60,
-            )
 
         logs = result.stdout or ""
 
@@ -1177,7 +1480,7 @@ def _fetch_ci_logs_for_package(
                 lines
             )
 
-        # Extract issues from logs
+        # Extract issues from console logs
         issues = _extract_ci_issues_from_logs(logs, package)
 
         return {"logs": logs, "issues": issues, "error": None}
@@ -1800,9 +2103,16 @@ class JobState:
     ci_job_name: str | None = None  # Name of the CI job for this package
     ci_error: str | None = None  # Error fetching CI status
     ci_logs_cached: str | None = None  # Cached CI log content (truncated)
+    ci_issues_cached: list[dict[str, Any]] | None = None  # Cached CI issues
+    ci_issues_fetched_at: str | None = None  # When CI issues were last fetched
 
     def to_public(self) -> dict[str, Any]:
-        return asdict(self)
+        """Return state for API, excluding heavy cached data."""
+        d = asdict(self)
+        # Exclude heavy cached data from state payload (saves ~200KB+)
+        d.pop("ci_issues_cached", None)
+        d.pop("ci_logs_cached", None)
+        return d
 
 
 class ReviewRun:
@@ -1987,12 +2297,16 @@ class ReviewRun:
 
     def _refresh_github_pr_cache(self) -> None:
         """
-        Single comprehensive GitHub query to fetch all PR data at once.
-        Updates the cache and applies data to all matching packages.
-        Takes ~10 seconds for ~200 PRs.
+        Two-phase GitHub query optimized for speed:
+        - Phase 1: Basic PR data (~2s for 300 PRs) - no CI status
+        - Phase 2: Parallel CI status fetch for relevant PRs (~1-2s)
+        Total: ~3-4s instead of 15s with single query
         """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         start_time = time.time()
         try:
+            # Phase 1: Fast query for basic PR data (no statusCheckRollup)
             result = subprocess.run(
                 [
                     "gh",
@@ -2001,7 +2315,7 @@ class ReviewRun:
                     "--state",
                     "all",
                     "--json",
-                    "number,url,headRefName,title,state,statusCheckRollup,mergedAt,author",
+                    "number,url,headRefName,title,state,mergedAt,author",
                     "--limit",
                     "300",
                 ],
@@ -2009,7 +2323,7 @@ class ReviewRun:
                 capture_output=True,
                 text=True,
                 check=False,
-                timeout=60,
+                timeout=30,
             )
 
             if result.returncode != 0:
@@ -2019,40 +2333,18 @@ class ReviewRun:
                 return
 
             prs = json.loads(result.stdout.strip()) if result.stdout.strip() else []
+            phase1_time = time.time() - start_time
 
-            # Build caches
+            # Build initial caches (without CI status)
             by_branch: dict[str, dict[str, Any]] = {}
             by_package: dict[str, dict[str, Any]] = {}
+            open_pr_numbers: list[int] = []
 
             for pr in prs:
                 branch = pr.get("headRefName", "")
                 title = pr.get("title", "")
-                checks = pr.get("statusCheckRollup") or []
                 author = (pr.get("author") or {}).get("login")
-
-                # Compute CI status from checks
-                if not checks:
-                    ci_status = "no_checks"
-                    ci_conclusion = None
-                elif any(c.get("conclusion") == "FAILURE" for c in checks):
-                    ci_status = "completed"
-                    ci_conclusion = "failure"
-                elif any(
-                    c.get("state") in ("PENDING", "IN_PROGRESS", "QUEUED")
-                    for c in checks
-                ):
-                    ci_status = "in_progress"
-                    ci_conclusion = None
-                elif all(
-                    c.get("conclusion") in ("SUCCESS", "SKIPPED", "NEUTRAL", None)
-                    for c in checks
-                    if c.get("conclusion") is not None
-                ):
-                    ci_status = "completed"
-                    ci_conclusion = "success"
-                else:
-                    ci_status = "completed"
-                    ci_conclusion = "unknown"
+                is_open = pr.get("state") == "OPEN"
 
                 pr_data = {
                     "number": pr.get("number"),
@@ -2062,18 +2354,20 @@ class ReviewRun:
                     "state": pr.get("state"),
                     "merged_at": pr.get("mergedAt"),
                     "author": author,
-                    "ci_status": ci_status,
-                    "ci_conclusion": ci_conclusion,
-                    "checks_count": len(checks),
+                    "ci_status": None,  # Will be filled in phase 2
+                    "ci_conclusion": None,
+                    "checks_count": 0,
                 }
 
                 # Index by branch
                 if branch:
                     by_branch[branch] = pr_data
 
-                # Try to extract package name from branch or title
-                # Branch patterns: package-update-0.14.x-<package>
-                # Title patterns: <package>: package update
+                # Track open PRs for CI status fetch
+                if is_open:
+                    open_pr_numbers.append(pr.get("number"))
+
+                # Extract package name from branch or title
                 package_name = None
                 if "package-update" in branch:
                     parts = branch.split("-")
@@ -2083,10 +2377,75 @@ class ReviewRun:
                     package_name = title.split(":")[0].strip()
 
                 if package_name:
-                    # Prefer open PRs over merged ones
                     existing = by_package.get(package_name)
-                    if not existing or pr.get("state") == "OPEN":
+                    if not existing or is_open:
                         by_package[package_name] = pr_data
+
+            # Phase 2: Parallel CI status fetch for open PRs only
+            def fetch_pr_ci_status(pr_number: int) -> tuple[int, list[dict]]:
+                try:
+                    res = subprocess.run(
+                        [
+                            "gh",
+                            "pr",
+                            "view",
+                            str(pr_number),
+                            "--json",
+                            "statusCheckRollup",
+                        ],
+                        cwd=self.packages_repo_root,
+                        capture_output=True,
+                        text=True,
+                        timeout=20,
+                    )
+                    if res.returncode == 0:
+                        data = json.loads(res.stdout)
+                        return pr_number, data.get("statusCheckRollup") or []
+                except Exception:
+                    pass
+                return pr_number, []
+
+            ci_results: dict[int, list[dict]] = {}
+            if open_pr_numbers:
+                with ThreadPoolExecutor(max_workers=30) as executor:
+                    futures = {
+                        executor.submit(fetch_pr_ci_status, pr): pr
+                        for pr in open_pr_numbers
+                    }
+                    for future in as_completed(futures):
+                        pr_number, checks = future.result()
+                        ci_results[pr_number] = checks
+
+            phase2_time = time.time() - start_time - phase1_time
+
+            # Merge CI status into cached data
+            def compute_ci_status(checks: list[dict]) -> tuple[str, str | None]:
+                if not checks:
+                    return "no_checks", None
+                if any(c.get("conclusion") == "FAILURE" for c in checks):
+                    return "completed", "failure"
+                if any(
+                    c.get("state") in ("PENDING", "IN_PROGRESS", "QUEUED")
+                    for c in checks
+                ):
+                    return "in_progress", None
+                if all(
+                    c.get("conclusion") in ("SUCCESS", "SKIPPED", "NEUTRAL", None)
+                    for c in checks
+                    if c.get("conclusion") is not None
+                ):
+                    return "completed", "success"
+                return "completed", "unknown"
+
+            for pr_number, checks in ci_results.items():
+                ci_status, ci_conclusion = compute_ci_status(checks)
+                # Update in both caches
+                for cache in (by_branch, by_package):
+                    for key, pr_data in cache.items():
+                        if pr_data.get("number") == pr_number:
+                            pr_data["ci_status"] = ci_status
+                            pr_data["ci_conclusion"] = ci_conclusion
+                            pr_data["checks_count"] = len(checks)
 
             # Update cache atomically
             self._gh_pr_cache = by_branch
@@ -2094,13 +2453,17 @@ class ReviewRun:
             self._gh_pr_cache_updated_at = time.time()
 
             elapsed = time.time() - start_time
+            ci_failures = sum(
+                1 for p in by_package.values() if p.get("ci_conclusion") == "failure"
+            )
             print(
-                f"[GH CACHE] Refreshed: {len(prs)} PRs, "
-                f"{len(by_branch)} branches, {len(by_package)} packages in {elapsed:.1f}s",
+                f"[GH CACHE] Refreshed: {len(prs)} PRs, {len(open_pr_numbers)} CI checks "
+                f"({phase1_time:.1f}s + {phase2_time:.1f}s = {elapsed:.1f}s) "
+                f"| {ci_failures} CI failures",
                 flush=True,
             )
 
-            # Now apply this data to all packages
+            # Apply to packages
             self._apply_pr_cache_to_packages()
 
         except subprocess.TimeoutExpired:
@@ -2153,9 +2516,14 @@ class ReviewRun:
                                 job.status = "pr_opened"
 
                     # Always update CI status
+                    old_conclusion = job.ci_conclusion
                     job.ci_status = pr_data.get("ci_status")
                     job.ci_conclusion = pr_data.get("ci_conclusion")
                     job.ci_checked_at = now
+                    # Clear cached CI issues if conclusion changed (new CI run)
+                    if old_conclusion != job.ci_conclusion:
+                        job.ci_issues_cached = None
+                        job.ci_issues_fetched_at = None
                     updated += 1
 
         if updated > 0:
@@ -2620,6 +2988,49 @@ class ReviewRun:
         """
         with self._lock:
             return self._state_cache_json
+
+    def get_state_summary(self) -> dict[str, Any]:
+        """
+        Lightweight summary for frequent polling (~25KB instead of ~300KB).
+        Only includes essential status info for the package list.
+        Omits null/empty values to minimize payload size.
+        """
+        with self._lock:
+            packages_summary = {}
+            for name, job in self._jobs.items():
+                # Only include non-null/non-empty values
+                entry: dict[str, Any] = {"status": job.status}
+                if job.ci_status:
+                    entry["ci_status"] = job.ci_status
+                if job.ci_conclusion:
+                    entry["ci_conclusion"] = job.ci_conclusion
+                # Flatten error/warn counts for compactness
+                total_err = sum(job.build_err.values()) + (job.verify_err or 0)
+                total_warn = sum(job.build_warn.values()) + (job.verify_warn or 0)
+                if total_err:
+                    entry["err"] = total_err
+                if total_warn:
+                    entry["warn"] = total_warn
+                if job.approved_by:
+                    entry["approved_by"] = job.approved_by
+                if job.published_pr_url:
+                    entry["pr_url"] = job.published_pr_url
+                if job.published_branch:
+                    entry["branch"] = job.published_branch
+                if job.registry_published_version:
+                    entry["reg_ver"] = job.registry_published_version
+                if job.registry_requires_atopile:
+                    entry["reg_req"] = job.registry_requires_atopile
+                if job.published_pr_author:
+                    entry["author"] = job.published_pr_author
+                if job.build_progress:
+                    entry["progress"] = job.build_progress
+                packages_summary[name] = entry
+            return {
+                "updated_at": self._state_cache.get("updated_at", _now_ts()),
+                "queue": list(self._queue),
+                "packages": packages_summary,
+            }
 
     def get_job(self, package: str) -> JobState | None:
         with self._lock:
@@ -4193,24 +4604,77 @@ class ReviewRun:
         error_count = sum(1 for i in unique_issues if i["type"] == "error")
         warning_count = sum(1 for i in unique_issues if i["type"] == "warning")
 
-        # Include CI issues if the package has a PR
-        if job.published_pr_url and job.ci_status:
-            ci_conclusion = job.ci_conclusion
-            if ci_conclusion and ci_conclusion not in ("success", "skipped"):
-                # Fetch CI logs and extract issues
+        # Include CI issues if the package has a PR with failing CI
+        # Try to get PR data from multiple sources
+        pr_url = job.published_pr_url
+        ci_conclusion = job.ci_conclusion
+
+        # If we don't have CI info yet, check the cache
+        if not ci_conclusion:
+            cached_pr = self.get_cached_pr_for_package(package)
+            if cached_pr:
+                if not pr_url:
+                    pr_url = cached_pr.get("url")
+                ci_conclusion = cached_pr.get("ci_conclusion")
+                # Update job with cached data
+                if pr_url and not job.published_pr_url:
+                    job.published_pr_url = pr_url
+                if ci_conclusion and not job.ci_conclusion:
+                    job.ci_conclusion = ci_conclusion
+                    job.ci_status = cached_pr.get("ci_status")
+
+        if pr_url and ci_conclusion and ci_conclusion not in ("success", "skipped"):
+            # Check if we have cached CI issues (to avoid re-fetching every time)
+            ci_issues: list[dict[str, Any]] = []
+            should_fetch = False
+
+            # Use lock to check and set fetch-in-progress atomically
+            with self._lock:
+                if job.ci_issues_fetched_at is not None:
+                    # Already fetched - use cached
+                    ci_issues = list(job.ci_issues_cached or [])
+                elif job.ci_issues_cached is None:
+                    # Not fetched and not in progress - we should fetch
+                    job.ci_issues_cached = []  # Mark as in-progress
+                    should_fetch = True
+                # else: Another thread is fetching, we'll return empty for now
+
+            if should_fetch:
+                # Fetch CI logs and extract issues (only once)
+                print(
+                    f"[CI LOGS] Fetching CI logs for {package} (conclusion: {ci_conclusion})",
+                    flush=True,
+                )
                 ci_result = _fetch_ci_logs_for_package(
-                    job.published_pr_url,
+                    pr_url,
                     package,
                     self.packages_repo_root,
                 )
                 ci_issues = ci_result.get("issues", [])
+                if ci_result.get("error"):
+                    print(
+                        f"[CI LOGS] Error for {package}: {ci_result.get('error')}",
+                        flush=True,
+                    )
+                else:
+                    print(
+                        f"[CI LOGS] Found {len(ci_issues)} CI issues for {package}",
+                        flush=True,
+                    )
+
+                # Mark issues as coming from CI
                 for ci_issue in ci_issues:
-                    # Mark as coming from CI
                     ci_issue["stage"] = "ci"
                     ci_issue["source"] = (
                         f"CI: {ci_issue.get('source', 'GitHub Actions')}"
                     )
-                unique_issues.extend(ci_issues)
+
+                # Cache the CI issues on the job
+                with self._lock:
+                    job.ci_issues_cached = ci_issues
+                    job.ci_issues_fetched_at = _now_ts()
+
+            unique_issues.extend(ci_issues)
 
         # Re-sort after adding CI issues
         stage_order = {"build": 0, "verify": 1, "ci": 2, "other": 3}
@@ -4448,12 +4912,14 @@ class ReviewRun:
 
         result = _rerun_ci_for_pr(job.published_pr_url, self.packages_repo_root)
 
-        # Clear cached CI status to force refresh
+        # Clear cached CI status and logs to force refresh
         if result.get("success"):
             with self._lock:
                 job.ci_status = "pending"
                 job.ci_conclusion = None
                 job.ci_checked_at = _now_ts()
+                job.ci_issues_cached = None  # Clear cached issues for re-fetch
+                job.ci_issues_fetched_at = None
             self._write_state()
 
         return {
@@ -4747,6 +5213,10 @@ class Server:
                             "application/json; charset=utf-8",
                             run.get_state_json(),
                         )
+
+                    if path == "/api/state/summary":
+                        # Lightweight endpoint for polling - only essential status info
+                        return self._send_json(HTTPStatus.OK, run.get_state_summary())
 
                     if path == "/api/whoami":
                         return self._send_json(HTTPStatus.OK, run.get_whoami())
@@ -5265,6 +5735,27 @@ class Server:
                                     lp = str(candidate)
                                 except Exception:
                                     lp = None
+                        elif name.startswith("ci__"):
+                            # CI logs: `ci__<target>__<stage>.<type>.log`
+                            # These are stored in the CI artifacts directory
+                            parts2 = name.removeprefix("ci__").split("__", 1)
+                            if len(parts2) == 2:
+                                target, rest = parts2
+                                # rest is like "solver.error.log"
+                                ci_artifacts_dir = (
+                                    Path(job.package_dir)
+                                    / "build"
+                                    / "ci_logs"
+                                    / "latest"
+                                    / target
+                                ).resolve()
+                                candidate = (ci_artifacts_dir / rest).resolve()
+                                try:
+                                    candidate.relative_to(ci_artifacts_dir)
+                                    if candidate.exists():
+                                        lp = str(candidate)
+                                except Exception:
+                                    pass
                         if not lp:
                             # Avoid browser console spam while builds are still running.
                             return self._send(

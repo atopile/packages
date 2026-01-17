@@ -88,7 +88,8 @@ const state = {
   // Issues panel
   issues: null, // { issues: [], error_count, warning_count, total_count }
   issuesFetchedAt: 0,
-  issueFilter: "all", // "all" | "errors" | "warnings"
+  issuesLoading: false, // True while fetching issues (including CI logs)
+  issueFilter: "all", // "all" | "errors" | "warnings" | "ci"
   issueSearch: "",
   showLogs: false, // Toggle between issues and raw logs view
   expandedIssue: null, // Index of currently expanded issue (for inline log viewer)
@@ -220,6 +221,11 @@ const statusPillClass = (s) => {
 
 const sum = (obj) => Object.values(obj || {}).reduce((a, b) => a + (Number(b) || 0), 0);
 
+// Get total error count, using cached value from summary if available
+const getTotalErr = (j) => j._total_err !== undefined ? j._total_err : (sum(j.build_err) + (j.verify_err || 0));
+// Get total warning count, using cached value from summary if available
+const getTotalWarn = (j) => j._total_warn !== undefined ? j._total_warn : (sum(j.build_warn) + (j.verify_warn || 0));
+
 function escHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -325,7 +331,7 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   // Only show publish-related info not displayed elsewhere
   const rows = [];
   if (job.publish_error) rows.push(kvRowHtml("publish error", job.publish_error));
-  if (job.published_pr_url) rows.push(kvRowHtml("PR", job.published_pr_url));
+  // PR URL removed from summary - it's shown in package pills and GitHub button instead
 
   // Build targets table (similar to ato build CLI output)
   const buildNames = job.build_names || [];
@@ -530,29 +536,45 @@ function renderDiffToHtml(diffText) {
   return out.join("\n");
 }
 
-function renderList() {
+// Debounced render functions to prevent excessive DOM updates
+let _renderListPending = false;
+let _renderRightPending = false;
+
+function scheduleRenderList() {
+  if (_renderListPending) return;
+  _renderListPending = true;
+  requestAnimationFrame(() => {
+    _renderListPending = false;
+    _renderListImpl();
+  });
+}
+
+function scheduleRenderRight() {
+  if (_renderRightPending) return;
+  _renderRightPending = true;
+  requestAnimationFrame(() => {
+    _renderRightPending = false;
+    _renderRightImpl();
+  });
+}
+
+// Keep original names for backward compatibility but debounce
+function renderList() { scheduleRenderList(); }
+function renderRight() { scheduleRenderRight(); }
+
+function _renderListImpl() {
   const root = $("#pkgList");
   root.innerHTML = "";
 
   const filter = (state.filter || "").toLowerCase().trim();
   const now = Date.now();
 
-  // Recency decay: score decays over 5 minutes (300000ms)
-  // Returns 0-100 based on how recently the package was touched
-  const recencyScore = (name) => {
-    const touched = state.recentlyTouched[name];
-    if (!touched) return 0;
-    const age = now - touched;
-    const decayMs = 5 * 60 * 1000; // 5 minutes
-    if (age > decayMs) return 0;
-    return Math.round(100 * (1 - age / decayMs));
-  };
-
   // Status priority score (higher = more important to see)
+  // Use unique scores to prevent packages swapping positions
   const statusScore = (j) => {
     switch (j.status) {
       case "building": return 1000;
-      case "verifying": return 1000;
+      case "verifying": return 999;
       case "error": return 800;
       case "needs_input": return 750;
       case "awaiting_review": return 700;
@@ -561,34 +583,45 @@ function renderList() {
       case "paused": return 150;
       case "skipped": return 100;
       case "pr_opened": return 50;
-      case "branch_pushed": return 50;
+      case "branch_pushed": return 49;
       case "published": return 10;
       default: return 300;
     }
   };
 
-  // Combined score: status priority + recency boost
-  const packageScore = (name) => {
-    const j = state.packages[name];
-    const status = statusScore(j);
-    const recency = recencyScore(name);
-    // Recency can boost a package up to 500 points (enough to jump categories)
-    return status + (recency * 5);
-  };
+  // Get queue position for stable ordering of queued items
+  const queueOrder = new Map();
+  if (Array.isArray(state.queue)) {
+    state.queue.forEach((name, idx) => queueOrder.set(name, idx));
+  }
 
   // Get all packages and sort by score (descending)
-  const allNames = Object.keys(state.packages);
+  // Sort alphabetically first for a stable base order
+  const allNames = Object.keys(state.packages).sort((a, b) => a.localeCompare(b));
 
   // Secondary sort: alphabetical within same score tier
   const sortFn = state.sortOrder === "desc"
     ? (a, b) => b.localeCompare(a)
     : (a, b) => a.localeCompare(b);
 
-  // Sort by score first, then alphabetically for ties
+  // Sort by: 1) status score, 2) queue position (for queued items), 3) alphabetical
   const names = allNames.sort((a, b) => {
-    const scoreA = packageScore(a);
-    const scoreB = packageScore(b);
-    if (scoreA !== scoreB) return scoreB - scoreA; // Higher score first
+    const ja = state.packages[a];
+    const jb = state.packages[b];
+    const scoreA = statusScore(ja);
+    const scoreB = statusScore(jb);
+
+    // First: sort by status score (higher first)
+    if (scoreA !== scoreB) return scoreB - scoreA;
+
+    // Second: for queued items, use queue position
+    const queueA = queueOrder.get(a);
+    const queueB = queueOrder.get(b);
+    if (queueA !== undefined && queueB !== undefined) {
+      return queueA - queueB; // Lower queue position = earlier in list
+    }
+
+    // Third: alphabetical for non-queued items with same score
     return sortFn(a, b);
   });
 
@@ -599,8 +632,8 @@ function renderList() {
 
     // Status filter
     const j = state.packages[n];
-    const warn = sum(j.build_warn) + (j.verify_warn || 0);
-    const err = sum(j.build_err) + (j.verify_err || 0);
+    const warn = getTotalWarn(j);
+    const err = getTotalErr(j);
 
     switch (state.statusFilter) {
       case "all": return true;
@@ -622,8 +655,8 @@ function renderList() {
     const j = state.packages[name];
     const selected = state.selected === name;
 
-    const warn = sum(j.build_warn) + (j.verify_warn || 0);
-    const err = sum(j.build_err) + (j.verify_err || 0);
+    const warn = getTotalWarn(j);
+    const err = getTotalErr(j);
 
     const metaPills = [];
 
@@ -793,7 +826,7 @@ function renderList() {
   }
 }
 
-function renderRight() {
+function _renderRightImpl() {
   const t0 = performance.now();
   const title = $("#pkgTitle");
   const sub = $("#pkgSub");
@@ -1047,8 +1080,8 @@ function renderRight() {
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
   // Summary text
-  const totalWarn = sum(job.build_warn) + (job.verify_warn || 0);
-  const totalErr = sum(job.build_err) + (job.verify_err || 0);
+  const totalWarn = getTotalWarn(job);
+  const totalErr = getTotalErr(job);
   const totalSecs = sum(job.build_seconds) + (job.verify_seconds || 0);
   summary.innerHTML = summaryHtml(job, { totalWarn, totalErr, totalSecs });
 
@@ -1132,6 +1165,19 @@ function renderRight() {
 
   // Issues panel rendering
   if (issuesList && !state.showLogs) {
+    // Show thin progress bar at the bottom of issues panel when loading
+    const issuesCardEl = document.querySelector("#cardIssues");
+    let progressBar = issuesCardEl?.querySelector(".issuesProgressBar");
+    if (state.issuesLoading) {
+      if (!progressBar && issuesCardEl) {
+        progressBar = document.createElement("div");
+        progressBar.className = "issuesProgressBar";
+        issuesCardEl.appendChild(progressBar);
+      }
+    } else if (progressBar) {
+      progressBar.remove();
+    }
+
     const issues = state.issues?.issues || [];
     const filterType = state.issueFilter || "all";
     const searchQ = (state.issueSearch || "").toLowerCase().trim();
@@ -1140,6 +1186,7 @@ function renderRight() {
     const filtered = issues.filter((issue) => {
       if (filterType === "errors" && issue.type !== "error") return false;
       if (filterType === "warnings" && issue.type !== "warning") return false;
+      if (filterType === "ci" && issue.stage !== "ci") return false;
       if (searchQ && !issue.message.toLowerCase().includes(searchQ)) return false;
       return true;
     });
@@ -1174,8 +1221,9 @@ function renderRight() {
     } else {
       filtered.forEach((issue, idx) => {
         const isExpanded = state.expandedIssue === idx;
-        const item = el("div", { class: `issueItem ${issue.type}${isExpanded ? " expanded" : ""}` }, [
-          el("span", { class: `issueType ${issue.type}`, text: issue.type }),
+        const isCi = issue.stage === "ci";
+        const item = el("div", { class: `issueItem ${issue.type}${isExpanded ? " expanded" : ""}${isCi ? " ci-issue" : ""}` }, [
+          el("span", { class: `issueType ${issue.type}${isCi ? " ci" : ""}`, text: isCi ? "CI" : issue.type }),
           el("div", { class: "issueContent" }, [
             el("div", { class: "issueMessage", text: issue.message }),
             el("div", { class: "issueSource", text: `${issue.source}${issue.line_num ? ` (line ${issue.line_num})` : ""}` }),
@@ -1263,9 +1311,12 @@ function renderRight() {
         }
       });
 
-      // Restore issues list scroll position after rendering
+      // Restore issues list scroll position after rendering (needs RAF to work after DOM update)
       if (state.issuesListScroll > 0) {
-        issuesList.scrollTop = state.issuesListScroll;
+        const targetScroll = state.issuesListScroll;
+        requestAnimationFrame(() => {
+          issuesList.scrollTop = targetScroll;
+        });
       }
     }
 
@@ -1419,14 +1470,41 @@ function renderRight() {
   updateDebugHud();
 }
 
-async function fetchState() {
-  const s = await apiGet("/api/state");
-  state.runDir = s.run_dir;
-  state.updatedAt = s.updated_at;
-  state.stateConfig = s.config || {};
-  state.packages = s.packages || {};
-  state.queue = s.queue || [];
-  updateFrozenIndicator();
+async function fetchState(full = false) {
+  if (full) {
+    // Full state - used on initial load or when needed
+    const s = await apiGet("/api/state");
+    state.runDir = s.run_dir;
+    state.updatedAt = s.updated_at;
+    state.stateConfig = s.config || {};
+    state.packages = s.packages || {};
+    state.queue = s.queue || [];
+    updateFrozenIndicator();
+  } else {
+    // Lightweight summary - used for polling (~25KB instead of ~300KB)
+    const s = await apiGet("/api/state/summary");
+    state.updatedAt = s.updated_at;
+    state.queue = s.queue || [];
+    // Merge summary into existing packages (preserves full data)
+    // Summary uses shortened field names for compactness
+    for (const [name, summary] of Object.entries(s.packages || {})) {
+      const pkg = state.packages[name] || {};
+      pkg.status = summary.status;
+      if (summary.ci_status !== undefined) pkg.ci_status = summary.ci_status;
+      if (summary.ci_conclusion !== undefined) pkg.ci_conclusion = summary.ci_conclusion;
+      // Summary flattens err/warn to totals
+      if (summary.err !== undefined) pkg._total_err = summary.err;
+      if (summary.warn !== undefined) pkg._total_warn = summary.warn;
+      if (summary.approved_by !== undefined) pkg.approved_by = summary.approved_by;
+      if (summary.pr_url !== undefined) pkg.published_pr_url = summary.pr_url;
+      if (summary.branch !== undefined) pkg.published_branch = summary.branch;
+      if (summary.reg_ver !== undefined) pkg.registry_published_version = summary.reg_ver;
+      if (summary.reg_req !== undefined) pkg.registry_requires_atopile = summary.reg_req;
+      if (summary.author !== undefined) pkg.published_pr_author = summary.author;
+      if (summary.progress !== undefined) pkg.build_progress = summary.progress;
+      state.packages[name] = pkg;
+    }
+  }
 }
 
 function updateFrozenIndicator() {
@@ -1474,6 +1552,8 @@ async function fetchLogIndex() {
 
 async function fetchIssues() {
   if (!state.selected) return;
+  state.issuesLoading = true;
+  renderRight(); // Show loading state immediately
   try {
     const d = await apiGet(`/api/package/${encodeURIComponent(state.selected)}/issues`);
     state.issues = d || null;
@@ -1486,6 +1566,8 @@ async function fetchIssues() {
       total_count: 1,
     };
     state.issuesFetchedAt = Date.now();
+  } finally {
+    state.issuesLoading = false;
   }
 }
 
@@ -1529,8 +1611,6 @@ async function fetchLog(soft = false) {
 async function selectPackage(name) {
   if (state.selected === name) return;
   state.selected = name;
-  // Track when this package was touched for recency sorting
-  state.recentlyTouched[name] = Date.now();
   state.selectedBuild = null;
   state.selectedDetail = null;
   state.selectedLogStage = "build";
@@ -1549,16 +1629,28 @@ async function selectPackage(name) {
   state.expandedIssueScroll = 0;
   state.expandedIssueScrollLeft = 0;
   state.issuesListScroll = 0;  // Reset issues list scroll
+  state.issuesLoading = false;  // Reset issues loading state
   setHash(name);
-  await fetchSelectedDetail(false);
-  // Fetch issues first (primary view)
-  await fetchIssues();
-  await fetchLogIndex();
+
+  // Render immediately to show selection change (responsive feel)
+  renderList();
+  renderRight();
+
+  // Fetch data in parallel for speed
+  const [detail] = await Promise.all([
+    fetchSelectedDetail(false),
+    fetchIssues(),
+    fetchLogIndex(),
+  ]);
+
   pickDefaultLogForStage();
   // Default tab: if already approved, land in Diff; else Viewer.
   state.viewTab = state.selectedDetail?.job?.approved_by ? "diff" : "viewer";
-  await fetchDiff();
-  await fetchLog(true);
+
+  // Fetch remaining data (non-blocking for initial render)
+  fetchDiff().catch(() => {});
+  fetchLog(true).catch(() => {});
+
   renderList();
   renderRight();
 }
@@ -1811,9 +1903,9 @@ async function fetchGhCacheStatus() {
   }
 }
 
-async function refresh(keepDetail = true) {
+async function refresh(keepDetail = true, fullState = false) {
   const t0 = performance.now();
-  await Promise.all([fetchState(), fetchGhCacheStatus()]);
+  await Promise.all([fetchState(fullState), fetchGhCacheStatus()]);
   const tList0 = performance.now();
   renderList();
   debug.lastRenderListMs = performance.now() - tList0;
@@ -1997,7 +2089,7 @@ async function bootstrap() {
     ghStatus.textContent = "⟳ Syncing GitHub...";
   }
 
-  await refresh(false);
+  await refresh(false, true);  // Full state on initial load
 
   // Prefill reviewer from git
   try {
@@ -2010,9 +2102,9 @@ async function bootstrap() {
     await selectPackage(initial);
   }
 
-  // Poll. Keep it snappy but not noisy.
-  // Poll every 600ms for responsive updates during active builds
-  setInterval(() => refresh(true).catch(() => {}), 600);
+  // Poll. 2s is snappy enough for status updates without hammering the server.
+  // Heavy data (logs, issues) are fetched on-demand, not every poll.
+  setInterval(() => refresh(true).catch(() => {}), 2000);
 }
 
 bootstrap().catch((e) => {

@@ -722,6 +722,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     "todo diff";
 }
 .card {
+  position: relative; /* for progress bars */
   border: 1px solid var(--stroke);
   background: rgba(24, 24, 37, 0.70);
   border-radius: var(--radius);
@@ -1085,6 +1086,13 @@ model-viewer {
 .issueItem.warning {
   border-left: 3px solid var(--warn);
 }
+.issueItem.ci-issue {
+  border-left: 3px solid var(--ctp-mauve);
+  background: rgba(203, 166, 247, 0.08);
+}
+.issueItem.ci-issue:hover {
+  background: rgba(203, 166, 247, 0.15);
+}
 
 .issueType {
   font-size: 10px;
@@ -1102,6 +1110,10 @@ model-viewer {
 .issueType.warning {
   background: rgba(249, 226, 175, 0.18);
   color: var(--ctp-yellow);
+}
+.issueType.ci {
+  background: rgba(203, 166, 247, 0.18);
+  color: var(--ctp-mauve);
 }
 
 .issueContent {
@@ -1141,6 +1153,32 @@ model-viewer {
 .issuesEmpty .checkmark {
   font-size: 32px;
   color: var(--good);
+}
+.issuesEmpty.loading {
+  color: var(--ctp-blue);
+}
+.issuesEmpty .spinner {
+  font-size: 32px;
+  animation: spin 1s linear infinite;
+}
+.issuesProgressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ctp-blue), var(--ctp-sapphire), var(--ctp-blue));
+  background-size: 200% 100%;
+  animation: progressSlide 1.5s ease-in-out infinite;
+  border-radius: 0 0 8px 8px;
+}
+@keyframes progressSlide {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .issuesSummary {
