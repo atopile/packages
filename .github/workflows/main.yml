@@ -55,11 +55,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Mark the workspace as a safe directory for Git operations
-      # This is needed for GitPython to find the repo when running from subdirectories
-      - name: Configure Git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
       # Build against a feature branch of atopile for 0.14.x package updates
       # Uses pre-built Docker image from the branch (built by atopile CI)
       # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
@@ -83,18 +78,6 @@ jobs:
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
-
-      - name: Debug git setup
-        if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-        run: |
-          echo "=== Debug Info ==="
-          echo "pwd: $(pwd)"
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          echo "matrix.package: ${{ matrix.package }}"
-          echo "Looking for .git:"
-          ls -la .git 2>/dev/null || echo "No .git in current dir"
-          git rev-parse --show-toplevel 2>/dev/null || echo "git rev-parse failed"
-          echo "=== Testing ato from repo root ==="
 
       - name: Publish dry run
         if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
