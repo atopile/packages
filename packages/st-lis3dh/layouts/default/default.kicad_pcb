@@ -50,15 +50,15 @@
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
-			(dashed_line_dash_ratio 12.000000)
-			(dashed_line_gap_ratio 3.000000)
+			(dashed_line_dash_ratio 12)
+			(dashed_line_gap_ratio 3)
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
 			(useauxorigin no)
 			(hpglpennumber 1)
 			(hpglpenspeed 20)
-			(hpglpendiameter 15.000000)
+			(hpglpendiameter 15)
 			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
@@ -87,17 +87,17 @@
 		)
 	)
 	(net 1 "9")
-	(net 2 "SCL_SPC")
+	(net 2 "SCL")
 	(net 3 "11")
 	(net 4 "16")
 	(net 6 "decoupling_caps[0]-power-hv")
-	(net 8 "SDA_SDI_SDO")
+	(net 8 "MOSI")
 	(net 9 "13")
 	(net 10 "CS")
 	(net 11 "RES")
-	(net 12 "decoupling_caps[1]-power-hv")
+	(net 12 "hv")
 	(net 13 "15")
-	(net 16 "reference-lv")
+	(net 16 "lv")
 	(footprint "STMicroelectronics_LIS3DHTR:LGA-16_L3.0-W3.0-P0.50-TL"
 		(layer "F.Cu")
 		(uuid "00b9ab1a-32ff-4d0b-be49-51644642524b")
@@ -357,7 +357,7 @@
 			(at -1.4 -1 0)
 			(size 0.8 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "decoupling_caps[1]-power-hv")
+			(net 12 "hv")
 			(uuid "259350a4-fa5f-4da0-bd69-499413aafc34")
 		)
 		(pad "2" smd oval
@@ -376,28 +376,28 @@
 			(at -1.4 0.5 0)
 			(size 0.8 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "SCL_SPC")
+			(net 2 "SCL")
 			(uuid "4927ecdf-dbec-40a2-a3b6-7ab0c5a81f20")
 		)
 		(pad "5" smd oval
 			(at -1.4 1 0)
 			(size 0.8 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "reference-lv")
+			(net 16 "lv")
 			(uuid "dd63132d-7329-4823-9c45-91d77d89d426")
 		)
 		(pad "6" smd oval
 			(at -0.5 1.4 0)
 			(size 0.28 0.8)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "SDA_SDI_SDO")
+			(net 8 "MOSI")
 			(uuid "cdd9cf80-bc78-42e9-a979-50839e7716c4")
 		)
 		(pad "7" smd oval
 			(at 0 1.4 0)
 			(size 0.28 0.8)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "reference-lv")
+			(net 16 "lv")
 			(uuid "238d2368-90e0-44bc-8c83-9dd8c4d16298")
 		)
 		(pad "8" smd oval
@@ -432,7 +432,7 @@
 			(at 1.4 -0.5 0)
 			(size 0.8 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "reference-lv")
+			(net 16 "lv")
 			(uuid "1d22f6f9-0ecb-4322-a7c7-38ff9be8e89f")
 		)
 		(pad "13" smd oval
@@ -491,7 +491,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000.0±20.0%Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -503,7 +503,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -539,7 +539,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25804"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -563,7 +563,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0603WAF1002T5E"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -575,7 +575,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -587,7 +587,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -623,25 +623,25 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000.0±20.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2cffba13-a7a0-435c-81eb-1f934642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "67cb6dba-d092-4e1f-be04-dc8a4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0416ca78-f29c-4e77-bc88-a60e4642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25804"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -752,14 +752,14 @@
 			(at 0.43 0 90)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "SCL_SPC")
+			(net 2 "SCL")
 			(uuid "b2470586-4c92-401a-826a-1025a16041ee")
 		)
 		(pad "1" smd rect
 			(at -0.43 0 90)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "decoupling_caps[1]-power-hv")
+			(net 12 "hv")
 			(uuid "24dfb705-d361-45c1-be06-b94966fdfe57")
 		)
 		(embedded_fonts no)
@@ -791,7 +791,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1.000±20.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -803,7 +803,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -839,7 +839,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" "C14663"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -851,7 +851,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "Samsung Electro-Mechanics"
+		(property "Manufacturer" "YAGEO"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -863,7 +863,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL05B104KO5NNNC"
+		(property "Partnumber" "CC0603KRX7R9BB104"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -887,7 +887,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -923,13 +923,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1.000±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "97bbb3eb-2a52-489d-91db-58cd4642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -941,7 +941,7 @@
 			(hide yes)
 			(uuid "bacae2dc-c2c3-4052-ba67-de944642524b")
 		)
-		(property "lcsc_id" "C1525"
+		(property "lcsc_id" "C14663"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1100,14 +1100,14 @@
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "reference-lv")
+			(net 16 "lv")
 			(uuid "dec46efb-210c-44ec-8c95-9973379a8fa7")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "decoupling_caps[1]-power-hv")
+			(net 12 "hv")
 			(uuid "681afdb9-32ae-4dec-acb4-bc9ed5f8340c")
 		)
 		(embedded_fonts no)
@@ -1139,7 +1139,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000.0±20.0%Ω"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -1151,7 +1151,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1187,7 +1187,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25804"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1211,7 +1211,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0603WAF1002T5E"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1223,7 +1223,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1235,7 +1235,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1271,25 +1271,25 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000.0±20.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1bca4c5c-b6f3-4428-95ea-167a4642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "32178306-a27c-4d4e-b1bd-f9634642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "42cc03be-8700-47cb-9c7e-91924642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25804"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1407,7 +1407,7 @@
 			(at -0.43 0 180)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "decoupling_caps[1]-power-hv")
+			(net 12 "hv")
 			(uuid "24dfb705-d361-45c1-be06-b94966fdfe57")
 		)
 		(embedded_fonts no)
@@ -1439,7 +1439,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000.0±20.0%Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -1451,7 +1451,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1487,7 +1487,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25804"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1511,7 +1511,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0603WAF1002T5E"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1523,7 +1523,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.0625, \"max\": 0.0625}}]}}, \"unit\": \"watt\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1535,7 +1535,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1571,25 +1571,25 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000.0±20.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "196d11b0-f52d-44ef-88e9-ee2e4642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1cd01f6d-a317-421e-b47f-7af54642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a827c016-c42c-47d1-afa6-d5c84642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25804"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1700,14 +1700,14 @@
 			(at 0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "SDA_SDI_SDO")
+			(net 8 "MOSI")
 			(uuid "b2470586-4c92-401a-826a-1025a16041ee")
 		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "decoupling_caps[1]-power-hv")
+			(net 12 "hv")
 			(uuid "24dfb705-d361-45c1-be06-b94966fdfe57")
 		)
 		(embedded_fonts no)
@@ -1739,7 +1739,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1.000±20.0%F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -1751,7 +1751,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2211101700_YAGEO-CC0603KRX7R9BB104_C14663.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1787,7 +1787,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1525"
+		(property "LCSC" "C14663"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1799,7 +1799,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "Samsung Electro-Mechanics"
+		(property "Manufacturer" "YAGEO"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1811,7 +1811,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL05B104KO5NNNC"
+		(property "Partnumber" "CC0603KRX7R9BB104"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1835,7 +1835,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 50.0, \"max\": 50.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1871,13 +1871,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1.000±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7b1c457f-f0c8-406d-9426-be5a4642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1889,7 +1889,7 @@
 			(hide yes)
 			(uuid "0d561805-4433-41fa-914a-58504642524b")
 		)
-		(property "lcsc_id" "C1525"
+		(property "lcsc_id" "C14663"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2048,7 +2048,7 @@
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "reference-lv")
+			(net 16 "lv")
 			(uuid "dec46efb-210c-44ec-8c95-9973379a8fa7")
 		)
 		(pad "1" smd rect
