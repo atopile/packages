@@ -17,9 +17,9 @@ module Microchip_MCP3421:
     Driver for Microchip MCP3421 18-bit, single-channel I²C ADC.
 
     Exposes:
-      * power         – Single-rail supply (2.7V – 5.5V)
-      * i2c           – I²C bus interface (fixed address 0x68)
-      * analog_input  – Differential analog input pair (Vinpos/Vinneg)
+        * power – Single-rail supply (2.7V – 5.5V)
+        * i2c – I²C bus interface (fixed address 0x68)
+        * analog_input – Differential analog input pair (Vinpos/Vinneg)
 
     Features internal 2.048V reference, no external reference needed.
     """
@@ -44,7 +44,7 @@ module Microchip_MCP3421:
     """
     Differential analog input pair (positive and negative inputs)
     """
-    analog_input.single_electric_reference.reference ~ power
+    analog_input.has_single_electric_reference.reference ~ power
 
     # --- I²C addressing ---
     # MCP3421 has a fixed I2C address of 0x68
