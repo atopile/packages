@@ -55,6 +55,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Mark the workspace as a safe directory for Git operations
+      # This is needed for GitPython to find the repo when running from subdirectories
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       # Build against a feature branch of atopile for 0.14.x package updates
       # Uses pre-built Docker image from the branch (built by atopile CI)
       # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
