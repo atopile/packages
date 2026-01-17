@@ -12,7 +12,7 @@
     <div id="app">
       <aside id="left">
         <div class="toolbar">
-          <div class="title">Package Review</div>
+          <div class="title">Package Review <span id="frozenStatus" class="frozenStatus" title="Frozen build mode"></span><span id="ghSyncStatus" class="ghSyncStatus" title="GitHub sync status"></span></div>
           <div class="filterRow">
           <input id="filter" type="text" placeholder="Filter packages…" />
             <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
@@ -24,6 +24,7 @@
             <button class="statusFilterBtn" data-status="warning">Warn</button>
             <button class="statusFilterBtn" data-status="review">Review</button>
             <button class="statusFilterBtn" data-status="pr">PR</button>
+            <button class="statusFilterBtn" data-status="ci_failing">CI ✗</button>
             <button class="statusFilterBtn" data-status="published">Done</button>
             <button class="statusFilterBtn" data-status="queue">Queue</button>
             <button class="statusFilterBtn agent" data-status="agent">Agent</button>
@@ -59,6 +60,7 @@
             <button id="uprevBtn" disabled title="Get current registry version, bump patch, create PR">Uprev</button>
             <button id="syncBtn" disabled title="Sync local package from origin/main">Sync</button>
             <button id="githubBtn" disabled title="Open PR on GitHub">GitHub</button>
+            <button id="rerunCiBtn" disabled title="Re-run CI for this package's PR">Rerun CI</button>
           </div>
         </div>
 

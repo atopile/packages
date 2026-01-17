@@ -94,7 +94,8 @@ const state = {
   expandedIssue: null, // Index of currently expanded issue (for inline log viewer)
   expandedIssueLog: "", // Log content for expanded issue
   expandedIssueLoading: false,
-  expandedIssueScroll: 0, // Preserved scroll position for expanded issue log
+  expandedIssueScroll: 0, // Preserved vertical scroll position for expanded issue log
+  expandedIssueScrollLeft: 0, // Preserved horizontal scroll position for expanded issue log
   issuesListScroll: 0, // Preserved scroll position for the issues list container
 };
 
@@ -608,6 +609,7 @@ function renderList() {
       case "warning": return warn > 0 && err === 0;
       case "review": return j.status === "awaiting_review" || j.status === "needs_input";
       case "pr": return j.status === "pr_opened" || j.status === "branch_pushed";
+      case "ci_failing": return j.ci_conclusion && j.ci_conclusion !== "success" && j.ci_conclusion !== "skipped";
       case "published": return j.status === "published";
       case "help": return j.status === "needs_input";
       case "agent": return j.agent_working === true;
@@ -680,6 +682,30 @@ function renderList() {
     if (warn) metaPills.push(el("span", { class: "pill warn" }, [el("span", { class: "dot" }), el("span", { text: `${warn} warnings` })]));
     if (err) metaPills.push(el("span", { class: "pill bad" }, [el("span", { class: "dot" }), el("span", { text: `${err} errors` })]));
     if (j.approved_by) metaPills.push(el("span", { class: "pill good" }, [el("span", { class: "dot" }), el("span", { text: `approved: ${j.approved_by}` })]));
+
+    // Show CI status for packages with PRs
+    if (j.ci_status && j.published_pr_url) {
+      const ciConclusion = j.ci_conclusion;
+      let ciClass = "neutral";
+      let ciText = `CI: ${j.ci_status}`;
+      if (ciConclusion === "success") {
+        ciClass = "good";
+        ciText = "CI ✓";
+      } else if (ciConclusion === "failure") {
+        ciClass = "bad";
+        ciText = "CI ✗";
+      } else if (ciConclusion === "cancelled") {
+        ciClass = "warn";
+        ciText = "CI cancelled";
+      } else if (j.ci_status === "in_progress" || j.ci_status === "queued" || j.ci_status === "pending") {
+        ciClass = "purple";
+        ciText = "CI running";
+      }
+      metaPills.push(el("span", { class: `pill ${ciClass}` }, [
+        el("span", { class: "dot" }),
+        el("span", { text: ciText }),
+      ]));
+    }
 
     // Show build progress when actively building/verifying
     const isActive = j.status === "building" || j.status === "verifying";
@@ -827,6 +853,8 @@ function renderRight() {
     if (syncBtn) syncBtn.disabled = true;
     const githubBtn = $("#githubBtn");
     if (githubBtn) githubBtn.disabled = true;
+    const rerunCiBtn = $("#rerunCiBtn");
+    if (rerunCiBtn) rerunCiBtn.disabled = true;
     restartBtn.disabled = true;
     cursorBtn.disabled = true;
     if (logStageSelect) logStageSelect.innerHTML = "";
@@ -1004,6 +1032,17 @@ function renderRight() {
     const hasGitHub = prUrl || branch;
     githubBtn.disabled = !hasGitHub;
   }
+  // Rerun CI button enabled for packages in states where CI might exist
+  // Backend will discover PR from GitHub if needed (stateless approach)
+  const rerunCiBtn = $("#rerunCiBtn");
+  if (rerunCiBtn) {
+    const stateJobForCi = state.packages[job.package];
+    const prUrlForCi = stateJobForCi?.published_pr_url || job.published_pr_url;
+    const branchForCi = stateJobForCi?.published_branch || job.published_branch;
+    // Enable if we know about PR/branch, OR if package is in a state that might have one
+    const ciRelevantStatus = ["awaiting_review", "approved", "branch_pushed", "pr_opened", "published"].includes(job.status);
+    rerunCiBtn.disabled = !(prUrlForCi || branchForCi || ciRelevantStatus);
+  }
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
@@ -1110,6 +1149,7 @@ function renderRight() {
     const existingLogViewer = issuesList.querySelector(".issueLogViewer");
     if (existingLogViewer && state.expandedIssue !== null) {
       state.expandedIssueScroll = existingLogViewer.scrollTop;
+      state.expandedIssueScrollLeft = existingLogViewer.scrollLeft;
     }
 
     issuesList.innerHTML = "";
@@ -1153,13 +1193,15 @@ function renderRight() {
             state.expandedIssue = null;
             state.expandedIssueLog = "";
             state.expandedIssueScroll = 0;
+            state.expandedIssueScrollLeft = 0;
             renderRight();
           } else {
             // Expand this issue (and collapse any other)
             state.expandedIssue = idx;
             state.expandedIssueLoading = true;
             state.expandedIssueLog = "";
-            state.expandedIssueScroll = 0; // Reset scroll for new issue
+            state.expandedIssueScroll = 0; // Reset vertical scroll for new issue
+            state.expandedIssueScrollLeft = 0; // Reset horizontal scroll for new issue
             renderRight();
 
             // Fetch the log content for this issue
@@ -1205,14 +1247,18 @@ function renderRight() {
           logViewer.innerHTML = logContent;
           issuesList.appendChild(logViewer);
 
-          // Restore scroll position after append
+          // Restore scroll positions after append
           if (state.expandedIssueScroll > 0) {
             logViewer.scrollTop = state.expandedIssueScroll;
+          }
+          if (state.expandedIssueScrollLeft > 0) {
+            logViewer.scrollLeft = state.expandedIssueScrollLeft;
           }
 
           // Track scroll changes to preserve position across re-renders
           logViewer.addEventListener("scroll", () => {
             state.expandedIssueScroll = logViewer.scrollTop;
+            state.expandedIssueScrollLeft = logViewer.scrollLeft;
           });
         }
       });
@@ -1227,7 +1273,13 @@ function renderRight() {
     if (issuesHint) {
       const errCount = state.issues?.error_count || 0;
       const warnCount = state.issues?.warning_count || 0;
-      issuesHint.textContent = `${errCount} error${errCount !== 1 ? "s" : ""}, ${warnCount} warning${warnCount !== 1 ? "s" : ""} • click an issue to expand log`;
+      const ciCount = state.issues?.ci_issue_count || 0;
+      let hintText = `${errCount} error${errCount !== 1 ? "s" : ""}, ${warnCount} warning${warnCount !== 1 ? "s" : ""}`;
+      if (ciCount > 0) {
+        hintText += `, ${ciCount} from CI`;
+      }
+      hintText += " • click an issue to expand log";
+      issuesHint.textContent = hintText;
     }
   }
 
@@ -1238,6 +1290,7 @@ function renderRight() {
       state.expandedIssue = null;  // Collapse expanded issue when filter changes
       state.expandedIssueLog = "";
       state.expandedIssueScroll = 0;
+      state.expandedIssueScrollLeft = 0;
       state.issuesListScroll = 0;  // Reset list scroll when filter changes
       renderRight();
     });
@@ -1249,6 +1302,7 @@ function renderRight() {
       state.expandedIssue = null;  // Collapse expanded issue when search changes
       state.expandedIssueLog = "";
       state.expandedIssueScroll = 0;
+      state.expandedIssueScrollLeft = 0;
       state.issuesListScroll = 0;  // Reset list scroll when search changes
       renderRight();
     });
@@ -1372,6 +1426,16 @@ async function fetchState() {
   state.stateConfig = s.config || {};
   state.packages = s.packages || {};
   state.queue = s.queue || [];
+  updateFrozenIndicator();
+}
+
+function updateFrozenIndicator() {
+  const el = document.getElementById("frozenStatus");
+  if (!el) return;
+  const isFrozen = state.stateConfig?.frozen === true;
+  el.classList.toggle("active", isFrozen);
+  el.textContent = isFrozen ? "❄ Frozen" : "";
+  el.title = isFrozen ? "Builds are running with --frozen flag" : "";
 }
 
 async function fetchSelectedDetail(soft = false) {
@@ -1483,6 +1547,7 @@ async function selectPackage(name) {
   state.expandedIssueLog = "";
   state.expandedIssueLoading = false;
   state.expandedIssueScroll = 0;
+  state.expandedIssueScrollLeft = 0;
   state.issuesListScroll = 0;  // Reset issues list scroll
   setHash(name);
   await fetchSelectedDetail(false);
@@ -1659,6 +1724,31 @@ function openGitHub() {
   }
 }
 
+async function rerunCiSelected() {
+  const pkg = state.selected;
+  if (!pkg) return;
+
+  // Let backend discover PR from GitHub (stateless approach)
+  const btn = $("#rerunCiBtn");
+  const originalText = btn?.textContent;
+  if (btn) btn.textContent = "Checking...";
+
+  try {
+    const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/rerun_ci`, {});
+    if (res.success) {
+      alert(`CI rerun triggered!\n${res.message}${res.run_url ? `\n\nView at: ${res.run_url}` : ""}`);
+      // Refresh to get updated CI status
+      await refresh(true);
+    } else {
+      alert(`Failed to rerun CI: ${res.message}`);
+    }
+  } catch (e) {
+    alert(`Failed to rerun CI: ${String(e)}`);
+  }
+
+  if (btn) btn.textContent = originalText;
+}
+
 async function openInKicad() {
   const pkg = state.selected;
   const build = state.selectedBuild;
@@ -1687,9 +1777,43 @@ async function openLogsInCursor() {
   }
 }
 
+async function fetchGhCacheStatus() {
+  const el = document.getElementById("ghSyncStatus");
+  if (!el) return;
+
+  try {
+    const res = await apiGet("/api/gh_cache_status");
+    const age = res.cache_age_seconds || 999;
+    const status = res.status || "loading";
+    const ciFailures = res.ci_failures || 0;
+    const pkgsWithCi = res.packages_with_ci_status || 0;
+
+    el.classList.remove("loading", "synced", "error");
+
+    if (age > 60) {
+      el.classList.add("loading");
+      el.textContent = "⟳ Syncing GitHub...";
+      el.title = "Fetching PR and CI data from GitHub";
+    } else {
+      el.classList.add("synced");
+      if (ciFailures > 0) {
+        el.textContent = `✓ ${pkgsWithCi} PRs | ${ciFailures} CI fails`;
+      } else {
+        el.textContent = `✓ ${pkgsWithCi} PRs synced`;
+      }
+      el.title = `Last sync: ${Math.round(age)}s ago\nBranches: ${res.branches_cached}\nPackages: ${res.packages_cached}`;
+    }
+  } catch (e) {
+    el.classList.remove("loading", "synced");
+    el.classList.add("error");
+    el.textContent = "⚠ GitHub sync error";
+    el.title = String(e);
+  }
+}
+
 async function refresh(keepDetail = true) {
   const t0 = performance.now();
-  await fetchState();
+  await Promise.all([fetchState(), fetchGhCacheStatus()]);
   const tList0 = performance.now();
   renderList();
   debug.lastRenderListMs = performance.now() - tList0;
@@ -1768,6 +1892,7 @@ function wireGlobal() {
   $("#uprevBtn").addEventListener("click", uprevSelected);
   $("#syncBtn")?.addEventListener("click", syncSelected);
   $("#githubBtn")?.addEventListener("click", openGitHub);
+  $("#rerunCiBtn")?.addEventListener("click", rerunCiSelected);
   $("#restartBtn").addEventListener("click", restartSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);
@@ -1864,6 +1989,13 @@ async function bootstrap() {
   // Initialize sort button text
   const sortBtn = $("#sortToggle");
   if (sortBtn) sortBtn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
+
+  // Show initial loading state for GitHub sync
+  const ghStatus = document.getElementById("ghSyncStatus");
+  if (ghStatus) {
+    ghStatus.classList.add("loading");
+    ghStatus.textContent = "⟳ Syncing GitHub...";
+  }
 
   await refresh(false);
 

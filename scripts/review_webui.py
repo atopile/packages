@@ -312,6 +312,7 @@ def _review_worker_process(
     keep_picked_parts: bool,
     skip_datasheets: bool,
     jobs_per_pkg: int,
+    frozen: bool = False,
 ) -> None:
     """
     Worker process entrypoint.
@@ -481,11 +482,13 @@ def _review_worker_process(
         # Build
         build_log_path = logs_dir / "build.log"
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
-        cmd = [*ato_cmd, "build", "--jobs", str(max(1, per_pkg_jobs))]
+        cmd = [*ato_cmd, "build", "-t", "all", "--jobs", str(max(1, per_pkg_jobs))]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
         if skip_datasheets:
             cmd.extend(["--exclude-target", "datasheets"])
+        if frozen:
+            cmd.append("--frozen")
         status_file = logs_dir / "build_status.txt"
         b_rc, b_secs, b_warn, b_err = run_cmd_to_log(
             cmd=cmd,
@@ -996,6 +999,383 @@ def _check_existing_pr_for_package(
     return None
 
 
+def _fetch_ci_status_for_pr(
+    pr_url: str,
+    package: str,
+    repo_root: Path,
+) -> dict[str, Any] | None:
+    """
+    Fetch CI (GitHub Actions) status for a PR.
+
+    Returns dict with:
+    - status: "pending" | "in_progress" | "completed" | "queued"
+    - conclusion: "success" | "failure" | "cancelled" | "skipped" | None
+    - run_id: GitHub Actions run ID
+    - run_url: URL to the CI run
+    - job_name: Name of the matrix job for this package
+    - error: Error message if fetching failed
+
+    Requires `gh` CLI to be installed and authenticated.
+    """
+    if not shutil.which("gh"):
+        return {"error": "gh CLI not available"}
+
+    try:
+        # Get check runs for the PR
+        result = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "checks",
+                pr_url,
+                "--json",
+                "name,state,conclusion,detailsUrl,completedAt,startedAt",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            return {"error": f"gh pr checks failed: {result.stderr.strip()[:200]}"}
+
+        checks = json.loads(result.stdout.strip()) if result.stdout.strip() else []
+
+        # Look for the matrix job that corresponds to this package
+        # The job name pattern is "build-verify-publish (packages/packages/<pkg>)"
+        package_job = None
+        overall_status = "completed"
+        overall_conclusion = "success"
+
+        for check in checks:
+            name = check.get("name", "")
+            state = check.get("state", "").upper()
+            conclusion = check.get("conclusion", "")
+
+            # Check for the specific matrix job for this package
+            if package in name:
+                package_job = check
+                break
+
+            # Track overall status
+            if state == "PENDING":
+                overall_status = "pending"
+            elif state == "IN_PROGRESS":
+                overall_status = "in_progress"
+            elif state == "QUEUED":
+                overall_status = "queued"
+
+            if conclusion and conclusion.lower() != "success":
+                overall_conclusion = conclusion.lower()
+
+        if package_job:
+            state = package_job.get("state", "").lower()
+            conclusion = package_job.get("conclusion", "")
+            details_url = package_job.get("detailsUrl", "")
+
+            # Extract run ID from details URL
+            # URL format: https://github.com/owner/repo/actions/runs/12345/job/67890
+            run_id = None
+            if details_url and "/runs/" in details_url:
+                try:
+                    run_id = details_url.split("/runs/")[1].split("/")[0]
+                except (IndexError, AttributeError):
+                    pass
+
+            return {
+                "status": state if state else overall_status,
+                "conclusion": conclusion.lower() if conclusion else None,
+                "run_id": run_id,
+                "run_url": details_url,
+                "job_name": package_job.get("name"),
+                "error": None,
+            }
+
+        # No specific job found, return overall status
+        return {
+            "status": overall_status,
+            "conclusion": overall_conclusion if overall_status == "completed" else None,
+            "run_id": None,
+            "run_url": None,
+            "job_name": None,
+            "error": "No matching CI job found for this package",
+        }
+
+    except subprocess.TimeoutExpired:
+        return {"error": "Timeout fetching CI status"}
+    except json.JSONDecodeError as e:
+        return {"error": f"Invalid JSON from gh: {e}"}
+    except Exception as e:
+        return {"error": f"Error fetching CI status: {e}"}
+
+
+def _fetch_ci_logs_for_package(
+    pr_url: str,
+    package: str,
+    repo_root: Path,
+    max_lines: int = 500,
+) -> dict[str, Any]:
+    """
+    Fetch CI logs for a package from GitHub Actions.
+
+    Returns dict with:
+    - logs: Log content (truncated)
+    - issues: List of extracted errors/warnings
+    - error: Error message if fetching failed
+    """
+    if not shutil.which("gh"):
+        return {"logs": "", "issues": [], "error": "gh CLI not available"}
+
+    try:
+        # First get the run ID from the PR checks
+        ci_status = _fetch_ci_status_for_pr(pr_url, package, repo_root)
+        if not ci_status or ci_status.get("error"):
+            return {
+                "logs": "",
+                "issues": [],
+                "error": ci_status.get("error") if ci_status else "No CI status",
+            }
+
+        run_id = ci_status.get("run_id")
+        job_name = ci_status.get("job_name")
+
+        if not run_id:
+            return {"logs": "", "issues": [], "error": "No run ID available"}
+
+        # Fetch logs for the run
+        result = subprocess.run(
+            ["gh", "run", "view", run_id, "--log", "--job", job_name]
+            if job_name
+            else ["gh", "run", "view", run_id, "--log"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+
+        if result.returncode != 0:
+            # Try without job filter
+            result = subprocess.run(
+                ["gh", "run", "view", run_id, "--log"],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=60,
+            )
+
+        logs = result.stdout or ""
+
+        # Truncate if too long
+        lines = logs.splitlines()
+        if len(lines) > max_lines:
+            lines = lines[-max_lines:]
+            logs = f"... (truncated, showing last {max_lines} lines)\n" + "\n".join(
+                lines
+            )
+
+        # Extract issues from logs
+        issues = _extract_ci_issues_from_logs(logs, package)
+
+        return {"logs": logs, "issues": issues, "error": None}
+
+    except subprocess.TimeoutExpired:
+        return {"logs": "", "issues": [], "error": "Timeout fetching CI logs"}
+    except Exception as e:
+        return {"logs": "", "issues": [], "error": f"Error fetching CI logs: {e}"}
+
+
+def _extract_ci_issues_from_logs(logs: str, package: str) -> list[dict[str, Any]]:
+    """Extract errors and warnings from CI logs."""
+    issues: list[dict[str, Any]] = []
+
+    error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
+    warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
+    # GitHub Actions error/warning annotations
+    gh_error_pattern = re.compile(r"^::error", re.IGNORECASE)
+    gh_warning_pattern = re.compile(r"^::warning", re.IGNORECASE)
+
+    lines = logs.splitlines()
+    for i, line in enumerate(lines):
+        line_num = i + 1
+        clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
+
+        if not clean_line or len(clean_line) < 10:
+            continue
+
+        issue_type = None
+        if gh_error_pattern.match(clean_line) or error_pattern.search(clean_line):
+            issue_type = "error"
+        elif gh_warning_pattern.match(clean_line) or warning_pattern.search(clean_line):
+            issue_type = "warning"
+
+        if issue_type:
+            issues.append(
+                {
+                    "type": issue_type,
+                    "message": clean_line[:500],
+                    "source": "CI",
+                    "stage": "ci",
+                    "line_num": line_num,
+                }
+            )
+
+    # Deduplicate
+    seen: set[str] = set()
+    unique: list[dict[str, Any]] = []
+    for issue in issues:
+        key = re.sub(r"\d+", "N", issue["message"][:100])
+        if key not in seen:
+            seen.add(key)
+            unique.append(issue)
+
+    return unique[:50]  # Limit to 50 issues
+
+
+def _rerun_ci_for_pr(pr_url: str, repo_root: Path) -> dict[str, Any]:
+    """
+    Re-run CI for a PR by triggering the failed/latest workflow run.
+
+    Returns dict with:
+    - success: bool
+    - message: Status message
+    - run_url: URL to the new/restarted run
+    """
+    if not shutil.which("gh"):
+        return {"success": False, "message": "gh CLI not available", "run_url": None}
+
+    try:
+        # Get the PR number from the URL
+        # URL format: https://github.com/owner/repo/pull/123
+        pr_number = pr_url.rstrip("/").split("/")[-1]
+
+        # Get the head SHA of the PR
+        result = subprocess.run(
+            ["gh", "pr", "view", pr_number, "--json", "headRefOid"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            return {
+                "success": False,
+                "message": f"Failed to get PR info: {result.stderr.strip()[:200]}",
+                "run_url": None,
+            }
+
+        pr_info = json.loads(result.stdout.strip())
+        head_sha = pr_info.get("headRefOid")
+
+        if not head_sha:
+            return {
+                "success": False,
+                "message": "Could not get PR head SHA",
+                "run_url": None,
+            }
+
+        # Find the latest workflow run for this SHA
+        result = subprocess.run(
+            [
+                "gh",
+                "run",
+                "list",
+                "--commit",
+                head_sha,
+                "--json",
+                "databaseId,status,conclusion,url",
+                "--limit",
+                "1",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            runs = json.loads(result.stdout.strip())
+            if runs:
+                run = runs[0]
+                run_id = run.get("databaseId")
+                run_status = run.get("status")
+                run_conclusion = run.get("conclusion")
+                run_url = run.get("url")
+
+                # If run is completed and failed, re-run it
+                if run_status == "completed" and run_conclusion in (
+                    "failure",
+                    "cancelled",
+                ):
+                    rerun_result = subprocess.run(
+                        ["gh", "run", "rerun", str(run_id), "--failed"],
+                        cwd=repo_root,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=30,
+                    )
+
+                    if rerun_result.returncode == 0:
+                        return {
+                            "success": True,
+                            "message": f"Re-running failed jobs for run {run_id}",
+                            "run_url": run_url,
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "message": f"Failed to rerun: {rerun_result.stderr.strip()[:200]}",
+                            "run_url": run_url,
+                        }
+                elif run_status in ("queued", "in_progress", "pending"):
+                    return {
+                        "success": True,
+                        "message": f"CI is already running (status: {run_status})",
+                        "run_url": run_url,
+                    }
+                else:
+                    # Successful run - trigger a new run
+                    rerun_result = subprocess.run(
+                        ["gh", "run", "rerun", str(run_id)],
+                        cwd=repo_root,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=30,
+                    )
+
+                    if rerun_result.returncode == 0:
+                        return {
+                            "success": True,
+                            "message": f"Re-running all jobs for run {run_id}",
+                            "run_url": run_url,
+                        }
+                    else:
+                        return {
+                            "success": False,
+                            "message": f"Failed to rerun: {rerun_result.stderr.strip()[:200]}",
+                            "run_url": run_url,
+                        }
+
+        return {
+            "success": False,
+            "message": "No workflow runs found for this PR",
+            "run_url": None,
+        }
+
+    except subprocess.TimeoutExpired:
+        return {"success": False, "message": "Timeout", "run_url": None}
+    except Exception as e:
+        return {"success": False, "message": f"Error: {e}", "run_url": None}
+
+
 def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
     """
     Extract all errors/warnings from logs for a job.
@@ -1407,6 +1787,20 @@ class JobState:
     needs_input_reason: str | None = None  # Why the AI requested help
     needs_input_at: str | None = None
 
+    # CI (GitHub Actions) status for packages with PRs
+    ci_status: str | None = (
+        None  # "pending", "in_progress", "completed", "queued", None
+    )
+    ci_conclusion: str | None = (
+        None  # "success", "failure", "cancelled", "skipped", None
+    )
+    ci_run_id: str | None = None  # GitHub Actions run ID
+    ci_run_url: str | None = None  # URL to the CI run
+    ci_checked_at: str | None = None  # When CI status was last checked
+    ci_job_name: str | None = None  # Name of the CI job for this package
+    ci_error: str | None = None  # Error fetching CI status
+    ci_logs_cached: str | None = None  # Cached CI log content (truncated)
+
     def to_public(self) -> dict[str, Any]:
         return asdict(self)
 
@@ -1422,6 +1816,7 @@ class ReviewRun:
         ato_cmd: list[str],
         keep_picked_parts: bool,
         skip_datasheets: bool = False,
+        frozen: bool = False,
         open_cmd: str,
         max_ready: int = 10,
         server_origin: str = "http://127.0.0.1:8787",
@@ -1441,6 +1836,7 @@ class ReviewRun:
         self.ato_cmd = ato_cmd
         self.keep_picked_parts = keep_picked_parts
         self.skip_datasheets = skip_datasheets
+        self.frozen = frozen
         self.open_cmd = open_cmd
         self.max_ready = max(1, max_ready)
         self.server_origin = server_origin.rstrip("/")
@@ -1463,6 +1859,12 @@ class ReviewRun:
         # can stall the server. We refresh this cache only when state changes.
         self._state_cache: dict[str, Any] = {}
         self._state_cache_json: bytes = b"{}"
+
+        # Unified GitHub PR cache - refreshed every 30s with single comprehensive query
+        # Maps branch name -> PR data, and package name -> PR data (for fuzzy matching)
+        self._gh_pr_cache: dict[str, dict[str, Any]] = {}
+        self._gh_pr_cache_by_package: dict[str, dict[str, Any]] = {}
+        self._gh_pr_cache_updated_at: float = 0.0
 
         for pkg_dir in selected_packages:
             build_names = _read_ato_yaml_builds(pkg_dir / "ato.yaml")
@@ -1514,6 +1916,7 @@ class ReviewRun:
                     self.keep_picked_parts,
                     self.skip_datasheets,
                     max(1, (os.cpu_count() or 4) // max(1, self.jobs)),
+                    self.frozen,
                 ),
                 daemon=True,
             )
@@ -1543,6 +1946,245 @@ class ReviewRun:
         )
         t.start()
         self._threads.append(t)
+
+        # Background thread to check CI status for packages with PRs
+        t = threading.Thread(
+            target=self._ci_status_poller,
+            name="ci-poller",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
+
+    def _ci_status_poller(self) -> None:
+        """
+        Background thread that periodically refreshes GitHub PR data.
+
+        Uses single comprehensive query (~10s for all PRs) to get:
+        - All open and merged PRs
+        - CI status for each PR
+        - Author info
+        - Branch names
+
+        Runs every 15 seconds - rate limits allow ~5000 GraphQL points/hour
+        and each query uses ~50-100 points, so this is well within limits.
+        """
+        # Run immediately on startup
+        time.sleep(1.0)
+
+        while not self._stop:
+            try:
+                self._refresh_github_pr_cache()
+            except Exception as e:
+                print(f"[GH CACHE] Error: {e}", flush=True)
+
+            # Wait 15 seconds between refresh cycles
+            # Query takes ~10s so effective cycle is ~25s
+            for _ in range(15):
+                if self._stop:
+                    break
+                time.sleep(1.0)
+
+    def _refresh_github_pr_cache(self) -> None:
+        """
+        Single comprehensive GitHub query to fetch all PR data at once.
+        Updates the cache and applies data to all matching packages.
+        Takes ~10 seconds for ~200 PRs.
+        """
+        start_time = time.time()
+        try:
+            result = subprocess.run(
+                [
+                    "gh",
+                    "pr",
+                    "list",
+                    "--state",
+                    "all",
+                    "--json",
+                    "number,url,headRefName,title,state,statusCheckRollup,mergedAt,author",
+                    "--limit",
+                    "300",
+                ],
+                cwd=self.packages_repo_root,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=60,
+            )
+
+            if result.returncode != 0:
+                print(
+                    f"[GH CACHE] gh pr list failed: {result.stderr[:200]}", flush=True
+                )
+                return
+
+            prs = json.loads(result.stdout.strip()) if result.stdout.strip() else []
+
+            # Build caches
+            by_branch: dict[str, dict[str, Any]] = {}
+            by_package: dict[str, dict[str, Any]] = {}
+
+            for pr in prs:
+                branch = pr.get("headRefName", "")
+                title = pr.get("title", "")
+                checks = pr.get("statusCheckRollup") or []
+                author = (pr.get("author") or {}).get("login")
+
+                # Compute CI status from checks
+                if not checks:
+                    ci_status = "no_checks"
+                    ci_conclusion = None
+                elif any(c.get("conclusion") == "FAILURE" for c in checks):
+                    ci_status = "completed"
+                    ci_conclusion = "failure"
+                elif any(
+                    c.get("state") in ("PENDING", "IN_PROGRESS", "QUEUED")
+                    for c in checks
+                ):
+                    ci_status = "in_progress"
+                    ci_conclusion = None
+                elif all(
+                    c.get("conclusion") in ("SUCCESS", "SKIPPED", "NEUTRAL", None)
+                    for c in checks
+                    if c.get("conclusion") is not None
+                ):
+                    ci_status = "completed"
+                    ci_conclusion = "success"
+                else:
+                    ci_status = "completed"
+                    ci_conclusion = "unknown"
+
+                pr_data = {
+                    "number": pr.get("number"),
+                    "url": pr.get("url"),
+                    "branch": branch,
+                    "title": title,
+                    "state": pr.get("state"),
+                    "merged_at": pr.get("mergedAt"),
+                    "author": author,
+                    "ci_status": ci_status,
+                    "ci_conclusion": ci_conclusion,
+                    "checks_count": len(checks),
+                }
+
+                # Index by branch
+                if branch:
+                    by_branch[branch] = pr_data
+
+                # Try to extract package name from branch or title
+                # Branch patterns: package-update-0.14.x-<package>
+                # Title patterns: <package>: package update
+                package_name = None
+                if "package-update" in branch:
+                    parts = branch.split("-")
+                    if len(parts) >= 4:
+                        package_name = "-".join(parts[3:])
+                elif ": " in title:
+                    package_name = title.split(":")[0].strip()
+
+                if package_name:
+                    # Prefer open PRs over merged ones
+                    existing = by_package.get(package_name)
+                    if not existing or pr.get("state") == "OPEN":
+                        by_package[package_name] = pr_data
+
+            # Update cache atomically
+            self._gh_pr_cache = by_branch
+            self._gh_pr_cache_by_package = by_package
+            self._gh_pr_cache_updated_at = time.time()
+
+            elapsed = time.time() - start_time
+            print(
+                f"[GH CACHE] Refreshed: {len(prs)} PRs, "
+                f"{len(by_branch)} branches, {len(by_package)} packages in {elapsed:.1f}s",
+                flush=True,
+            )
+
+            # Now apply this data to all packages
+            self._apply_pr_cache_to_packages()
+
+        except subprocess.TimeoutExpired:
+            print("[GH CACHE] gh pr list timed out", flush=True)
+        except Exception as e:
+            print(f"[GH CACHE] Error: {e}", flush=True)
+
+    def _apply_pr_cache_to_packages(self) -> None:
+        """Apply cached PR data to all packages."""
+        now = _now_ts()
+        updated = 0
+
+        with self._lock:
+            for name, job in self._jobs.items():
+                pr_data = None
+
+                # Try to find PR by branch first
+                if job.published_branch:
+                    pr_data = self._gh_pr_cache.get(job.published_branch)
+
+                # Try by package name
+                if not pr_data:
+                    pr_data = self._gh_pr_cache_by_package.get(name)
+
+                # Try fuzzy match in branch cache
+                if not pr_data:
+                    for branch, data in self._gh_pr_cache.items():
+                        if name in branch:
+                            pr_data = data
+                            break
+
+                if pr_data:
+                    # Update PR info if not already set or if this is newer
+                    if not job.published_pr_url and pr_data.get("url"):
+                        job.published_pr_url = pr_data["url"]
+                        job.published_branch = pr_data.get("branch")
+                        job.published_pr_title = pr_data.get("title")
+                        job.published_pr_author = pr_data.get("author")
+                        # Update status based on PR state
+                        if pr_data.get("state") == "MERGED":
+                            if job.status not in ("published", "error"):
+                                job.status = "published"
+                        elif pr_data.get("state") == "OPEN":
+                            if job.status in (
+                                "not_started",
+                                "building",
+                                "verifying",
+                                "branch_pushed",
+                            ):
+                                job.status = "pr_opened"
+
+                    # Always update CI status
+                    job.ci_status = pr_data.get("ci_status")
+                    job.ci_conclusion = pr_data.get("ci_conclusion")
+                    job.ci_checked_at = now
+                    updated += 1
+
+        if updated > 0:
+            self._write_state()
+            print(f"[GH CACHE] Applied PR data to {updated} packages", flush=True)
+
+    def get_cached_pr_for_package(self, package: str) -> dict[str, Any] | None:
+        """Get cached PR data for a package (fast, no API call)."""
+        job = self._jobs.get(package)
+        if not job:
+            return None
+
+        # Try by branch
+        if job.published_branch:
+            pr_data = self._gh_pr_cache.get(job.published_branch)
+            if pr_data:
+                return pr_data
+
+        # Try by package name
+        pr_data = self._gh_pr_cache_by_package.get(package)
+        if pr_data:
+            return pr_data
+
+        # Fuzzy match
+        for branch, data in self._gh_pr_cache.items():
+            if package in branch:
+                return data
+
+        return None
 
     def _check_existing_prs_background(self) -> None:
         """
@@ -1585,82 +2227,46 @@ class ReviewRun:
                 if j.status == "published" and not j.published_pr_url
             ]
 
-        # Quick pass: fetch author for PRs that are missing it
-        for pkg_name, pr_url in missing_author_with_url:
+        # Use unified cache instead of individual API calls
+        # The cache already has author info and merged PR info from the comprehensive query
+        updated_any = False
+        for pkg_name, _ in missing_author_with_url:
             if self._stop:
                 break
-            try:
-                # Use gh pr view with the URL directly
-                result = subprocess.run(
-                    ["gh", "pr", "view", pr_url, "--json", "author"],
-                    cwd=self.packages_repo_root,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    data = json.loads(result.stdout.strip())
-                    author = (data.get("author") or {}).get("login")
-                    if author:
-                        with self._lock:
-                            job = self._jobs.get(pkg_name)
-                            if job:
-                                job.published_pr_author = author
-                                print(f"[PR AUTHOR] {pkg_name}: @{author}", flush=True)
-                        self._write_state()
-            except Exception:
-                pass
-            time.sleep(0.05)  # Small delay between requests
+            # Try to get author from cache
+            cached_pr = self.get_cached_pr_for_package(pkg_name)
+            if cached_pr and cached_pr.get("author"):
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if job and not job.published_pr_author:
+                        job.published_pr_author = cached_pr["author"]
+                        print(
+                            f"[PR AUTHOR] {pkg_name}: @{cached_pr['author']} (from cache)",
+                            flush=True,
+                        )
+                        updated_any = True
 
-        # Search for PRs for published packages that don't have PR info
         for pkg_name in missing_pr_info:
             if self._stop:
                 break
-            try:
-                # Search for merged PRs by package name
-                search_query = f"{pkg_name}: package update"
-                result = subprocess.run(
-                    [
-                        "gh",
-                        "pr",
-                        "list",
-                        "--state",
-                        "merged",
-                        "--search",
-                        search_query,
-                        "--json",
-                        "url,title,author",
-                        "--limit",
-                        "5",
-                    ],
-                    cwd=self.packages_repo_root,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    prs = json.loads(result.stdout.strip())
-                    for pr in prs:
-                        title = pr.get("title", "")
-                        # Match PRs like "pkg-name: package update to vX.Y.Z"
-                        if title.startswith(f"{pkg_name}:"):
-                            author = (pr.get("author") or {}).get("login")
-                            pr_url = pr.get("url")
-                            with self._lock:
-                                job = self._jobs.get(pkg_name)
-                                if job:
-                                    if pr_url:
-                                        job.published_pr_url = pr_url
-                                    if author:
-                                        job.published_pr_author = author
-                                    print(
-                                        f"[PR SEARCH] {pkg_name}: @{author}, url={pr_url}",
-                                        flush=True,
-                                    )
-                            self._write_state()
-                            break
-            except Exception:
-                pass
+            # Try to get PR info from cache
+            cached_pr = self.get_cached_pr_for_package(pkg_name)
+            if cached_pr and cached_pr.get("url"):
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if job:
+                        if not job.published_pr_url:
+                            job.published_pr_url = cached_pr["url"]
+                        if not job.published_pr_author and cached_pr.get("author"):
+                            job.published_pr_author = cached_pr["author"]
+                        print(
+                            f"[PR SEARCH] {pkg_name}: @{cached_pr.get('author')}, url={cached_pr['url']} (from cache)",
+                            flush=True,
+                        )
+                        updated_any = True
+
+        if updated_any:
+            self._write_state()
             time.sleep(0.1)  # Rate limit
 
         for pkg_name in packages_to_check:
@@ -1668,7 +2274,6 @@ class ReviewRun:
                 break
 
             already_published = False
-            pr_info: dict[str, Any] | None = None
 
             # First, quick check: is this package already on the registry for 0.14.x?
             try:
@@ -1729,48 +2334,56 @@ class ReviewRun:
                 time.sleep(0.02)
                 continue
 
-            # Fall back to PR check
-            try:
-                pr_info = _check_existing_pr_for_package(
-                    package=pkg_name,
-                    repo_root=self.packages_repo_root,
-                )
-                if pr_info:
-                    with self._lock:
-                        job = self._jobs.get(pkg_name)
-                        if not job:
-                            continue
+            # Use unified cache instead of individual API call
+            cached_pr = self.get_cached_pr_for_package(pkg_name)
+            if cached_pr and cached_pr.get("url"):
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if not job:
+                        continue
 
-                        # Determine new status
-                        if pr_info.get("merged"):
-                            new_status = "published"
-                        elif pr_info.get("pr_url"):
-                            new_status = "pr_opened"
-                        else:
-                            new_status = "branch_pushed"
+                    # Determine new status
+                    if cached_pr.get("state") == "MERGED":
+                        new_status = "published"
+                    elif cached_pr.get("url"):
+                        new_status = "pr_opened"
+                    else:
+                        new_status = "branch_pushed"
 
-                        # Only update if package hasn't already completed or errored
-                        if job.status in ("not_started", "building", "verifying"):
-                            job.published_branch = pr_info.get("branch")
-                            job.published_pr_url = pr_info.get("pr_url")
-                            job.published_pr_title = pr_info.get("pr_title")
-                            job.published_pr_author = pr_info.get("pr_author")
-                            job.status = new_status
+                    # Only update if package hasn't already completed or errored
+                    # Also update "branch_pushed" packages if a PR is now available
+                    should_update = job.status in (
+                        "not_started",
+                        "building",
+                        "verifying",
+                    )
+                    # Also update branch_pushed packages when a PR is discovered
+                    if (
+                        job.status == "branch_pushed"
+                        and cached_pr.get("url")
+                        and not job.published_pr_url
+                    ):
+                        should_update = True
 
-                            # Remove from queue if still queued
-                            if pkg_name in self._queue:
-                                self._queue.remove(pkg_name)
+                    if should_update:
+                        job.published_branch = cached_pr.get("branch")
+                        job.published_pr_url = cached_pr.get("url")
+                        job.published_pr_title = cached_pr.get("title")
+                        job.published_pr_author = cached_pr.get("author")
+                        job.status = new_status
 
-                            # Cancel build if running
-                            if hasattr(self, "_mp_cancel"):
-                                try:
-                                    self._mp_cancel[pkg_name] = True
-                                except Exception:
-                                    pass
+                        # Remove from queue if still queued
+                        if pkg_name in self._queue:
+                            self._queue.remove(pkg_name)
 
-                    self._write_state()
-            except Exception:
-                pass  # Don't crash the thread on individual failures
+                        # Cancel build if running
+                        if hasattr(self, "_mp_cancel"):
+                            try:
+                                self._mp_cancel[pkg_name] = True
+                            except Exception:
+                                pass
+
+                self._write_state()
 
             # Small delay between checks to avoid hammering APIs
             time.sleep(0.02)
@@ -1922,20 +2535,18 @@ class ReviewRun:
 
                 # If build/verify passed, check if there's already a PR for this package
                 # Skip this check if package was manually restarted (to allow re-publishing)
+                # Use unified cache instead of individual API call
                 if j.status == "awaiting_review" and not j.skip_pr_check:
-                    existing = _check_existing_pr_for_package(
-                        package=pkg,
-                        repo_root=self.packages_repo_root,
-                    )
-                    if existing:
+                    existing = self.get_cached_pr_for_package(pkg)
+                    if existing and existing.get("url"):
                         j.published_branch = existing.get("branch")
-                        j.published_pr_url = existing.get("pr_url")
-                        j.published_pr_title = existing.get("pr_title")
-                        j.published_pr_author = existing.get("pr_author")
-                        if existing.get("merged"):
+                        j.published_pr_url = existing.get("url")
+                        j.published_pr_title = existing.get("title")
+                        j.published_pr_author = existing.get("author")
+                        if existing.get("state") == "MERGED":
                             # PR was already merged - package is published for this series
                             j.status = "published"
-                        elif existing.get("pr_url"):
+                        elif existing.get("url"):
                             j.status = "pr_opened"
                         else:
                             j.status = "branch_pushed"
@@ -1962,6 +2573,8 @@ class ReviewRun:
             "config": {
                 # If True, the server will allow publishing even if build/verify are incomplete/failed.
                 "publish_anyway": bool(getattr(self, "publish_anyway", False)),
+                # If True, builds are run with --frozen flag
+                "frozen": bool(getattr(self, "frozen", False)),
             },
             "packages": {k: v.to_public() for k, v in self._jobs.items()},
             "queue": list(self._queue),
@@ -3580,13 +4193,439 @@ class ReviewRun:
         error_count = sum(1 for i in unique_issues if i["type"] == "error")
         warning_count = sum(1 for i in unique_issues if i["type"] == "warning")
 
+        # Include CI issues if the package has a PR
+        if job.published_pr_url and job.ci_status:
+            ci_conclusion = job.ci_conclusion
+            if ci_conclusion and ci_conclusion not in ("success", "skipped"):
+                # Fetch CI logs and extract issues
+                ci_result = _fetch_ci_logs_for_package(
+                    job.published_pr_url,
+                    package,
+                    self.packages_repo_root,
+                )
+                ci_issues = ci_result.get("issues", [])
+                for ci_issue in ci_issues:
+                    # Mark as coming from CI
+                    ci_issue["stage"] = "ci"
+                    ci_issue["source"] = (
+                        f"CI: {ci_issue.get('source', 'GitHub Actions')}"
+                    )
+                unique_issues.extend(ci_issues)
+
+        # Re-sort after adding CI issues
+        stage_order = {"build": 0, "verify": 1, "ci": 2, "other": 3}
+        unique_issues.sort(
+            key=lambda x: (
+                0 if x["type"] == "error" else 1,
+                stage_order.get(x.get("stage", "other"), 3),
+                x.get("line_num", 0),
+            )
+        )
+
+        # Summary counts
+        error_count = sum(1 for i in unique_issues if i["type"] == "error")
+        warning_count = sum(1 for i in unique_issues if i["type"] == "warning")
+        ci_count = sum(1 for i in unique_issues if i.get("stage") == "ci")
+
         return {
             "package": package,
             "issues": unique_issues,
             "error_count": error_count,
             "warning_count": warning_count,
+            "ci_issue_count": ci_count,
             "total_count": len(unique_issues),
         }
+
+    def _discover_pr_for_package(self, package: str, job: JobState) -> bool:
+        """
+        Discover PR for a package using cached data first, then API fallback.
+        Returns True if a PR was discovered and job was updated.
+        """
+        if job.published_pr_url:
+            return True  # Already have PR
+
+        # Strategy 1: Use cached PR data (fast, no API call)
+        cached_pr = self.get_cached_pr_for_package(package)
+        if cached_pr and cached_pr.get("url"):
+            with self._lock:
+                job.published_pr_url = cached_pr.get("url")
+                job.published_pr_title = cached_pr.get("title")
+                job.published_branch = cached_pr.get("branch")
+                job.published_pr_author = cached_pr.get("author")
+                if cached_pr.get("state") == "MERGED":
+                    job.status = "published"
+                elif cached_pr.get("url"):
+                    job.status = "pr_opened"
+                # Also apply CI status from cache
+                job.ci_status = cached_pr.get("ci_status")
+                job.ci_conclusion = cached_pr.get("ci_conclusion")
+                job.ci_checked_at = _now_ts()
+            self._write_state()
+            print(
+                f"[PR_DISCOVERY] Found PR in cache for {package}: {cached_pr.get('url')}",
+                flush=True,
+            )
+            return True
+
+        # Strategy 2: If cache is stale (>30s) or missing, do a targeted API call
+        cache_age = time.time() - self._gh_pr_cache_updated_at
+        if cache_age > 30:
+            print(
+                f"[PR_DISCOVERY] Cache stale ({cache_age:.0f}s), doing API lookup for {package}",
+                flush=True,
+            )
+            # Single targeted search for this package
+            try:
+                result = subprocess.run(
+                    [
+                        "gh",
+                        "pr",
+                        "list",
+                        "--state",
+                        "all",
+                        "--search",
+                        f"{package} in:title",
+                        "--json",
+                        "number,url,title,author,state,headRefName",
+                        "--limit",
+                        "5",
+                    ],
+                    cwd=self.packages_repo_root,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=15,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    prs = json.loads(result.stdout.strip())
+                    for pr in prs:
+                        branch = pr.get("headRefName", "")
+                        title = pr.get("title", "")
+                        if package in branch or package in title:
+                            with self._lock:
+                                job.published_pr_url = pr.get("url")
+                                job.published_pr_title = pr.get("title")
+                                job.published_branch = pr.get("headRefName")
+                                job.published_pr_author = (pr.get("author") or {}).get(
+                                    "login"
+                                )
+                                if pr.get("state") == "MERGED":
+                                    job.status = "published"
+                                elif pr.get("url"):
+                                    job.status = "pr_opened"
+                            self._write_state()
+                            print(
+                                f"[PR_DISCOVERY] Found PR via API for {package}: {pr.get('url')}",
+                                flush=True,
+                            )
+                            return True
+            except Exception as e:
+                print(
+                    f"[PR_DISCOVERY] API lookup failed for {package}: {e}", flush=True
+                )
+
+        return False
+
+    def get_ci_status(self, package: str) -> dict[str, Any]:
+        """Get CI status for a package with a PR."""
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        # Stateless PR discovery
+        self._discover_pr_for_package(package, job)
+
+        if not job.published_pr_url:
+            return {
+                "package": package,
+                "has_pr": False,
+                "error": "Package does not have a PR",
+            }
+
+        # Use cached CI status if available and fresh (< 60s old)
+        cached_pr = self.get_cached_pr_for_package(package)
+        cache_age = time.time() - self._gh_pr_cache_updated_at
+        if cached_pr and cache_age < 60:
+            # Use cached data - faster and no API call needed
+            with self._lock:
+                job.ci_status = cached_pr.get("ci_status")
+                job.ci_conclusion = cached_pr.get("ci_conclusion")
+                job.ci_checked_at = _now_ts()
+            self._write_state()
+
+            return {
+                "package": package,
+                "has_pr": True,
+                "pr_url": job.published_pr_url,
+                "status": cached_pr.get("ci_status"),
+                "conclusion": cached_pr.get("ci_conclusion"),
+                "run_id": None,  # Not available from cache
+                "run_url": None,  # Not available from cache
+                "job_name": None,  # Not available from cache
+                "error": None,
+                "checked_at": job.ci_checked_at,
+            }
+
+        # Fallback: Fetch fresh CI status via API (for detailed info or stale cache)
+        ci_info = (
+            _fetch_ci_status_for_pr(
+                job.published_pr_url,
+                package,
+                self.packages_repo_root,
+            )
+            or {}
+        )
+
+        # Update job state
+        with self._lock:
+            job.ci_status = ci_info.get("status")
+            job.ci_conclusion = ci_info.get("conclusion")
+            job.ci_run_id = ci_info.get("run_id")
+            job.ci_run_url = ci_info.get("run_url")
+            job.ci_job_name = ci_info.get("job_name")
+            job.ci_error = ci_info.get("error")
+            job.ci_checked_at = _now_ts()
+        self._write_state()
+
+        return {
+            "package": package,
+            "has_pr": True,
+            "pr_url": job.published_pr_url,
+            "status": ci_info.get("status"),
+            "conclusion": ci_info.get("conclusion"),
+            "run_id": ci_info.get("run_id"),
+            "run_url": ci_info.get("run_url"),
+            "job_name": ci_info.get("job_name"),
+            "error": ci_info.get("error"),
+            "checked_at": job.ci_checked_at,
+        }
+
+    def get_ci_logs(self, package: str) -> dict[str, Any]:
+        """Get CI logs for a package with a PR."""
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        if not job.published_pr_url:
+            return {
+                "package": package,
+                "has_pr": False,
+                "error": "Package does not have a PR",
+                "logs": "",
+                "issues": [],
+            }
+
+        result = _fetch_ci_logs_for_package(
+            job.published_pr_url,
+            package,
+            self.packages_repo_root,
+        )
+
+        return {
+            "package": package,
+            "has_pr": True,
+            "pr_url": job.published_pr_url,
+            "logs": result.get("logs", ""),
+            "issues": result.get("issues", []),
+            "error": result.get("error"),
+        }
+
+    def rerun_ci(self, package: str) -> dict[str, Any]:
+        """Re-run CI for a package with a PR."""
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        # Stateless PR discovery
+        self._discover_pr_for_package(package, job)
+
+        if not job.published_pr_url:
+            return {
+                "package": package,
+                "success": False,
+                "message": "Package does not have a PR",
+            }
+
+        result = _rerun_ci_for_pr(job.published_pr_url, self.packages_repo_root)
+
+        # Clear cached CI status to force refresh
+        if result.get("success"):
+            with self._lock:
+                job.ci_status = "pending"
+                job.ci_conclusion = None
+                job.ci_checked_at = _now_ts()
+            self._write_state()
+
+        return {
+            "package": package,
+            "pr_url": job.published_pr_url,
+            "success": result.get("success", False),
+            "message": result.get("message", ""),
+            "run_url": result.get("run_url"),
+        }
+
+    def refresh_ci_status_for_prs(self) -> None:
+        """
+        Refresh CI status for all packages with PRs.
+        Now handled by _refresh_github_pr_cache() which is called by the poller.
+        This method exists for backwards compatibility.
+        """
+        # The unified cache refresh handles this now
+        pass
+
+    def _batch_refresh_ci_status(self) -> int:
+        """
+        Batch fetch CI status for all open PRs in a single gh call.
+        Returns number of packages updated.
+        """
+        try:
+            # Single query to get all open PRs with their CI status
+            result = subprocess.run(
+                [
+                    "gh",
+                    "pr",
+                    "list",
+                    "--state",
+                    "open",
+                    "--json",
+                    "number,url,headRefName,statusCheckRollup",
+                    "--limit",
+                    "200",
+                ],
+                cwd=self.packages_repo_root,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
+
+            if result.returncode != 0:
+                print(
+                    f"[CI_BATCH] gh pr list failed: {result.stderr[:200]}",
+                    flush=True,
+                )
+                return 0
+
+            prs = json.loads(result.stdout.strip()) if result.stdout.strip() else []
+            print(f"[CI_BATCH] Fetched {len(prs)} open PRs", flush=True)
+
+            # Build a map of branch -> CI status
+            branch_to_ci: dict[str, dict[str, Any]] = {}
+            for pr in prs:
+                branch = pr.get("headRefName", "")
+                checks = pr.get("statusCheckRollup") or []
+
+                # Compute overall status from checks
+                if not checks:
+                    status = "no_checks"
+                    conclusion = None
+                elif any(c.get("conclusion") == "FAILURE" for c in checks):
+                    status = "completed"
+                    conclusion = "failure"
+                elif any(
+                    c.get("state") in ("PENDING", "IN_PROGRESS", "QUEUED")
+                    for c in checks
+                ):
+                    status = "in_progress"
+                    conclusion = None
+                elif all(
+                    c.get("conclusion") in ("SUCCESS", "SKIPPED", "NEUTRAL")
+                    for c in checks
+                ):
+                    status = "completed"
+                    conclusion = "success"
+                else:
+                    status = "completed"
+                    conclusion = "unknown"
+
+                branch_to_ci[branch] = {
+                    "status": status,
+                    "conclusion": conclusion,
+                    "pr_url": pr.get("url"),
+                    "pr_number": pr.get("number"),
+                    "checks_count": len(checks),
+                }
+
+            # Update all packages that match
+            updated = 0
+            now = _now_ts()
+            with self._lock:
+                for name, job in self._jobs.items():
+                    # Match by branch name or by package name in branch
+                    ci_info = None
+                    if job.published_branch and job.published_branch in branch_to_ci:
+                        ci_info = branch_to_ci[job.published_branch]
+                    else:
+                        # Try to find a branch containing the package name
+                        for branch, info in branch_to_ci.items():
+                            if name in branch:
+                                ci_info = info
+                                # Also update the branch/PR URL if not set
+                                if not job.published_branch:
+                                    job.published_branch = branch
+                                if not job.published_pr_url:
+                                    job.published_pr_url = info.get("pr_url")
+                                    job.status = "pr_opened"
+                                break
+
+                    if ci_info:
+                        job.ci_status = ci_info.get("status")
+                        job.ci_conclusion = ci_info.get("conclusion")
+                        job.ci_checked_at = now
+                        updated += 1
+
+            if updated > 0:
+                self._write_state()
+                print(
+                    f"[CI_BATCH] Updated CI status for {updated} packages", flush=True
+                )
+
+            return updated
+
+        except subprocess.TimeoutExpired:
+            print("[CI_BATCH] gh pr list timed out", flush=True)
+            return 0
+        except Exception as e:
+            print(f"[CI_BATCH] Error: {e}", flush=True)
+            return 0
+
+    def _legacy_refresh_ci_status_for_prs(self) -> None:
+        """
+        Legacy: Refresh CI status one package at a time.
+        Kept for reference but _batch_refresh_ci_status is preferred.
+        """
+        packages_with_prs = []
+        with self._lock:
+            for name, job in self._jobs.items():
+                if job.published_pr_url:
+                    packages_with_prs.append((name, job.published_pr_url))
+
+        for pkg_name, pr_url in packages_with_prs:
+            if self._stop:
+                break
+            try:
+                ci_info = (
+                    _fetch_ci_status_for_pr(pr_url, pkg_name, self.packages_repo_root)
+                    or {}
+                )
+                with self._lock:
+                    job = self._jobs.get(pkg_name)
+                    if job:
+                        job.ci_status = ci_info.get("status")
+                        job.ci_conclusion = ci_info.get("conclusion")
+                        job.ci_run_id = ci_info.get("run_id")
+                        job.ci_run_url = ci_info.get("run_url")
+                        job.ci_job_name = ci_info.get("job_name")
+                        job.ci_error = ci_info.get("error")
+                        job.ci_checked_at = _now_ts()
+            except Exception as e:
+                print(
+                    f"[CI STATUS] Error refreshing CI for {pkg_name}: {e}", flush=True
+                )
+            # Small delay between requests to avoid rate limiting
+            time.sleep(0.5)
+
+        self._write_state()
 
     # (worker threads removed; builds are executed in worker *processes*)
 
@@ -3711,6 +4750,31 @@ class Server:
 
                     if path == "/api/whoami":
                         return self._send_json(HTTPStatus.OK, run.get_whoami())
+
+                    if path == "/api/gh_cache_status":
+                        # GitHub cache status for UI sync indicator
+                        cache_age = time.time() - run._gh_pr_cache_updated_at
+                        with run._lock:
+                            prs_with_ci = sum(
+                                1 for j in run._jobs.values() if j.ci_status is not None
+                            )
+                            ci_failures = sum(
+                                1
+                                for j in run._jobs.values()
+                                if j.ci_conclusion == "failure"
+                            )
+                        return self._send_json(
+                            HTTPStatus.OK,
+                            {
+                                "cache_age_seconds": round(cache_age, 1),
+                                "last_updated": run._gh_pr_cache_updated_at,
+                                "branches_cached": len(run._gh_pr_cache),
+                                "packages_cached": len(run._gh_pr_cache_by_package),
+                                "packages_with_ci_status": prs_with_ci,
+                                "ci_failures": ci_failures,
+                                "status": "loading" if cache_age > 60 else "synced",
+                            },
+                        )
 
                     if path == "/api/health":
                         # Health check for AI agents to verify service is running
@@ -3979,6 +5043,42 @@ class Server:
                         except Exception as e:
                             return self._send_json(
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    # GET /api/package/{name}/ci_status - get CI status for a PR
+                    if path.startswith("/api/package/") and path.endswith("/ci_status"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/ci_status"
+                            )
+                        ).strip("/")
+                        try:
+                            result = run.get_ci_status(pkg)
+                            return self._send_json(HTTPStatus.OK, result)
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
+                    # GET /api/package/{name}/ci_logs - get CI logs for a PR
+                    if path.startswith("/api/package/") and path.endswith("/ci_logs"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/ci_logs")
+                        ).strip("/")
+                        try:
+                            result = run.get_ci_logs(pkg)
+                            return self._send_json(HTTPStatus.OK, result)
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
                             )
 
                     if path.startswith("/api/package/"):
@@ -4381,6 +5481,28 @@ class Server:
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
 
+                    # POST /api/package/{name}/rerun_ci - re-run CI for a PR
+                    if path.startswith("/api/package/") and path.endswith("/rerun_ci"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/rerun_ci")
+                        ).strip("/")
+                        try:
+                            result = run.rerun_ci(pkg)
+                            status = (
+                                HTTPStatus.OK
+                                if result.get("success")
+                                else HTTPStatus.BAD_REQUEST
+                            )
+                            return self._send_json(status, result)
+                        except KeyError:
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
                     # AI agent message endpoint
                     if path.startswith("/api/package/") and path.endswith("/message"):
                         pkg = unquote(
@@ -4734,6 +5856,12 @@ def serve(
             help="Pass --skip-datasheets to builds (skip downloading datasheets)."
         ),
     ] = False,
+    frozen: Annotated[
+        bool,
+        typer.Option(
+            help="Pass --frozen to builds (fail if layout changes are required)."
+        ),
+    ] = False,
     out_dir: Annotated[
         Path,
         typer.Option(
@@ -4866,6 +5994,7 @@ def serve(
         ato_cmd=ato_cmd_list,
         keep_picked_parts=keep_picked_parts,
         skip_datasheets=skip_datasheets,
+        frozen=frozen,
         open_cmd=open_cmd,
         max_ready=max_ready,
         server_origin=server_origin,
