@@ -888,6 +888,10 @@ function _renderRightImpl() {
     if (githubBtn) githubBtn.disabled = true;
     const rerunCiBtn = $("#rerunCiBtn");
     if (rerunCiBtn) rerunCiBtn.disabled = true;
+    const pullPrBtn = $("#pullPrBtn");
+    if (pullPrBtn) pullPrBtn.disabled = true;
+    const pushPrBtn = $("#pushPrBtn");
+    if (pushPrBtn) pushPrBtn.disabled = true;
     restartBtn.disabled = true;
     cursorBtn.disabled = true;
     if (logStageSelect) logStageSelect.innerHTML = "";
@@ -1075,6 +1079,16 @@ function _renderRightImpl() {
     // Enable if we know about PR/branch, OR if package is in a state that might have one
     const ciRelevantStatus = ["awaiting_review", "approved", "branch_pushed", "pr_opened", "published"].includes(job.status);
     rerunCiBtn.disabled = !(prUrlForCi || branchForCi || ciRelevantStatus);
+  }
+  // Pull from PR / Push to PR buttons - enabled when a PR branch is known
+  const prAvailable = !!(job.published_branch || job.published_pr_url);
+  const pullPrBtn = $("#pullPrBtn");
+  if (pullPrBtn) {
+    pullPrBtn.disabled = !prAvailable || job.status === "building" || job.status === "verifying";
+  }
+  const pushPrBtn = $("#pushPrBtn");
+  if (pushPrBtn) {
+    pushPrBtn.disabled = !prAvailable || !(publishAnyway || publishable) || job.status === "building" || job.status === "verifying";
   }
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
@@ -1841,6 +1855,53 @@ async function rerunCiSelected() {
   if (btn) btn.textContent = originalText;
 }
 
+async function pullFromPrSelected() {
+  const pkg = state.selected;
+  if (!pkg) return;
+
+  const btn = $("#pullPrBtn");
+  const originalText = btn?.textContent;
+  if (btn) btn.textContent = "Pulling...";
+
+  try {
+    const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/pull_from_pr`, {});
+    state.publish.lastResult = res.result || res;
+    state.publish.error = null;
+    alert(`Pulled from PR branch: ${res.branch || "(unknown)"}`);
+  } catch (e) {
+    state.publish.error = String(e);
+    alert(`Pull from PR failed: ${String(e)}`);
+  }
+
+  if (btn) btn.textContent = originalText;
+  await refresh(true);
+}
+
+async function pushToPrSelected() {
+  const pkg = state.selected;
+  if (!pkg) return;
+
+  const reviewer = ($("#reviewer").value || "").trim() || null;
+  const commit_message = state.publish.commitMessage || "";
+
+  const btn = $("#pushPrBtn");
+  const originalText = btn?.textContent;
+  if (btn) btn.textContent = "Pushing...";
+
+  try {
+    const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/push_to_pr`, { reviewer, commit_message });
+    state.publish.lastResult = res.result || res;
+    state.publish.error = null;
+    alert(`Pushed to PR branch: ${res.branch || "(unknown)"}\n${res.pr_url ? `PR: ${res.pr_url}` : ""}`);
+  } catch (e) {
+    state.publish.error = String(e);
+    alert(`Push to PR failed: ${String(e)}`);
+  }
+
+  if (btn) btn.textContent = originalText;
+  await refresh(true);
+}
+
 async function openInKicad() {
   const pkg = state.selected;
   const build = state.selectedBuild;
@@ -1985,6 +2046,8 @@ function wireGlobal() {
   $("#syncBtn")?.addEventListener("click", syncSelected);
   $("#githubBtn")?.addEventListener("click", openGitHub);
   $("#rerunCiBtn")?.addEventListener("click", rerunCiSelected);
+  $("#pullPrBtn")?.addEventListener("click", pullFromPrSelected);
+  $("#pushPrBtn")?.addEventListener("click", pushToPrSelected);
   $("#restartBtn").addEventListener("click", restartSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);

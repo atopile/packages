@@ -2554,6 +2554,50 @@ class ReviewRun:
 
         return None
 
+    def _resolve_pr_branch(
+        self, package: str, *, target_requires_atopile: str | None = None
+    ) -> tuple[str, dict[str, Any] | None]:
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        pr_data = self.get_cached_pr_for_package(package)
+        branch = job.published_branch or (pr_data or {}).get("branch")
+
+        if not branch and shutil.which("gh"):
+            target = (
+                target_requires_atopile
+                or job.published_target_requires_atopile
+                or "^0.14.0"
+            )
+            pr_data = _check_existing_pr_for_package(
+                package=package, repo_root=self.packages_repo_root, target_requires_atopile=target
+            )
+            branch = (pr_data or {}).get("branch")
+
+        if not branch:
+            raise ValueError("No PR branch found for this package")
+
+        # Best-effort update of PR metadata.
+        if pr_data:
+            pr_url = pr_data.get("url") or pr_data.get("pr_url")
+            pr_title = pr_data.get("title") or pr_data.get("pr_title")
+            pr_author = pr_data.get("author") or pr_data.get("pr_author")
+            with self._lock:
+                j = self._jobs.get(package)
+                if j:
+                    if not j.published_branch:
+                        j.published_branch = branch
+                    if pr_url and not j.published_pr_url:
+                        j.published_pr_url = pr_url
+                    if pr_title and not j.published_pr_title:
+                        j.published_pr_title = pr_title
+                    if pr_author and not j.published_pr_author:
+                        j.published_pr_author = pr_author
+            self._write_state()
+
+        return branch, pr_data
+
     def _check_existing_prs_background(self) -> None:
         """
         Background thread that checks for existing PRs/branches while builds run.
@@ -3955,6 +3999,263 @@ class ReviewRun:
         )
 
         return {"branch": branch, "pushed": pushed, "pr_url": pr_url, "commands": out}
+
+    def pull_from_pr(self, package: str) -> dict[str, Any]:
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+        if job.status in ("building", "verifying"):
+            raise ValueError("Cannot pull while build is running")
+
+        branch, pr_data = self._resolve_pr_branch(package=package)
+        repo = self.packages_repo_root
+        pkg_rel = f"packages/{package}"
+
+        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["git", *args],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        out: list[dict[str, Any]] = []
+        fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
+        r = run_git(["fetch", "origin", fetch_ref], cwd=repo)
+        out.append(
+            {"cmd": ["git", "fetch", "origin", fetch_ref], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git fetch failed:\n{r.stderr}")
+
+        r = run_git(["checkout", f"origin/{branch}", "--", pkg_rel], cwd=repo)
+        out.append(
+            {
+                "cmd": ["git", "checkout", f"origin/{branch}", "--", pkg_rel],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git checkout failed:\n{r.stderr}")
+
+        with self._lock:
+            j = self._jobs.get(package)
+            if j:
+                j.build_names = _read_ato_yaml_builds(Path(j.package_dir) / "ato.yaml")
+                j.build_entries = _read_ato_yaml_build_entries(
+                    Path(j.package_dir) / "ato.yaml"
+                )
+                j.layout_paths = _find_layout_pcb_paths(
+                    Path(j.package_dir), j.build_names
+                )
+                j.model_paths = _find_model_glb_paths(
+                    Path(j.package_dir), j.build_names
+                )
+        self._write_state()
+
+        pr_url = (pr_data or {}).get("url") or (pr_data or {}).get("pr_url")
+        return {"branch": branch, "pr_url": pr_url, "commands": out}
+
+    def push_to_pr(
+        self,
+        package: str,
+        *,
+        commit_message: str,
+        reviewer: str | None,
+        target_requires_atopile: str | None = None,
+    ) -> dict[str, Any]:
+        job = self.get_job(package)
+        if not job:
+            raise KeyError(package)
+
+        if job.status in ("building", "verifying"):
+            raise ValueError("Cannot push while build is running")
+
+        if not self.publish_anyway:
+            build_names = list(job.build_names or [])
+            missing_builds = [b for b in build_names if job.build_rc.get(b) is None]
+            bad_builds = [
+                b
+                for b in build_names
+                if (job.build_rc.get(b) is not None and int(job.build_rc.get(b)) != 0)
+            ]
+            verify_missing = job.verify_rc is None
+            verify_bad = job.verify_rc is not None and int(job.verify_rc) != 0
+            if missing_builds or bad_builds or verify_missing or verify_bad:
+                reasons: list[str] = []
+                if missing_builds:
+                    reasons.append(f"build incomplete: {', '.join(missing_builds)}")
+                if bad_builds:
+                    reasons.append(f"build failed: {', '.join(bad_builds)}")
+                if verify_missing:
+                    reasons.append("verify incomplete")
+                if verify_bad:
+                    reasons.append(f"verify failed (rc={job.verify_rc})")
+                raise PermissionError(
+                    "Push to PR blocked until build+verify succeed. "
+                    + "; ".join(reasons)
+                    + ". Start server with --publish-anyway to override."
+                )
+
+        branch, pr_data = self._resolve_pr_branch(
+            package=package, target_requires_atopile=target_requires_atopile
+        )
+        if pr_data and (pr_data.get("state") == "MERGED" or pr_data.get("merged") is True):
+            raise ValueError("PR already merged; refusing to push updates")
+
+        pkg_rel = f"packages/{package}"
+        repo = self.packages_repo_root
+        src_pkg = repo / pkg_rel
+        if not src_pkg.exists():
+            raise FileNotFoundError(f"package path not found: {src_pkg}")
+
+        with self._lock:
+            job.status = "pushing_branch"
+            job.publish_error = None
+        self._write_state()
+        _update_todo_auto_section(
+            todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
+        )
+
+        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                ["git", *args],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        out: list[dict[str, Any]] = []
+        fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
+        r = run_git(["fetch", "origin", fetch_ref], cwd=repo)
+        out.append(
+            {"cmd": ["git", "fetch", "origin", fetch_ref], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git fetch failed:\n{r.stderr}")
+
+        base_ref = f"origin/{branch}"
+        r = run_git(["rev-parse", "--verify", base_ref], cwd=repo)
+        if r.returncode != 0:
+            raise RuntimeError(f"remote branch not found: {branch}")
+
+        worktrees_root = (self.run_dir / "_publish_worktrees").resolve()
+        worktrees_root.mkdir(parents=True, exist_ok=True)
+        wt_dir = worktrees_root / branch
+
+        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+        r = run_git(
+            ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
+            cwd=repo,
+        )
+        out.append(
+            {
+                "cmd": [
+                    "git",
+                    "worktree",
+                    "add",
+                    "--force",
+                    "-B",
+                    branch,
+                    str(wt_dir),
+                    base_ref,
+                ],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
+
+        wt_repo = wt_dir
+        wt_pkg = wt_repo / pkg_rel
+        if wt_pkg.exists():
+            shutil.rmtree(wt_pkg)
+
+        def _ignore(_dir: str, names: list[str]) -> set[str]:
+            ignore = set()
+            for n in names:
+                if n in {"build", ".pytest_cache", "__pycache__", "review.todo.md"}:
+                    ignore.add(n)
+            return ignore
+
+        shutil.copytree(src_pkg, wt_pkg, ignore=_ignore, dirs_exist_ok=True)
+
+        r = run_git(["status", "--porcelain", "--", pkg_rel], cwd=wt_repo)
+        out.append(
+            {
+                "cmd": ["git", "status", "--porcelain", "--", pkg_rel],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git status failed:\n{r.stderr}")
+
+        if not (r.stdout or "").strip():
+            run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+            with self._lock:
+                job.publish_error = None
+                job.status = "pr_opened" if job.published_pr_url else "branch_pushed"
+            self._write_state()
+            return {"branch": branch, "pr_url": job.published_pr_url, "no_changes": True, "commands": out}
+
+        cm = (commit_message or "").strip() or f"{package}: sync build outputs"
+        cm += "\n\nBuild targets:"
+        for b in job.build_names:
+            cm += f"\n  {b} = rc{job.build_rc.get(b)}"
+        cm += f"\nPackage Verify: rc{job.verify_rc}"
+
+        for cmd in (
+            ["add", "--", pkg_rel],
+            ["commit", "-m", cm],
+        ):
+            r = run_git(cmd, cwd=wt_repo)
+            out.append(
+                {
+                    "cmd": ["git", *cmd],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
+            )
+            if r.returncode != 0:
+                raise RuntimeError(f"git failed: {' '.join(cmd)}\n{r.stderr}")
+
+        r = run_git(["push", "-u", "origin", branch], cwd=wt_repo)
+        out.append(
+            {
+                "cmd": ["git", "push", "-u", "origin", branch],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"git push failed:\n{r.stderr}")
+
+        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+
+        pr_url = (pr_data or {}).get("url") or (pr_data or {}).get("pr_url")
+        with self._lock:
+            job.published_branch = branch
+            job.published_at = _now_ts()
+            if pr_url and not job.published_pr_url:
+                job.published_pr_url = pr_url
+            job.status = "pr_opened" if job.published_pr_url else "branch_pushed"
+            job.publish_error = None
+        self._write_state()
+        _update_todo_auto_section(
+            todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
+        )
+
+        return {"branch": branch, "pr_url": job.published_pr_url, "pushed": True, "commands": out}
 
     def uprev_and_publish(
         self,
@@ -6150,6 +6451,110 @@ class Server:
                                 HTTPStatus.NOT_FOUND, {"error": "unknown package"}
                             )
                         except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/pull_from_pr"
+                    ):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/pull_from_pr"
+                            )
+                        ).strip("/")
+                        print(f"[PULL PR] Starting pull for {pkg}", flush=True)
+                        _log_line(f"{_now_ts()} PULL PR: Starting pull for {pkg}")
+                        try:
+                            res = run.pull_from_pr(pkg)
+                            print(
+                                f"[PULL PR] {pkg} SUCCESS branch={res.get('branch')}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PULL PR: {pkg} SUCCESS branch={res.get('branch')}"
+                            )
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "result": res}
+                            )
+                        except KeyError:
+                            print(f"[PULL PR] {pkg} NOT FOUND", flush=True)
+                            _log_line(f"{_now_ts()} PULL PR: {pkg} NOT FOUND")
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            print(
+                                f"[PULL PR] {pkg} FAILED: {type(e).__name__}: {e}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PULL PR: {pkg} FAILED: {type(e).__name__}: {e}"
+                            )
+                            return self._send_json(
+                                HTTPStatus.BAD_REQUEST, {"error": str(e)}
+                            )
+
+                    if path.startswith("/api/package/") and path.endswith("/push_to_pr"):
+                        pkg = unquote(
+                            path.removeprefix("/api/package/").removesuffix("/push_to_pr")
+                        ).strip("/")
+                        print(f"[PUSH PR] Starting push for {pkg}", flush=True)
+                        _log_line(f"{_now_ts()} PUSH PR: Starting push for {pkg}")
+                        try:
+                            payload = self._read_json()
+                            reviewer = payload.get("reviewer")
+                            commit_message = payload.get("commit_message") or ""
+                            target_requires_atopile = payload.get("target_requires_atopile")
+                            res = run.push_to_pr(
+                                pkg,
+                                reviewer=reviewer,
+                                commit_message=commit_message,
+                                target_requires_atopile=target_requires_atopile,
+                            )
+                            print(
+                                f"[PUSH PR] {pkg} SUCCESS branch={res.get('branch')}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PUSH PR: {pkg} SUCCESS branch={res.get('branch')}"
+                            )
+                            return self._send_json(
+                                HTTPStatus.OK, {"ok": True, "result": res}
+                            )
+                        except PermissionError as e:
+                            print(f"[PUSH PR] {pkg} PERMISSION ERROR: {e}", flush=True)
+                            _log_line(
+                                f"{_now_ts()} PUSH PR: {pkg} PERMISSION ERROR: {e}"
+                            )
+                            return self._send_json(
+                                HTTPStatus.FORBIDDEN, {"error": str(e)}
+                            )
+                        except KeyError:
+                            print(f"[PUSH PR] {pkg} NOT FOUND", flush=True)
+                            _log_line(f"{_now_ts()} PUSH PR: {pkg} NOT FOUND")
+                            return self._send_json(
+                                HTTPStatus.NOT_FOUND, {"error": "unknown package"}
+                            )
+                        except Exception as e:
+                            print(
+                                f"[PUSH PR] {pkg} FAILED: {type(e).__name__}: {e}",
+                                flush=True,
+                            )
+                            _log_line(
+                                f"{_now_ts()} PUSH PR: {pkg} FAILED: {type(e).__name__}: {e}"
+                            )
+                            try:
+                                j = run.get_job(pkg)
+                                if j:
+                                    with run._lock:
+                                        j.status = "error"
+                                        j.publish_error = str(e)
+                                        j.error = str(e)
+                                        j.finished_at = _now_ts()
+                                        run._write_state()
+                            except Exception:
+                                pass
                             return self._send_json(
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
