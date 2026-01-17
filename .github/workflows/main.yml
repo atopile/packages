@@ -62,6 +62,13 @@ jobs:
         with:
           docker-tag: feature-fabll_part2
 
+      - name: Print atopile + KiCad versions
+        run: |
+          set -euo pipefail
+          echo "ato version: $(ato --version)"
+          echo "ato githash: $(docker image inspect atopile-local --format '{{ index .Config.Labels \"org.opencontainers.image.revision\" }}')"
+          echo "kicad version: $(docker run --rm --entrypoint kicad atopile-local --version)"
+
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
