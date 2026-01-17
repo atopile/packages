@@ -84,13 +84,24 @@ jobs:
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
 
+      - name: Debug git setup
+        if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+        run: |
+          echo "=== Debug Info ==="
+          echo "pwd: $(pwd)"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "matrix.package: ${{ matrix.package }}"
+          echo "Looking for .git:"
+          ls -la .git 2>/dev/null || echo "No .git in current dir"
+          git rev-parse --show-toplevel 2>/dev/null || echo "git rev-parse failed"
+          echo "=== Testing ato from repo root ==="
+
       - name: Publish dry run
         if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-        working-directory: ${{ matrix.package }}
         env:
           ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
           NONINTERACTIVE: "1"
-        run: ato package publish --dry-run
+        run: ato package publish --dry-run ${{ matrix.package }}
 
       - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
