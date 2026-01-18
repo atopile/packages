@@ -2413,31 +2413,30 @@ class ReviewRun:
         t.start()
         self._threads.append(t)
 
-        # MVP MODE: Disabled non-essential background threads
-        # TODO: Re-enable these when basic builds work
-        # t = threading.Thread(
-        #     target=self._registry_poller, name="registry-poller", daemon=True
-        # )
-        # t.start()
-        # self._threads.append(t)
+        # Registry poller - checks for new package versions
+        t = threading.Thread(
+            target=self._registry_poller, name="registry-poller", daemon=True
+        )
+        t.start()
+        self._threads.append(t)
 
-        # # Background thread to check for existing PRs while builds run
-        # t = threading.Thread(
-        #     target=self._check_existing_prs_background,
-        #     name="pr-checker",
-        #     daemon=True,
-        # )
-        # t.start()
-        # self._threads.append(t)
+        # Background thread to check for existing PRs while builds run
+        t = threading.Thread(
+            target=self._check_existing_prs_background,
+            name="pr-checker",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
 
-        # # Background thread to check CI status for packages with PRs
-        # t = threading.Thread(
-        #     target=self._ci_status_poller,
-        #     name="ci-poller",
-        #     daemon=True,
-        # )
-        # t.start()
-        # self._threads.append(t)
+        # Background thread to check CI status for packages with PRs
+        t = threading.Thread(
+            target=self._ci_status_poller,
+            name="ci-poller",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
 
     def _ci_status_poller(self) -> None:
         """
