@@ -19,9 +19,9 @@ module ISSI_IS31FL3731:
     ISSI IS31FL3731 – 144-LED matrix driver with I²C interface.
 
     External interfaces:
-      • power – Supply rail (2.7 V … 5.5 V)
-      • i2c   – I²C bus (address 0x74 / 0x77 via AD pin)
-      • int   – INTB interrupt output (open-drain, active-low)
+        • power – Supply rail (2.7 V … 5.5 V)
+        • i2c – I²C bus (address 0x74 / 0x77 via AD pin)
+        • int – INTB interrupt output (open-drain, active-low)
     """
 
     # --- Package ---
@@ -39,9 +39,9 @@ module ISSI_IS31FL3731:
     channel_b = new ElectricSignal[9]
 
     # --- Power ---
-    power.vcc ~ package.VCC
-    power.gnd ~ package.GND
-    power.gnd ~ package.EP  # Exposed pad
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+    power.lv ~ package.EP  # Exposed pad
     assert power.voltage within 2.7V to 5.5V
 
     # --- I²C ---
@@ -49,7 +49,7 @@ module ISSI_IS31FL3731:
     i2c.sda.line ~ package.SDA
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
-    i2c.address = 0x74 # should use advanced addressor (4 level)
+    i2c.address = 0x74  # should use advanced addressor (4 level)
     i2c_address_pull_down = new Resistor
     i2c_address_pull_down.resistance = 10kohm +/- 10%
     i2c_address_pull_down.package = "0402"
@@ -58,7 +58,7 @@ module ISSI_IS31FL3731:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
@@ -105,7 +105,6 @@ module ISSI_IS31FL3731:
     decoupling_capacitor_big.capacitance = 10uF +/- 20%
     decoupling_capacitor_big.package = "0603"
     power.hv ~> decoupling_capacitor_big ~> power.lv
-
 
     # --- Package ---
     package.VCC ~ power.hv
