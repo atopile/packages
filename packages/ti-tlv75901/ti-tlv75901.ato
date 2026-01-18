@@ -51,9 +51,9 @@ module TI_TLV75901 from AdjustableLDO:
     power_in.hv ~> input_decoupling_capacitor ~> power_in.lv
 
     # --- Feedback Divider ---
-    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm * (1 + (-0.01 to 0.01))
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
+    assert feedback_divider.total_resistance within 5kohm to 150kohm * (1 + (-0.01 to 0.01))
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
 
     # --- Enable ---
     # enable by default
@@ -68,4 +68,4 @@ module TI_TLV75901 from AdjustableLDO:
     power_out.hv ~ package.OUT
     power_out.lv ~ package.EP
     _enable.line ~ package.EN
-    feedback_divider.output.line ~ package.FB
+    feedback_divider.ref_out.hv ~ package.FB
