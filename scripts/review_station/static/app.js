@@ -912,6 +912,8 @@ function _renderRightImpl() {
     const pushPrBtn = $("#pushPrBtn");
     if (pushPrBtn) pushPrBtn.disabled = true;
     restartBtn.disabled = true;
+    const rebuildBtn = $("#rebuildBtn");
+    if (rebuildBtn) rebuildBtn.disabled = true;
     cursorBtn.disabled = true;
     if (logStageSelect) logStageSelect.innerHTML = "";
     logSelect.innerHTML = "";
@@ -1110,6 +1112,8 @@ function _renderRightImpl() {
     pushPrBtn.disabled = !prAvailable || !(publishAnyway || publishable) || job.status === "building" || job.status === "verifying";
   }
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
+  const rebuildBtn = $("#rebuildBtn");
+  if (rebuildBtn) rebuildBtn.disabled = (job.status === "building" || job.status === "verifying");
   cursorBtn.disabled = !state.selectedBuild || !job.build_entries || !job.build_entries[state.selectedBuild];
 
   // Summary text
@@ -1730,7 +1734,18 @@ async function unapproveSelected() {
 async function restartSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, {});
+  // Restart with frozen=true (default behavior, fail if layout changes needed)
+  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true });
+  state.selectedLogContent = "";
+  await fetchLogIndex();
+  await refresh(true);
+}
+
+async function rebuildSelected() {
+  const pkg = state.selected;
+  if (!pkg) return;
+  // Rebuild with frozen=false (allow layout changes)
+  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false });
   state.selectedLogContent = "";
   await fetchLogIndex();
   await refresh(true);
@@ -2076,6 +2091,7 @@ function wireGlobal() {
   $("#pullPrBtn")?.addEventListener("click", pullFromPrSelected);
   $("#pushPrBtn")?.addEventListener("click", pushToPrSelected);
   $("#restartBtn").addEventListener("click", restartSelected);
+  $("#rebuildBtn")?.addEventListener("click", rebuildSelected);
   $("#cursorBtn").addEventListener("click", openInCursor);
   $("#openBtn").addEventListener("click", openInKicad);
   $("#openLogsBtn").addEventListener("click", openLogsInCursor);

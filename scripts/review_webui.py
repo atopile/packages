@@ -612,6 +612,9 @@ def _review_worker_process(
         # a manual build updates build/logs/latest concurrently.
         build_timestamp = pkg_run_dir.parent.name
 
+        # Per-task frozen flag (can override global default)
+        task_frozen = task.get("frozen", frozen)
+
         cmd = [
             *ato_cmd,
             "build",
@@ -625,7 +628,7 @@ def _review_worker_process(
             cmd.append("--keep-picked-parts")
         if skip_datasheets:
             cmd.extend(["--exclude-target", "datasheets"])
-        if frozen:
+        if task_frozen:
             cmd.append("--frozen")
         status_file = logs_dir / "build_status.txt"
         b_rc, b_secs, b_warn, b_err = run_cmd_to_log(
@@ -3032,6 +3035,13 @@ class ReviewRun:
         job = self.get_job(pkg)
         assert job is not None
         self._mp_cancel[pkg] = False
+        # Use per-job frozen flag if set, otherwise fall back to global default
+        task_frozen = getattr(job, "_next_build_frozen", None)
+        if task_frozen is None:
+            task_frozen = self.frozen
+        # Clear the per-job override after using it
+        if hasattr(job, "_next_build_frozen"):
+            delattr(job, "_next_build_frozen")
         self._mp_tasks.put(
             {
                 "package": pkg,
@@ -3040,6 +3050,7 @@ class ReviewRun:
                 "build_names": list(job.build_names),
                 "server_origin": self.server_origin,
                 "jobs_per_pkg": max(1, (os.cpu_count() or 4) // max(1, self.jobs)),
+                "frozen": task_frozen,
             }
         )
 
@@ -3396,7 +3407,11 @@ class ReviewRun:
         )
 
     def restart(
-        self, package: str, priority: bool = True, clear_publish_state: bool = True
+        self,
+        package: str,
+        priority: bool = True,
+        clear_publish_state: bool = True,
+        frozen: bool | None = None,
     ) -> None:
         """
         Restart a package build.
@@ -3406,6 +3421,9 @@ class ReviewRun:
 
         If clear_publish_state=True (default), clears any previous publish state
         so the package can be rebuilt and re-published to update an existing branch/PR.
+
+        If frozen=None (default), uses the global frozen setting. If frozen=True/False,
+        overrides the global setting for this specific build.
         """
         paused_pkg = None
         with self._lock:
@@ -3476,6 +3494,10 @@ class ReviewRun:
             )
             # Move to front of queue so it builds next
             self._queue = [package] + [p for p in self._queue if p != package]
+
+            # Set per-job frozen override if specified
+            if frozen is not None:
+                job._next_build_frozen = frozen  # type: ignore[attr-defined]
 
         # Signal worker process to cancel the paused job (if any)
         if paused_pkg and hasattr(self, "_mp_cancel"):
@@ -5658,12 +5680,7 @@ class Server:
         return httpd, actual_port
 
     def _static_dir(self) -> Path:
-        # Prefer the consolidated folder layout (scripts/review_station/static),
-        # but keep backwards compatibility with the older path.
-        static_dir = Path(__file__).parent / "review_station" / "static"
-        if static_dir.exists():
-            return static_dir
-        return Path(__file__).parent / "review_webui_static"
+        return Path(__file__).parent / "review_station" / "static"
 
     def _build_httpd(self) -> tuple[ThreadingHTTPServer, int]:
         """
@@ -6482,7 +6499,15 @@ class Server:
                             path.removeprefix("/api/package/").removesuffix("/restart")
                         ).strip("/")
                         try:
-                            run.restart(pkg)
+                            # Support optional frozen parameter in request body
+                            frozen_override: bool | None = None
+                            try:
+                                payload = self._read_json()
+                                if payload and "frozen" in payload:
+                                    frozen_override = bool(payload["frozen"])
+                            except Exception:
+                                pass  # No body or invalid JSON is fine
+                            run.restart(pkg, frozen=frozen_override)
                             return self._send_json(HTTPStatus.OK, {"ok": True})
                         except KeyError:
                             return self._send_json(
@@ -6981,9 +7006,9 @@ def serve(
     frozen: Annotated[
         bool,
         typer.Option(
-            help="Pass --frozen to builds (fail if layout changes are required)."
+            help="Pass --frozen to builds (fail if layout changes are required). Default is True."
         ),
-    ] = False,
+    ] = True,
     out_dir: Annotated[
         Path,
         typer.Option(
