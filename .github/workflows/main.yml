@@ -104,6 +104,17 @@ jobs:
           find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
           echo "::endgroup::"
 
+      - name: Print errors and warnings on failure
+        if: failure()
+        run: |
+          pkg="${{ matrix.package }}"
+          echo "::group::Error Logs"
+          find "$pkg/build/logs" -name "*.error.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
+          echo "::group::Warning Logs"
+          find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
+
       - name: Archive build logs
         id: archive_logs
         if: always()
