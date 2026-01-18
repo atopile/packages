@@ -18,9 +18,9 @@ module ADI_LTC4311:
     that can be used for SDA and SCL lines.
 
     Exposes:
-      * power         – Power supply (1.6V to 5.5V)
-      * i2c           – I2C bus interface
-      * enable        – Enable pin (optional, can be tied high)
+        * power – Power supply (1.6V to 5.5V)
+        * i2c – I2C bus interface
+        * enable – Enable pin (optional, can be tied high)
     """
 
     # --- Package ---
@@ -48,8 +48,8 @@ module ADI_LTC4311:
     enable.required = False
 
     # --- Power connections ---
-    power.vcc ~ package.VCC
-    power.gnd ~ package.GND
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
 
     # --- Signal connections ---
     i2c.sda.line ~ package.BUS1
@@ -66,10 +66,10 @@ module ADI_LTC4311:
     enable_pullup = new Resistor
     enable_pullup.resistance = 10kohm +/- 20%
     enable_pullup.package = "0402"
-    power.vcc ~> enable_pullup ~> package.ENABLE
+    power.hv ~> enable_pullup ~> package.ENABLE
 
     # --- Decoupling capacitor ---
     bypass_cap = new Capacitor
     bypass_cap.capacitance = 100nF +/- 20%
     bypass_cap.package = "0402"
-    power.vcc ~> bypass_cap ~> power.gnd
+    power.hv ~> bypass_cap ~> power.lv
