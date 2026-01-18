@@ -63,7 +63,7 @@ module Vishay_VCNL4200:
 
     # --- I2C configuration ---
     # VCNL4200 has a fixed I2C address of 0x51 (LED_CATHODE connected to GND)
-    assert i2c.address is 0x51
+    assert i2c.address within 0x51 +/- 0
 
     # --- I2C pull-up resistors ---
     i2c_pullup_scl = new Resistor
@@ -113,9 +113,8 @@ module Vishay_VCNL4200:
     # --- IR LED current limiting and control ---
     # LED current limiting resistor (cathode side)
     led_resistor = new Resistor
-    led_resistor.resistance = 2.7kohm +/- 20%
+    led_resistor.resistance = 2.2kohm +/- 20%
     led_resistor.package = "0402"
-    led_resistor.max_power = 100mW
 
     # P-channel MOSFET for LED control (high-side switch)
     led_mosfet = new Alpha___Omega_Semicon_AO3401A_package
