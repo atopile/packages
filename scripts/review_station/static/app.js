@@ -2006,7 +2006,7 @@ async function openLogsInCursor() {
 }
 
 async function fetchGhCacheStatus() {
-  const el = document.getElementById("ghSyncStatus");
+  const el = document.getElementById("ghRefreshBtn");
   if (!el) return;
 
   try {
@@ -2020,21 +2020,45 @@ async function fetchGhCacheStatus() {
 
     if (age > 60) {
       el.classList.add("loading");
-      el.textContent = "⟳ Syncing GitHub...";
-      el.title = "Fetching PR and CI data from GitHub";
+      el.textContent = "⟳ Syncing...";
+      el.title = "Fetching PR and CI data from GitHub (click to refresh)";
     } else {
       el.classList.add("synced");
       if (ciFailures > 0) {
-        el.textContent = `✓ ${pkgsWithCi} PRs | ${ciFailures} CI fails`;
+        el.textContent = `⟳ ${pkgsWithCi} PRs | ${ciFailures} CI ✗`;
       } else {
-        el.textContent = `✓ ${pkgsWithCi} PRs synced`;
+        el.textContent = `⟳ ${pkgsWithCi} PRs`;
       }
-      el.title = `Last sync: ${Math.round(age)}s ago\nBranches: ${res.branches_cached}\nPackages: ${res.packages_cached}`;
+      el.title = `Last sync: ${Math.round(age)}s ago\nClick to refresh GitHub data`;
     }
   } catch (e) {
     el.classList.remove("loading", "synced");
     el.classList.add("error");
-    el.textContent = "⚠ GitHub sync error";
+    el.textContent = "⚠ GitHub error";
+    el.title = `${String(e)}\nClick to retry`;
+  }
+}
+
+async function refreshGitHub() {
+  const el = document.getElementById("ghRefreshBtn");
+  if (!el) return;
+
+  // Show loading state
+  el.classList.remove("synced", "error");
+  el.classList.add("loading");
+  el.textContent = "⟳ Refreshing...";
+  el.title = "Fetching PR and CI data from GitHub...";
+
+  try {
+    await apiPost("/api/refresh_github", {});
+    // Wait a moment for the refresh to start processing, then update status
+    setTimeout(() => fetchGhCacheStatus(), 1000);
+    setTimeout(() => fetchGhCacheStatus(), 3000);
+    setTimeout(() => fetchGhCacheStatus(), 8000);
+  } catch (e) {
+    el.classList.remove("loading");
+    el.classList.add("error");
+    el.textContent = "⚠ Refresh failed";
     el.title = String(e);
   }
 }
@@ -2230,10 +2254,12 @@ async function bootstrap() {
   if (sortBtn) sortBtn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
 
   // Show initial loading state for GitHub sync
-  const ghStatus = document.getElementById("ghSyncStatus");
-  if (ghStatus) {
-    ghStatus.classList.add("loading");
-    ghStatus.textContent = "⟳ Syncing GitHub...";
+  const ghBtn = document.getElementById("ghRefreshBtn");
+  if (ghBtn) {
+    ghBtn.classList.add("loading");
+    ghBtn.textContent = "⟳ Syncing...";
+    // Wire up click handler for manual refresh
+    ghBtn.addEventListener("click", () => refreshGitHub());
   }
 
   await refresh(false, true);  // Full state on initial load

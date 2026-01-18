@@ -6989,6 +6989,31 @@ class Server:
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
 
+                    # POST /api/refresh_github - trigger manual GitHub data refresh
+                    if path == "/api/refresh_github":
+                        try:
+                            # Run refresh in background thread to not block the request
+                            import threading
+
+                            def do_refresh():
+                                try:
+                                    run._refresh_github_pr_cache()
+                                except Exception as e:
+                                    print(f"[GH REFRESH] Error: {e}", flush=True)
+
+                            t = threading.Thread(
+                                target=do_refresh, name="gh-manual-refresh", daemon=True
+                            )
+                            t.start()
+                            return self._send_json(
+                                HTTPStatus.OK,
+                                {"ok": True, "message": "GitHub refresh started"},
+                            )
+                        except Exception as e:
+                            return self._send_json(
+                                HTTPStatus.INTERNAL_SERVER_ERROR, {"error": str(e)}
+                            )
+
                     return self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
                 except Exception as e:
                     _log_line(
