@@ -7,11 +7,13 @@ on:
 
 jobs:
   claude-review:
+    # Temporarily disabled
+    if: false
     # Skip review on draft PRs unless a review is explicitly requested
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'pull_request_review' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    # if: |
+    #   github.event_name == 'workflow_dispatch' ||
+    #   github.event_name == 'pull_request_review' ||
+    #   (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
 
     # Optional: Filter by PR author
     # if: |
