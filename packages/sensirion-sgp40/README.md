@@ -51,7 +51,7 @@ module Usage:
     i2c_bus ~ voc_sensor.i2c
 
     # The SGP40 has a fixed I2C address of 0x59
-    assert voc_sensor.i2c.address is 0x59
+    assert voc_sensor.i2c.address within 0x59 +/- 0
 
 ```
 

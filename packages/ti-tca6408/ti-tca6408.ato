@@ -1,11 +1,13 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import Addressor
 import Capacitor
 import ElectricPower
 import ElectricLogic
+import has_single_electric_reference
 import I2C
 import Resistor
 
@@ -19,11 +21,11 @@ module TI_TCA6408:
     interrupt sources and polarity inversion on all pins.
 
     Exposes:
-      * i2c      – I²C bus interface (7-bit addr 0x20 / 0x21)
-      * power    – Power supply (1.65V to 5.5V)
-      * gpios    – 8 GPIO pins
-      * interrupt – Interrupt output pin
-      * reset    – Reset input pin
+        * i2c – I²C bus interface (7-bit addr 0x20 / 0x21)
+        * power – Power supply (1.65V to 5.5V)
+        * gpios – 8 GPIO pins
+        * interrupt – Interrupt output pin
+        * reset – Reset input pin
     """
 
     # --- Package ---
@@ -41,6 +43,9 @@ module TI_TCA6408:
     Power supply (1.65V to 5.5V)
     """
     power.required = True
+
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
 
     gpios = new ElectricLogic[8]
     """
@@ -62,10 +67,10 @@ module TI_TCA6408:
     reset.required = False
 
     # --- Power connections ---
-    power.vcc ~ package.VCCP
-    power.vcc ~ package.VCCI
-    power.gnd ~ package.GND
-    power.gnd ~ package.PAD
+    power.hv ~ package.VCCP
+    power.hv ~ package.VCCI
+    power.lv ~ package.GND
+    power.lv ~ package.PAD
     assert power.voltage within 1.65V to 5.5V
 
     # --- I²C interface ---
@@ -95,11 +100,13 @@ module TI_TCA6408:
     reset.reference ~ power
 
     # --- I²C address selection ---
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x20
     addressor.address_lines[0].line ~ package.ADDR
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x20), can be overridden by user
+    i2c.address.default = 0x20
 
     # --- I2C pullup resistors ---
     pullup_scl = new Resistor
@@ -115,13 +122,13 @@ module TI_TCA6408:
     interrupt_pullup = new Resistor
     interrupt_pullup.resistance = 4.7kohm +/- 5%
     interrupt_pullup.package = "0402"
-    power.vcc ~> interrupt_pullup ~> package.nINT
+    power.hv ~> interrupt_pullup ~> package.nINT
 
     # --- Reset pull-up resistor ---
     reset_pullup = new Resistor
     reset_pullup.resistance = 4.7kohm +/- 5%
     reset_pullup.package = "0402"
-    power.vcc ~> reset_pullup ~> package.nRESET
+    power.hv ~> reset_pullup ~> package.nRESET
 
     # --- Decoupling capacitors ---
     decoupling_caps = new Capacitor[2]
@@ -129,5 +136,5 @@ module TI_TCA6408:
         cap.capacitance = 100nF +/- 5%
         cap.package = "0402"
 
-    power.vcc ~> decoupling_caps[0] ~> power.gnd
-    power.vcc ~> decoupling_caps[1] ~> power.gnd
+    power.hv ~> decoupling_caps[0] ~> power.lv
+    power.hv ~> decoupling_caps[1] ~> power.lv
