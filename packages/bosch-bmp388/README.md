@@ -39,7 +39,7 @@ module Usage:
     interrupt_gpio ~ sensor.interrupt
 
     # Set I²C address to 0x76 (SDO pulled low)
-    assert sensor.i2c.address is 0x76
+    assert sensor.i2c.address within 0x76
 
 ```
 
