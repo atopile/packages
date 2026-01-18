@@ -57,7 +57,7 @@ module TI_MAX3243:
     RS-232 interface for external connection
     """
     rs232.required = True
-    rs232.reference_shim ~ power
+    rs232.has_single_electric_reference.reference ~ power
 
     # Control signals
     forceon = new ElectricLogic
@@ -82,7 +82,7 @@ module TI_MAX3243:
     # 1µF decoupling capacitor for power supply filtering
     power_decoupling = new Capacitor
     power_decoupling.capacitance = 1uF +/- 20%
-    power_decoupling.max_voltage = 16V  # Account for voltage margin
+    power_decoupling.max_voltage = 16V to 50V
     power_decoupling.package = "0603"  # Larger package for higher capacitance
     power.hv ~> power_decoupling ~> power.lv
 
@@ -91,7 +91,7 @@ module TI_MAX3243:
     charge_pump_caps = new Capacitor[4]
     for cap in charge_pump_caps:
         cap.capacitance = 1uF +/- 20%
-        cap.max_voltage = 16V  # Account for charge pump voltage
+        cap.max_voltage = 16V to 50V
         cap.package = "0402"
 
     # C1+ to C1-
