@@ -79,6 +79,8 @@ module TI_INA3221:
     addressor.address_lines[0].reference ~ power  # A0 pin configuration
     addressor.address_lines[1].reference ~ power  # Future expansion
     assert addressor.address is i2c.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
     # --- I2C pull-up resistors ---
     i2c_pullup_scl = new Resistor
@@ -110,7 +112,7 @@ module TI_INA3221:
     # --- Decoupling capacitors ---
     power_cap = new Capacitor
     power_cap.capacitance = 100nF +/- 20%
-    power_cap.max_voltage = 10V
+    power_cap.max_voltage = 10V to 50V
     power_cap.package = "0402"
 
     power.hv ~> power_cap ~> power.lv
@@ -183,7 +185,7 @@ module Channel:
     # User-defined maximum current parameter
     max_current: current
     # Default to 1A to provide initial constraint (can be overridden by instantiations)
-    max_current = 1A
+    max_current.default = 1A
 
     # INA3221 full-scale shunt voltage range (±163.8mV)
     shunt_drop = 163.8mV
