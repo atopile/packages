@@ -27,7 +27,7 @@ module ST_VL53L0X:
     """
     i2c.required = True
     assert i2c.frequency <= 400kHz
-    assert i2c.address is 0x29
+    assert i2c.address within 0x29
 
     power = new ElectricPower
     """
@@ -51,25 +51,25 @@ module ST_VL53L0X:
 
     # --- Internal power rails ---
     power_core = new ElectricPower  # VDD - Core supply
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.VSS
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.VSS
     assert power_core.voltage within 2.6V to 2.9V
 
     power_analog = new ElectricPower  # AVDD - Analog supply (VCSEL)
-    power_analog.vcc ~ package.AVDD
-    power_analog.gnd ~ package.GND
+    power_analog.hv ~ package.AVDD
+    power_analog.lv ~ package.GND
     assert power_analog.voltage within 2.6V to 2.9V
 
     # --- Power connections ---
-    power.vcc ~ power_core.vcc
-    power.vcc ~ power_analog.vcc
-    power.gnd ~ power_core.gnd
-    power.gnd ~ power_analog.gnd
+    power.hv ~ power_core.hv
+    power.hv ~ power_analog.hv
+    power.lv ~ power_core.lv
+    power.lv ~ power_analog.lv
 
     # Connect additional grounds
-    power.gnd ~ package.GND2
-    power.gnd ~ package.GND3
-    power.gnd ~ package.GND4
+    power.lv ~ package.GND2
+    power.lv ~ package.GND3
+    power.lv ~ package.GND4
 
     # --- I²C bus connections ---
     i2c.scl.line ~ package.SCL
@@ -82,8 +82,8 @@ module ST_VL53L0X:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 20%
         r.package = "0402"
-    power.vcc ~> i2c_pullups[0] ~> i2c.scl.line
-    power.vcc ~> i2c_pullups[1] ~> i2c.sda.line
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
 
     # --- Control pin connections ---
     xshut.line ~ package.SHT
@@ -97,10 +97,10 @@ module ST_VL53L0X:
     power_core_cap = new Capacitor
     power_core_cap.capacitance = 100nF +/- 20%
     power_core_cap.package = "0402"
-    power_core.vcc ~> power_core_cap ~> power_core.gnd
+    power_core.hv ~> power_core_cap ~> power_core.lv
 
     # Analog supply decoupling
     power_analog_cap = new Capacitor
     power_analog_cap.capacitance = 100nF +/- 20%
     power_analog_cap.package = "0402"
-    power_analog.vcc ~> power_analog_cap ~> power_analog.gnd
+    power_analog.hv ~> power_analog_cap ~> power_analog.lv
