@@ -31,6 +31,8 @@ module Infineon_DPS310:
     addressor.base = 0x76
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x76), can be overridden by user
+    i2c.address.default = 0x76
 
     # --- Decoupling capacitors ---
     decoupling_capacitor_small = new Capacitor

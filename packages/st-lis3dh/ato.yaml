@@ -1,4 +1,4 @@
-requires-atopile: "^0.12.4"
+requires-atopile: ^0.14.0
 
 paths:
   src: ./
@@ -9,16 +9,20 @@ builds:
     entry: st-lis3dh.ato:ST_LIS3DH
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
+    targets:
+      - mfg-data
   usage:
     entry: usage.ato:Usage
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
+    targets:
+      - mfg-data
 
 package:
   identifier: atopile/st-lis3dh
   repository: https://github.com/atopile/packages
   homepage: https://github.com/atopile/packages/blob/main/packages/st-lis3dh/README.md
-  version: "0.1.1"
+  version: "0.2.0"
   authors:
     - name: atopile
       email: hi@atopile.io
