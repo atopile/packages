@@ -50,15 +50,15 @@
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
-			(dashed_line_dash_ratio 12.000000)
-			(dashed_line_gap_ratio 3.000000)
+			(dashed_line_dash_ratio 12)
+			(dashed_line_gap_ratio 3)
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
 			(useauxorigin no)
 			(hpglpennumber 1)
 			(hpglpenspeed 20)
-			(hpglpendiameter 15.000000)
+			(hpglpendiameter 15)
 			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
@@ -87,15 +87,14 @@
 		)
 	)
 	(net 1 "3")
-	(net 2 "cc_resistors[1].unnamed[0]-unnamed[0]")
+	(net 2 "10")
 	(net 3 "9")
 	(net 4 "4")
-	(net 5 "usb_out-usb_if-hv")
-	(net 6 "usb_in-usb_if-hv")
-	(net 7 "1_N")
-	(net 8 "6_P")
+	(net 7 "DATA_N")
+	(net 8 "DATA_P")
 	(net 9 "lv")
-	(net 11 "power_vbus-hv")
+	(net 10 "hv")
+	(net 12 "power-hv")
 	(footprint "BHFUSE_BSMD0805_050_15V:F0805"
 		(layer "F.Cu")
 		(uuid "0a1da63e-2621-4c4f-97cc-4c5f4642524b")
@@ -336,14 +335,14 @@
 			(at -1.14 0 90)
 			(size 1.33 1.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "usb_in-usb_if-hv")
+			(net 10 "hv")
 			(uuid "19b36c63-2b6a-476b-b41e-2d46e0c67f02")
 		)
 		(pad "2" smd rect
 			(at 1.14 0 90)
 			(size 1.33 1.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 5 "usb_out-usb_if-hv")
+			(net 12 "power-hv")
 			(uuid "36e1b7f9-7f04-4046-8d3d-6088761f3db2")
 		)
 		(model "${KIPRJMOD}/../../parts/BHFUSE_BSMD0805_050_15V/F0805_L2.1-W1.4-H0.8.step"
@@ -624,7 +623,7 @@
 			(at -2.4 -2.38)
 			(size 0.55 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 11 "power_vbus-hv")
+			(net 10 "hv")
 			(uuid "deac7c01-f3b5-42fc-9715-48a45c558ae9")
 		)
 		(pad "3" smd rect
@@ -645,28 +644,28 @@
 			(at -0.75 -2.38)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 7 "1_N")
+			(net 7 "DATA_N")
 			(uuid "1d630611-8c69-469b-876e-68844428a13f")
 		)
 		(pad "6" smd rect
 			(at -0.25 -2.38)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 8 "6_P")
+			(net 8 "DATA_P")
 			(uuid "5d45c533-afda-4a53-a7a0-dc8ee601fb00")
 		)
 		(pad "7" smd rect
 			(at 0.25 -2.38)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 7 "1_N")
+			(net 7 "DATA_N")
 			(uuid "75b61078-011a-4907-9c2e-cbf5edbeb9bb")
 		)
 		(pad "8" smd rect
 			(at 0.75 -2.38)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 8 "6_P")
+			(net 8 "DATA_P")
 			(uuid "83f18c57-2f96-41a3-a80e-732e8a2d3e3e")
 		)
 		(pad "9" smd rect
@@ -680,14 +679,14 @@
 			(at 1.75 -2.38)
 			(size 0.3 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 2 "cc_resistors[1].unnamed[0]-unnamed[0]")
+			(net 2 "10")
 			(uuid "ac1e649d-83ad-487f-8a44-3cd53fa406c7")
 		)
 		(pad "11" smd rect
 			(at 2.4 -2.38)
 			(size 0.55 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 11 "power_vbus-hv")
+			(net 10 "hv")
 			(uuid "6051d81c-6066-41da-b779-e3df2a42cdd2")
 		)
 		(pad "12" smd rect
@@ -762,7 +761,7 @@
 				)
 			)
 		)
-		(property "Value" "{10000.0±1.0%}Ω"
+		(property "Value" "{ℝ+}Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -858,7 +857,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -870,7 +869,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"\u03a9\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"u03a9\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -882,7 +881,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -906,19 +905,19 @@
 				)
 			)
 		)
-		(property "resistance" "{10000.0±1.0%}Ω"
+		(property "resistance" "{ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "802ada26-d919-4865-a9e0-db644642524b")
 		)
-		(property "max_power" "0.1W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9213a7ba-817c-43c1-a4df-2d954642524b")
 		)
-		(property "max_voltage" "75.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1252,7 +1251,7 @@
 			(at -0.95 1.15 0)
 			(size 0.53 1.07)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "1_N")
+			(net 7 "DATA_N")
 			(uuid "50d1afc7-81f4-461a-a639-f532397049b5")
 		)
 		(pad "2" smd rect
@@ -1266,28 +1265,28 @@
 			(at 0.95 1.15 0)
 			(size 0.53 1.07)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "6_P")
+			(net 8 "DATA_P")
 			(uuid "f3703b38-a2e6-4325-9990-86e7c564946d")
 		)
 		(pad "4" smd rect
 			(at 0.95 -1.15 0)
 			(size 0.53 1.07)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "6_P")
+			(net 8 "DATA_P")
 			(uuid "2a18ebba-ded9-43f9-a45d-2e1c384153df")
 		)
 		(pad "5" smd rect
 			(at 0 -1.15 0)
 			(size 0.53 1.07)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 11 "power_vbus-hv")
+			(net 12 "power-hv")
 			(uuid "98f36c76-0bb3-4410-b2a3-0c0d54155cfd")
 		)
 		(pad "6" smd rect
 			(at -0.95 -1.15 0)
 			(size 0.53 1.07)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "1_N")
+			(net 7 "DATA_N")
 			(uuid "ed2a34f7-6d53-4867-8b60-3c0653136d64")
 		)
 		(model "${KIPRJMOD}/../../parts/STMicroelectronics_USBLC6_2SC6/SOT-23-6_L2.9-W1.6-H1.5-LS2.8-P0.95.step"
@@ -1318,7 +1317,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "Value" "1±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1402,7 +1401,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"F\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1414,7 +1413,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 16.0, \"max\": 16.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1426,7 +1425,7 @@
 				)
 			)
 		)
-		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": \"8\", \"X5R\": \"4\", \"X6R\": \"5\", \"X7R\": \"6\", \"X7S\": \"3\", \"X8R\": \"7\", \"Y5V\": \"1\", \"Z5U\": \"2\"}}}}"
+		(property "PARAM_temperature_coefficient" "{\"type\": \"EnumSet\", \"data\": {\"elements\": [{\"name\": \"X7R\"}], \"enum\": {\"name\": \"TemperatureCoefficient\", \"values\": {\"C0G\": 8.0, \"X5R\": 4.0, \"X6R\": 5.0, \"X7R\": 6.0, \"X7S\": 3.0, \"X8R\": 7.0, \"Y5V\": 1.0, \"Z5U\": 2.0}}}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1450,13 +1449,13 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.99999998509884e-08..1.1000000014901162e-07}F"
+		(property "capacitance" "1±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1c4f6cd3-ca00-463d-a441-70514642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1627,7 +1626,7 @@
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 11 "power_vbus-hv")
+			(net 12 "power-hv")
 			(uuid "068bdae7-e9d6-4fe9-9b32-0442fa023162")
 		)
 		(pad "2" smd rect
@@ -1666,7 +1665,7 @@
 				)
 			)
 		)
-		(property "Value" "{10000.0±1.0%}Ω"
+		(property "Value" "{ℝ+}Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1762,7 +1761,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"W\"}}"
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1774,7 +1773,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"V\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1786,7 +1785,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"\u03a9\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"u03a9\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1810,19 +1809,19 @@
 				)
 			)
 		)
-		(property "resistance" "{10000.0±1.0%}Ω"
+		(property "resistance" "{ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "33efcae5-0f49-4d06-9005-8d944642524b")
 		)
-		(property "max_power" "0.1W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8486bbd1-efa3-4419-a484-98d24642524b")
 		)
-		(property "max_voltage" "75.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1934,7 +1933,7 @@
 			(at -0.43 0 90)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "cc_resistors[1].unnamed[0]-unnamed[0]")
+			(net 2 "10")
 			(uuid "8a335807-a2e2-4bca-90b1-7556cba92894")
 		)
 		(pad "2" smd rect

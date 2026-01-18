@@ -98,8 +98,8 @@
 	(net 9 "XOUT")
 	(net 10 "output_P")
 	(net 11 "dvdd_cap-power-hv")
-	(net 12 "refp_cap-power-hv")
-	(net 13 "vbg_cap-power-lv")
+	(net 12 "hv")
+	(net 13 "lv")
 	(net 14 "input_termination_cap-power-hv")
 	(net 15 "input_termination_cap-power-lv")
 	(footprint "Samsung_Electro_Mechanics_CL05B104KO5NNNC:C0402"
@@ -118,7 +118,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -250,13 +250,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "27a11bba-95af-497b-a7d7-06444642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -434,7 +434,7 @@
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "204dee30-9b63-4d5f-ba70-109c56eb7de2")
 		)
 		(embedded_fonts no)
@@ -466,7 +466,7 @@
 				)
 			)
 		)
-		(property "Value" "49.9Ω"
+		(property "Value" "51±20.0%Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -598,19 +598,19 @@
 				)
 			)
 		)
-		(property "resistance" "49.9±1.0%Ω"
+		(property "resistance" "51±20.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "296e8650-1700-46fc-83f3-13494642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "95d20264-49d0-493d-ac14-5d7a4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -637,6 +637,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "8f40f85c-6a97-4b85-bc6c-ffe19da94924")
 		)
 		(fp_line
@@ -647,6 +649,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "176be1ea-5c82-44a8-be9e-37058a8ca997")
 		)
 		(fp_line
@@ -657,6 +661,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "93a3bfe3-7876-49a5-a28e-b9e5b83e9d7c")
 		)
 		(fp_line
@@ -667,6 +673,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "2091b7d1-8edc-44fa-a394-a5ac734499be")
 		)
 		(fp_line
@@ -677,6 +685,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "501a6cfc-2d69-49a7-9a04-96ddf8aa8659")
 		)
 		(fp_line
@@ -687,6 +697,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "d359dc49-77cc-4be8-8abe-a9966f08b323")
 		)
 		(fp_circle
@@ -696,8 +708,8 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "25b0ea01-2758-471b-b156-a221308a7244")
 		)
 		(fp_text user "%R"
@@ -709,18 +721,6 @@
 					(size 1 1)
 					(thickness 0.15)
 				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 90)
-			(layer "F.SilkS")
-			(uuid "3e04dcab-bca8-484c-ae23-e5eb32cc94aa")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
 			)
 		)
 		(pad "1" smd rect
@@ -737,9 +737,10 @@
 			(net 4 "lv_N")
 			(uuid "28513f87-373f-44c6-aa7d-10c662b0c1c0")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_0749R9L/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -765,7 +766,7 @@
 				)
 			)
 		)
-		(property "Value" "49.9Ω"
+		(property "Value" "51±20.0%Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -897,19 +898,19 @@
 				)
 			)
 		)
-		(property "resistance" "49.9±1.0%Ω"
+		(property "resistance" "51±20.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0986ad7f-41a2-44bb-96f0-ff254642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "bbe23ea5-ede9-49fd-ac9a-5ddc4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -936,6 +937,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "2e2fc427-8927-4725-b15e-10b70330781c")
 		)
 		(fp_line
@@ -946,6 +949,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "541f3639-8deb-4db8-b58d-44bd09c66deb")
 		)
 		(fp_line
@@ -956,6 +961,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "ca2f0b87-3e47-4fa4-b60c-8d01d3980d5f")
 		)
 		(fp_line
@@ -966,6 +973,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4b9a590d-4b17-42a6-9833-7ca55a5cd9c6")
 		)
 		(fp_line
@@ -976,6 +985,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "8bf41590-6ead-4d9f-b53e-981aef0cd719")
 		)
 		(fp_line
@@ -986,6 +997,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "220e0cdf-bee4-40cb-ad02-7ad6a6886ebf")
 		)
 		(fp_circle
@@ -995,8 +1008,8 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "9ce3b824-cf80-41f5-b419-f4516311f8dd")
 		)
 		(fp_text user "%R"
@@ -1008,18 +1021,6 @@
 					(size 1 1)
 					(thickness 0.15)
 				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 90)
-			(layer "F.SilkS")
-			(uuid "5d529e9c-9548-481f-93f8-a8c92edbf3a1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
 			)
 		)
 		(pad "1" smd rect
@@ -1036,9 +1037,10 @@
 			(net 10 "output_P")
 			(uuid "462ede72-1dcc-455f-b1f4-9aaeee066006")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_0749R9L/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1064,7 +1066,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -1196,13 +1198,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1be040c0-750a-4518-9f0c-49d94642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1412,7 +1414,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1544,13 +1546,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "897abcf2-0d7e-4e26-9456-55be4642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1721,14 +1723,14 @@
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "refp_cap-power-hv")
+			(net 12 "hv")
 			(uuid "56613bd3-31d3-43c4-b00e-08187c9dc688")
 		)
 		(pad "2" smd rect
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "57c6d3fc-1c01-4e94-a950-870d9a36eabe")
 		)
 		(embedded_fonts no)
@@ -1749,7 +1751,7 @@
 		(uuid "acd75463-b00e-4679-a636-9b4d4642524b")
 		(at 150 104.5 0)
 		(property "Reference" "C3"
-			(at 0 -4 0)
+			(at 0 -4)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "af6b9e62-082b-4e5f-a555-f26c04627ce8")
@@ -1760,8 +1762,8 @@
 				)
 			)
 		)
-		(property "Value" "4.7e-10F"
-			(at 0 4 0)
+		(property "Value" "{2.35e..7.049}F"
+			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
 			(uuid "38ae05d6-3204-4a51-b0e9-6147b39fab09")
@@ -1892,13 +1894,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7e-10±10.0%F"
+		(property "capacitance" "{2.35e..7.049}F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "444a6876-7b2d-49e9-86b2-a2da4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1924,108 +1926,124 @@
 		)
 		(attr smd)
 		(fp_line
-			(start -1.17 0.35)
-			(end -1.17 -0.35)
+			(start -0.72 -0.5)
+			(end -0.22 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "67368c74-956a-481d-bd8d-36425b047e0b")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "28acd358-c236-46d1-9f48-463bdc040e8d")
 		)
 		(fp_line
-			(start -1.02 -0.5)
-			(end -0.23 -0.5)
+			(start -0.87 0.35)
+			(end -0.87 -0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "8d85a2f8-a422-450e-b55f-6092427d4151")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "a00f0da6-6a56-4e9c-8982-3f4398a5038f")
 		)
 		(fp_line
-			(start -0.23 0.5)
-			(end -1.02 0.5)
+			(start -0.22 0.5)
+			(end -0.72 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "e53bb291-87c0-41b4-aa0f-253dde5b0588")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "4accf1e8-2ace-4a93-8320-4faa2d410873")
 		)
 		(fp_line
-			(start 0.23 0.5)
-			(end 1.02 0.5)
+			(start 0.72 0.5)
+			(end 0.22 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "edf8a452-5d1c-4cd1-9016-8d36b36fbdfa")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "a5904e68-5ef3-4283-a20f-7d8034c8c1bd")
 		)
 		(fp_line
-			(start 1.02 -0.5)
-			(end 0.23 -0.5)
+			(start 0.22 -0.5)
+			(end 0.72 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "9d5719f2-2944-430d-9f62-5254c8d8f77e")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "82001d99-03ed-4955-8549-5cac845455f9")
 		)
 		(fp_line
-			(start 1.17 0.35)
-			(end 1.17 -0.35)
+			(start 0.87 -0.35)
+			(end 0.87 0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "90984723-8ed0-462d-9c42-1ff063ef8ff3")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "69e93532-da29-4005-89b0-2d285d4fd761")
 		)
 		(fp_arc
-			(start 1.02 -0.5)
-			(mid 1.126066 -0.456066)
-			(end 1.17 -0.35)
+			(start 0.87 -0.35)
+			(mid 0.826066 -0.456066)
+			(end 0.72 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "5cf3d76b-778c-427b-ba27-46f78a075b52")
+			(locked no)
+			(uuid "3d5ada63-e812-4c88-87f3-51af6ff8fcd0")
 		)
 		(fp_arc
-			(start 1.17 0.35)
-			(mid 1.126066 0.456066)
-			(end 1.02 0.5)
+			(start 0.72 0.5)
+			(mid 0.826066 0.456066)
+			(end 0.87 0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "01480ff2-1522-4dce-8d4d-c27c7c10f2d9")
+			(locked no)
+			(uuid "86a375e5-adb1-44bf-8906-68d1d14fb576")
 		)
 		(fp_arc
-			(start -1.17 0.35)
-			(mid -1.126066 0.456066)
-			(end -1.02 0.5)
+			(start -0.87 0.35)
+			(mid -0.826066 0.456066)
+			(end -0.72 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "8a1dad51-2b76-453b-92de-d993e2488c16")
+			(locked no)
+			(uuid "1337bab3-34b0-495d-b9af-2380c5a1cf24")
 		)
 		(fp_arc
-			(start -1.02 -0.5)
-			(mid -1.126066 -0.456066)
-			(end -1.17 -0.35)
+			(start -0.72 -0.5)
+			(mid -0.826066 -0.456066)
+			(end -0.87 -0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "eb8b7911-9f97-4c78-9769-ac8bb999aa92")
+			(locked no)
+			(uuid "e05b2f22-fdd8-40c2-aa67-fedd270f7065")
 		)
 		(fp_circle
 			(center -0.5 0.25)
@@ -2034,12 +2052,12 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "b76e9c00-7b71-4033-96a4-301526e3e038")
 		)
 		(fp_text user "%R"
-			(at 0 0 0)
+			(at 0 0)
 			(layer "F.Fab")
 			(uuid "21e9e7c9-f8c1-4390-9346-3c071c91c38e")
 			(effects
@@ -2049,35 +2067,24 @@
 				)
 			)
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 0)
-			(layer "F.SilkS")
-			(uuid "fd12bc93-6ff3-41ae-bb05-013d8424a275")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
-			(at -0.55 0 0)
-			(size 0.79 0.54)
+			(at -0.42 0 0)
+			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
 			(net 14 "input_termination_cap-power-hv")
 			(uuid "a32e6291-ed0e-49c9-b3a0-ae4fa5c35da1")
 		)
 		(pad "2" smd rect
-			(at 0.55 0 0)
-			(size 0.79 0.54)
+			(at 0.42 0 0)
+			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
 			(net 15 "input_termination_cap-power-lv")
 			(uuid "b7923a0c-8f6c-4714-b50f-2f6bb90d6a2d")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/YAGEO_CC0402KRX7R9BB331/C0402_L1.0-W0.5-H0.5.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -2103,7 +2110,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1e-06±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2235,13 +2242,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b7ec4128-3441-4d5d-bf34-39524642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2412,14 +2419,14 @@
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "refp_cap-power-hv")
+			(net 12 "hv")
 			(uuid "4f2a7ea0-aeef-4e9d-b8d6-1214b6a47e91")
 		)
 		(pad "2" smd rect
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "eb4d7bcf-e767-4276-855d-276ecd33204c")
 		)
 		(embedded_fonts no)
@@ -2451,7 +2458,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1e-06±20.0%F"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -2583,13 +2590,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "aaefea4c-85a2-4152-87db-bdfc4642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2767,7 +2774,7 @@
 			(at 0.42 0 180)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "6a6566e1-e7d2-4c28-a097-c16269455ce3")
 		)
 		(embedded_fonts no)
@@ -3013,7 +3020,7 @@
 			(at -4.45 2.77 0)
 			(size 0.57 2.04)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "refp_cap-power-hv")
+			(net 12 "hv")
 			(uuid "38dd13cc-69d8-4624-84d4-3d2e9c197f91")
 		)
 		(pad "2" smd oval
@@ -3055,21 +3062,21 @@
 			(at 3.17 2.77 0)
 			(size 0.57 2.04)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "6007edc0-d1b3-46c0-b48e-10d6514930ac")
 		)
 		(pad "8" smd oval
 			(at 4.44 2.77 0)
 			(size 0.57 2.04)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "9b5dc76a-235a-46cc-9c40-88cac3e89b16")
 		)
 		(pad "9" smd oval
 			(at 4.44 -2.77 0)
 			(size 0.57 2.04)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "vbg_cap-power-lv")
+			(net 13 "lv")
 			(uuid "0e7b4de7-6d66-4cb3-9c69-862527f53e73")
 		)
 		(pad "10" smd oval
@@ -3118,7 +3125,7 @@
 			(at -4.45 -2.77 0)
 			(size 0.57 2.04)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "refp_cap-power-hv")
+			(net 12 "hv")
 			(uuid "0a7d8fcc-ec3c-41cc-a51d-ad6afb417ca2")
 		)
 		(model "${KIPRJMOD}/../../parts/Nuvoton_Tech_NAU7802SGI/SOP-16_L9.9-W3.9-P1.27-LS6.0-BL.STEP"

@@ -89,15 +89,15 @@
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
-			(dashed_line_dash_ratio 12.000000)
-			(dashed_line_gap_ratio 3.000000)
+			(dashed_line_dash_ratio 12)
+			(dashed_line_gap_ratio 3)
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
 			(useauxorigin no)
 			(hpglpennumber 1)
 			(hpglpenspeed 20)
-			(hpglpendiameter 15.000000)
+			(hpglpendiameter 15)
 			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
@@ -125,19 +125,19 @@
 			(outputdirectory "")
 		)
 	)
-	(net 1 "bootstrap_neg-power-bootstrap-1_N")
-	(net 2 "bootstrap_neg-power-bootstrap-0_N")
+	(net 1 "bootstrap_neg-power-bootstrap_N")
+	(net 2 "bootstrap_N")
 	(net 6 "SDA")
-	(net 7 "gvdd_cap-power-hv")
+	(net 7 "hv")
 	(net 8 "SCL")
 	(net 9 "output_a_N")
-	(net 10 "bootstrap_pos-power-bootstrap-0_P")
+	(net 10 "bootstrap_P")
 	(net 11 "output_b_P")
 	(net 12 "avdd_cap-power-hv")
-	(net 13 "SDIN")
-	(net 14 "SCLK")
-	(net 15 "bootstrap_pos-power-bootstrap-1_P")
-	(net 16 "LRCLK")
+	(net 13 "SD")
+	(net 14 "SCK")
+	(net 15 "bootstrap_pos-power-bootstrap_P")
+	(net 16 "WS")
 	(net 17 "vr_dig_cap-power-hv")
 	(net 18 "output_a_P")
 	(net 20 "output_b_N")
@@ -148,7 +148,7 @@
 	(net 26 "reference-hv")
 	(net 27 "ADR")
 	(net 28 "pvdd_caps[8]-power-hv")
-	(net 29 "lv_N")
+	(net 29 "power-lv")
 	(footprint "Samsung_Electro_Mechanics_CL21A106KAYNNNE:C0805"
 		(layer "F.Cu")
 		(uuid "0262454e-8aeb-4cb2-96e5-df1c4642524b")
@@ -165,7 +165,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -297,13 +297,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4554381b-add3-4844-bb40-0b754642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -481,7 +481,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "dda1a713-eb2c-49ba-9824-b8ffdf88112f")
 		)
 		(embedded_fonts no)
@@ -513,7 +513,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000±5.0%Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -657,19 +657,19 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000±5.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "14d5ea3c-bafe-4d25-a44b-d1804642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "54ee0214-9510-4301-b5a2-6d6c4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -826,7 +826,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1e-06±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -970,13 +970,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9bfc417a-064c-4ff1-8fb7-913f4642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1154,7 +1154,7 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "23ff12a9-db4e-42e0-acc1-7827bcf9ecf2")
 		)
 		(embedded_fonts no)
@@ -1186,7 +1186,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1318,13 +1318,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "e7761366-c890-4c43-994d-bb3b4642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1502,7 +1502,7 @@
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "5f1635af-400a-4aab-ab50-87e63133a095")
 		)
 		(embedded_fonts no)
@@ -1535,7 +1535,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7000000000000005e-07F"
+		(property "Value" "4.7e-±10.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1679,13 +1679,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7000000000000005e-07±10.0%F"
+		(property "capacitance" "4.7e-±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5c909e52-009a-424b-9f0c-8f4d4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1856,14 +1856,14 @@
 			(at -0.7 0 90)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "bootstrap_neg-power-bootstrap-0_N")
+			(net 2 "bootstrap_N")
 			(uuid "5da812db-f792-4e8d-bf3b-917841e3a63c")
 		)
 		(pad "2" smd rect
 			(at 0.7 0 90)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "8724e466-3916-414d-a5c6-ccfd3059eea0")
 		)
 		(embedded_fonts no)
@@ -1895,7 +1895,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2027,13 +2027,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "882cd6d6-fb4b-4b49-a897-e9dd4642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2211,7 +2211,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "5f6526c0-08b2-4daa-8f66-a3cbe186d877")
 		)
 		(embedded_fonts no)
@@ -2243,7 +2243,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000±5.0%Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2387,19 +2387,19 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000±5.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "53801fbb-518f-4c28-a8fc-9fa84642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "119502ab-da8a-44bd-ae7a-96f54642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2556,7 +2556,7 @@
 				)
 			)
 		)
-		(property "Value" "6.800000000000001e-07F"
+		(property "Value" "6.8±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2700,13 +2700,13 @@
 				)
 			)
 		)
-		(property "capacitance" "6.800000000000001e-07±10.0%F"
+		(property "capacitance" "6.8±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "96ab5228-b1bc-4a00-8b45-7baf4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2884,7 +2884,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "c81a5c3e-8912-43e4-86ad-fad3c403a5da")
 		)
 		(embedded_fonts no)
@@ -2917,7 +2917,7 @@
 				)
 			)
 		)
-		(property "Value" "L 9.999999999999999e-06H"
+		(property "Value" "L {ℝ+}H"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -3085,25 +3085,25 @@
 				)
 			)
 		)
-		(property "inductance" "L 9.999999999999999e-06±20.0%H"
+		(property "inductance" "L {ℝ+}H"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1e88515d-046d-4e0e-84b8-c2034642524b")
 		)
-		(property "self_resonant_frequency" "SRF ℝ+Hz"
+		(property "self_resonant_frequency" "SRF {ℝ+}Hz"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b5d428b7-f9c9-4557-a4e4-415b4642524b")
 		)
-		(property "max_current" "Imax 4.5A"
+		(property "max_current" "Imax {ℝ+}A"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5111083d-25f6-47d7-bff6-6aff4642524b")
 		)
-		(property "dc_resistance" "DCR 0.068Ω"
+		(property "dc_resistance" "DCR {ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3214,7 +3214,7 @@
 			(at -3 0 90)
 			(size 2.35 3.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "d679a90f-4796-4210-86e4-bba30fa1d5e7")
 		)
 		(pad "2" smd rect
@@ -3254,7 +3254,7 @@
 				)
 			)
 		)
-		(property "Value" "6.800000000000001e-07F"
+		(property "Value" "6.8±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -3398,13 +3398,13 @@
 				)
 			)
 		)
-		(property "capacitance" "6.800000000000001e-07±10.0%F"
+		(property "capacitance" "6.8±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f9ac16da-0323-4821-a3c5-d7b24642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3582,7 +3582,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "2671d52e-38a6-48a0-9154-8ce343c60e76")
 		)
 		(embedded_fonts no)
@@ -3871,14 +3871,14 @@
 			(at -2.41 -1.75 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 10 "bootstrap_pos-power-bootstrap-0_P")
+			(net 10 "bootstrap_P")
 			(uuid "7af22ab3-f23c-41ba-b3e6-bb48da03fe32")
 		)
 		(pad "2" smd rect
 			(at -2.41 -1.25 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "ca26452f-e29d-4d05-8d1f-eb108b5d2b4d")
 		)
 		(pad "3" smd rect
@@ -3899,7 +3899,7 @@
 			(at -2.41 0.25 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "c15c391c-8187-46cc-89f0-412c6fa27a47")
 		)
 		(pad "6" smd rect
@@ -3948,21 +3948,21 @@
 			(at -0.25 2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 16 "LRCLK")
+			(net 16 "WS")
 			(uuid "f6e1bccb-fb13-4157-8ffd-1cca9f7ca683")
 		)
 		(pad "13" smd rect
 			(at 0.25 2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 14 "SCLK")
+			(net 14 "SCK")
 			(uuid "9cecd26e-68e8-4219-aa1f-9d58a22baf27")
 		)
 		(pad "14" smd rect
 			(at 0.75 2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "SDIN")
+			(net 13 "SD")
 			(uuid "eecda49d-425a-4584-b9a7-4407da8f8cbe")
 		)
 		(pad "15" smd rect
@@ -3990,7 +3990,7 @@
 			(at 2.41 1.25 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "gvdd_cap-power-hv")
+			(net 7 "hv")
 			(uuid "7a3d7bc4-62a1-4094-b74e-73b64280469b")
 		)
 		(pad "19" smd rect
@@ -4004,7 +4004,7 @@
 			(at 2.41 0.25 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "9dccc793-5fe2-4e92-8168-0266c9f7320a")
 		)
 		(pad "21" smd rect
@@ -4025,77 +4025,77 @@
 			(at 2.41 -1.25 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "c112d644-eb43-4063-8f17-d1bf0686e8fa")
 		)
 		(pad "24" smd rect
 			(at 2.41 -1.75 0)
 			(size 0.66 0.28)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 15 "bootstrap_pos-power-bootstrap-1_P")
+			(net 15 "bootstrap_pos-power-bootstrap_P")
 			(uuid "d8f85370-cf7c-4265-b10a-bd86a49af5bd")
 		)
 		(pad "25" smd rect
 			(at 1.75 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "712f4349-f67c-433b-a5d1-b50e68a71ebc")
 		)
 		(pad "26" smd rect
 			(at 1.25 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "494776bf-1e83-4438-8817-7481b43be1f9")
 		)
 		(pad "27" smd rect
 			(at 0.75 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "3af2227b-7bf7-412b-970c-297280ab35a3")
 		)
 		(pad "28" smd rect
 			(at 0.25 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "bootstrap_neg-power-bootstrap-0_N")
+			(net 2 "bootstrap_N")
 			(uuid "6b866987-2aaa-49a1-9a84-ca8b51078e4d")
 		)
 		(pad "29" smd rect
 			(at -0.25 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 1 "bootstrap_neg-power-bootstrap-1_N")
+			(net 1 "bootstrap_neg-power-bootstrap_N")
 			(uuid "1ba67ae3-6c2d-4d64-9c95-8ab1476e42dc")
 		)
 		(pad "30" smd rect
 			(at -0.75 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "860c5a22-ab58-4c34-ae38-724b737c06a9")
 		)
 		(pad "31" smd rect
 			(at -1.25 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "ab072bed-40f8-4ac0-983f-c8e1e73ede88")
 		)
 		(pad "32" smd rect
 			(at -1.75 -2.41 0)
 			(size 0.28 0.66)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "1b81c6bc-1a14-4b02-b724-d0b17e15f577")
 		)
 		(pad "33" smd rect
 			(at 0 0 0)
 			(size 3.5 3.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "4aad9081-cf5e-408b-becd-adbcde983ad9")
 		)
 		(model "${KIPRJMOD}/../../parts/Texas_Instruments_TAS5825MRHBR/VQFN-32_L5.0-W5.0-H1.0-P0.50.step"
@@ -4126,7 +4126,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000±5.0%Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -4270,19 +4270,19 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000±5.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "689b228b-7b4d-4a7a-80fd-26be4642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c2a1fd8b-a3a6-43e5-8788-c1804642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4439,7 +4439,7 @@
 				)
 			)
 		)
-		(property "Value" "L 9.999999999999999e-06H"
+		(property "Value" "L {ℝ+}H"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -4607,25 +4607,25 @@
 				)
 			)
 		)
-		(property "inductance" "L 9.999999999999999e-06±20.0%H"
+		(property "inductance" "L {ℝ+}H"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "653d54aa-1116-4d08-bbaf-93f54642524b")
 		)
-		(property "self_resonant_frequency" "SRF ℝ+Hz"
+		(property "self_resonant_frequency" "SRF {ℝ+}Hz"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f7dff24e-bec6-452e-9ee9-33d34642524b")
 		)
-		(property "max_current" "Imax 4.5A"
+		(property "max_current" "Imax {ℝ+}A"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "3d1d9a47-889d-42a7-81f8-ca694642524b")
 		)
-		(property "dc_resistance" "DCR 0.068Ω"
+		(property "dc_resistance" "DCR {ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4736,7 +4736,7 @@
 			(at -3 0 90)
 			(size 2.35 3.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "d3dbc9d3-91f7-4fd3-a9e6-cc0a219a1746")
 		)
 		(pad "2" smd rect
@@ -4775,7 +4775,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -4907,13 +4907,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f65a13ff-7397-4f21-9411-b2134642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5091,7 +5091,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "5f580f23-ff5e-4283-a1ac-7877db5c5b1a")
 		)
 		(embedded_fonts no)
@@ -5123,7 +5123,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7e-06F"
+		(property "Value" "4.7±20.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -5255,13 +5255,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7e-06±10.0%F"
+		(property "capacitance" "4.7±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "983e8332-ecc3-41a0-a782-6e574642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5439,7 +5439,7 @@
 			(at 0.7 0 90)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "eca34f1e-7995-4dd5-a595-2ac048516c45")
 		)
 		(embedded_fonts no)
@@ -5472,7 +5472,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1e-06±20.0%F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -5616,13 +5616,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "532b5006-a52a-477b-a107-349c4642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5800,7 +5800,7 @@
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "ff208887-a84c-4a29-b963-9b9321a727c5")
 		)
 		(embedded_fonts no)
@@ -5832,7 +5832,7 @@
 				)
 			)
 		)
-		(property "Value" "4700.0Ω"
+		(property "Value" "4700±5.0%Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -5964,19 +5964,19 @@
 				)
 			)
 		)
-		(property "resistance" "4700.0±1.0%Ω"
+		(property "resistance" "4700±5.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f9730b2f-8cdd-4f57-8962-a40e4642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "448c876a-7652-4d83-a049-eb0d4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6100,7 +6100,7 @@
 			(at 0.43 0 270)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "25fadd94-a08a-47f5-8f43-ad93a7322e97")
 		)
 		(embedded_fonts no)
@@ -6132,7 +6132,7 @@
 				)
 			)
 		)
-		(property "Value" "10000.0Ω"
+		(property "Value" "10000±5.0%Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -6276,19 +6276,19 @@
 				)
 			)
 		)
-		(property "resistance" "10000.0±1.0%Ω"
+		(property "resistance" "10000±5.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "ab6a8276-5311-4a41-9ff2-f2144642524b")
 		)
-		(property "max_power" "0.0625W"
+		(property "max_power" "{ℝ+}W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "021f7ae8-8888-4af4-b2cf-26ed4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6444,7 +6444,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -6576,13 +6576,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "39b47d6d-6857-403d-9abb-41584642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6760,7 +6760,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "1002b611-5d72-4534-9f5a-fbb8d171ba36")
 		)
 		(embedded_fonts no)
@@ -6792,7 +6792,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -6924,13 +6924,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1b6ca8d5-2d66-41cc-8d4f-ea864642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7108,7 +7108,7 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "7316dccd-8fb6-4410-984f-5f8dbfbbb9ab")
 		)
 		(embedded_fonts no)
@@ -7141,7 +7141,7 @@
 				)
 			)
 		)
-		(property "Value" "L 9.999999999999999e-06H"
+		(property "Value" "L {ℝ+}H"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -7309,25 +7309,25 @@
 				)
 			)
 		)
-		(property "inductance" "L 9.999999999999999e-06±20.0%H"
+		(property "inductance" "L {ℝ+}H"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "985cc2a4-ff25-4d33-892c-e9004642524b")
 		)
-		(property "self_resonant_frequency" "SRF ℝ+Hz"
+		(property "self_resonant_frequency" "SRF {ℝ+}Hz"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "53755e4c-bba7-45e2-b76f-08454642524b")
 		)
-		(property "max_current" "Imax 4.5A"
+		(property "max_current" "Imax {ℝ+}A"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8da7a865-c758-4d88-8485-999d4642524b")
 		)
-		(property "dc_resistance" "DCR 0.068Ω"
+		(property "dc_resistance" "DCR {ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7438,7 +7438,7 @@
 			(at -3 0 90)
 			(size 2.35 3.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "ff946b1d-015b-4f4e-adb4-939d52507862")
 		)
 		(pad "2" smd rect
@@ -7477,7 +7477,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -7609,13 +7609,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "36c66749-5d36-4a54-97ab-7af94642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7793,7 +7793,7 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "5e1dd2cd-1b3f-4a62-8bf6-ab12848dcc12")
 		)
 		(embedded_fonts no)
@@ -7825,7 +7825,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -7957,13 +7957,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2975a49b-b95a-4f6c-bcb9-e3504642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8141,7 +8141,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "2d74500c-3024-4907-863b-5bbe776dc004")
 		)
 		(embedded_fonts no)
@@ -8174,7 +8174,7 @@
 				)
 			)
 		)
-		(property "Value" "6.800000000000001e-07F"
+		(property "Value" "6.8±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -8318,13 +8318,13 @@
 				)
 			)
 		)
-		(property "capacitance" "6.800000000000001e-07±10.0%F"
+		(property "capacitance" "6.8±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "504af80d-ad3f-4036-b981-11e94642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8502,7 +8502,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "524f08b5-95c4-4cc5-a5ea-1777746900d6")
 		)
 		(embedded_fonts no)
@@ -8535,7 +8535,7 @@
 				)
 			)
 		)
-		(property "Value" "6.800000000000001e-07F"
+		(property "Value" "6.8±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -8679,13 +8679,13 @@
 				)
 			)
 		)
-		(property "capacitance" "6.800000000000001e-07±10.0%F"
+		(property "capacitance" "6.8±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "adaf4735-6fa8-4d76-a768-c26c4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8863,7 +8863,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "edd38499-a630-46d4-8095-10c99654e07c")
 		)
 		(embedded_fonts no)
@@ -8896,7 +8896,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7000000000000005e-07F"
+		(property "Value" "4.7e-±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -9040,13 +9040,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7000000000000005e-07±10.0%F"
+		(property "capacitance" "4.7e-±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "e17928f5-449e-42ae-8f30-2c424642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9217,14 +9217,14 @@
 			(at -0.7 0 270)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 15 "bootstrap_pos-power-bootstrap-1_P")
+			(net 15 "bootstrap_pos-power-bootstrap_P")
 			(uuid "f3314329-f59f-4042-953a-d4e723311fe8")
 		)
 		(pad "2" smd rect
 			(at 0.7 0 270)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "a940d716-d572-4cc7-9b47-8b291d246737")
 		)
 		(embedded_fonts no)
@@ -9257,7 +9257,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7000000000000005e-07F"
+		(property "Value" "4.7e-±10.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -9401,13 +9401,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7000000000000005e-07±10.0%F"
+		(property "capacitance" "4.7e-±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f22b8d42-9b7f-44e5-8b97-6f7f4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9578,14 +9578,14 @@
 			(at -0.7 0 270)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 10 "bootstrap_pos-power-bootstrap-0_P")
+			(net 10 "bootstrap_P")
 			(uuid "2b5a0f2a-2a82-4740-b72a-15ca7d4bbe17")
 		)
 		(pad "2" smd rect
 			(at 0.7 0 270)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "23ad9237-9b94-43d3-a90d-2a49c5456e27")
 		)
 		(embedded_fonts no)
@@ -9618,7 +9618,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7000000000000005e-07F"
+		(property "Value" "4.7e-±10.0%F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -9762,13 +9762,13 @@
 				)
 			)
 		)
-		(property "capacitance" "4.7000000000000005e-07±10.0%F"
+		(property "capacitance" "4.7e-±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "175d3319-1317-4f02-9610-2b6a4642524b")
 		)
-		(property "max_voltage" "50.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9939,14 +9939,14 @@
 			(at -0.7 0 90)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 1 "bootstrap_neg-power-bootstrap-1_N")
+			(net 1 "bootstrap_neg-power-bootstrap_N")
 			(uuid "580ee67e-f520-49c4-a70c-2050573b7bd6")
 		)
 		(pad "2" smd rect
 			(at 0.7 0 90)
 			(size 0.8 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "06a52378-9f08-4897-ab90-fb3c7b8f1da4")
 		)
 		(embedded_fonts no)
@@ -9979,7 +9979,7 @@
 				)
 			)
 		)
-		(property "Value" "L 9.999999999999999e-06H"
+		(property "Value" "L {ℝ+}H"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -10147,25 +10147,25 @@
 				)
 			)
 		)
-		(property "inductance" "L 9.999999999999999e-06±20.0%H"
+		(property "inductance" "L {ℝ+}H"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "dc8b9a4e-a404-4d37-9e30-434d4642524b")
 		)
-		(property "self_resonant_frequency" "SRF ℝ+Hz"
+		(property "self_resonant_frequency" "SRF {ℝ+}Hz"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2da49390-c1aa-4f45-b67e-d8024642524b")
 		)
-		(property "max_current" "Imax 4.5A"
+		(property "max_current" "Imax {ℝ+}A"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c49cf03d-1611-4fbd-a966-28fa4642524b")
 		)
-		(property "dc_resistance" "DCR 0.068Ω"
+		(property "dc_resistance" "DCR {ℝ+}Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10276,7 +10276,7 @@
 			(at -3 0 90)
 			(size 2.35 3.5)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "ae8f2fb7-3c08-4fb2-a629-db081db9687a")
 		)
 		(pad "2" smd rect
@@ -10316,7 +10316,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1e-06±20.0%F"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -10460,13 +10460,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1e-06±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "def19c3e-c81e-40d3-ac83-7e284642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10637,14 +10637,14 @@
 			(at -0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "gvdd_cap-power-hv")
+			(net 7 "hv")
 			(uuid "7fae9a02-d9cf-4123-b624-20c8ebe91921")
 		)
 		(pad "2" smd rect
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "094c95ae-bfec-468d-89d0-520e51d24230")
 		)
 		(embedded_fonts no)
@@ -10676,7 +10676,7 @@
 				)
 			)
 		)
-		(property "Value" "1.0000000000000001e-07F"
+		(property "Value" "1±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -10808,13 +10808,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1.0000000000000001e-07±10.0%F"
+		(property "capacitance" "1±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "68fdf8c6-769f-4a07-be24-84b74642524b")
 		)
-		(property "max_voltage" "16.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10992,7 +10992,7 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "5246aa04-3247-4444-8e1f-7ea5069fe9fc")
 		)
 		(embedded_fonts no)
@@ -11024,7 +11024,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999999999999999e-06F"
+		(property "Value" "9.999±20.0%F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -11156,13 +11156,13 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999999999999999e-06±10.0%F"
+		(property "capacitance" "9.999±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9c35b1f8-e9f8-45ba-bc06-e7fa4642524b")
 		)
-		(property "max_voltage" "25.0V"
+		(property "max_voltage" "{ℝ+}V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11340,7 +11340,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 29 "lv_N")
+			(net 29 "power-lv")
 			(uuid "f9547cfe-6a1f-48c0-8196-90a26caba99d")
 		)
 		(embedded_fonts no)
