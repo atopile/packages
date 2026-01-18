@@ -57,7 +57,7 @@ module Trinamic_TMC5160:
     """
     12V output power supply (V12OUT)
     """
-    assert power_12v_out.voltage within 10.8V to 13V # Internal LDO will stay below 12.2V
+    assert power_12v_out.voltage within 10.8V to 13V  # Internal LDO will stay below 12.2V
 
     power_5v_out = new ElectricPower
     """
@@ -77,7 +77,6 @@ module Trinamic_TMC5160:
     SPI interface for communication and configuration
     """
     spi.required = True
-
 
     # Motor driver outputs
     """
@@ -125,8 +124,8 @@ module Trinamic_TMC5160:
 
     This pin has multiple functions depending on operating mode:
     - Diagnostic output DIAG0 (normal operation modes)
-    - Interrupt or STEP output for motion controller (SD_MODE=0, SPI_MODE=1)
-    - Single wire I/O negative terminal (SD_MODE=0, SPI_MODE=0, UART mode)
+    - Interrupt or STEP output for motion controller (SD_MODE = 0, SPI_MODE = 1)
+    - Single wire I/O negative terminal (SD_MODE = 0, SPI_MODE = 0, UART mode)
 
     Hardware considerations:
     - Use external pullup resistor with 47kΩ or less in open drain mode
@@ -140,8 +139,8 @@ module Trinamic_TMC5160:
 
     This pin has multiple functions depending on operating mode:
     - Diagnostic output DIAG1 (normal operation modes)
-    - Position-compare or DIR output for motion controller (SD_MODE=0, SPI_MODE=1)
-    - Single wire I/O positive terminal (SD_MODE=0, SPI_MODE=0, UART mode)
+    - Position-compare or DIR output for motion controller (SD_MODE = 0, SPI_MODE = 1)
+    - Single wire I/O positive terminal (SD_MODE = 0, SPI_MODE = 0, UART mode)
 
     Hardware considerations:
     - Use external pullup resistor with 47kΩ or less in open drain mode
@@ -164,7 +163,7 @@ module Trinamic_TMC5160:
 
     high: STEP/DIR inputs control driver
     low: Internal ramp generator generates step pulse
-    SD_MODE=0 and SPI_MODE=0 enable UART operation.
+    SD_MODE = 0 and SPI_MODE = 0 enable UART operation.
     """
     sd_mode.line.required = True
 
@@ -173,7 +172,7 @@ module Trinamic_TMC5160:
     SPI mode configuration pin (SPI_MODE, with integrated pull-down).
 
     high: SPI interface enabled
-    low: With SD_MODE=1, chip is in standalone mode and pins have CFG functions
+    low: With SD_MODE = 1, chip is in standalone mode and pins have CFG functions
     """
     spi_mode.line.required = True
 
@@ -191,9 +190,9 @@ module Trinamic_TMC5160:
     Encoder A-channel input (ENCA_DCIN_CFG5, with integrated pull-down).
 
     This pin shares the same physical connection as dcin and has multiple functions:
-    - Encoder A-channel input (when using internal ramp generator, SD_MODE=0)
-    - DcStep gating input for axis synchronization (SD_MODE=1, SPI_MODE=1)
-    - Configuration input CFG5 (SPI_MODE=0)
+    - Encoder A-channel input (when using internal ramp generator, SD_MODE = 0)
+    - DcStep gating input for axis synchronization (SD_MODE = 1, SPI_MODE = 1)
+    - Configuration input CFG5 (SPI_MODE = 0)
 
     For encoder operation, connect to quadrature encoder A-channel output.
     """
@@ -203,10 +202,10 @@ module Trinamic_TMC5160:
     Encoder B-channel input (ENCB_DCEN_CFG4, with integrated pull-down).
 
     This pin shares the same physical connection as dcen and has multiple functions:
-    - Encoder B-channel input (when using internal ramp generator, SD_MODE=0)
-    - DcStep enable input (SD_MODE=1, SPI_MODE=1) – leave open or tie to GND
-      for normal operation in this mode (no DcStep)
-    - Configuration input CFG4 (SPI_MODE=0)
+    - Encoder B-channel input (when using internal ramp generator, SD_MODE = 0)
+    - DcStep enable input (SD_MODE = 1, SPI_MODE = 1) – leave open or tie to GND
+        for normal operation in this mode (no DcStep)
+    - Configuration input CFG4 (SPI_MODE = 0)
 
     For encoder operation, connect to quadrature encoder B-channel output.
     """
@@ -216,9 +215,9 @@ module Trinamic_TMC5160:
     Encoder N-channel input/output (ENCN_DCO_CFG6).
 
     This pin shares the same physical connection as dco and has multiple functions:
-    - Encoder N-channel input (SD_MODE=0) for index/reference pulse
-    - DcStep ready output (SD_MODE=1)
-    - Configuration input CFG6 (SPI_MODE=0)
+    - Encoder N-channel input (SD_MODE = 0) for index/reference pulse
+    - DcStep ready output (SD_MODE = 1)
+    - Configuration input CFG6 (SPI_MODE = 0)
 
     For encoder operation with index pulse:
     - Connect to encoder index/reference output
@@ -232,7 +231,7 @@ module Trinamic_TMC5160:
     Left reference input or STEP input (REFL_STEP).
 
     Left reference input (for internal ramp generator) or
-    STEP input when (SD_MODE=1).
+    STEP input when (SD_MODE = 1).
     """
     refl_step.required = True
 
@@ -241,7 +240,7 @@ module Trinamic_TMC5160:
     Right reference input or DIR input (REFR_DIR).
 
     Right reference input (for internal ramp generator) or
-    DIR input (SD_MODE=1).
+    DIR input (SD_MODE = 1).
     """
     refr_dir.required = True
 
@@ -281,14 +280,14 @@ module Trinamic_TMC5160:
 
     cap_cp = new Capacitor
     cap_cp.capacitance = 22nF +/- 20%
-    cap_cp.voltage_rating = 100
     cap_cp.package = "0603"
+    assert cap_cp.max_voltage >= 100V
     package.CPI ~> cap_cp ~> package.CPO
 
     cap_vcp = new Capacitor
     cap_vcp.capacitance = 100nF +/- 20%
-    cap_vcp.voltage_rating = 16
     cap_vcp.package = "0603"
+    assert cap_vcp.max_voltage >= 16V
     package.VCP ~> cap_vcp ~> package.VS
 
     # 5Vout connection to vcc rail
@@ -322,7 +321,9 @@ module Trinamic_TMC5160:
     spi.miso.line ~ package.SDO_CFG0
     chip_select.line ~ package.CSN_CFG3
 
-    spi.reference_shim ~ power_vccio
+    spi.sclk.reference ~ power_vccio
+    spi.miso.reference ~ power_vccio
+    spi.mosi.reference ~ power_vccio
     chip_select.reference ~ power_vccio
     # --- Motor driver connections ---
     motor_a_high1.line ~ package.HA1
@@ -374,11 +375,13 @@ module Trinamic_TMC5160:
     # Current sense connections
     motor_a_current_sense.p.line ~ package.SRAH
     motor_a_current_sense.n.line ~ package.SRAL
-    motor_a_current_sense.reference_shim ~ power_vccio
+    motor_a_current_sense.p.reference ~ power_vccio
+    motor_a_current_sense.n.reference ~ power_vccio
 
     motor_b_current_sense.p.line ~ package.SRBH
     motor_b_current_sense.n.line ~ package.SRBL
-    motor_b_current_sense.reference_shim ~ power_vccio
+    motor_b_current_sense.p.reference ~ power_vccio
+    motor_b_current_sense.n.reference ~ power_vccio
 
     # Clock input
     clk.line ~ package.CLK
@@ -412,10 +415,10 @@ module Trinamic_TMC5160:
     refr_dir.line ~ package.REFR_DIR
     refr_dir.reference ~ power_vccio
 
-    power_motor.vcc.override_net_name = "power-motor"
-    # power_vsa.vcc.override_net_name = "power-vsa"
-    power_vccio.vcc.override_net_name = "power-vccio"
-    power_12v_out.vcc.override_net_name = "power-12v-out"
-    power_5v_out.vcc.override_net_name = "power-5v-out"
-    power_vcc.vcc.override_net_name = "power-vcc"
+    # power_motor.hv.override_net_name = "power-motor"
+    # power_vsa.hv.override_net_name = "power-vsa"
+    # power_vccio.hv.override_net_name = "power-vccio"
+    power_12v_out.hv.override_net_name = "power-12v-out"
+    power_5v_out.hv.override_net_name = "power-5v-out"
+    power_vcc.hv.override_net_name = "power-vcc"
     gnd.override_net_name = "gnd"
