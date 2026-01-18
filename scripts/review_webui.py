@@ -2279,6 +2279,9 @@ class JobState:
     ci_logs_cached: str | None = None  # Cached CI log content (truncated)
     ci_issues_cached: list[dict[str, Any]] | None = None  # Cached CI issues
     ci_issues_fetched_at: str | None = None  # When CI issues were last fetched
+    ci_auto_rebuild_for: str | None = (
+        None  # CI failure we've already auto-rebuilt for (pr#:conclusion)
+    )
 
     def to_public(self) -> dict[str, Any]:
         """Return state for API, excluding heavy cached data."""
@@ -2649,6 +2652,8 @@ class ReviewRun:
         """Apply cached PR data to all packages."""
         now = _now_ts()
         updated = 0
+        # Collect packages that need auto-restart due to CI failure
+        packages_to_auto_restart: list[str] = []
 
         with self._lock:
             for name, job in self._jobs.items():
@@ -2700,9 +2705,41 @@ class ReviewRun:
                         job.ci_issues_fetched_at = None
                     updated += 1
 
+                    # Reset auto-rebuild tracking when CI succeeds
+                    # This allows auto-rebuild to trigger again if CI fails later
+                    if job.ci_conclusion == "success":
+                        job.ci_auto_rebuild_for = None
+
+                    # Check if we should auto-restart due to CI failure
+                    # Use PR number + "failure" as a unique key to avoid duplicate rebuilds
+                    pr_number = pr_data.get("number")
+                    ci_failure_key = f"{pr_number}:failure" if pr_number else None
+                    if (
+                        job.ci_conclusion == "failure"
+                        and ci_failure_key
+                        and job.ci_auto_rebuild_for != ci_failure_key
+                        and job.status not in ("building", "verifying", "not_started")
+                    ):
+                        # Mark that we're going to auto-rebuild for this CI failure
+                        job.ci_auto_rebuild_for = ci_failure_key
+                        packages_to_auto_restart.append(name)
+
         if updated > 0:
             self._write_state()
             print(f"[GH CACHE] Applied PR data to {updated} packages", flush=True)
+
+        # Auto-restart packages with failing CI (non-frozen rebuild)
+        for pkg in packages_to_auto_restart:
+            try:
+                print(
+                    f"[AUTO-REBUILD] Queueing {pkg} for non-frozen rebuild due to CI failure",
+                    flush=True,
+                )
+                self.restart(
+                    pkg, priority=False, clear_publish_state=False, frozen=False
+                )
+            except Exception as e:
+                print(f"[AUTO-REBUILD] Failed to restart {pkg}: {e}", flush=True)
 
     def get_cached_pr_for_package(self, package: str) -> dict[str, Any] | None:
         """Get cached PR data for a package (fast, no API call)."""
@@ -3004,8 +3041,12 @@ class ReviewRun:
             ready = sum(
                 1 for j in self._jobs.values() if j.status in ("awaiting_review",)
             )
+            # Don't count jobs with cancel_requested as in-flight - they're being paused
+            # to make room for priority restarts
             in_flight = sum(
-                1 for j in self._jobs.values() if j.status in ("building", "verifying")
+                1
+                for j in self._jobs.values()
+                if j.status in ("building", "verifying") and not j.cancel_requested
             )
             if ready >= self.max_ready:
                 return
@@ -4188,6 +4229,8 @@ class ReviewRun:
             job.published_pr_body = pr_body if pr_url else None
             job.status = "pr_opened" if pr_url else "branch_pushed"
             job.publish_error = None
+            # Reset auto-rebuild tracking since we pushed new changes
+            job.ci_auto_rebuild_for = None
         self._write_state()
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
@@ -4462,6 +4505,9 @@ class ReviewRun:
                 job.published_pr_url = pr_url
             job.status = "pr_opened" if job.published_pr_url else "branch_pushed"
             job.publish_error = None
+            # Reset auto-rebuild tracking since we pushed new changes
+            # This allows auto-rebuild to trigger again if CI fails after this push
+            job.ci_auto_rebuild_for = None
         self._write_state()
         _update_todo_auto_section(
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin

@@ -190,7 +190,7 @@ function initTheme() {
     mq.addEventListener("change", () => {
       if (getThemeMode() === "auto") applyTheme("auto");
     });
-  } catch {}
+  } catch { }
 }
 
 const statusLabel = (s) => ({
@@ -329,13 +329,13 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       <div class="progTrack"><div class="progFill" style="width:${pct}%;"></div></div>
       <div class="progSteps">
         ${stageDefs.map((s, i) => {
-          const cls = stageClassFor(s.key, i);
-          // Add red indicator to CI step if rebuilding to fix CI failure
-          const ciFailIndicator = (s.key === "ci" && job.rebuilding_for_ci && job.ci_conclusion === "failure")
-            ? '<span class="ciFailDot" title="Rebuilding to fix CI failure">🔴</span>'
-            : '';
-          return `<div class="progStep ${cls}" title="${escHtml(s.label)}"><span class="progDot"></span><span class="progLabel">${escHtml(s.label)}${ciFailIndicator}</span></div>`;
-        }).join("")}
+    const cls = stageClassFor(s.key, i);
+    // Add red indicator to CI step if rebuilding to fix CI failure
+    const ciFailIndicator = (s.key === "ci" && job.rebuilding_for_ci && job.ci_conclusion === "failure")
+      ? '<span class="ciFailDot" title="Rebuilding to fix CI failure">🔴</span>'
+      : '';
+    return `<div class="progStep ${cls}" title="${escHtml(s.label)}"><span class="progDot"></span><span class="progLabel">${escHtml(s.label)}${ciFailIndicator}</span></div>`;
+  }).join("")}
       </div>
     </div>
   `;
@@ -656,6 +656,7 @@ function _renderListImpl() {
 
     switch (state.statusFilter) {
       case "all": return true;
+      case "recent": return !!state.recentlyTouched[n];
       case "building": return j.status === "building" || j.status === "verifying";
       case "error": return j.status === "error" || err > 0;
       case "warning": return warn > 0 && err === 0;
@@ -664,11 +665,29 @@ function _renderListImpl() {
       case "ci_failing": return j.ci_conclusion && j.ci_conclusion !== "success" && j.ci_conclusion !== "skipped";
       case "published": return j.status === "published";
       case "help": return j.status === "needs_input";
-      case "agent": return j.agent_working === true;
+      case "agent":
+        // Check if agent is working OR has recent agent messages (within last 10 min)
+        if (j.agent_working === true) return true;
+        if (j.agent_messages && j.agent_messages.length > 0) {
+          const lastMsg = j.agent_messages[j.agent_messages.length - 1];
+          const msgTime = new Date(lastMsg.timestamp).getTime();
+          const tenMinAgo = Date.now() - 10 * 60 * 1000;
+          return msgTime > tenMinAgo;
+        }
+        return false;
       case "queue": return j.status === "not_started" || j.status === "paused" || j.status === "skipped";
       default: return true;
     }
   });
+
+  // Sort by recency if "recent" filter is active
+  if (state.statusFilter === "recent") {
+    visible.sort((a, b) => {
+      const timeA = state.recentlyTouched[a] || 0;
+      const timeB = state.recentlyTouched[b] || 0;
+      return timeB - timeA; // Most recent first
+    });
+  }
 
   for (const name of visible) {
     const j = state.packages[name];
@@ -1039,7 +1058,7 @@ function _renderRightImpl() {
           next.setAttribute("zoom", "objects");
           // Nudge resize observers
           window.dispatchEvent(new Event("resize"));
-        } catch {}
+        } catch { }
       };
       const t0 = Date.now();
       const pump = () => {
@@ -1467,7 +1486,7 @@ function _renderRightImpl() {
       state.dirtyTodo = state.dirtyTodo; // keep
       fetchSelectedDetail(true);
       // refresh logs (some packages have build-target-scoped internal logs)
-      fetchLogIndex().then(() => fetchLog(true)).catch(() => {});
+      fetchLogIndex().then(() => fetchLog(true)).catch(() => { });
       renderRight();
       setHash(pkg);
     });
@@ -1636,7 +1655,7 @@ function pickDefaultLogForStage() {
 let _todoTimer = null;
 function scheduleTodoAutosave() {
   if (_todoTimer) clearTimeout(_todoTimer);
-  _todoTimer = setTimeout(() => saveTodo().catch(() => {}), 450);
+  _todoTimer = setTimeout(() => saveTodo().catch(() => { }), 450);
 }
 
 async function fetchLog(soft = false) {
@@ -1675,6 +1694,20 @@ async function selectPackage(name) {
   state.expandedIssueScrollLeft = 0;
   state.issuesListScroll = 0;  // Reset issues list scroll
   state.issuesLoading = false;  // Reset issues loading state
+
+  // Track recently touched packages for "Recent" filter
+  state.recentlyTouched[name] = Date.now();
+  // Keep only the last 50 to avoid memory growth
+  const entries = Object.entries(state.recentlyTouched);
+  if (entries.length > 50) {
+    entries.sort((a, b) => b[1] - a[1]);
+    state.recentlyTouched = Object.fromEntries(entries.slice(0, 50));
+  }
+  // Persist to localStorage
+  try {
+    localStorage.setItem("review_station_recent", JSON.stringify(state.recentlyTouched));
+  } catch { }
+
   setHash(name);
 
   // Render immediately to show selection change (responsive feel)
@@ -1693,8 +1726,8 @@ async function selectPackage(name) {
   state.viewTab = state.selectedDetail?.job?.approved_by ? "diff" : "viewer";
 
   // Fetch remaining data (non-blocking for initial render)
-  fetchDiff().catch(() => {});
-  fetchLog(true).catch(() => {});
+  fetchDiff().catch(() => { });
+  fetchLog(true).catch(() => { });
 
   renderList();
   renderRight();
@@ -2184,6 +2217,14 @@ async function bootstrap() {
   wireGlobal();
   initTheme();
 
+  // Load recently touched packages from localStorage
+  try {
+    const saved = localStorage.getItem("review_station_recent");
+    if (saved) {
+      state.recentlyTouched = JSON.parse(saved);
+    }
+  } catch { }
+
   // Initialize sort button text
   const sortBtn = $("#sortToggle");
   if (sortBtn) sortBtn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
@@ -2201,7 +2242,7 @@ async function bootstrap() {
   try {
     const who = await apiGet("/api/whoami");
     if (who?.name) $("#reviewer").value = who.name;
-  } catch {}
+  } catch { }
 
   const initial = getHash();
   if (initial && state.packages[initial]) {
@@ -2210,7 +2251,7 @@ async function bootstrap() {
 
   // Poll. 2s is snappy enough for status updates without hammering the server.
   // Heavy data (logs, issues) are fetched on-demand, not every poll.
-  setInterval(() => refresh(true).catch(() => {}), 2000);
+  setInterval(() => refresh(true).catch(() => { }), 2000);
 }
 
 bootstrap().catch((e) => {
