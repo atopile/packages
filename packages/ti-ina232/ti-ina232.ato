@@ -40,8 +40,8 @@ module TI_INA232:
     """
     power.required = True
     assert power.voltage within 1.7V to 5.5V
-    power.vcc ~ package.VS
-    power.gnd ~ package.GND
+    power.hv ~ package.VS
+    power.lv ~ package.GND
 
     # --- I²C bus ---
     i2c = new I2C
@@ -57,8 +57,8 @@ module TI_INA232:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 5%
         r.package = "0402"
-    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
-    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
 
     # --- Alert pin ---
     alert = new ElectricLogic
@@ -73,7 +73,7 @@ module TI_INA232:
     alert_pullup = new Resistor
     alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
-    alert.line ~> alert_pullup ~> power.vcc
+    alert.line ~> alert_pullup ~> power.hv
 
     # --- Shunt differential input ---
     shunt_input = new DifferentialPair
@@ -90,7 +90,7 @@ module TI_INA232:
     Maximum expected current for shunt resistor sizing
     """
     # Default to 1A to provide initial constraint
-    max_current = 1A
+    max_current.default = 1A
 
     # INA232 full-scale shunt voltage range
     shunt_voltage_range = 75mV
@@ -122,14 +122,14 @@ module TI_INA232:
     assert power_in.voltage within 0V to 48V
 
     # Common ground ties to device ground
-    power_in.gnd ~ power.gnd
-    power_out.gnd ~ power.gnd
+    power_in.lv ~ power.lv
+    power_out.lv ~ power.lv
 
     # Bridge VCC path through shunt
-    power_in.vcc ~> shunt ~> power_out.vcc
+    power_in.hv ~> shunt ~> power_out.hv
 
     # Mark module as a bridge so it can be inserted inline in power path
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
     # --- I²C address selection (A0 pin) ---
     addressor = new TIAddressor
@@ -138,6 +138,8 @@ module TI_INA232:
     addressor.i2c ~ i2c
     addressor.address_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
     # --- Decoupling capacitor ---
     decoupling_cap = new Capacitor

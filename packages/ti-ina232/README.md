@@ -49,7 +49,7 @@ module Usage:
 
     # I2C bus with pull-up resistors
     i2c = new I2C
-    i2c.reference_shim ~ device_power
+    i2c.has_single_electric_reference.reference ~ device_power
 
     # Four sensors with different address configurations
     sensor1 = new TI_INA232  # A0 = GND -> 0x40
@@ -58,9 +58,9 @@ module Usage:
     sensor4 = new TI_INA232  # A0 = SCL -> 0x43
 
     # Configure sensors with different current ranges
-    sensor1.max_current = 0.5A   # Low current monitoring
-    sensor2.max_current = 1A   # Medium current monitoring
-    sensor3.max_current = 5A   # High current monitoring
+    sensor1.max_current = 0.5A  # Low current monitoring
+    sensor2.max_current = 1A  # Medium current monitoring
+    sensor3.max_current = 5A  # High current monitoring
     sensor4.max_current = 10A  # Very high current monitoring
 
     # Connect power and I2C to all sensors
@@ -101,7 +101,6 @@ module Usage:
     # sensor2: 0x41 (A0=VS) - 2A max current
     # sensor3: 0x42 (A0=SDA) - 5A max current
     # sensor4: 0x43 (A0=SCL) - 10A max current
-
 ```
 
 ## Hardware Features
