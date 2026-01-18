@@ -41,7 +41,7 @@ module Usage:
     # --- I2C bus ---
     i2c_bus = new I2C
     assert i2c_bus.frequency <= 400kHz
-    assert i2c_bus.address is 0x29
+    assert i2c_bus.address within 0x29
 
     # --- Optional control signals ---
     shutdown_control = new ElectricLogic
