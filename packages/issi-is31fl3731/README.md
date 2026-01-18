@@ -51,6 +51,7 @@ module Usage:
     led_driver.channel_a[8].line ~ row_0_led[7].diode.anode
 
     # ... more rows ...
+
 ```
 
 `driver.interrupt` can be wired to an MCU GPIO for frame-sync or
