@@ -253,9 +253,54 @@ def _count_log_levels(log_text: str) -> tuple[int, int]:
     return warn, err
 
 
+def _parse_build_summary_json(summary_json: str) -> dict[str, dict[str, object]]:
+    """
+    Parse `build/logs/latest/summary.json` produced by `ato build` (new format).
+
+    Returns mapping: build_name -> {status, seconds, warn, err, log_dir}
+      - status: "success" | "warning" | "failed"
+      - seconds: float
+      - warn/err: int
+      - log_dir: str (path to the build's log directory)
+
+    The JSON structure is:
+    {
+        "builds": [
+            {
+                "name": "default",
+                "status": "success" | "warning" | "failed",
+                "elapsed_seconds": 2.02,
+                "warnings": 3,
+                "errors": 4,
+                "log_dir": "/path/to/logs/default"
+            }, ...
+        ]
+    }
+    """
+    import json
+
+    out: dict[str, dict[str, object]] = {}
+    try:
+        data = json.loads(summary_json)
+        for build in data.get("builds", []):
+            name = build.get("name", "")
+            if not name:
+                continue
+            out[name] = {
+                "status": build.get("status", "success"),
+                "seconds": float(build.get("elapsed_seconds", 0.0)),
+                "warn": int(build.get("warnings", 0)),
+                "err": int(build.get("errors", 0)),
+                "log_dir": build.get("log_dir"),
+            }
+    except (json.JSONDecodeError, TypeError, KeyError):
+        pass
+    return out
+
+
 def _parse_build_summary_md(summary_md: str) -> dict[str, dict[str, object]]:
     """
-    Parse `build/logs/latest/summary.md` produced by `ato build`.
+    Parse `build/logs/latest/summary.md` produced by `ato build` (legacy format).
 
     Returns mapping: build_name -> {status, seconds, warn, err}
       - status: "success" | "warning" | "failed"
@@ -304,6 +349,32 @@ def _parse_build_summary_md(summary_md: str) -> dict[str, dict[str, object]]:
     return out
 
 
+def _parse_build_summary(pkg_dir: Path) -> dict[str, dict[str, object]]:
+    """
+    Parse build summary from either JSON (new) or MD (legacy) format.
+
+    Tries JSON first, falls back to MD for backwards compatibility.
+    """
+    summary_json_path = pkg_dir / "build" / "logs" / "latest" / "summary.json"
+    summary_md_path = pkg_dir / "build" / "logs" / "latest" / "summary.md"
+
+    if summary_json_path.exists():
+        try:
+            return _parse_build_summary_json(
+                summary_json_path.read_text(encoding="utf-8")
+            )
+        except Exception:
+            pass
+
+    if summary_md_path.exists():
+        try:
+            return _parse_build_summary_md(summary_md_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    return {}
+
+
 def _review_worker_process(
     task_q: "mp.Queue[dict[str, Any]]",
     result_q: "mp.Queue[dict[str, Any]]",
@@ -347,6 +418,7 @@ def _review_worker_process(
         if status_file:
             status_file.parent.mkdir(parents=True, exist_ok=True)
             env["ATO_BUILD_STATUS_FILE"] = str(status_file)
+        env["FORCE_COLOR"] = "1"
 
         with log_path.open("w", encoding="utf-8") as f:
             f.write("$ " + " ".join(shlex.quote(c) for c in cmd) + "\n\n")
@@ -465,24 +537,10 @@ def _review_worker_process(
         logs_dir = pkg_run_dir / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
 
-        # Clean build: remove gitignored files/directories before building
-        # This ensures reproducible builds without stale artifacts
-        result_q.put({"type": "progress", "package": pkg, "step": "cleaning"})
-        try:
-            # git clean -fdX removes only ignored files (safe, won't delete untracked source files)
-            subprocess.run(
-                ["git", "clean", "-fdX", "--", "."],
-                cwd=pkg_dir,
-                capture_output=True,
-                check=False,
-            )
-        except Exception:
-            pass  # Continue even if clean fails
-
         # Build
         build_log_path = logs_dir / "build.log"
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
-        cmd = [*ato_cmd, "build", "-t", "all", "--jobs", str(max(1, per_pkg_jobs))]
+        cmd = [*ato_cmd, "build", "-t", "all", "--verbose", "--jobs", str(max(1, per_pkg_jobs))]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
         if skip_datasheets:
@@ -511,30 +569,31 @@ def _review_worker_process(
             )
             continue
 
-        # Parse per-target summary if available.
+        # Parse per-target summary if available (JSON or MD).
         build_logs: dict[str, str] = {}
         build_rc: dict[str, int] = {}
         build_seconds: dict[str, float] = {}
         build_warn: dict[str, int] = {}
         build_err: dict[str, int] = {}
 
-        summary_path = pkg_dir / "build" / "logs" / "latest" / "summary.md"
-        per_target: dict[str, dict[str, object]] = {}
-        if summary_path.exists():
-            try:
-                per_target = _parse_build_summary_md(
-                    summary_path.read_text(encoding="utf-8")
-                )
-            except Exception:
-                per_target = {}
+        per_target = _parse_build_summary(pkg_dir)
 
         for name in list(task.get("build_names") or []):
             bname = str(name)
-            candidate = pkg_dir / "build" / "logs" / "latest" / bname / "build.log"
-            build_logs[bname] = (
-                str(candidate) if candidate.exists() else str(build_log_path)
-            )
+            # New format: per-stage logs in log_dir (*.info.log, *.error.log, etc.)
+            # Legacy format: single build.log file
             rec = per_target.get(bname)
+            log_dir_val = rec.get("log_dir") if rec else None
+            log_dir_str = str(log_dir_val) if log_dir_val else None
+            if log_dir_str and Path(log_dir_str).exists():
+                # Use the log directory from summary.json (new format)
+                build_logs[bname] = log_dir_str
+            else:
+                # Legacy: try build.log in the build target folder
+                candidate = pkg_dir / "build" / "logs" / "latest" / bname / "build.log"
+                build_logs[bname] = (
+                    str(candidate) if candidate.exists() else str(build_log_path)
+                )
             if rec:
                 st = str(rec.get("status", "success"))
                 build_seconds[bname] = float(rec.get("seconds", 0.0))  # type: ignore[arg-type]
@@ -1368,11 +1427,26 @@ def _fetch_ci_logs_for_package(
                 ci_logs_dest = repo_root / package / "build" / "ci_logs" / "latest"
                 ci_logs_dest.mkdir(parents=True, exist_ok=True)
 
-                # Read summary.md if available
-                summary_path = latest_dir / "summary.md"
-                if summary_path.exists():
+                # Read summary (JSON or MD) if available
+                summary_json_path = latest_dir / "summary.json"
+                summary_md_path = latest_dir / "summary.md"
+                if summary_json_path.exists():
+                    try:
+                        import json
+
+                        summary_data = json.loads(summary_json_path.read_text())
+                        # Format JSON summary for display
+                        summary_text = json.dumps(summary_data, indent=2)
+                        logs_parts.append(
+                            f"=== CI Build Summary (JSON) ===\n{summary_text}\n"
+                        )
+                    except Exception:
+                        logs_parts.append(
+                            f"=== CI Build Summary ===\n{summary_json_path.read_text()}\n"
+                        )
+                elif summary_md_path.exists():
                     logs_parts.append(
-                        f"=== CI Build Summary ===\n{summary_path.read_text()}\n"
+                        f"=== CI Build Summary ===\n{summary_md_path.read_text()}\n"
                     )
 
                 # Process each build target directory

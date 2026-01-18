@@ -85,6 +85,33 @@ uv run scripts/review_station/review_webui.py \
 
 Then open `http://127.0.0.1:8787`.
 
+### Auto-rebuilding CI-failing packages (enabled by default)
+
+**By default**, the review station automatically rebuilds packages with failing CI.
+
+On startup, the PR/CI poller:
+- Queries GitHub once for all open PRs and their CI status
+- Packages with `ci_conclusion == "failure"` that aren't queued/building are added to the build queue
+- Packages are marked with `rebuilding_for_ci = true` for visual feedback
+- **Runs once** to avoid GitHub API rate limiting
+
+**Visual indicators:**
+- 🔴 Red pulsing dot on the "CI" step in the status bar indicates rebuilding to fix CI failure
+- Blue sliding animation appears when downloading CI logs from GitHub
+- Package status follows normal flow: queue → building → verifying → awaiting_review
+
+To **disable** this behavior:
+
+```bash
+uv run scripts/review_station/review_webui.py \
+  --packages-root /Users/narayanpowderly/projects/packages/packages \
+  --no-auto-enqueue-ci-failures \
+  --jobs 4 \
+  --max-ready 10 \
+  --port 8787 \
+  --kill-existing
+```
+
 ### Run a single package (debug)
 
 ```bash

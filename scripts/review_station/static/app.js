@@ -260,9 +260,10 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
 
   const stageIndexFor = () => {
     if (job.registry_updated_014) return 8;
-    if (job.published_pr_url) return 6;
-    if (job.published_branch) return 7; // assume CI after push until registry says published
-    if (job.status === "pushing_branch" || job.status === "branch_pushed" || job.status === "pr_opened") return 5;
+    // Don't advance to PR stage if rebuilding for CI
+    if (job.published_pr_url && !job.rebuilding_for_ci) return 6;
+    if (job.published_branch && !job.rebuilding_for_ci) return 7; // assume CI after push until registry says published
+    if ((job.status === "pushing_branch" || job.status === "branch_pushed" || job.status === "pr_opened") && !job.rebuilding_for_ci) return 5;
     if (job.approved_by) return 4;
     // If verify ran, park the progress at verify (failure) or waiting approval (success).
     if (job.verify_rc != null) return Number(job.verify_rc) === 0 ? 3 : 2;
@@ -275,6 +276,20 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   };
   const idx = stageIndexFor();
   const pct = (idx / (stageDefs.length - 1)) * 100;
+
+  // Debug logging for selected package
+  if (state.selected === job.package) {
+    console.log(`[STATUS DEBUG] ${job.package}:`, {
+      status: job.status,
+      stageIndex: idx,
+      rebuilding_for_ci: job.rebuilding_for_ci,
+      ci_conclusion: job.ci_conclusion,
+      published_pr_url: job.published_pr_url,
+      published_branch: job.published_branch,
+      has_build_rc: job.build_rc && Object.keys(job.build_rc).length > 0,
+      verify_rc: job.verify_rc,
+    });
+  }
 
   const stageClassFor = (key, i) => {
     // Compute stage classes from per-step outcomes, not overall job status.
@@ -315,7 +330,11 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       <div class="progSteps">
         ${stageDefs.map((s, i) => {
           const cls = stageClassFor(s.key, i);
-          return `<div class="progStep ${cls}" title="${escHtml(s.label)}"><span class="progDot"></span><span class="progLabel">${escHtml(s.label)}</span></div>`;
+          // Add red indicator to CI step if rebuilding to fix CI failure
+          const ciFailIndicator = (s.key === "ci" && job.rebuilding_for_ci && job.ci_conclusion === "failure")
+            ? '<span class="ciFailDot" title="Rebuilding to fix CI failure">🔴</span>'
+            : '';
+          return `<div class="progStep ${cls}" title="${escHtml(s.label)}"><span class="progDot"></span><span class="progLabel">${escHtml(s.label)}${ciFailIndicator}</span></div>`;
         }).join("")}
       </div>
     </div>
@@ -1179,6 +1198,14 @@ function _renderRightImpl() {
 
   // Issues panel rendering
   if (issuesList && !state.showLogs) {
+    // Show CI logs loading animation if fetching
+    const ciLogsProgress = $("#ciLogsProgress");
+    const job = state.selectedDetail?.job;
+    const isFetchingCiLogs = job && job.ci_conclusion === "failure" && job.ci_issues_fetched_at === null;
+    if (ciLogsProgress) {
+      ciLogsProgress.style.display = isFetchingCiLogs ? "block" : "none";
+    }
+
     // Show thin progress bar at the bottom of issues panel when loading
     const issuesCardEl = document.querySelector("#cardIssues");
     let progressBar = issuesCardEl?.querySelector(".issuesProgressBar");

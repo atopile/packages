@@ -1613,3 +1613,49 @@ model-viewer {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+
+/* CI Logs Loading Animation */
+.ciLogsProgress {
+  position: relative;
+  height: 3px;
+  background: var(--stroke);
+  overflow: hidden;
+  margin: 4px 0 8px 0;
+}
+.ciLogsProgressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--ctp-blue) 50%,
+    transparent 100%);
+  animation: slideProgress 1.5s ease-in-out infinite;
+}
+.ciLogsProgressText {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+@keyframes slideProgress {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* CI Failure Indicator on Progress Bar */
+.ciFailDot {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  vertical-align: middle;
+  animation: pulse 2s ease-in-out infinite;
+}
