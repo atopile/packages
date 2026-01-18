@@ -29,6 +29,7 @@ import platform
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import multiprocessing as mp
@@ -162,13 +163,39 @@ def _select_by_shard(
 
 
 def _default_ato_cmd(packages_repo_root: Path) -> list[str]:
-    if shutil.which("ato"):
-        return ["ato"]
+    # Prefer sibling atopile venv for consistency - avoids PATH issues in subprocesses
     sibling_atopile = (packages_repo_root.parent / "atopile").resolve()
     venv_python = sibling_atopile / ".venv" / "bin" / "python"
     if venv_python.exists():
         return [str(venv_python), "-m", "atopile"]
+    # Fall back to ato in PATH
+    if shutil.which("ato"):
+        return ["ato"]
     return ["python", "-m", "atopile"]
+
+
+def _find_free_port() -> int:
+    """Find a free port to use for the ato build status server."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _poll_ato_status_api(port: int, timeout: float = 1.0) -> dict[str, Any] | None:
+    """
+    Poll the ato build status API.
+
+    Returns the summary JSON or None if unavailable.
+    """
+    import urllib.error
+
+    url = f"http://127.0.0.1:{port}/api/summary"
+    try:
+        req = Request(url, headers={"Accept": "application/json"})
+        with urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError):
+        return None
 
 
 def _default_cursor_cmd() -> str:
@@ -349,13 +376,19 @@ def _parse_build_summary_md(summary_md: str) -> dict[str, dict[str, object]]:
     return out
 
 
-def _parse_build_summary(pkg_dir: Path) -> dict[str, dict[str, object]]:
+def _parse_build_summary(
+    pkg_dir: Path, summary_path: Path | None = None
+) -> dict[str, dict[str, object]]:
     """
     Parse build summary from either JSON (new) or MD (legacy) format.
 
     Tries JSON first, falls back to MD for backwards compatibility.
     """
-    summary_json_path = pkg_dir / "build" / "logs" / "latest" / "summary.json"
+    summary_json_path = (
+        summary_path
+        if summary_path is not None
+        else pkg_dir / "build" / "logs" / "latest" / "summary.json"
+    )
     summary_md_path = pkg_dir / "build" / "logs" / "latest" / "summary.md"
 
     if summary_json_path.exists():
@@ -409,108 +442,113 @@ def _review_worker_process(
         pkg: str,
         step: str,
         status_file: Path | None = None,
+        env_overrides: dict[str, str] | None = None,
     ) -> tuple[int, float, int, int]:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         start = time.perf_counter()
 
-        # Set up environment with status file for progress reporting
-        env = os.environ.copy()
-        if status_file:
-            status_file.parent.mkdir(parents=True, exist_ok=True)
-            env["ATO_BUILD_STATUS_FILE"] = str(status_file)
-        env["FORCE_COLOR"] = "1"
+        # Debug log file for troubleshooting worker issues
+        # Write IMMEDIATELY to disk so we can see what's happening even if crash
+        debug_log_path = log_path.parent / f"{step}.debug.log"
+        debug_file = open(debug_log_path, "w", encoding="utf-8")
+        debug_lines: list[str] = []  # Also keep in memory for summary
 
+        def debug(msg: str) -> None:
+            ts = time.strftime("%H:%M:%S")
+            line = f"[{ts}] {msg}"
+            debug_lines.append(line)
+            debug_file.write(line + "\n")
+            debug_file.flush()  # Flush immediately!
+
+        debug(f"Starting {step} for {pkg}")
+        debug(f"cmd: {cmd}")
+        debug(f"cwd: {cwd}")
+        debug(f"log_path: {log_path}")
+
+        # Set up environment - don't set atopile-specific vars that might trigger worker mode
+        env = os.environ.copy()
+        # Removed ATO_BUILD_STATUS_FILE - may trigger worker detection
+        # if status_file:
+        #     status_file.parent.mkdir(parents=True, exist_ok=True)
+        #     env["ATO_BUILD_STATUS_FILE"] = str(status_file)
+        # Basic env setup - no Rich forcing, just capture what we get
+        env["PYTHONUNBUFFERED"] = "1"
+        # env["FBRK_COLOR_LOGS"] = "1"  # DISABLED - may cause crash
+        # env["FORCE_COLOR"] = "1"
+        env["COLUMNS"] = "120"  # Set terminal width
+
+        # Fix VIRTUAL_ENV to match the Python we're using (uv sets wrong one)
+        # Don't resolve() - that follows symlinks to the actual Python binary
+        python_path = Path(cmd[0])
+        if "atopile" in str(python_path) and ".venv" in str(python_path):
+            atopile_venv = python_path.parent.parent  # .venv/bin/python -> .venv
+            env["VIRTUAL_ENV"] = str(atopile_venv)
+        # Also clear any UV variables that might interfere
+        env.pop("UV_RUN_RECURSION_DEPTH", None)
+        env.pop("UV", None)
+        # IMPORTANT: Do NOT set ATO_BUILD_TIMESTAMP - it makes atopile think it's a worker subprocess
+        # and fail with "Worker mode expects exactly 1 build"
+        env.pop("ATO_BUILD_TIMESTAMP", None)
+
+        if env_overrides:
+            # Filter out ATO_BUILD_TIMESTAMP from overrides too
+            env_overrides = {
+                k: v for k, v in env_overrides.items() if k != "ATO_BUILD_TIMESTAMP"
+            }
+            env.update(env_overrides)
+
+        debug(
+            f"Environment vars set: PYTHONUNBUFFERED=1 FBRK_COLOR_LOGS=1 FORCE_COLOR=1 COLUMNS=120"
+        )
+
+        # MVP: Simple subprocess.run - blocks but reliable
+        result_q.put(
+            {
+                "type": "step",
+                "package": pkg,
+                "current_step": step,
+                "current_pid": 0,
+            }
+        )
+
+        debug(f"Running subprocess.run with capture_output")
+        debug(f"Worker PID={os.getpid()}, PPID={os.getppid()}")
+        debug(f"cwd: {cwd}")
+
+        # Now the actual build
+        debug("ACTUAL BUILD: Starting")
+        poll_count = 1
+        result = subprocess.run(
+            cmd,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        rc = result.returncode
+        debug(f"ACTUAL BUILD: Completed with rc={rc}")
+        debug(f"  stdout len={len(result.stdout or '')}")
+        debug(f"  stderr len={len(result.stderr or '')}")
+        debug(f"  First 500 stdout: {(result.stdout or '')[:500]!r}")
+        debug(f"  First 500 stderr: {(result.stderr or '')[:500]!r}")
+
+        # Write log file with captured output
         with log_path.open("w", encoding="utf-8") as f:
             f.write("$ " + " ".join(shlex.quote(c) for c in cmd) + "\n\n")
-            f.flush()
-            proc = subprocess.Popen(
-                cmd,
-                cwd=cwd,
-                stdout=f,
-                stderr=subprocess.STDOUT,
-                text=True,
-                env=env,
-            )
-            # Report pid/step.
-            result_q.put(
-                {
-                    "type": "step",
-                    "package": pkg,
-                    "current_step": step,
-                    "current_pid": proc.pid,
-                }
-            )
+            if result.stdout:
+                f.write(result.stdout)
+            if result.stderr:
+                f.write("\n--- STDERR ---\n")
+                f.write(result.stderr)
 
-            last_progress: str | None = None
-            while True:
-                rc = proc.poll()
-                if rc is not None:
-                    break
-                if cancelled(pkg):
-                    try:
-                        f.write("\n\n[review-station] Cancel requested, terminating…\n")
-                        f.flush()
-                    except Exception:
-                        pass
-                    proc.terminate()
-                    try:
-                        proc.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        proc.kill()
-                    rc = proc.returncode if proc.returncode is not None else -1
-                    break
+        if not result.stdout and not result.stderr:
+            debug("WARNING: No output captured at all")
 
-                # Read and report progress from status files
-                # First try our status file, then check ato's per-build status files
-                progress = None
-                if status_file and status_file.exists():
-                    try:
-                        progress = status_file.read_text(encoding="utf-8").strip()
-                    except Exception:
-                        pass
-
-                # Also check ato's build status files (in package's build/logs/latest/<build>/status.txt)
-                # Collect progress for ALL active builds
-                if not progress:
-                    try:
-                        import re
-
-                        latest_logs = cwd / "build" / "logs" / "latest"
-                        if latest_logs.exists():
-                            build_statuses = {}
-                            for status_path in latest_logs.glob("*/status.txt"):
-                                try:
-                                    build_name = status_path.parent.name
-                                    txt = status_path.read_text(
-                                        encoding="utf-8"
-                                    ).strip()
-                                    if txt:
-                                        # Strip Rich markup like [green]...[/green]
-                                        txt = re.sub(r"\[/?[a-z_]+\]", "", txt)
-                                        build_statuses[build_name] = txt
-                                except Exception:
-                                    pass
-                            if build_statuses:
-                                # Send as JSON so frontend can parse per-build status
-                                import json
-
-                                progress = json.dumps(build_statuses)
-                    except Exception:
-                        pass
-
-                if progress and progress != last_progress:
-                    last_progress = progress
-                    elapsed = time.perf_counter() - start
-                    result_q.put(
-                        {
-                            "type": "progress",
-                            "package": pkg,
-                            "build_progress": progress,
-                            "elapsed": round(elapsed, 1),
-                        }
-                    )
-
-                time.sleep(0.2)
+        # Skip progress tracking for MVP
+        last_progress: str | None = None
+        progress = None
+        if False:
+            time.sleep(0.2)
 
         # Clean up status file
         if status_file and status_file.exists():
@@ -520,11 +558,40 @@ def _review_worker_process(
                 pass
 
         secs = max(0.0, time.perf_counter() - start)
+        debug(f"Elapsed: {secs:.2f}s, poll_count: {poll_count}")
+
+        # Read the log file and check its size
         try:
+            log_size = log_path.stat().st_size
+            debug(f"Log file size: {log_size} bytes")
             txt = log_path.read_text(encoding="utf-8")
-        except Exception:
+            debug(f"Log text length: {len(txt)} chars, lines: {txt.count(chr(10))}")
+            if len(txt) < 200:
+                debug(f"Full log content: {repr(txt)}")
+        except Exception as e:
+            debug(f"Error reading log: {e}")
             txt = ""
+
         warn, err = _count_log_levels(txt)
+        debug(f"Counted warnings={warn}, errors={err}")
+
+        # Check if ato's summary.json exists
+        summary_json = cwd / "build" / "logs" / "latest" / "summary.json"
+        if summary_json.exists():
+            try:
+                summary_size = summary_json.stat().st_size
+                debug(f"summary.json exists: {summary_size} bytes")
+            except Exception as e:
+                debug(f"Error checking summary.json: {e}")
+        else:
+            debug(f"summary.json NOT found at {summary_json}")
+
+        # Close debug log file
+        try:
+            debug_file.close()
+        except Exception:
+            pass
+
         return int(rc), secs, warn, err
 
     while True:
@@ -540,7 +607,20 @@ def _review_worker_process(
         # Build
         build_log_path = logs_dir / "build.log"
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
-        cmd = [*ato_cmd, "build", "-t", "all", "--verbose", "--jobs", str(max(1, per_pkg_jobs))]
+
+        # Use a stable timestamp so we can read the correct summary.json even if
+        # a manual build updates build/logs/latest concurrently.
+        build_timestamp = pkg_run_dir.parent.name
+
+        cmd = [
+            *ato_cmd,
+            "build",
+            "-t",
+            "all",
+            "--verbose",
+            "--jobs",
+            str(max(1, per_pkg_jobs)),
+        ]
         if keep_picked_parts:
             cmd.append("--keep-picked-parts")
         if skip_datasheets:
@@ -555,6 +635,7 @@ def _review_worker_process(
             pkg=pkg,
             step="build",
             status_file=status_file,
+            env_overrides={"ATO_BUILD_TIMESTAMP": build_timestamp},
         )
 
         # If cancelled mid-build, stop early.
@@ -576,7 +657,10 @@ def _review_worker_process(
         build_warn: dict[str, int] = {}
         build_err: dict[str, int] = {}
 
-        per_target = _parse_build_summary(pkg_dir)
+        summary_path = (
+            pkg_dir / "build" / "logs" / "archive" / build_timestamp / "summary.json"
+        )
+        per_target = _parse_build_summary(pkg_dir, summary_path=summary_path)
 
         for name in list(task.get("build_names") or []):
             bname = str(name)
@@ -606,13 +690,26 @@ def _review_worker_process(
                 build_err[bname] = 0
                 build_rc[bname] = b_rc
 
-        if b_rc != 0:
+        # If the summary exists, prefer per-target status over the process rc.
+        effective_rc = b_rc
+        if per_target:
+            effective_rc = 1 if any(rc != 0 for rc in build_rc.values()) else 0
+            # If the subprocess rc disagrees with summary, note it in debug log.
+            if b_rc != effective_rc:
+                try:
+                    (logs_dir / "build.debug.log").open("a", encoding="utf-8").write(
+                        f"[review-station] build rc mismatch: proc_rc={b_rc} summary_rc={effective_rc}\n"
+                    )
+                except Exception:
+                    pass
+
+        if effective_rc != 0:
             result_q.put(
                 {
                     "type": "result",
                     "package": pkg,
                     "status": "error",
-                    "error": f"build failed (rc={b_rc})",
+                    "error": f"build failed (rc={effective_rc})",
                     "build_logs": build_logs,
                     "build_rc": build_rc,
                     "build_seconds": build_seconds,
@@ -2316,29 +2413,31 @@ class ReviewRun:
         t.start()
         self._threads.append(t)
 
-        t = threading.Thread(
-            target=self._registry_poller, name="registry-poller", daemon=True
-        )
-        t.start()
-        self._threads.append(t)
+        # MVP MODE: Disabled non-essential background threads
+        # TODO: Re-enable these when basic builds work
+        # t = threading.Thread(
+        #     target=self._registry_poller, name="registry-poller", daemon=True
+        # )
+        # t.start()
+        # self._threads.append(t)
 
-        # Background thread to check for existing PRs while builds run
-        t = threading.Thread(
-            target=self._check_existing_prs_background,
-            name="pr-checker",
-            daemon=True,
-        )
-        t.start()
-        self._threads.append(t)
+        # # Background thread to check for existing PRs while builds run
+        # t = threading.Thread(
+        #     target=self._check_existing_prs_background,
+        #     name="pr-checker",
+        #     daemon=True,
+        # )
+        # t.start()
+        # self._threads.append(t)
 
-        # Background thread to check CI status for packages with PRs
-        t = threading.Thread(
-            target=self._ci_status_poller,
-            name="ci-poller",
-            daemon=True,
-        )
-        t.start()
-        self._threads.append(t)
+        # # Background thread to check CI status for packages with PRs
+        # t = threading.Thread(
+        #     target=self._ci_status_poller,
+        #     name="ci-poller",
+        #     daemon=True,
+        # )
+        # t.start()
+        # self._threads.append(t)
 
     def _ci_status_poller(self) -> None:
         """
@@ -2350,7 +2449,7 @@ class ReviewRun:
         - Author info
         - Branch names
 
-        Runs every 15 seconds - rate limits allow ~5000 GraphQL points/hour
+        Runs every 5 minutes - rate limits allow ~5000 GraphQL points/hour
         and each query uses ~50-100 points, so this is well within limits.
         """
         # Run immediately on startup
@@ -2362,9 +2461,8 @@ class ReviewRun:
             except Exception as e:
                 print(f"[GH CACHE] Error: {e}", flush=True)
 
-            # Wait 15 seconds between refresh cycles
-            # Query takes ~10s so effective cycle is ~25s
-            for _ in range(15):
+            # Wait 5 minutes between refresh cycles
+            for _ in range(300):
                 if self._stop:
                     break
                 time.sleep(1.0)
@@ -2645,7 +2743,9 @@ class ReviewRun:
                 or "^0.14.0"
             )
             pr_data = _check_existing_pr_for_package(
-                package=package, repo_root=self.packages_repo_root, target_requires_atopile=target
+                package=package,
+                repo_root=self.packages_repo_root,
+                target_requires_atopile=target,
             )
             branch = (pr_data or {}).get("branch")
 
@@ -4098,7 +4198,12 @@ class ReviewRun:
         fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
         r = run_git(["fetch", "origin", fetch_ref], cwd=repo)
         out.append(
-            {"cmd": ["git", "fetch", "origin", fetch_ref], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+            {
+                "cmd": ["git", "fetch", "origin", fetch_ref],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
         )
         if r.returncode != 0:
             raise RuntimeError(f"git fetch failed:\n{r.stderr}")
@@ -4177,7 +4282,9 @@ class ReviewRun:
         branch, pr_data = self._resolve_pr_branch(
             package=package, target_requires_atopile=target_requires_atopile
         )
-        if pr_data and (pr_data.get("state") == "MERGED" or pr_data.get("merged") is True):
+        if pr_data and (
+            pr_data.get("state") == "MERGED" or pr_data.get("merged") is True
+        ):
             raise ValueError("PR already merged; refusing to push updates")
 
         pkg_rel = f"packages/{package}"
@@ -4207,7 +4314,12 @@ class ReviewRun:
         fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
         r = run_git(["fetch", "origin", fetch_ref], cwd=repo)
         out.append(
-            {"cmd": ["git", "fetch", "origin", fetch_ref], "rc": r.returncode, "out": r.stdout, "err": r.stderr}
+            {
+                "cmd": ["git", "fetch", "origin", fetch_ref],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
         )
         if r.returncode != 0:
             raise RuntimeError(f"git fetch failed:\n{r.stderr}")
@@ -4278,7 +4390,12 @@ class ReviewRun:
                 job.publish_error = None
                 job.status = "pr_opened" if job.published_pr_url else "branch_pushed"
             self._write_state()
-            return {"branch": branch, "pr_url": job.published_pr_url, "no_changes": True, "commands": out}
+            return {
+                "branch": branch,
+                "pr_url": job.published_pr_url,
+                "no_changes": True,
+                "commands": out,
+            }
 
         cm = (commit_message or "").strip() or f"{package}: sync build outputs"
         cm += "\n\nBuild targets:"
@@ -4329,7 +4446,12 @@ class ReviewRun:
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
-        return {"branch": branch, "pr_url": job.published_pr_url, "pushed": True, "commands": out}
+        return {
+            "branch": branch,
+            "pr_url": job.published_pr_url,
+            "pushed": True,
+            "commands": out,
+        }
 
     def uprev_and_publish(
         self,
@@ -4934,6 +5056,29 @@ class ReviewRun:
             p = run_logs_dir / fname
             extract_from_log(p, f"build ({b})", "build", log_id_override=fname)
 
+        # Extract from job-reported build logs (summary.json log_dir)
+        # These are per-target directories with *.error.log, *.warning.log, etc.
+        for b, log_path in (job.build_logs or {}).items():
+            if not log_path:
+                continue
+            try:
+                p = Path(log_path)
+            except Exception:
+                continue
+            if p.is_dir():
+                for lp in sorted(p.iterdir()):
+                    if not lp.is_file():
+                        continue
+                    if not (lp.name.endswith(".log") or lp.name.endswith(".txt")):
+                        continue
+                    log_id = f"pkg__buildlog__{b}__{lp.name}"
+                    extract_from_log(
+                        lp, f"{b} / {lp.name}", "build", log_id_override=log_id
+                    )
+            elif p.is_file():
+                log_id = f"pkg__buildlog__{b}__{p.name}"
+                extract_from_log(p, f"build ({b})", "build", log_id_override=log_id)
+
         # Extract from verify log
         v = run_logs_dir / "verify.log"
         extract_from_log(v, "verify", "verify", log_id_override="verify.log")
@@ -4984,13 +5129,15 @@ class ReviewRun:
         pr_url = job.published_pr_url
         ci_conclusion = job.ci_conclusion
 
-        # If we don't have CI info yet, check the cache
-        if not ci_conclusion:
+        # If we don't have PR URL or CI info, check the cache
+        # This handles the case where a job was restarted (which clears published_pr_url)
+        if not pr_url or not ci_conclusion:
             cached_pr = self.get_cached_pr_for_package(package)
             if cached_pr:
                 if not pr_url:
                     pr_url = cached_pr.get("url")
-                ci_conclusion = cached_pr.get("ci_conclusion")
+                if not ci_conclusion:
+                    ci_conclusion = cached_pr.get("ci_conclusion")
                 # Update job with cached data
                 if pr_url and not job.published_pr_url:
                     job.published_pr_url = pr_url
@@ -6569,9 +6716,13 @@ class Server:
                                 HTTPStatus.BAD_REQUEST, {"error": str(e)}
                             )
 
-                    if path.startswith("/api/package/") and path.endswith("/push_to_pr"):
+                    if path.startswith("/api/package/") and path.endswith(
+                        "/push_to_pr"
+                    ):
                         pkg = unquote(
-                            path.removeprefix("/api/package/").removesuffix("/push_to_pr")
+                            path.removeprefix("/api/package/").removesuffix(
+                                "/push_to_pr"
+                            )
                         ).strip("/")
                         print(f"[PUSH PR] Starting push for {pkg}", flush=True)
                         _log_line(f"{_now_ts()} PUSH PR: Starting push for {pkg}")
@@ -6579,7 +6730,9 @@ class Server:
                             payload = self._read_json()
                             reviewer = payload.get("reviewer")
                             commit_message = payload.get("commit_message") or ""
-                            target_requires_atopile = payload.get("target_requires_atopile")
+                            target_requires_atopile = payload.get(
+                                "target_requires_atopile"
+                            )
                             res = run.push_to_pr(
                                 pkg,
                                 reviewer=reviewer,
