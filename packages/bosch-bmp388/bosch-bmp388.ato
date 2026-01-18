@@ -65,8 +65,8 @@ module Bosch_BMP388:
     addressor.base = 0x76
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
-    assert addressor.base is 0x76
-    assert addressor.address is i2c.address
+    assert addressor.base within 0x76
+    assert addressor.address within i2c.address
     # Default to base address (0x76), can be overridden by user
     i2c.address.default = 0x76
 
