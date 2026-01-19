@@ -38,7 +38,7 @@ module TI_INA237:
     I2C bus interface with 16 selectable addresses (0x40-0x4F)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     vbus = new ElectricLogic
     """
@@ -53,7 +53,7 @@ module TI_INA237:
     # User-defined maximum current parameter
     max_current: current
     # Default to 1 A to provide initial constraint (can be overridden by instantiations)
-    max_current = 1A
+    max_current.default = 1A
 
     # INA237 default full-scale shunt drop (programmable). Use 163.84 mV typical.
     shunt_drop = 163.84mV
@@ -72,17 +72,19 @@ module TI_INA237:
     Alert output pin (open-drain, active low)
     """
 
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     """
     I2C address configuration (A0, A1 pins) - 4 addresses: 0x40-0x43
     """
     addressor.base = 0x40
     assert i2c.address is addressor.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
     # --- Decoupling capacitors ---
     supply_cap = new Capacitor
     supply_cap.capacitance = 100nF +/- 20%
-    supply_cap.max_voltage = 10V
+    supply_cap.max_voltage = 10V to 50V
     supply_cap.package = "0402"
     power.hv ~> supply_cap ~> power.lv
 
