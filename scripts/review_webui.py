@@ -2928,9 +2928,10 @@ class ReviewRun:
 
                     pr_state = pr_data.get("state")
                     merged_at = pr_data.get("merged_at")
-                    # Update status based on PR state
+                    # Update status based on PR state - BUT only if package was built locally
+                    # We want every package to build at least once to verify it works
+                    has_local_build = bool(job.build_rc)
                     if pr_state == "MERGED":
-                        job.status = "published"
                         if merged_at:
                             job.published_at = merged_at
                         # Treat merged PR as success to avoid stale CI failure badge
@@ -2939,8 +2940,12 @@ class ReviewRun:
                         job.ci_checked_at = now
                         job.ci_issues_cached = None
                         job.ci_issues_fetched_at = None
+                        # Only update status if package was built locally
+                        if has_local_build and job.status not in ("building", "verifying"):
+                            job.status = "published"
                     elif pr_state == "OPEN":
-                        if job.status not in ("building", "verifying"):
+                        # Only update status if package was built locally
+                        if has_local_build and job.status not in ("building", "verifying"):
                             job.status = "pr_opened"
 
                     # Always update CI status unless merged forced success above
@@ -2974,8 +2979,8 @@ class ReviewRun:
                         job.ci_auto_rebuild_for = ci_failure_key
                         packages_to_auto_restart.append(name)
 
-                # Registry has final say for published status (unless building/verifying)
-                if job.registry_updated_014 and job.status not in (
+                # Registry has final say for published status (unless building/verifying or not built locally)
+                if job.registry_updated_014 and job.build_rc and job.status not in (
                     "building",
                     "verifying",
                 ):
@@ -4278,7 +4283,8 @@ class ReviewRun:
                         j.registry_checked_at = _now_ts()
                         j.registry_error = None
                         j.registry_updated_014 = updated_014
-                        if updated_014 and j.status not in ("building", "verifying"):
+                        # Only update status if package was built locally
+                        if updated_014 and j.build_rc and j.status not in ("building", "verifying"):
                             j.status = "published"
                 updated = True
             except Exception as e:
@@ -5951,10 +5957,14 @@ class ReviewRun:
                 job.published_pr_title = cached_pr.get("title")
                 job.published_branch = cached_pr.get("branch")
                 job.published_pr_author = cached_pr.get("author")
-                if cached_pr.get("state") == "MERGED":
-                    job.status = "published"
-                elif cached_pr.get("url"):
-                    job.status = "pr_opened"
+                # Only update status if package was built locally
+                # We want every package to build at least once
+                has_local_build = bool(job.build_rc)
+                if has_local_build and job.status not in ("building", "verifying"):
+                    if cached_pr.get("state") == "MERGED":
+                        job.status = "published"
+                    elif cached_pr.get("url"):
+                        job.status = "pr_opened"
                 # Also apply CI status from cache
                 job.ci_status = cached_pr.get("ci_status")
                 job.ci_conclusion = cached_pr.get("ci_conclusion")
@@ -6008,10 +6018,13 @@ class ReviewRun:
                                 job.published_pr_author = (pr.get("author") or {}).get(
                                     "login"
                                 )
-                                if pr.get("state") == "MERGED":
-                                    job.status = "published"
-                                elif pr.get("url"):
-                                    job.status = "pr_opened"
+                                # Only update status if package was built locally
+                                has_local_build = bool(job.build_rc)
+                                if has_local_build and job.status not in ("building", "verifying"):
+                                    if pr.get("state") == "MERGED":
+                                        job.status = "published"
+                                    elif pr.get("url"):
+                                        job.status = "pr_opened"
                             self._write_state()
                             print(
                                 f"[PR_DISCOVERY] Found PR via API for {package}: {pr.get('url')}",
@@ -6266,7 +6279,9 @@ class ReviewRun:
                                     job.published_branch = branch
                                 if not job.published_pr_url:
                                     job.published_pr_url = info.get("pr_url")
-                                    job.status = "pr_opened"
+                                    # Only update status if package was built locally
+                                    if job.build_rc and job.status not in ("building", "verifying"):
+                                        job.status = "pr_opened"
                                 break
 
                     if ci_info:
