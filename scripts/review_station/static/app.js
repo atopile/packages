@@ -541,10 +541,21 @@ function getHash() {
   return h ? decodeURIComponent(h) : null;
 }
 
-async function apiGet(path) {
-  const r = await fetch(path, { cache: "no-store" });
-  if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
-  return await r.json();
+async function apiGet(path, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(path, { cache: "no-store", signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!r.ok) throw new Error(`GET ${path} -> ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s`);
+    }
+    throw e;
+  }
 }
 
 async function apiPost(path, payload, timeoutMs = 180000) {
@@ -2095,7 +2106,8 @@ async function fetchGhCacheStatus() {
   if (!el) return;
 
   try {
-    const res = await apiGet("/api/gh_cache_status");
+    // Use 5 second timeout for status check (should be fast)
+    const res = await apiGet("/api/gh_cache_status", 5000);
     const age = res.cache_age_seconds || 999;
     const status = res.status || "loading";
     const ciFailures = res.ci_failures || 0;
@@ -2117,16 +2129,22 @@ async function fetchGhCacheStatus() {
       el.title = `Last sync: ${Math.round(age)}s ago\nClick to refresh GitHub data`;
     }
   } catch (e) {
+    console.warn("[GitHub Status] Error fetching status:", e);
     el.classList.remove("loading", "synced");
     el.classList.add("error");
-    el.textContent = "⚠ GitHub error";
+    el.textContent = "⚠ GitHub";
     el.title = `${String(e)}\nClick to retry`;
+    // Don't crash the dashboard - just show error state
   }
 }
 
 async function refreshGitHub() {
   const el = document.getElementById("ghRefreshBtn");
   if (!el) return;
+
+  // Prevent double-clicks
+  if (el.dataset.refreshing === "true") return;
+  el.dataset.refreshing = "true";
 
   // Show loading state
   el.classList.remove("synced", "error");
@@ -2135,22 +2153,27 @@ async function refreshGitHub() {
   el.title = "Fetching PR and CI data from GitHub...";
 
   try {
-    await apiPost("/api/refresh_github", {});
+    // Use 10 second timeout for GitHub refresh
+    await apiPost("/api/refresh_github", {}, 10000);
     // Wait a moment for the refresh to start processing, then update status
     setTimeout(() => fetchGhCacheStatus(), 1000);
     setTimeout(() => fetchGhCacheStatus(), 3000);
     setTimeout(() => fetchGhCacheStatus(), 8000);
   } catch (e) {
+    console.error("[GitHub Refresh] Error:", e);
     el.classList.remove("loading");
     el.classList.add("error");
     el.textContent = "⚠ Refresh failed";
-    el.title = String(e);
+    el.title = `${String(e)}\nClick to retry`;
+  } finally {
+    el.dataset.refreshing = "false";
   }
 }
 
 async function refresh(keepDetail = true, fullState = false) {
   const t0 = performance.now();
-  await Promise.all([fetchState(fullState), fetchGhCacheStatus()]);
+  // Use Promise.allSettled so GitHub status failure doesn't crash the dashboard
+  await Promise.allSettled([fetchState(fullState), fetchGhCacheStatus()]);
   const tList0 = performance.now();
   renderList();
   debug.lastRenderListMs = performance.now() - tList0;
