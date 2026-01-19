@@ -2,6 +2,7 @@
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 # --- Imports ---
 import ElectricPower
@@ -10,6 +11,7 @@ import ElectricSignal
 import Capacitor
 import Resistor
 import Addressor
+import has_single_electric_reference
 
 from "parts/Texas_Instruments_ADS7830IPWR/Texas_Instruments_ADS7830IPWR.ato" import Texas_Instruments_ADS7830IPWR_package
 
@@ -35,6 +37,10 @@ module TI_ADS7830:
     """
     power.required = True
     assert power.voltage within 2.7V to 5.0V
+
+    # --- Single electric reference trait ---
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
 
     i2c = new I2C
     """
@@ -81,6 +87,8 @@ module TI_ADS7830:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x48), can be overridden by user
+    i2c.address.default = 0x48
 
     # --- Decoupling capacitors ---
     # Main power supply decoupling - 100nF
