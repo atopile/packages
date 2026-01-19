@@ -48,7 +48,7 @@ module Usage:
     power_3v3 ~ light_sensor.power
 
     # Set I²C address (fixed at 0x10)
-    assert light_sensor.i2c.address is 0x10
+    assert light_sensor.i2c.address within 0x10
 
 ```
 
