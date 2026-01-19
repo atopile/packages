@@ -40,15 +40,15 @@ module Usage:
     # leds
     for led in row_0_led:
         led.lcsc_id = "C2286"
-        led_driver.channel_a[0].line ~ led.cathode
-    led_driver.channel_a[1].line ~ row_0_led[0].anode
-    led_driver.channel_a[2].line ~ row_0_led[1].anode
-    led_driver.channel_a[3].line ~ row_0_led[2].anode
-    led_driver.channel_a[4].line ~ row_0_led[3].anode
-    led_driver.channel_a[5].line ~ row_0_led[4].anode
-    led_driver.channel_a[6].line ~ row_0_led[5].anode
-    led_driver.channel_a[7].line ~ row_0_led[6].anode
-    led_driver.channel_a[8].line ~ row_0_led[7].anode
+        led_driver.channel_a[0].line ~ led.diode.cathode
+    led_driver.channel_a[1].line ~ row_0_led[0].diode.anode
+    led_driver.channel_a[2].line ~ row_0_led[1].diode.anode
+    led_driver.channel_a[3].line ~ row_0_led[2].diode.anode
+    led_driver.channel_a[4].line ~ row_0_led[3].diode.anode
+    led_driver.channel_a[5].line ~ row_0_led[4].diode.anode
+    led_driver.channel_a[6].line ~ row_0_led[5].diode.anode
+    led_driver.channel_a[7].line ~ row_0_led[6].diode.anode
+    led_driver.channel_a[8].line ~ row_0_led[7].diode.anode
 
     # ... more rows ...
 
