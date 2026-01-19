@@ -46,14 +46,6 @@ module Usage:
     i2c_bus = new I2C
     i2c_bus.frequency = 400kHz
     i2c_bus ~ sensor.i2c
-
-    # Set CS high for I2C mode
-    cs_pullup = new Resistor
-    cs_pullup.resistance = 10kohm +/- 1%
-    cs_pullup.package = "0402"
-    power_3v3.hv ~> cs_pullup ~> sensor.cs.line
-    power_3v3 ~ sensor.power
-
 ```
 
 ## Contributing

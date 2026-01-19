@@ -1,11 +1,13 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import ElectricPower
 import ElectricLogic
 import I2C
 import Capacitor
 import Resistor
+import has_single_electric_reference
 
 from "parts/Microchip_Tech_MCP4728_E_UN/Microchip_Tech_MCP4728_E_UN.ato" import Microchip_Tech_MCP4728_E_UN_package
 
@@ -31,7 +33,9 @@ module Microchip_MCP4728:
     I²C bus interface (7-bit addr 0x60-0x67, factory programmed)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
 
     # DAC output signals
     vouts = new ElectricLogic[4]
@@ -101,7 +105,6 @@ module Microchip_MCP4728:
     package.RDY_nBSY ~ ready.line
 
     package.nLDAC ~ ldac.line
-    ldac.reference ~ power
 
     # DAC output connections
     package.VOUTA ~ vouts[0].line
