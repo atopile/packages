@@ -58,20 +58,20 @@ module ADI_ADXL345:
     int2.required = False
 
     # --- Power supply ---
-    power_vs.vcc ~ package.VS
-    power_vs.gnd ~ package.GND
+    power_vs.hv ~ package.VS
+    power_vs.lv ~ package.GND
     assert power_vs.voltage within 2.0V to 3.6V
 
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ power_vs.gnd
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ power_vs.lv
     assert power_io.voltage within 1.7V to 3.6V
 
     # --- I2C interface ---
     # Fixed I2C address 0x53 (SDO/ALT ADDRESS pin tied to GND)
-    assert i2c.address is 0x53
+    assert i2c.address within 0x53
 
     # SDO/ALT ADDRESS pin tied to GND for 0x53 address
-    package.SDO_ALTADDRESS ~ power_vs.gnd
+    package.SDO_ALTADDRESS ~ power_vs.lv
 
     i2c.scl.line ~ package.SCL_SCLK
     i2c.sda.line ~ package.SDA_SDI_SDIO
@@ -82,16 +82,16 @@ module ADI_ADXL345:
     scl_pullup = new Resistor
     scl_pullup.resistance = 10kohm +/- 20%
     scl_pullup.package = "0402"
-    power_io.vcc ~> scl_pullup ~> i2c.scl.line
+    power_io.hv ~> scl_pullup ~> i2c.scl.line
 
     sda_pullup = new Resistor
     sda_pullup.resistance = 10kohm +/- 20%
     sda_pullup.package = "0402"
-    power_io.vcc ~> sda_pullup ~> i2c.sda.line
+    power_io.hv ~> sda_pullup ~> i2c.sda.line
 
     # --- Chip select for I2C mode ---
     # CS pin tied high for I2C operation
-    package.nCS ~ power_io.vcc
+    package.nCS ~ power_io.hv
 
     # --- Interrupt connections ---
     int1.line ~ package.INT1
@@ -106,5 +106,5 @@ module ADI_ADXL345:
         cap.capacitance = 100nF +/- 20%
         cap.package = "0402"
 
-    power_vs.vcc ~> decoupling_caps[0] ~> power_vs.gnd
-    power_io.vcc ~> decoupling_caps[1] ~> power_vs.gnd
+    power_vs.hv ~> decoupling_caps[0] ~> power_vs.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_vs.lv

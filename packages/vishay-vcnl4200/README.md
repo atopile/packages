@@ -50,7 +50,7 @@ module Usage:
     i2c_bus ~ sensor.i2c
 
     # Set I2C address (fixed for VCNL4200)
-    sensor.i2c.address = 0x51
+    assert sensor.i2c.address within 0x51 +/- 0
 
     # LED control is optional - leave unconnected for always-on LED
     # Connect to microcontroller GPIO to control LED programmatically

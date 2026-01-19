@@ -1,16 +1,11 @@
-#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-import Addressor
 import ElectricPower
-import ElectricSignal
 import I2C
 import Capacitor
 import Resistor
-import FilterElectricalRC
 
 from "parts/ROHM_Semicon_BH1750FVI_TR/ROHM_Semicon_BH1750FVI_TR.ato" import ROHM_Semicon_BH1750FVI_TR_package
-
 
 module ROHM_BH1750:
     """
@@ -38,7 +33,7 @@ module ROHM_BH1750:
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
     i2c_address_pulldown_resistor = new Resistor
-    i2c_address_pulldown_resistor.value = 10kohm +/- 10%
+    i2c_address_pulldown_resistor.resistance = 10kohm +/- 10%
     i2c_address_pulldown_resistor.package = "0402"
     power.lv ~> i2c_address_pulldown_resistor ~> package.ADDR
     i2c.address = 0x23
@@ -58,13 +53,16 @@ module ROHM_BH1750:
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
 
     # --- DVI low-pass filter ---
-    dvi_lowpass = new FilterElectricalRC
-    dvi_lowpass.in_.line ~ power.hv
-    dvi_lowpass.in_.reference ~ power
-    dvi_lowpass.resistor.resistance = 1kohm +/- 10%
-    dvi_lowpass.resistor.package = "0402"
-    dvi_lowpass.capacitor.capacitance = 0.1uF +/- 10%
-    dvi_lowpass.capacitor.package = "0402"
+    # Manual RC low-pass filter for DVI pin (datasheet recommended)
+    dvi_resistor = new Resistor
+    dvi_resistor.resistance = 1kohm +/- 10%
+    dvi_resistor.package = "0402"
+    dvi_capacitor = new Capacitor
+    dvi_capacitor.capacitance = 100nF +/- 10%
+    dvi_capacitor.package = "0402"
+    # RC filter: power.hv -> resistor -> DVI pin, capacitor to ground
+    power.hv ~> dvi_resistor ~> package.DVI
+    package.DVI ~> dvi_capacitor ~> power.lv
 
     # --- Package ---
     package.GND ~ power.lv
@@ -72,4 +70,3 @@ module ROHM_BH1750:
     package.SDA ~ i2c.sda.line
     package.SCL ~ i2c.scl.line
     package.EP ~ power.lv
-    package.DVI ~ dvi_lowpass.out.line
