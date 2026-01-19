@@ -36,6 +36,7 @@ module Usage:
     power_12v = new ElectricPower
     power_5v_from_12v = new ElectricPower
     power_12v ~> reg_12v_to_5v ~> power_5v_from_12v
+
 ```
 
 ## Contributing
