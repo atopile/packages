@@ -483,11 +483,30 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   }
 
   // Timing element - nice two-column layout for start/finish
+  // Shows live elapsed timer when build is active
   let timingHtml = "";
+  const isActive = job.status === "building" || job.status === "verifying";
   if (job.started_at || job.finished_at) {
     const startTime = job.started_at ? job.started_at.split(" ")[1] || job.started_at : "—";
     const endTime = job.finished_at ? job.finished_at.split(" ")[1] || job.finished_at : "—";
     const startDate = job.started_at ? job.started_at.split(" ")[0] : "";
+
+    // For active builds, show live elapsed time instead of finish time
+    let elapsedHtml = "";
+    if (isActive && job.started_at) {
+      const startMs = new Date(job.started_at.replace(" ", "T")).getTime();
+      const elapsedSecs = Math.max(0, (Date.now() - startMs) / 1000);
+      // Show current step (build/verify) alongside elapsed time
+      const stepLabel = job.current_step === "verify" ? "Verifying" : "Building";
+      elapsedHtml = `
+        <div class="timingItem timingElapsed">
+          <span class="timingIcon">⏱</span>
+          <span class="timingLabel">${escHtml(stepLabel)}</span>
+          <span class="timingValue summaryActiveTimer" data-started="${escHtml(job.started_at)}">${Math.floor(elapsedSecs)}s</span>
+        </div>
+      `;
+    }
+
     timingHtml = `
       <div class="timingRow">
         <div class="timingItem">
@@ -495,11 +514,13 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
           <span class="timingLabel">Started</span>
           <span class="timingValue">${escHtml(startTime)}</span>
         </div>
+        ${isActive ? elapsedHtml : `
         <div class="timingItem">
           <span class="timingIcon">■</span>
           <span class="timingLabel">Finished</span>
           <span class="timingValue">${escHtml(endTime)}</span>
         </div>
+        `}
         ${startDate ? `<div class="timingDate">${escHtml(startDate)}</div>` : ""}
       </div>
     `;
@@ -526,14 +547,33 @@ async function apiGet(path) {
   return await r.json();
 }
 
-async function apiPost(path, payload) {
-  const r = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload || {}),
-  });
-  if (!r.ok) throw new Error(`POST ${path} -> ${r.status}`);
-  return await r.json();
+async function apiPost(path, payload, timeoutMs = 180000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (!r.ok) {
+      let errMsg = `POST ${path} -> ${r.status}`;
+      try {
+        const errJson = await r.json();
+        if (errJson?.error) errMsg = errJson.error;
+      } catch (_) { /* ignore parse errors */ }
+      throw new Error(errMsg);
+    }
+    return await r.json();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s - the operation may still be running on the server. Check the server logs.`);
+    }
+    throw e;
+  }
 }
 
 function renderDiffToHtml(diffText) {
@@ -958,6 +998,14 @@ function _renderRightImpl() {
   }
 
   const job = detail.job;
+  // Merge live polling data (started_at, current_step, status) from state.packages
+  // This ensures the summary timer works even when detail.job is stale
+  const liveData = state.packages[pkg];
+  if (liveData) {
+    if (liveData.started_at !== undefined) job.started_at = liveData.started_at;
+    if (liveData.current_step !== undefined) job.current_step = liveData.current_step;
+    if (liveData.status !== undefined) job.status = liveData.status;
+  }
   const approved = !!job.approved_by;
   const prevTab = state.lastViewTab;
   state.lastViewTab = state.viewTab;
@@ -1566,6 +1614,9 @@ async function fetchState(full = false) {
       if (summary.reg_req !== undefined) pkg.registry_requires_atopile = summary.reg_req;
       if (summary.author !== undefined) pkg.published_pr_author = summary.author;
       if (summary.progress !== undefined) pkg.build_progress = summary.progress;
+      // Include started_at and current_step for active builds to support timer display
+      if (summary.started_at !== undefined) pkg.started_at = summary.started_at;
+      if (summary.step !== undefined) pkg.current_step = summary.step;
       state.packages[name] = pkg;
     }
   }
@@ -1767,8 +1818,8 @@ async function unapproveSelected() {
 async function restartSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Restart with frozen=true (default behavior, fail if layout changes needed)
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true });
+  // Restart with frozen=true, keep_picked_parts=true (fail if layout changes needed, use existing picks)
+  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true, keep_picked_parts: true });
   state.selectedLogContent = "";
   await fetchLogIndex();
   await refresh(true);
@@ -1777,8 +1828,8 @@ async function restartSelected() {
 async function rebuildSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Rebuild with frozen=false (allow layout changes)
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false });
+  // Rebuild with frozen=false, keep_picked_parts=false (allow layout changes, re-pick parts)
+  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false, keep_picked_parts: false });
   state.selectedLogContent = "";
   await fetchLogIndex();
   await refresh(true);
@@ -1791,11 +1842,17 @@ async function publishSelected() {
     console.log("[PUBLISH] No package selected, returning");
     return;
   }
+  const btn = $("#publishBtn");
+  const originalText = btn?.textContent;
   const reviewer = ($("#reviewer").value || "").trim() || null;
   const target_requires_atopile = ($("#targetAtopile").value || "").trim() || "^0.14.0";
   const commit_message = state.publish.commitMessage || "";
   console.log("[PUBLISH] Making API call...", { pkg, reviewer, target_requires_atopile });
   try {
+    if (btn) {
+      btn.textContent = "Publishing...";
+      btn.disabled = true;
+    }
     const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/publish`, { reviewer, commit_message, target_requires_atopile });
     console.log("[PUBLISH] API response:", res);
     state.publish.lastResult = res.result || res;
@@ -1811,6 +1868,11 @@ async function publishSelected() {
     console.error("[PUBLISH] API error:", e);
     state.publish.error = String(e);
     alert(`Publish failed: ${String(e)}`);
+  } finally {
+    if (btn) {
+      btn.textContent = originalText || "Publish";
+      btn.disabled = false;
+    }
   }
   await refresh(true);
 }
@@ -1846,33 +1908,50 @@ async function syncSelected() {
     return;
   }
 
-  // First check if there's a diff
   const btn = $("#syncBtn");
   const originalText = btn?.textContent;
-  if (btn) btn.textContent = "Checking...";
 
   try {
-    const diffRes = await apiGet(`/api/package/${encodeURIComponent(pkg)}/main_diff`);
-
-    if (!diffRes.has_diff) {
-      alert("Already in sync with origin/main");
-      if (btn) btn.textContent = originalText;
-      return;
+    // First check if there's a diff to show what will change
+    if (btn) btn.textContent = "Checking...";
+    let diffInfo = null;
+    try {
+      diffInfo = await apiGet(`/api/package/${encodeURIComponent(pkg)}/main_diff`);
+    } catch (e) {
+      console.warn("[SYNC] Could not check diff:", e);
+      // Continue anyway - user can still sync
     }
 
-    // Show diff and confirm
-    const confirmMsg = `Sync ${pkg} from origin/main?\n\nChanges:\n${diffRes.diff_stat || "(file changes)"}`;
+    // Show confirmation with diff info if available
+    let confirmMsg;
+    if (diffInfo?.has_diff) {
+      confirmMsg = `Sync ${pkg} from origin/main?\n\nThis will checkout the package files from main, replacing any local changes.\n\nChanges:\n${diffInfo.diff_stat || "(file changes)"}`;
+    } else if (diffInfo && !diffInfo.has_diff) {
+      confirmMsg = `Sync ${pkg} from origin/main?\n\nNote: Package appears to already match origin/main, but this will re-checkout to ensure sync.`;
+    } else {
+      confirmMsg = `Sync ${pkg} from origin/main?\n\nThis will checkout the package files from main, replacing any local changes.`;
+    }
+
     if (!confirm(confirmMsg)) {
       if (btn) btn.textContent = originalText;
       return;
     }
 
+    // Perform the sync
     if (btn) btn.textContent = "Syncing...";
+    console.log("[SYNC] Starting sync for", pkg);
     const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/sync`, {});
     console.log("[SYNC] API response:", res);
 
-    const { version } = res?.result || {};
-    alert(`Synced successfully!\nNow at version: ${version || "unknown"}`);
+    const result = res?.result || res;
+    const { version, branch, files_changed } = result;
+
+    let successMsg = `Synced successfully from origin/main!`;
+    if (version) successMsg += `\nVersion: ${version}`;
+    if (branch) successMsg += `\nCurrent branch: ${branch}`;
+    if (files_changed !== undefined) successMsg += `\nFiles changed: ${files_changed}`;
+
+    alert(successMsg);
   } catch (e) {
     console.error("[SYNC] API error:", e);
     alert(`Sync failed: ${String(e)}`);
@@ -1961,7 +2040,10 @@ async function pushToPrSelected() {
 
   const btn = $("#pushPrBtn");
   const originalText = btn?.textContent;
-  if (btn) btn.textContent = "Pushing...";
+  if (btn) {
+    btn.textContent = "Pushing...";
+    btn.disabled = true;
+  }
 
   try {
     const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/push_to_pr`, { reviewer, commit_message });
@@ -1971,9 +2053,12 @@ async function pushToPrSelected() {
   } catch (e) {
     state.publish.error = String(e);
     alert(`Push to PR failed: ${String(e)}`);
+  } finally {
+    if (btn) {
+      btn.textContent = originalText || "Push to PR";
+      btn.disabled = false;
+    }
   }
-
-  if (btn) btn.textContent = originalText;
   await refresh(true);
 }
 
@@ -2278,6 +2363,35 @@ async function bootstrap() {
   // Poll. 2s is snappy enough for status updates without hammering the server.
   // Heavy data (logs, issues) are fetched on-demand, not every poll.
   setInterval(() => refresh(true).catch(() => { }), 2000);
+
+  // Update active build timers every second for smooth countdown display
+  setInterval(() => {
+    // Update sidebar timers (package list)
+    const activeTimers = document.querySelectorAll(".metric.activeTimer");
+    for (const timer of activeTimers) {
+      const row = timer.closest(".pkgRow");
+      if (!row) continue;
+      const nameEl = row.querySelector(".pkgName");
+      if (!nameEl) continue;
+      const pkgName = nameEl.textContent;
+      const pkg = state.packages[pkgName];
+      if (pkg && pkg.started_at && (pkg.status === "building" || pkg.status === "verifying")) {
+        const startMs = new Date(pkg.started_at.replace(" ", "T")).getTime();
+        const elapsedSecs = Math.max(0, (Date.now() - startMs) / 1000);
+        timer.textContent = `${Math.floor(elapsedSecs)}s`;
+      }
+    }
+
+    // Update summary pane timer (in the summary card)
+    const summaryTimers = document.querySelectorAll(".summaryActiveTimer");
+    for (const timer of summaryTimers) {
+      const startedAt = timer.dataset.started;
+      if (!startedAt) continue;
+      const startMs = new Date(startedAt.replace(" ", "T")).getTime();
+      const elapsedSecs = Math.max(0, (Date.now() - startMs) / 1000);
+      timer.textContent = `${Math.floor(elapsedSecs)}s`;
+    }
+  }, 1000);
 }
 
 bootstrap().catch((e) => {

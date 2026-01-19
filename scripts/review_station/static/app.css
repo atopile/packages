@@ -711,15 +711,17 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
   grid-template-columns: 1.15fr 1.85fr;
   grid-template-rows: auto 1fr minmax(280px, 360px);
   grid-template-areas:
-    "summary layout"
-    "issues layout"
-    "todo model";
+    "summary issues"
+    "layout issues"
+    "model todo";
 }
 .grid.modeDiff {
+  grid-template-rows: auto 1fr 1fr minmax(280px, 360px);
   grid-template-areas:
     "summary diff"
-    "issues diff"
-    "todo diff";
+    "layout diff"
+    "layout diff"
+    "model todo";
 }
 .card {
   position: relative; /* for progress bars */
@@ -934,6 +936,10 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 }
 .timingItem:first-child .timingIcon { color: var(--ctp-green); }
 .timingItem:nth-child(2) .timingIcon { color: var(--ctp-red); }
+/* Elapsed timer styling for active builds */
+.timingItem.timingElapsed .timingIcon { color: var(--ctp-blue); font-size: 12px; }
+.timingItem.timingElapsed .timingLabel { color: var(--ctp-blue); }
+.timingItem.timingElapsed .timingValue { color: var(--ctp-blue); font-weight: 600; font-variant-numeric: tabular-nums; }
 .timingLabel {
   font-size: 11px;
   color: var(--ctp-subtext0);
@@ -1248,16 +1254,13 @@ model-viewer {
 }
 
 /* grid placement */
-#cardSummary {
-  grid-area: summary;
-}
+#cardSummary { grid-area: summary; }
 #cardLayout  { grid-area: layout; }
 #cardIssues  { grid-area: issues; }
 #cardLogs    { grid-area: issues; }
 #cardTodo    { grid-area: todo; }
 #cardModel   { grid-area: model; }
-#cardDiff    { grid-area: layout; }
-.grid.modeDiff #cardDiff { grid-area: diff; }
+#cardDiff    { grid-area: diff; }
 
 @media (max-width: 1100px) {
   #app { grid-template-columns: 320px 1fr; }
@@ -1266,9 +1269,17 @@ model-viewer {
     grid-template-rows: auto 420px 320px 320px 1fr;
     grid-template-areas:
       "summary"
+      "issues"
       "layout"
       "model"
-      "issues"
+      "todo";
+  }
+  .grid.modeDiff {
+    grid-template-areas:
+      "summary"
+      "diff"
+      "layout"
+      "model"
       "todo";
   }
 }

@@ -1,172 +1,176 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Package Review Station</title>
-    <link rel="stylesheet" href="/app.css" />
-    <script type="module" src="/kicanvas.js"></script>
-    <script type="module" src="/model-viewer.min.js"></script>
-  </head>
-  <body>
-    <div id="app">
-      <aside id="left">
-        <div class="toolbar">
-          <div class="title">Package Review <span id="frozenStatus" class="frozenStatus" title="Frozen build mode"></span><button id="ghRefreshBtn" class="ghSyncStatus" type="button" title="Click to refresh GitHub data">⟳ GitHub</button></div>
-          <div class="filterRow">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Package Review Station</title>
+  <link rel="stylesheet" href="/app.css" />
+  <script type="module" src="/kicanvas.js"></script>
+  <script type="module" src="/model-viewer.min.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <aside id="left">
+      <div class="toolbar">
+        <div class="title">Package Review <span id="frozenStatus" class="frozenStatus"
+            title="Frozen build mode"></span><button id="ghRefreshBtn" class="ghSyncStatus" type="button"
+            title="Click to refresh GitHub data">⟳ GitHub</button></div>
+        <div class="filterRow">
           <input id="filter" type="text" placeholder="Filter packages…" />
-            <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
-          </div>
-          <div class="statusFilters" id="statusFilters">
-            <button class="statusFilterBtn active" data-status="all">All</button>
-            <button class="statusFilterBtn" data-status="recent">Recent</button>
-            <button class="statusFilterBtn" data-status="building">Build</button>
-            <button class="statusFilterBtn" data-status="error">Err</button>
-            <button class="statusFilterBtn" data-status="warning">Warn</button>
-            <button class="statusFilterBtn" data-status="review">Review</button>
-            <button class="statusFilterBtn" data-status="pr">PR</button>
-            <button class="statusFilterBtn" data-status="ci_failing">CI ✗</button>
-            <button class="statusFilterBtn" data-status="published">Done</button>
-            <button class="statusFilterBtn" data-status="queue">Queue</button>
-            <button class="statusFilterBtn agent" data-status="agent">Agent</button>
-            <button class="statusFilterBtn help" data-status="help">Help</button>
+          <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
+        </div>
+        <div class="statusFilters" id="statusFilters">
+          <button class="statusFilterBtn active" data-status="all">All</button>
+          <button class="statusFilterBtn" data-status="recent">Recent</button>
+          <button class="statusFilterBtn" data-status="building">Build</button>
+          <button class="statusFilterBtn" data-status="error">Err</button>
+          <button class="statusFilterBtn" data-status="warning">Warn</button>
+          <button class="statusFilterBtn" data-status="review">Review</button>
+          <button class="statusFilterBtn" data-status="pr">PR</button>
+          <button class="statusFilterBtn" data-status="ci_failing">CI ✗</button>
+          <button class="statusFilterBtn" data-status="published">Done</button>
+          <button class="statusFilterBtn" data-status="queue">Queue</button>
+          <button class="statusFilterBtn agent" data-status="agent">Agent</button>
+          <button class="statusFilterBtn help" data-status="help">Help</button>
+        </div>
+      </div>
+      <div id="pkgList" class="list"></div>
+    </aside>
+
+    <main id="right">
+      <div class="header">
+        <div>
+          <div id="pkgTitle" class="pkgTitle">Select a package</div>
+          <div id="pkgSub" class="pkgSub"></div>
+          <div class="headerTabs">
+            <div class="tabs" role="tablist" aria-label="Viewer tabs">
+              <button id="tabViewer" class="tabBtn" type="button">Viewer</button>
+              <button id="tabDiff" class="tabBtn" type="button">Diff</button>
+            </div>
+            <button id="themeBtn" class="miniBtn" type="button" title="Theme: Auto / Dark / Light">Theme: Auto</button>
+            <div id="debugHud" class="debugHud" style="display:none;"></div>
           </div>
         </div>
-        <div id="pkgList" class="list"></div>
-      </aside>
-
-      <main id="right">
-        <div class="header">
-          <div>
-            <div id="pkgTitle" class="pkgTitle">Select a package</div>
-            <div id="pkgSub" class="pkgSub"></div>
-            <div class="headerTabs">
-              <div class="tabs" role="tablist" aria-label="Viewer tabs">
-                <button id="tabViewer" class="tabBtn" type="button">Viewer</button>
-                <button id="tabDiff" class="tabBtn" type="button">Diff</button>
-              </div>
-              <button id="themeBtn" class="miniBtn" type="button" title="Theme: Auto / Dark / Light">Theme: Auto</button>
-              <div id="debugHud" class="debugHud" style="display:none;"></div>
-            </div>
-          </div>
-          <div class="actions">
-            <input id="reviewer" type="text" placeholder="Reviewer name (optional)" />
-            <input id="targetAtopile" type="text" placeholder="Target atopile (e.g. ^0.14.0)" value="^0.14.0" />
-            <button id="cursorBtn" disabled>Open in Cursor</button>
-            <button id="openBtn" disabled>Open in KiCad</button>
-            <button id="restartBtn" disabled title="Restart build with --frozen (fail if layout changes needed)">Restart (frozen)</button>
-            <button id="rebuildBtn" disabled title="Restart build without --frozen (allow layout changes)">Rebuild</button>
-            <button id="approveBtn" disabled>Approve</button>
-            <button id="unapproveBtn" disabled>Unapprove</button>
-            <button id="publishBtn" disabled>Publish</button>
-            <button id="uprevBtn" disabled title="Get current registry version, bump patch, create PR">Uprev</button>
-            <button id="syncBtn" disabled title="Sync local package from origin/main">Sync</button>
-            <button id="githubBtn" disabled title="Open PR on GitHub">GitHub</button>
-            <button id="rerunCiBtn" disabled title="Re-run CI for this package's PR">Rerun CI</button>
-            <button id="pullPrBtn" disabled title="Pull package files from PR branch into working tree">Pull from PR</button>
-            <button id="pushPrBtn" disabled title="Push rebuilt package to existing PR branch">Push to PR</button>
-          </div>
+        <div class="actions">
+          <input id="reviewer" type="text" placeholder="Reviewer name (optional)" />
+          <input id="targetAtopile" type="text" placeholder="Target atopile (e.g. ^0.14.0)" value="^0.14.0" />
+          <button id="cursorBtn" disabled>Open in Cursor</button>
+          <button id="openBtn" disabled>Open in KiCad</button>
+          <button id="restartBtn" disabled title="Restart build with --frozen (fail if layout changes needed)">Restart
+            (frozen)</button>
+          <button id="rebuildBtn" disabled
+            title="Restart build without --frozen (allow layout changes)">Rebuild</button>
+          <button id="approveBtn" disabled>Approve</button>
+          <button id="unapproveBtn" disabled>Unapprove</button>
+          <button id="publishBtn" disabled>Publish</button>
+          <button id="uprevBtn" disabled title="Get current registry version, bump patch, create PR">Uprev</button>
+          <button id="syncBtn" disabled title="Checkout package files from origin/main into current branch">Sync from
+            Main</button>
+          <button id="githubBtn" disabled title="Open PR on GitHub">GitHub</button>
+          <button id="rerunCiBtn" disabled title="Re-run CI for this package's PR">Rerun CI</button>
+          <button id="pullPrBtn" disabled title="Pull package files from PR branch into working tree">Pull from
+            PR</button>
+          <button id="pushPrBtn" disabled title="Push rebuilt package to existing PR branch">Push to PR</button>
         </div>
+      </div>
 
-        <div class="grid">
-          <section class="card" id="cardSummary">
-            <div class="cardTitle">Status & Summary</div>
-            <div id="summary">—</div>
-          </section>
+      <div class="grid">
+        <section class="card" id="cardSummary">
+          <div class="cardTitle">Status & Summary</div>
+          <div id="summary">—</div>
+        </section>
 
-          <section class="card" id="cardLayout">
-            <div class="cardTitle row">
-              <span>Layout (KiCanvas)</span>
-              <select id="buildSelect"></select>
-            </div>
-            <div class="kicanvasWrap">
-              <kicanvas-embed id="kv" controls="full" zoom="objects" controlslist="nodownload"></kicanvas-embed>
-            </div>
-          </section>
+        <section class="card" id="cardLayout">
+          <div class="cardTitle row">
+            <span>Layout (KiCanvas)</span>
+            <select id="buildSelect"></select>
+          </div>
+          <div class="kicanvasWrap">
+            <kicanvas-embed id="kv" controls="full" zoom="objects" controlslist="nodownload"></kicanvas-embed>
+          </div>
+        </section>
 
-          <section class="card" id="cardDiff" style="display:none;">
-            <div class="cardTitle row">
-              <span>Review (Diff)</span>
-              <button id="refreshDiffBtn" class="miniBtn" style="height:28px;">Refresh</button>
-            </div>
-            <div id="diffMeta" class="diffMetaBox"></div>
-            <div class="diffWrap">
-              <pre id="diffViewer" class="pre"></pre>
-            </div>
-          </section>
+        <section class="card" id="cardDiff" style="display:none;">
+          <div class="cardTitle row">
+            <span>Review (Diff)</span>
+            <button id="refreshDiffBtn" class="miniBtn" style="height:28px;">Refresh</button>
+          </div>
+          <div id="diffMeta" class="diffMetaBox"></div>
+          <div class="diffWrap">
+            <pre id="diffViewer" class="pre"></pre>
+          </div>
+        </section>
 
-          <section class="card" id="cardTodo">
-            <div class="cardTitle row">
-              <span>Feedback / TODO</span>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <button id="clearMessagesBtn" class="miniBtn" type="button" style="display:none;">Clear</button>
-                <button id="resolveHelpBtn" class="miniBtn" type="button" style="display:none;">Resolve Help</button>
+        <section class="card" id="cardTodo">
+          <div class="cardTitle row">
+            <span>Feedback / TODO</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button id="clearMessagesBtn" class="miniBtn" type="button" style="display:none;">Clear</button>
+              <button id="resolveHelpBtn" class="miniBtn" type="button" style="display:none;">Resolve Help</button>
               <span class="muted" style="font-size:11px;">Autosave</span>
-                <button id="openLogsBtn" class="miniBtn" type="button">Open Notes</button>
-                <button id="openAndCopyBtn" class="miniBtn" type="button" title="Open file in Cursor + copy prompt for AI">Copy Agent Instructions</button>
-              </div>
+              <button id="openLogsBtn" class="miniBtn" type="button">Open Notes</button>
+              <button id="openAndCopyBtn" class="miniBtn" type="button"
+                title="Open file in Cursor + copy prompt for AI">Copy Agent Instructions</button>
             </div>
-            <div id="agentMessages" class="agentMessages"></div>
-            <textarea id="todo" spellcheck="false" placeholder="Write feedback/tasks here…"></textarea>
-            <div id="todoHint" class="hint"></div>
-          </section>
+          </div>
+          <div id="agentMessages" class="agentMessages"></div>
+          <textarea id="todo" spellcheck="false" placeholder="Write feedback/tasks here…"></textarea>
+          <div id="todoHint" class="hint"></div>
+        </section>
 
-          <section class="card" id="cardIssues">
-            <div class="cardTitle row">
-              <span>Issues</span>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <select id="issueFilterSelect">
-                  <option value="all">All</option>
-                  <option value="errors">Errors only</option>
-                  <option value="warnings">Warnings only</option>
-                  <option value="ci">CI only</option>
-                </select>
-                <input id="issueSearch" type="text" placeholder="Search issues…" style="width: 180px;" />
-                <button id="toggleLogsBtn" class="miniBtn" type="button">Show Logs</button>
-              </div>
+        <section class="card" id="cardIssues">
+          <div class="cardTitle row">
+            <span>Issues</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="issueFilterSelect">
+                <option value="all">All</option>
+                <option value="errors">Errors only</option>
+                <option value="warnings">Warnings only</option>
+                <option value="ci">CI only</option>
+              </select>
+              <input id="issueSearch" type="text" placeholder="Search issues…" style="width: 180px;" />
+              <button id="toggleLogsBtn" class="miniBtn" type="button">Show Logs</button>
             </div>
-            <div id="ciLogsProgress" class="ciLogsProgress" style="display:none;">
-              <div class="ciLogsProgressBar"></div>
-              <span class="ciLogsProgressText">Downloading CI logs from GitHub...</span>
-            </div>
-            <div id="issuesList" class="issuesList"></div>
-            <div class="hint" id="issuesHint"></div>
-          </section>
+          </div>
+          <div id="ciLogsProgress" class="ciLogsProgress" style="display:none;">
+            <div class="ciLogsProgressBar"></div>
+            <span class="ciLogsProgressText">Downloading CI logs from GitHub...</span>
+          </div>
+          <div id="issuesList" class="issuesList"></div>
+          <div class="hint" id="issuesHint"></div>
+        </section>
 
-          <section class="card" id="cardLogs" style="display:none;">
-            <div class="cardTitle row">
-              <span>Raw Logs</span>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <select id="logStageSelect"></select>
-                <select id="logSelect"></select>
-                <input id="logSearch" type="text" placeholder="Search…" style="width: 180px;" />
-                <button id="hideLogsBtn" class="miniBtn" type="button">Hide Logs</button>
-              </div>
+        <section class="card" id="cardLogs" style="display:none;">
+          <div class="cardTitle row">
+            <span>Raw Logs</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="logStageSelect"></select>
+              <select id="logSelect"></select>
+              <input id="logSearch" type="text" placeholder="Search…" style="width: 180px;" />
+              <button id="hideLogsBtn" class="miniBtn" type="button">Hide Logs</button>
             </div>
-            <pre id="logViewer" class="pre"></pre>
-            <div class="hint" id="logHint"></div>
-          </section>
+          </div>
+          <pre id="logViewer" class="pre"></pre>
+          <div class="hint" id="logHint"></div>
+        </section>
 
-          <section class="card" id="cardModel">
-            <div class="cardTitle row">
-              <span>3D Model</span>
-              <span class="muted" style="font-size:11px;">(build-dependent)</span>
-            </div>
-            <div class="kicanvasWrap">
-              <model-viewer
-                id="mv"
-                camera-controls
-                tone-mapping="neutral"
-                exposure="1.2"
-                shadow-intensity="0.7"
-                shadow-softness="0.8"
-              ></model-viewer>
-            </div>
-          </section>
-        </div>
-      </main>
-    </div>
+        <section class="card" id="cardModel">
+          <div class="cardTitle row">
+            <span>3D Model</span>
+            <span class="muted" style="font-size:11px;">(build-dependent)</span>
+          </div>
+          <div class="kicanvasWrap">
+            <model-viewer id="mv" camera-controls tone-mapping="neutral" exposure="1.2" shadow-intensity="0.7"
+              shadow-softness="0.8"></model-viewer>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
 
-    <script src="/app.js"></script>
-  </body>
+  <script src="/app.js"></script>
+</body>
+
 </html>

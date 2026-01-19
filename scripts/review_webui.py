@@ -164,7 +164,7 @@ def _select_by_shard(
 
 def _default_ato_cmd(packages_repo_root: Path) -> list[str]:
     # Prefer sibling atopile venv for consistency - avoids PATH issues in subprocesses
-    sibling_atopile = (packages_repo_root.parent / "atopile").resolve()
+    sibling_atopile = (packages_repo_root.parent / "atopile_reorg").resolve()
     venv_python = sibling_atopile / ".venv" / "bin" / "python"
     if venv_python.exists():
         return [str(venv_python), "-m", "atopile"]
@@ -386,7 +386,7 @@ def _parse_build_summary(
     """
     summary_json_path = (
         summary_path
-        if summary_path is not None
+        if summary_path is not None and summary_path.exists()
         else pkg_dir / "build" / "logs" / "latest" / "summary.json"
     )
     summary_md_path = pkg_dir / "build" / "logs" / "latest" / "summary.md"
@@ -501,47 +501,77 @@ def _review_worker_process(
             f"Environment vars set: PYTHONUNBUFFERED=1 FBRK_COLOR_LOGS=1 FORCE_COLOR=1 COLUMNS=120"
         )
 
-        # MVP: Simple subprocess.run - blocks but reliable
+        # Run with Popen so we can cancel quickly on priority rebuilds.
+        debug(f"Spawning subprocess.Popen")
+        debug(f"Worker PID={os.getpid()}, PPID={os.getppid()}")
+        debug(f"cwd: {cwd}")
+
+        debug("ACTUAL BUILD: Starting")
+        poll_count = 0
+        proc = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+        )
         result_q.put(
             {
                 "type": "step",
                 "package": pkg,
                 "current_step": step,
-                "current_pid": 0,
+                "current_pid": int(proc.pid or 0),
             }
         )
 
-        debug(f"Running subprocess.run with capture_output")
-        debug(f"Worker PID={os.getpid()}, PPID={os.getppid()}")
-        debug(f"cwd: {cwd}")
-
-        # Now the actual build
-        debug("ACTUAL BUILD: Starting")
-        poll_count = 1
-        result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            env=env,
-        )
-        rc = result.returncode
+        stdout_text = ""
+        stderr_text = ""
+        while True:
+            poll_count += 1
+            if cancelled(pkg):
+                debug("Cancellation requested, terminating subprocess")
+                try:
+                    proc.terminate()
+                except Exception as e:
+                    debug(f"Terminate failed: {e}")
+                try:
+                    stdout_text, stderr_text = proc.communicate(timeout=3)
+                except subprocess.TimeoutExpired:
+                    debug("Terminate timed out, killing subprocess")
+                    try:
+                        proc.kill()
+                    except Exception as e:
+                        debug(f"Kill failed: {e}")
+                    try:
+                        stdout_text, stderr_text = proc.communicate(timeout=3)
+                    except Exception as e:
+                        debug(f"communicate after kill failed: {e}")
+                except Exception as e:
+                    debug(f"communicate after terminate failed: {e}")
+                break
+            try:
+                stdout_text, stderr_text = proc.communicate(timeout=0.2)
+                break
+            except subprocess.TimeoutExpired:
+                continue
+        rc = proc.returncode if proc.returncode is not None else 1
         debug(f"ACTUAL BUILD: Completed with rc={rc}")
-        debug(f"  stdout len={len(result.stdout or '')}")
-        debug(f"  stderr len={len(result.stderr or '')}")
-        debug(f"  First 500 stdout: {(result.stdout or '')[:500]!r}")
-        debug(f"  First 500 stderr: {(result.stderr or '')[:500]!r}")
+        debug(f"  stdout len={len(stdout_text or '')}")
+        debug(f"  stderr len={len(stderr_text or '')}")
+        debug(f"  First 500 stdout: {(stdout_text or '')[:500]!r}")
+        debug(f"  First 500 stderr: {(stderr_text or '')[:500]!r}")
 
         # Write log file with captured output
         with log_path.open("w", encoding="utf-8") as f:
             f.write("$ " + " ".join(shlex.quote(c) for c in cmd) + "\n\n")
-            if result.stdout:
-                f.write(result.stdout)
-            if result.stderr:
+            if stdout_text:
+                f.write(stdout_text)
+            if stderr_text:
                 f.write("\n--- STDERR ---\n")
-                f.write(result.stderr)
+                f.write(stderr_text)
 
-        if not result.stdout and not result.stderr:
+        if not stdout_text and not stderr_text:
             debug("WARNING: No output captured at all")
 
         # Skip progress tracking for MVP
@@ -612,8 +642,9 @@ def _review_worker_process(
         # a manual build updates build/logs/latest concurrently.
         build_timestamp = pkg_run_dir.parent.name
 
-        # Per-task frozen flag (can override global default)
+        # Per-task flags (can override global defaults)
         task_frozen = task.get("frozen", frozen)
+        task_keep_picked_parts = task.get("keep_picked_parts", keep_picked_parts)
 
         cmd = [
             *ato_cmd,
@@ -624,7 +655,7 @@ def _review_worker_process(
             "--jobs",
             str(max(1, per_pkg_jobs)),
         ]
-        if keep_picked_parts:
+        if task_keep_picked_parts:
             cmd.append("--keep-picked-parts")
         if skip_datasheets:
             cmd.extend(["--exclude-target", "datasheets"])
@@ -688,7 +719,8 @@ def _review_worker_process(
                 build_err[bname] = int(rec.get("err", 0))  # type: ignore[arg-type]
                 build_rc[bname] = 0 if st in ("success", "warning") else 1
             else:
-                build_seconds[bname] = 0.0
+                # No per-target summary (build failed early or summary missing).
+                # Leave seconds unset so UI shows "-" instead of misleading "0.0s".
                 build_warn[bname] = 0
                 build_err[bname] = 0
                 build_rc[bname] = b_rc
@@ -1210,6 +1242,18 @@ def _fetch_ci_status_for_pr(
         overall_status = "completed"
         overall_conclusion = "success"
 
+        def matches_package(check_name: str) -> bool:
+            if not check_name:
+                return False
+            if package in check_name:
+                return True
+            # Common workflow naming patterns
+            if f"packages/{package}" in check_name:
+                return True
+            if f"packages/packages/{package}" in check_name:
+                return True
+            return False
+
         for check in checks:
             name = check.get("name", "")
             # State can be: PENDING, QUEUED, IN_PROGRESS, COMPLETED, WAITING, REQUESTED, FAILURE, SUCCESS, etc.
@@ -1218,7 +1262,7 @@ def _fetch_ci_status_for_pr(
             bucket = check.get("bucket", "").lower()
 
             # Check for the specific matrix job for this package
-            if package in name:
+            if matches_package(name):
                 package_job = check
                 break
 
@@ -1235,6 +1279,17 @@ def _fetch_ci_status_for_pr(
                 overall_conclusion = "failure"
             elif bucket == "skipping":
                 overall_conclusion = "skipped"
+
+        if not package_job and len(checks) == 1:
+            # Single job run; use it as the best available source of run ID.
+            package_job = checks[0]
+        if not package_job:
+            # Fallback: use first check that has a run link
+            for check in checks:
+                link = check.get("link", "")
+                if "/runs/" in link:
+                    package_job = check
+                    break
 
         if package_job:
             state = package_job.get("state", "").lower()
@@ -2517,11 +2572,21 @@ class ReviewRun:
             by_package: dict[str, dict[str, Any]] = {}
             open_pr_numbers: list[int] = []
 
+            def pr_priority(state: str | None) -> int:
+                if state == "OPEN":
+                    return 3
+                if state == "MERGED":
+                    return 2
+                if state == "CLOSED":
+                    return 1
+                return 0
+
             for pr in prs:
                 branch = pr.get("headRefName", "")
                 title = pr.get("title", "")
                 author = (pr.get("author") or {}).get("login")
-                is_open = pr.get("state") == "OPEN"
+                pr_state = pr.get("state")
+                is_open = pr_state == "OPEN"
 
                 pr_data = {
                     "number": pr.get("number"),
@@ -2555,8 +2620,12 @@ class ReviewRun:
 
                 if package_name:
                     existing = by_package.get(package_name)
-                    if not existing or is_open:
+                    if not existing:
                         by_package[package_name] = pr_data
+                    else:
+                        existing_state = existing.get("state")
+                        if pr_priority(pr_state) >= pr_priority(existing_state):
+                            by_package[package_name] = pr_data
 
             # Phase 2: Parallel CI status fetch for open PRs only
             def fetch_pr_ci_status(pr_number: int) -> tuple[int, list[dict]]:
@@ -2675,34 +2744,43 @@ class ReviewRun:
                             break
 
                 if pr_data:
-                    # Update PR info if not already set or if this is newer
-                    if not job.published_pr_url and pr_data.get("url"):
+                    # Always refresh PR metadata (avoid stale state)
+                    if pr_data.get("url"):
                         job.published_pr_url = pr_data["url"]
+                    if pr_data.get("branch"):
                         job.published_branch = pr_data.get("branch")
+                    if pr_data.get("title"):
                         job.published_pr_title = pr_data.get("title")
+                    if pr_data.get("author"):
                         job.published_pr_author = pr_data.get("author")
-                        # Update status based on PR state
-                        if pr_data.get("state") == "MERGED":
-                            if job.status not in ("published", "error"):
-                                job.status = "published"
-                        elif pr_data.get("state") == "OPEN":
-                            if job.status in (
-                                "not_started",
-                                "building",
-                                "verifying",
-                                "branch_pushed",
-                            ):
-                                job.status = "pr_opened"
 
-                    # Always update CI status
-                    old_conclusion = job.ci_conclusion
-                    job.ci_status = pr_data.get("ci_status")
-                    job.ci_conclusion = pr_data.get("ci_conclusion")
-                    job.ci_checked_at = now
-                    # Clear cached CI issues if conclusion changed (new CI run)
-                    if old_conclusion != job.ci_conclusion:
+                    pr_state = pr_data.get("state")
+                    merged_at = pr_data.get("merged_at")
+                    # Update status based on PR state
+                    if pr_state == "MERGED":
+                        job.status = "published"
+                        if merged_at:
+                            job.published_at = merged_at
+                        # Treat merged PR as success to avoid stale CI failure badge
+                        job.ci_status = "completed"
+                        job.ci_conclusion = "success"
+                        job.ci_checked_at = now
                         job.ci_issues_cached = None
                         job.ci_issues_fetched_at = None
+                    elif pr_state == "OPEN":
+                        if job.status not in ("building", "verifying"):
+                            job.status = "pr_opened"
+
+                    # Always update CI status unless merged forced success above
+                    if pr_state != "MERGED":
+                        old_conclusion = job.ci_conclusion
+                        job.ci_status = pr_data.get("ci_status")
+                        job.ci_conclusion = pr_data.get("ci_conclusion")
+                        job.ci_checked_at = now
+                        # Clear cached CI issues if conclusion changed (new CI run)
+                        if old_conclusion != job.ci_conclusion:
+                            job.ci_issues_cached = None
+                            job.ci_issues_fetched_at = None
                     updated += 1
 
                     # Reset auto-rebuild tracking when CI succeeds
@@ -2723,6 +2801,13 @@ class ReviewRun:
                         # Mark that we're going to auto-rebuild for this CI failure
                         job.ci_auto_rebuild_for = ci_failure_key
                         packages_to_auto_restart.append(name)
+
+                # Registry has final say for published status (unless building/verifying)
+                if job.registry_updated_014 and job.status not in (
+                    "building",
+                    "verifying",
+                ):
+                    job.status = "published"
 
         if updated > 0:
             self._write_state()
@@ -3080,9 +3165,20 @@ class ReviewRun:
         task_frozen = getattr(job, "_next_build_frozen", None)
         if task_frozen is None:
             task_frozen = self.frozen
-        # Clear the per-job override after using it
+        # Use per-job keep_picked_parts flag if set, otherwise fall back to global default
+        task_keep_picked_parts = getattr(job, "_next_build_keep_picked_parts", None)
+        if task_keep_picked_parts is None:
+            task_keep_picked_parts = self.keep_picked_parts
+        # Clear the per-job overrides after using them
         if hasattr(job, "_next_build_frozen"):
             delattr(job, "_next_build_frozen")
+        if hasattr(job, "_next_build_keep_picked_parts"):
+            delattr(job, "_next_build_keep_picked_parts")
+        # Calculate jobs per package - use all available CPU cores per package.
+        # The `jobs` setting controls how many packages build concurrently, but
+        # each package's internal build parallelism should max out CPU for speed.
+        # The OS scheduler handles contention if multiple packages build at once.
+        cpu_count = os.cpu_count() or 4
         self._mp_tasks.put(
             {
                 "package": pkg,
@@ -3090,8 +3186,9 @@ class ReviewRun:
                 "run_dir": job.run_dir,
                 "build_names": list(job.build_names),
                 "server_origin": self.server_origin,
-                "jobs_per_pkg": max(1, (os.cpu_count() or 4) // max(1, self.jobs)),
+                "jobs_per_pkg": cpu_count,
                 "frozen": task_frozen,
+                "keep_picked_parts": task_keep_picked_parts,
             }
         )
 
@@ -3294,6 +3391,11 @@ class ReviewRun:
                     entry["author"] = job.published_pr_author
                 if job.build_progress:
                     entry["progress"] = job.build_progress
+                # Include started_at and current_step for active builds so timer can work
+                if job.started_at and job.status in ("building", "verifying"):
+                    entry["started_at"] = job.started_at
+                if job.current_step:
+                    entry["step"] = job.current_step
                 packages_summary[name] = entry
             return {
                 "updated_at": self._state_cache.get("updated_at", _now_ts()),
@@ -3453,6 +3555,7 @@ class ReviewRun:
         priority: bool = True,
         clear_publish_state: bool = True,
         frozen: bool | None = None,
+        keep_picked_parts: bool | None = None,
     ) -> None:
         """
         Restart a package build.
@@ -3465,6 +3568,9 @@ class ReviewRun:
 
         If frozen=None (default), uses the global frozen setting. If frozen=True/False,
         overrides the global setting for this specific build.
+
+        If keep_picked_parts=None (default), uses the global keep_picked_parts setting.
+        If keep_picked_parts=True/False, overrides the global setting for this specific build.
         """
         paused_pkg = None
         with self._lock:
@@ -3504,12 +3610,6 @@ class ReviewRun:
             job.build_err.clear()
             job.verify_warn = None
             job.verify_err = None
-            job.layout_paths = _find_layout_pcb_paths(
-                Path(job.package_dir), job.build_names
-            )
-            job.model_paths = _find_model_glb_paths(
-                Path(job.package_dir), job.build_names
-            )
             job.approved_by = None
             job.approved_at = None
 
@@ -3530,15 +3630,31 @@ class ReviewRun:
             job.skip_requested_at = None
             job.current_step = None
             job.current_pid = None
-            job.build_entries = _read_ato_yaml_build_entries(
-                Path(job.package_dir) / "ato.yaml"
+
+            # Re-read ato.yaml to get the latest build configuration
+            # This ensures we use the same files that "Open in Cursor" would show
+            ato_yaml_path = Path(job.package_dir) / "ato.yaml"
+            job.build_names = _read_ato_yaml_builds(ato_yaml_path)
+            job.build_entries = _read_ato_yaml_build_entries(ato_yaml_path)
+
+            # Re-scan for layout and model paths with updated build names
+            job.layout_paths = _find_layout_pcb_paths(
+                Path(job.package_dir), job.build_names
             )
+            job.model_paths = _find_model_glb_paths(
+                Path(job.package_dir), job.build_names
+            )
+
             # Move to front of queue so it builds next
             self._queue = [package] + [p for p in self._queue if p != package]
 
             # Set per-job frozen override if specified
             if frozen is not None:
                 job._next_build_frozen = frozen  # type: ignore[attr-defined]
+
+            # Set per-job keep_picked_parts override if specified
+            if keep_picked_parts is not None:
+                job._next_build_keep_picked_parts = keep_picked_parts  # type: ignore[attr-defined]
 
         # Signal worker process to cancel the paused job (if any)
         if paused_pkg and hasattr(self, "_mp_cancel"):
@@ -3931,6 +4047,80 @@ class ReviewRun:
             if not did_any:
                 time.sleep(0.5)
 
+    def _refresh_registry_once(self) -> None:
+        """
+        On-demand registry refresh (used by manual GitHub refresh).
+        Updates all packages with identifiers so UI tags are current.
+        """
+        with self._lock:
+            items = [
+                (name, j.package_identifier)
+                for name, j in self._jobs.items()
+                if j.package_identifier
+            ]
+
+        if not items:
+            return
+
+        updated = False
+        for name, ident in items:
+            assert ident is not None
+            try:
+                ident_path = quote(ident, safe="/")
+                url = f"{self.registry_url}/v1/package/{ident_path}"
+                req = Request(url, headers={"User-Agent": "packages-review-station/0"})
+                with urlopen(req, timeout=10) as r:
+                    data = json.loads(r.read().decode("utf-8"))
+
+                latest_version = ((data or {}).get("info") or {}).get("version")
+                if not isinstance(latest_version, str) or not latest_version.strip():
+                    raise ValueError("registry response missing info.version")
+                latest_version = latest_version.strip()
+
+                rel_url = (
+                    f"{self.registry_url}/v1/package/{ident_path}/releases/"
+                    f"{quote(latest_version, safe='')}"
+                )
+                rel_req = Request(
+                    rel_url, headers={"User-Agent": "packages-review-station/0"}
+                )
+                with urlopen(rel_req, timeout=10) as rr:
+                    rel_data = json.loads(rr.read().decode("utf-8"))
+                requires_atopile = ((rel_data or {}).get("info") or {}).get(
+                    "requires_atopile"
+                )
+                if (
+                    not isinstance(requires_atopile, str)
+                    or not requires_atopile.strip()
+                ):
+                    raise ValueError("registry response missing info.requires_atopile")
+                requires_atopile = requires_atopile.strip()
+
+                updated_014 = bool(re.match(r"^\^?0\.14\.\d+", requires_atopile))
+
+                with self._lock:
+                    j = self._jobs.get(name)
+                    if j:
+                        j.registry_published_version = latest_version
+                        j.registry_requires_atopile = requires_atopile
+                        j.registry_checked_at = _now_ts()
+                        j.registry_error = None
+                        j.registry_updated_014 = updated_014
+                        if updated_014 and j.status not in ("building", "verifying"):
+                            j.status = "published"
+                updated = True
+            except Exception as e:
+                with self._lock:
+                    j = self._jobs.get(name)
+                    if j:
+                        j.registry_checked_at = _now_ts()
+                        j.registry_error = str(e)
+                        j.registry_updated_014 = False
+                updated = True
+
+        if updated:
+            self._write_state()
+
     def publish(
         self,
         package: str,
@@ -4002,23 +4192,45 @@ class ReviewRun:
         who = self.get_whoami()
         reviewer = reviewer or job.approved_by or who.get("name")
 
-        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["git", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_git(
+            args: list[str], *, cwd: Path, timeout: int = 60
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["git", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["git", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: git command did not complete within {timeout}s",
+                )
 
-        def run_gh(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["gh", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_gh(
+            args: list[str], *, cwd: Path, timeout: int = 120
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["gh", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["gh", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: gh command did not complete within {timeout}s",
+                )
 
         out: list[dict[str, Any]] = []
         repo = self.packages_repo_root
@@ -4036,33 +4248,65 @@ class ReviewRun:
         worktrees_root.mkdir(parents=True, exist_ok=True)
         wt_dir = worktrees_root / branch
 
-        # Best-effort cleanup of prior worktree.
-        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+        # Reuse existing worktree if it already exists to avoid "branch checked out" errors.
+        if wt_dir.exists():
+            # Ensure the worktree is on the right branch and reset to base_ref.
+            r = run_git(["checkout", "-B", branch, base_ref], cwd=wt_dir)
+            out.append(
+                {
+                    "cmd": ["git", "checkout", "-B", branch, base_ref],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
+            )
+            if r.returncode != 0:
+                raise RuntimeError(f"git checkout -B failed:\n{r.stderr}")
+        else:
+            # Best-effort cleanup of prior worktree.
+            run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
 
-        # Create/reset worktree to the target branch based on base_ref.
-        r = run_git(
-            ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
-            cwd=repo,
-        )
-        out.append(
-            {
-                "cmd": [
-                    "git",
-                    "worktree",
-                    "add",
-                    "--force",
-                    "-B",
-                    branch,
-                    str(wt_dir),
-                    base_ref,
-                ],
-                "rc": r.returncode,
-                "out": r.stdout,
-                "err": r.stderr,
-            }
-        )
-        if r.returncode != 0:
-            raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
+            # Create/reset worktree to the target branch based on base_ref.
+            r = run_git(
+                ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
+                cwd=repo,
+            )
+            out.append(
+                {
+                    "cmd": [
+                        "git",
+                        "worktree",
+                        "add",
+                        "--force",
+                        "-B",
+                        branch,
+                        str(wt_dir),
+                        base_ref,
+                    ],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
+            )
+            if r.returncode != 0:
+                # Workaround for stale worktree metadata: prune and retry once.
+                if "cannot force update the branch" in (r.stderr or ""):
+                    run_git(["worktree", "prune"], cwd=repo)
+                    run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+                    r = run_git(
+                        ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
+                        cwd=repo,
+                    )
+                    out.append(
+                        {
+                            "cmd": ["git", "worktree", "add", "--force", "-B", branch, "(retry)"],
+                            "rc": r.returncode,
+                            "out": r.stdout,
+                            "err": r.stderr,
+                        }
+                    )
+                if r.returncode != 0:
+                    raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
 
         wt_repo = wt_dir
         wt_pkg = wt_repo / pkg_rel
@@ -4249,14 +4493,25 @@ class ReviewRun:
         repo = self.packages_repo_root
         pkg_rel = f"packages/{package}"
 
-        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["git", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_git(
+            args: list[str], *, cwd: Path, timeout: int = 60
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["git", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["git", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: git command did not complete within {timeout}s",
+                )
 
         out: list[dict[str, Any]] = []
         fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
@@ -4365,14 +4620,25 @@ class ReviewRun:
             todo_path=Path(job.todo_path), job=job, server_origin=self.server_origin
         )
 
-        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["git", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_git(
+            args: list[str], *, cwd: Path, timeout: int = 60
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["git", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["git", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: git command did not complete within {timeout}s",
+                )
 
         out: list[dict[str, Any]] = []
         fetch_ref = f"{branch}:refs/remotes/origin/{branch}"
@@ -4397,30 +4663,48 @@ class ReviewRun:
         worktrees_root.mkdir(parents=True, exist_ok=True)
         wt_dir = worktrees_root / branch
 
-        run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
-        r = run_git(
-            ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
-            cwd=repo,
-        )
-        out.append(
-            {
-                "cmd": [
-                    "git",
-                    "worktree",
-                    "add",
-                    "--force",
-                    "-B",
-                    branch,
-                    str(wt_dir),
-                    base_ref,
-                ],
-                "rc": r.returncode,
-                "out": r.stdout,
-                "err": r.stderr,
-            }
-        )
-        if r.returncode != 0:
-            raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
+        # Reuse existing worktree if it already exists to avoid "branch checked out" errors.
+        if wt_dir.exists():
+            r = run_git(["checkout", "-B", branch, base_ref], cwd=wt_dir)
+            out.append(
+                {
+                    "cmd": ["git", "checkout", "-B", branch, base_ref],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
+            )
+            if r.returncode != 0:
+                raise RuntimeError(f"git checkout -B failed:\n{r.stderr}")
+        else:
+            # Aggressive cleanup to avoid stale worktree metadata issues
+            run_git(["worktree", "prune"], cwd=repo)
+            run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+            if wt_dir.exists():
+                shutil.rmtree(wt_dir, ignore_errors=True)
+            r = run_git(
+                ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
+                cwd=repo,
+            )
+            out.append(
+                {
+                    "cmd": [
+                        "git",
+                        "worktree",
+                        "add",
+                        "--force",
+                        "-B",
+                        branch,
+                        str(wt_dir),
+                        base_ref,
+                    ],
+                    "rc": r.returncode,
+                    "out": r.stdout,
+                    "err": r.stderr,
+                }
+            )
+            if r.returncode != 0:
+                raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
 
         wt_repo = wt_dir
         wt_pkg = wt_repo / pkg_rel
@@ -4539,23 +4823,45 @@ class ReviewRun:
         who = self.get_whoami()
         reviewer = reviewer or who.get("name")
 
-        def run_git(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["git", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_git(
+            args: list[str], *, cwd: Path, timeout: int = 60
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["git", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["git", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: git command did not complete within {timeout}s",
+                )
 
-        def run_gh(args: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
-            return subprocess.run(
-                ["gh", *args],
-                cwd=cwd,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+        def run_gh(
+            args: list[str], *, cwd: Path, timeout: int = 120
+        ) -> subprocess.CompletedProcess[str]:
+            try:
+                return subprocess.run(
+                    ["gh", *args],
+                    cwd=cwd,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=timeout,
+                )
+            except subprocess.TimeoutExpired:
+                return subprocess.CompletedProcess(
+                    args=["gh", *args],
+                    returncode=-1,
+                    stdout="",
+                    stderr=f"TIMEOUT: gh command did not complete within {timeout}s",
+                )
 
         out: list[dict[str, Any]] = []
         repo = self.packages_repo_root
@@ -4759,6 +5065,9 @@ class ReviewRun:
         """
         Sync local package directory from origin/main.
         Essentially: git checkout origin/main -- packages/<package>/
+
+        This performs a hard checkout of the package files from origin/main,
+        replacing any local changes (committed or uncommitted) with the main branch version.
         """
         job = self.get_job(package)
         if not job:
@@ -4770,7 +5079,19 @@ class ReviewRun:
 
         print(f"[SYNC] Syncing {package} from origin/main in {repo}", flush=True)
 
+        # Get current branch for context
+        r = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        current_branch = r.stdout.strip() if r.returncode == 0 else "unknown"
+        print(f"[SYNC] Current branch: {current_branch}", flush=True)
+
         # Fetch latest main
+        print(f"[SYNC] Fetching origin/main...", flush=True)
         r = subprocess.run(
             ["git", "fetch", "origin", "main"],
             cwd=repo,
@@ -4779,9 +5100,23 @@ class ReviewRun:
             check=False,
         )
         if r.returncode != 0:
+            print(f"[SYNC] git fetch failed: {r.stderr}", flush=True)
             raise RuntimeError(f"git fetch failed: {r.stderr}")
 
+        # Check what files will change before checkout
+        r_diff = subprocess.run(
+            ["git", "diff", "--stat", "origin/main", "--", pkg_rel],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        diff_stat = r_diff.stdout.strip() if r_diff.returncode == 0 else ""
+        files_changed = len([l for l in diff_stat.split('\n') if l.strip()]) - 1 if diff_stat else 0
+        print(f"[SYNC] Files to change: {files_changed}", flush=True)
+
         # Checkout package directory from origin/main
+        print(f"[SYNC] Checking out {pkg_rel} from origin/main...", flush=True)
         r = subprocess.run(
             ["git", "checkout", "origin/main", "--", pkg_rel],
             cwd=repo,
@@ -4790,7 +5125,10 @@ class ReviewRun:
             check=False,
         )
         if r.returncode != 0:
+            print(f"[SYNC] git checkout failed: {r.stderr}", flush=True)
             raise RuntimeError(f"git checkout failed: {r.stderr}")
+
+        print(f"[SYNC] Checkout successful", flush=True)
 
         # Get the version that was synced
         ato_yaml = repo / pkg_rel / "ato.yaml"
@@ -4801,11 +5139,16 @@ class ReviewRun:
             if m:
                 version = m.group(1)
 
-        return {
+        result = {
             "synced": True,
             "package": package,
             "version": version,
+            "branch": current_branch,
+            "files_changed": files_changed,
+            "diff_stat": diff_stat,
         }
+        print(f"[SYNC] Result: {result}", flush=True)
+        return result
 
     def open_kicad(self, package: str, build: str) -> None:
         job = self.get_job(package)
@@ -4927,18 +5270,34 @@ class ReviewRun:
             "other": [],
         }
 
-        # Review-station build logs (one per build target)
+        # Review-station build logs (combined)
+        combined_build = run_logs_dir / "build.log"
+        if combined_build.exists():
+            stages["build"].append(
+                {
+                    "id": "run__build.log",
+                    "label": "ato build (all targets)",
+                    "warn": int(sum(job.build_warn.values()) if job.build_warn else 0),
+                    "err": int(sum(job.build_err.values()) if job.build_err else 0),
+                    "size": combined_build.stat().st_size,
+                    "exists": True,
+                }
+            )
+
+        # Per-target review-station logs (only if present)
         for b in job.build_names:
             fname = f"build.{b}.log"
             p = run_logs_dir / fname
+            if not p.exists():
+                continue
             stages["build"].append(
                 {
                     "id": f"run__{fname}",
                     "label": f"ato build -b {b}",
                     "warn": int(job.build_warn.get(b, 0) or 0),
                     "err": int(job.build_err.get(b, 0) or 0),
-                    "size": p.stat().st_size if p.exists() else 0,
-                    "exists": p.exists(),
+                    "size": p.stat().st_size,
+                    "exists": True,
                 }
             )
 
@@ -4988,8 +5347,12 @@ class ReviewRun:
                 for p in sorted(bdir.iterdir()):
                     if not p.is_file():
                         continue
-                    # Keep it practical: logs/text only
-                    if not (p.name.endswith(".log") or p.name.endswith(".txt")):
+                    # Keep it practical: logs/text/jsonl only
+                    if not (
+                        p.name.endswith(".log")
+                        or p.name.endswith(".txt")
+                        or p.name.endswith(".jsonl")
+                    ):
                         continue
                     if not safe_rel_child(pkg_build_latest, p):
                         continue
@@ -5000,6 +5363,26 @@ class ReviewRun:
                         if ".warning." in name_l or name_l.endswith(".warning.log")
                         else 0
                     )
+                    # For JSONL files, we need to parse to count errors/warnings
+                    if p.name.endswith(".jsonl") and p.stat().st_size > 0:
+                        try:
+                            txt = p.read_text(encoding="utf-8", errors="replace")
+                            e = 0
+                            w = 0
+                            for line in txt.splitlines():
+                                if not line.strip():
+                                    continue
+                                try:
+                                    entry = json.loads(line)
+                                    level = str(entry.get("level", "")).upper()
+                                    if level == "ERROR":
+                                        e += 1
+                                    elif level == "WARNING":
+                                        w += 1
+                                except json.JSONDecodeError:
+                                    pass
+                        except Exception:
+                            pass
                     stages["build"].append(
                         {
                             "id": f"pkg__latest__{b}__{p.name}",
@@ -5050,7 +5433,7 @@ class ReviewRun:
             max_bytes: int = 2_000_000,
             log_id_override: str | None = None,
         ) -> None:
-            """Extract errors/warnings from a single log file."""
+            """Extract errors/warnings from a single log file (plain text or JSONL)."""
             if not log_path.exists():
                 return
             try:
@@ -5060,6 +5443,62 @@ class ReviewRun:
             except Exception:
                 return
 
+            # Determine log_id - use override if provided, otherwise fall back to run__ prefix
+            effective_log_id = (
+                log_id_override if log_id_override else f"run__{log_path.name}"
+            )
+
+            # Check if this is a JSONL file (JSON Lines format)
+            if log_path.name.endswith(".jsonl"):
+                # Parse JSONL format: each line is a JSON object with "level", "message", etc.
+                for i, line in enumerate(txt.splitlines()):
+                    line_num = i + 1
+                    if not line.strip():
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    level = str(entry.get("level", "")).upper()
+                    message = entry.get("message", "")
+                    # Include traceback info if present
+                    ato_tb = entry.get("ato_traceback", "")
+                    exc_info = entry.get("exc_info", "")
+                    # Build full message
+                    full_msg = message
+                    if ato_tb:
+                        full_msg = f"{message}\n{ato_tb}"
+                    elif exc_info:
+                        full_msg = f"{message}\n{exc_info}"
+                    # Clean ANSI codes
+                    clean_msg = re.sub(r"\x1b\[[0-9;]*m", "", full_msg).strip()
+                    if len(clean_msg) < 10:
+                        continue
+                    if level == "ERROR":
+                        issues.append(
+                            {
+                                "type": "error",
+                                "message": clean_msg,
+                                "source": source_label,
+                                "stage": stage,
+                                "line_num": line_num,
+                                "log_id": effective_log_id,
+                            }
+                        )
+                    elif level == "WARNING":
+                        issues.append(
+                            {
+                                "type": "warning",
+                                "message": clean_msg,
+                                "source": source_label,
+                                "stage": stage,
+                                "line_num": line_num,
+                                "log_id": effective_log_id,
+                            }
+                        )
+                return
+
+            # Plain text log parsing (legacy format)
             lines = txt.splitlines()
             in_traceback = False
             traceback_start = 0
@@ -5083,11 +5522,6 @@ class ReviewRun:
                         continue
 
                 # Match explicit ERROR/WARNING markers
-                # Determine log_id - use override if provided, otherwise fall back to run__ prefix
-                effective_log_id = (
-                    log_id_override if log_id_override else f"run__{log_path.name}"
-                )
-
                 if error_pattern.search(line):
                     # Clean up the line - remove ANSI codes and excessive whitespace
                     clean_line = re.sub(r"\x1b\[[0-9;]*m", "", line).strip()
@@ -5136,7 +5570,11 @@ class ReviewRun:
                 for lp in sorted(p.iterdir()):
                     if not lp.is_file():
                         continue
-                    if not (lp.name.endswith(".log") or lp.name.endswith(".txt")):
+                    if not (
+                        lp.name.endswith(".log")
+                        or lp.name.endswith(".txt")
+                        or lp.name.endswith(".jsonl")
+                    ):
                         continue
                     log_id = f"pkg__buildlog__{b}__{lp.name}"
                     extract_from_log(
@@ -5150,6 +5588,38 @@ class ReviewRun:
         v = run_logs_dir / "verify.log"
         extract_from_log(v, "verify", "verify", log_id_override="verify.log")
 
+        # Also scan archive directories referenced by build_logs if they weren't found as directories
+        # This handles the case where logs are in a timestamped archive folder
+        pkg_build_archive = Path(job.package_dir) / "build" / "logs" / "archive"
+        if pkg_build_archive.exists():
+            # Find most recent archive (highest timestamp)
+            archive_dirs = sorted(
+                [d for d in pkg_build_archive.iterdir() if d.is_dir()],
+                reverse=True,
+            )
+            if archive_dirs:
+                latest_archive = archive_dirs[0]
+                for b in job.build_names:
+                    bdir = latest_archive / b
+                    if not bdir.exists() or not bdir.is_dir():
+                        continue
+                    for p in sorted(bdir.iterdir()):
+                        if not p.is_file():
+                            continue
+                        if not (
+                            p.name.endswith(".log")
+                            or p.name.endswith(".txt")
+                            or p.name.endswith(".jsonl")
+                        ):
+                            continue
+                        archive_log_id = f"pkg__archive__{b}__{p.name}"
+                        extract_from_log(
+                            p,
+                            f"{b} / {p.name}",
+                            "build",
+                            log_id_override=archive_log_id,
+                        )
+
         # Extract from package internal logs (build/logs/latest/<build>/*)
         if pkg_build_latest.exists():
             for b in job.build_names:
@@ -5159,7 +5629,11 @@ class ReviewRun:
                 for p in sorted(bdir.iterdir()):
                     if not p.is_file():
                         continue
-                    if not (p.name.endswith(".log") or p.name.endswith(".txt")):
+                    if not (
+                        p.name.endswith(".log")
+                        or p.name.endswith(".txt")
+                        or p.name.endswith(".jsonl")
+                    ):
                         continue
                     # Use pkg__latest__<build>__<filename> format for package logs
                     pkg_log_id = f"pkg__latest__{b}__{p.name}"
@@ -6295,6 +6769,19 @@ class Server:
                         elif name.startswith("build.") and name.endswith(".log"):
                             build = name.removeprefix("build.").removesuffix(".log")
                             lp = job.build_logs.get(build)
+                            # If we only have a log directory (new format) or nothing, fall back
+                            # to the combined review-station build log.
+                            if lp:
+                                try:
+                                    p = Path(lp)
+                                    if p.is_dir():
+                                        lp = None
+                                except Exception:
+                                    lp = None
+                            if not lp:
+                                fallback = (Path(job.run_dir) / "logs" / "build.log").resolve()
+                                if fallback.exists():
+                                    lp = str(fallback)
                         elif name.startswith("run__"):
                             run_logs_dir = (Path(job.run_dir) / "logs").resolve()
                             candidate = (
@@ -6319,6 +6806,45 @@ class Server:
                                     lp = str(candidate)
                                 except Exception:
                                     lp = None
+                        elif name.startswith("pkg__archive__"):
+                            # `pkg__archive__<build>__<file>` - from archive directory
+                            parts2 = name.split("__", 3)
+                            if len(parts2) == 4:
+                                _, _, build, fname = parts2
+                                # Find the most recent archive directory
+                                archive_base = (
+                                    Path(job.package_dir) / "build" / "logs" / "archive"
+                                ).resolve()
+                                if archive_base.exists():
+                                    archive_dirs = sorted(
+                                        [d for d in archive_base.iterdir() if d.is_dir()],
+                                        reverse=True,
+                                    )
+                                    for archive_dir in archive_dirs:
+                                        candidate = (archive_dir / build / fname).resolve()
+                                        try:
+                                            candidate.relative_to(archive_base)
+                                            if candidate.exists():
+                                                lp = str(candidate)
+                                                break
+                                        except Exception:
+                                            pass
+                        elif name.startswith("pkg__buildlog__"):
+                            # `pkg__buildlog__<build>__<file>` - from job.build_logs paths
+                            parts2 = name.split("__", 3)
+                            if len(parts2) == 4:
+                                _, _, build, fname = parts2
+                                log_dir = job.build_logs.get(build)
+                                if log_dir:
+                                    log_dir_path = Path(log_dir)
+                                    if log_dir_path.is_dir():
+                                        candidate = (log_dir_path / fname).resolve()
+                                        try:
+                                            candidate.relative_to(log_dir_path)
+                                            if candidate.exists():
+                                                lp = str(candidate)
+                                        except Exception:
+                                            pass
                         elif name.startswith("ci__"):
                             # CI logs: `ci__<target>__<stage>.<type>.log`
                             # These are stored in the CI artifacts directory
@@ -6358,6 +6884,35 @@ class Server:
                                     b"(log truncated to last 1MB for UI responsiveness)\n\n"
                                     + data[-max_bytes:]
                                 )
+                            # Format JSONL files for human readability
+                            if p.name.endswith(".jsonl"):
+                                try:
+                                    txt = data.decode("utf-8", errors="replace")
+                                    formatted_lines = []
+                                    for line in txt.splitlines():
+                                        if not line.strip():
+                                            continue
+                                        try:
+                                            entry = json.loads(line)
+                                            ts = entry.get("timestamp", "")
+                                            level = entry.get("level", "INFO")
+                                            logger = entry.get("logger", "")
+                                            msg = entry.get("message", "")
+                                            ato_tb = entry.get("ato_traceback", "")
+                                            exc_info = entry.get("exc_info", "")
+                                            # Format: [timestamp] LEVEL logger: message
+                                            formatted = f"[{ts}] {level:8} {logger}: {msg}"
+                                            if ato_tb:
+                                                formatted += f"\n{ato_tb}"
+                                            elif exc_info:
+                                                formatted += f"\n{exc_info}"
+                                            formatted_lines.append(formatted)
+                                        except json.JSONDecodeError:
+                                            # Not valid JSON, include raw line
+                                            formatted_lines.append(line)
+                                    data = "\n".join(formatted_lines).encode("utf-8")
+                                except Exception:
+                                    pass  # Fall back to raw data
                             return self._send(
                                 HTTPStatus.OK, "text/plain; charset=utf-8", data
                             )
@@ -6545,15 +7100,18 @@ class Server:
                             path.removeprefix("/api/package/").removesuffix("/restart")
                         ).strip("/")
                         try:
-                            # Support optional frozen parameter in request body
+                            # Support optional frozen and keep_picked_parts parameters in request body
                             frozen_override: bool | None = None
+                            keep_picked_parts_override: bool | None = None
                             try:
                                 payload = self._read_json()
                                 if payload and "frozen" in payload:
                                     frozen_override = bool(payload["frozen"])
+                                if payload and "keep_picked_parts" in payload:
+                                    keep_picked_parts_override = bool(payload["keep_picked_parts"])
                             except Exception:
                                 pass  # No body or invalid JSON is fine
-                            run.restart(pkg, frozen=frozen_override)
+                            run.restart(pkg, frozen=frozen_override, keep_picked_parts=keep_picked_parts_override)
                             return self._send_json(HTTPStatus.OK, {"ok": True})
                         except KeyError:
                             return self._send_json(
@@ -6998,6 +7556,7 @@ class Server:
                             def do_refresh():
                                 try:
                                     run._refresh_github_pr_cache()
+                                    run._refresh_registry_once()
                                 except Exception as e:
                                     print(f"[GH REFRESH] Error: {e}", flush=True)
 
