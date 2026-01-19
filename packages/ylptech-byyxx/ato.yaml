@@ -1,12 +1,16 @@
-requires-atopile: "^0.12.0"
+requires-atopile: ^0.14.0
 
 paths:
   src: .
   layout: ./layouts
 
 builds:
-  default:
-    entry: ylptech-byyxx.ato:BYYXXS_2WR2
+  B0505S:
+    entry: ylptech-byyxx.ato:YLPTEC_B0505S_2WR3
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  B1205S:
+    entry: ylptech-byyxx.ato:YLPTEC_B1205S_2WR2
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
   usage:
@@ -17,7 +21,7 @@ builds:
 package:
   identifier: atopile/ylptech-byyxx
   repository: https://github.com/atopile/packages
-  version: "0.1.6"
+  version: "0.2.0"
   authors:
     - name: atopile
       email: hi@atopile.io
