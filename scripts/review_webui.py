@@ -7051,7 +7051,10 @@ def serve(
         ),
     ] = Path("packages"),
     package_regex: Annotated[
-        str, typer.Option(help="Regex filter against package directory name.")
+        str,
+        typer.Option(
+            "-p", "--package-regex", help="Regex filter against package directory name."
+        ),
     ] = ".*",
     shard_count: Annotated[int, typer.Option(help="Total number of shards.")] = 1,
     shard_index: Annotated[int, typer.Option(help="This shard index (0-based).")] = 0,
@@ -7066,18 +7069,26 @@ def serve(
     ] = 10,
     keep_picked_parts: Annotated[
         bool,
-        typer.Option(help="Pass --keep-picked-parts to builds (faster, stable picks)."),
+        typer.Option(
+            "-k",
+            "--keep-picked-parts",
+            help="Pass --keep-picked-parts to builds (faster, stable picks).",
+        ),
     ] = True,
     skip_datasheets: Annotated[
         bool,
         typer.Option(
-            help="Pass --skip-datasheets to builds (skip downloading datasheets)."
+            "-s",
+            "--skip-datasheets",
+            help="Pass --skip-datasheets to builds (skip downloading datasheets).",
         ),
     ] = False,
     frozen: Annotated[
         bool,
         typer.Option(
-            help="Pass --frozen to builds (fail if layout changes are required). Default is True."
+            "-f",
+            "--frozen",
+            help="Pass --frozen to builds (fail if layout changes are required). Default is True.",
         ),
     ] = True,
     out_dir: Annotated[
@@ -7147,7 +7158,9 @@ def serve(
     registry_refresh_seconds: Annotated[
         float,
         typer.Option(
-            help="How often to refresh registry metadata per package (seconds)."
+            "-r",
+            "--registry-refresh-seconds",
+            help="How often to refresh registry metadata per package (seconds).",
         ),
     ] = 60.0,
 ) -> None:
