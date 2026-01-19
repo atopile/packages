@@ -93,6 +93,112 @@ def _discover_packages(packages_root: Path) -> list[Path]:
     return out
 
 
+def _sync_all_packages_from_main(
+    packages_repo_root: Path, packages_root: Path, console: "Console"
+) -> dict[str, str]:
+    """
+    Sync all packages from origin/main at startup.
+
+    Workflow:
+    1. git fetch origin - get the latest code from origin
+    2. For each package in packages/packages with ato.yaml:
+       - git checkout origin/main -- packages/<pkg>/ to sync from main
+       - Preserve build/ directory (don't overwrite local builds)
+
+    Returns dict mapping package name -> sync result ("synced", "error: ...", "skipped")
+    """
+    import shutil
+
+    results: dict[str, str] = {}
+
+    # Step 1: Fetch from origin
+    console.print("[bold blue]Fetching from origin...[/bold blue]")
+    fetch_result = subprocess.run(
+        ["git", "fetch", "origin"],
+        cwd=packages_repo_root,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if fetch_result.returncode != 0:
+        console.print(
+            f"[yellow]Warning: git fetch failed: {fetch_result.stderr.strip()}[/yellow]"
+        )
+        # Continue anyway - we can still try to sync from existing origin/main
+
+    # Step 2: Check if origin/main exists
+    check_ref = subprocess.run(
+        ["git", "rev-parse", "--verify", "origin/main"],
+        cwd=packages_repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if check_ref.returncode != 0:
+        console.print(
+            "[yellow]Warning: origin/main not found, skipping sync[/yellow]"
+        )
+        return results
+
+    # Step 3: Discover packages and sync each one
+    packages = _discover_packages(packages_root)
+    console.print(
+        f"[bold blue]Syncing {len(packages)} packages from origin/main...[/bold blue]"
+    )
+
+    for pkg_dir in packages:
+        pkg_name = pkg_dir.name
+        pkg_rel = f"packages/{pkg_name}"
+
+        try:
+            # Save build directory if it exists (don't overwrite local builds)
+            build_dir = pkg_dir / "build"
+            build_backup = None
+            if build_dir.exists():
+                build_backup = pkg_dir / "_build_backup_sync"
+                if build_backup.exists():
+                    shutil.rmtree(build_backup)
+                shutil.move(str(build_dir), str(build_backup))
+
+            # Checkout package files from origin/main
+            r = subprocess.run(
+                ["git", "checkout", "origin/main", "--", f"{pkg_rel}/"],
+                cwd=packages_repo_root,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+
+            # Restore build directory
+            if build_backup and build_backup.exists():
+                if build_dir.exists():
+                    shutil.rmtree(build_dir)
+                shutil.move(str(build_backup), str(build_dir))
+
+            if r.returncode == 0:
+                results[pkg_name] = "synced"
+            else:
+                # Package might not exist in origin/main - that's OK
+                err = r.stderr.strip()
+                if "did not match any file" in err or "pathspec" in err:
+                    results[pkg_name] = "new_package"
+                else:
+                    results[pkg_name] = f"error: {err[:100]}"
+        except subprocess.TimeoutExpired:
+            results[pkg_name] = "error: timeout"
+        except Exception as e:
+            results[pkg_name] = f"error: {type(e).__name__}: {str(e)[:80]}"
+
+    synced = sum(1 for v in results.values() if v == "synced")
+    new_pkgs = sum(1 for v in results.values() if v == "new_package")
+    errors = sum(1 for v in results.values() if v.startswith("error:"))
+
+    console.print(
+        f"[green]Sync complete: {synced} synced, {new_pkgs} new, {errors} errors[/green]"
+    )
+
+    return results
+
+
 def _read_ato_yaml_builds(ato_yaml: Path) -> list[str]:
     cfg = yaml.safe_load(ato_yaml.read_text(encoding="utf-8"))
     builds = cfg.get("builds") or {}
@@ -2499,6 +2605,72 @@ class ReviewRun:
         t.start()
         self._threads.append(t)
 
+        # Background thread to timeout stuck agents
+        t = threading.Thread(
+            target=self._agent_watchdog,
+            name="agent-watchdog",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
+
+    def _agent_watchdog(self) -> None:
+        """
+        Background thread that monitors for stuck agents and times them out.
+
+        An agent is considered stuck if:
+        - agent_working is True
+        - agent_working_since is more than 10 minutes ago
+        - The package has finished building (has finished_at timestamp)
+
+        This prevents agents from blocking the queue indefinitely.
+        """
+        AGENT_TIMEOUT_SECONDS = 600  # 10 minutes
+
+        while not self._stop:
+            try:
+                now = datetime.now()
+                stuck_agents: list[str] = []
+
+                with self._lock:
+                    for pkg_name, job in self._jobs.items():
+                        if not job.agent_working or not job.agent_working_since:
+                            continue
+
+                        # Parse the timestamp
+                        try:
+                            since = datetime.strptime(job.agent_working_since, "%Y-%m-%d %H:%M:%S")
+                            elapsed = (now - since).total_seconds()
+
+                            # Check if agent has been working too long
+                            if elapsed > AGENT_TIMEOUT_SECONDS:
+                                # Extra check: if package has finished building, agent is definitely stuck
+                                if job.finished_at:
+                                    stuck_agents.append(pkg_name)
+                        except Exception:
+                            continue
+
+                # Timeout stuck agents (outside lock to avoid deadlock)
+                for pkg_name in stuck_agents:
+                    try:
+                        print(f"[AGENT WATCHDOG] Timing out stuck agent for {pkg_name}", flush=True)
+                        self.add_agent_message(
+                            pkg_name,
+                            "Agent timed out after 10 minutes of inactivity. Build has finished.",
+                            msg_type="timeout"
+                        )
+                    except Exception as e:
+                        print(f"[AGENT WATCHDOG] Error timing out {pkg_name}: {e}", flush=True)
+
+            except Exception as e:
+                print(f"[AGENT WATCHDOG] Error: {e}", flush=True)
+
+            # Check every 30 seconds
+            for _ in range(30):
+                if self._stop:
+                    break
+                time.sleep(1.0)
+
     def _ci_status_poller(self) -> None:
         """
         Background thread that periodically refreshes GitHub PR data.
@@ -3028,10 +3200,15 @@ class ReviewRun:
                 pass  # Registry check failed, fall through to PR check
 
             # If already on registry for 0.14, mark as published
+            # BUT: Don't skip packages that haven't been built yet locally
+            # We want every package to build at least once to verify it works
             if already_published:
                 with self._lock:
                     job = self._jobs.get(pkg_name)
-                    if job and job.status in ("not_started", "building", "verifying"):
+                    # Only mark as published if the package has already been built locally
+                    # (has build_rc entries) or is currently building/verifying
+                    if job and job.status in ("building", "verifying"):
+                        # Cancel ongoing builds if already published
                         job.status = "published"
                         if pkg_name in self._queue:
                             self._queue.remove(pkg_name)
@@ -3040,7 +3217,13 @@ class ReviewRun:
                                 self._mp_cancel[pkg_name] = True
                             except Exception:
                                 pass
-                self._write_state()
+                        self._write_state()
+                    elif job and job.status not in ("not_started") and job.build_rc:
+                        # Package has been built locally, safe to mark as published
+                        job.status = "published"
+                        if pkg_name in self._queue:
+                            self._queue.remove(pkg_name)
+                        self._write_state()
                 time.sleep(0.02)
                 continue
 
@@ -3060,32 +3243,34 @@ class ReviewRun:
                     else:
                         new_status = "branch_pushed"
 
-                    # Only update if package hasn't already completed or errored
-                    # Also update "branch_pushed" packages if a PR is now available
-                    should_update = job.status in (
-                        "not_started",
-                        "building",
-                        "verifying",
-                    )
-                    # Also update branch_pushed packages when a PR is discovered
-                    if (
-                        job.status == "branch_pushed"
-                        and cached_pr.get("url")
-                        and not job.published_pr_url
-                    ):
-                        should_update = True
+                    # Store PR information but don't change status for unbuilt packages
+                    # We want every package to build at least once locally
 
-                    if should_update:
-                        job.published_branch = cached_pr.get("branch")
-                        job.published_pr_url = cached_pr.get("url")
-                        job.published_pr_title = cached_pr.get("title")
-                        job.published_pr_author = cached_pr.get("author")
+                    # Always update PR information if we have it
+                    job.published_branch = cached_pr.get("branch") or job.published_branch
+                    job.published_pr_url = cached_pr.get("url") or job.published_pr_url
+                    job.published_pr_title = cached_pr.get("title") or job.published_pr_title
+                    job.published_pr_author = cached_pr.get("author") or job.published_pr_author
+
+                    # Only update status if package has been built locally at least once
+                    # (has build_rc entries) OR is currently building/verifying
+                    should_update_status = False
+
+                    if job.status in ("building", "verifying"):
+                        # Cancel ongoing builds if PR exists
+                        should_update_status = True
+                    elif job.status == "branch_pushed" and cached_pr.get("url"):
+                        # Update branch_pushed to pr_opened when PR is discovered
+                        should_update_status = True
+                    elif job.status not in ("not_started") and job.build_rc:
+                        # Package has been built locally, safe to update status
+                        should_update_status = True
+
+                    if should_update_status:
                         job.status = new_status
-
                         # Remove from queue if still queued
                         if pkg_name in self._queue:
                             self._queue.remove(pkg_name)
-
                         # Cancel build if running
                         if hasattr(self, "_mp_cancel"):
                             try:
@@ -3396,6 +3581,12 @@ class ReviewRun:
                     entry["started_at"] = job.started_at
                 if job.current_step:
                     entry["step"] = job.current_step
+                # CRITICAL: Include build_rc and verify_rc for pass/fail indicator
+                # These are essential for the primary health indicator in the UI
+                if job.build_rc:
+                    entry["build_rc"] = dict(job.build_rc)
+                if job.verify_rc is not None:
+                    entry["verify_rc"] = job.verify_rc
                 packages_summary[name] = entry
             return {
                 "updated_at": self._state_cache.get("updated_at", _now_ts()),
@@ -3451,8 +3642,9 @@ class ReviewRun:
             if msg_type == "started":
                 job.agent_working = True
                 job.agent_working_since = ts
-            elif msg_type == "finished":
+            elif msg_type in ("finished", "error", "timeout"):
                 job.agent_working = False
+                job.agent_working_since = None
 
         self._write_state()
         return msg_obj
@@ -7647,9 +7839,9 @@ def serve(
         typer.Option(
             "-f",
             "--frozen",
-            help="Pass --frozen to builds (fail if layout changes are required). Default is True.",
+            help="Pass --frozen to builds (fail if layout changes are required). Default is False for initial probing.",
         ),
-    ] = True,
+    ] = False,
     out_dir: Annotated[
         Path,
         typer.Option(
@@ -7722,6 +7914,13 @@ def serve(
             help="How often to refresh registry metadata per package (seconds).",
         ),
     ] = 60.0,
+    sync_from_main: Annotated[
+        bool,
+        typer.Option(
+            "--sync-from-main",
+            help="Fetch from origin and sync all packages from origin/main before starting builds.",
+        ),
+    ] = False,
 ) -> None:
     if shard_index < 0 or shard_index >= shard_count:
         raise typer.BadParameter("--shard-index must be within [0, shard_count)")
@@ -7752,6 +7951,18 @@ def serve(
             "model-viewer.min.js not found. Pass --model-viewer-js explicitly, or ensure the sibling "
             "`atopile/src/vscode-atopile/resources/model-viewer/model-viewer.min.js` exists."
         )
+
+    # Sync from origin/main if requested (Step 1 of main workflow)
+    if sync_from_main:
+        console.print(
+            "[bold cyan]Starting Package Review Station with --sync-from-main[/bold cyan]"
+        )
+        console.print("[dim]This will fetch origin and sync all packages from origin/main[/dim]")
+        try:
+            _sync_all_packages_from_main(packages_repo_root, packages_root, console)
+        except Exception as e:
+            console.print(f"[red]Sync failed: {e}[/red]")
+            console.print("[yellow]Continuing with local package state...[/yellow]")
 
     pkgs = _discover_packages(packages_root)
     pkgs = _select_by_regex(pkgs, package_regex)
