@@ -54,13 +54,12 @@ module Usage:
     interrupt1_gpio ~ sensor.interrupt1
     interrupt2_gpio ~ sensor.interrupt2
 
-    # Set I²C address to 0x18 (SA0 pulled low)
-    assert sensor.i2c.address is 0x18
+    # I²C address is set by the sensor module (default 0x18 with SA0 pulled low via addressor)
+    # To change address, configure the addressor.address_lines in your design
 
     # Optional: Connect auxiliary ADC inputs if needed
     # external_signal1 = new ElectricLogic
     # external_signal1 ~ sensor.adc1
-
 ```
 
 ## Applications

@@ -21,7 +21,7 @@ module Worldsemi_WS2812B_2020:
     - Single-wire serial communication protocol
     - 24-bit color depth (8-bit per R/G/B channel)
     - Wide voltage range: 3.5V-5.3V
-    - Low power consumption: ~20mA per LED max
+    - Low power consumption: ~ 20mA per LED max
     - High-density applications and wearables
     - 800kHz data rate with 1.25μs pulse width
     """
@@ -33,7 +33,7 @@ module Worldsemi_WS2812B_2020:
     power = new ElectricPower
     """
     Power supply interface (3.5V-5.3V, typically 5V)
-    Ultra-low current: ~20mA per LED at full brightness
+    Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
     power.required = True
@@ -60,11 +60,11 @@ module Worldsemi_WS2812B_2020:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv
 
     # --- Package connections ---
-    package.VDD ~ power.vcc
-    package.GND ~ power.gnd
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
     data_in.line ~ package.DI
     package.DO ~ data_out.line
 
@@ -83,7 +83,7 @@ module Worldsemi_WS2812B_4020:
     power = new ElectricPower
     """
     Power supply interface (3.5V-5.3V, typically 5V)
-    Ultra-low current: ~20mA per LED at full brightness
+    Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
     power.required = True
@@ -110,11 +110,11 @@ module Worldsemi_WS2812B_4020:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv
 
     # --- Package connections ---
-    package.VDD ~ power.vcc
-    package.VSS ~ power.gnd
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
     data_in.line ~ package.DIN
     package.DOUT ~ data_out.line
 
@@ -133,7 +133,7 @@ module Worldsemi_WS2812B_5050:
     power = new ElectricPower
     """
     Power supply interface (3.5V-5.3V, typically 5V)
-    Ultra-low current: ~20mA per LED at full brightness
+    Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
     power.required = True
@@ -160,11 +160,11 @@ module Worldsemi_WS2812B_5050:
     decoupling_cap = new Capacitor
     decoupling_cap.capacitance = 100nF +/- 20%
     decoupling_cap.package = "0402"
-    power.vcc ~> decoupling_cap ~> power.gnd
+    power.hv ~> decoupling_cap ~> power.lv
 
     # --- Package connections ---
-    package.VDD ~ power.vcc
-    package.VSS ~ power.gnd
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
     data_in.line ~ package.DIN
     package.DOUT ~ data_out.line
 
@@ -208,11 +208,10 @@ module WS2812B_2020_HighDensity_Strip:
     hf_filter_cap = new Capacitor
     hf_filter_cap.capacitance = 10uF +/- 20%
     hf_filter_cap.package = "0603"
-    power.vcc ~> hf_filter_cap ~> power.gnd
+    power.hv ~> hf_filter_cap ~> power.lv
 
     # --- Bridging trait for LED strips ---
     trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
-
 
 module WS2812B_2020_Matrix:
     """
