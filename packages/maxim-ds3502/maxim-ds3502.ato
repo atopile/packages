@@ -66,6 +66,8 @@ module Maxim_DS3502:
     for addr_line in addressor.address_lines:
         addr_line.reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x28), can be overridden by user
+    i2c.address.default = 0x28
 
     # --- Potentiometer reference ---
     potentiometer_high.reference ~ _wiper_bias
