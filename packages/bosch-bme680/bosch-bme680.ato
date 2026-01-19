@@ -60,21 +60,21 @@ module Bosch_BME680:
     """
     Core power supply (VDD) - internally connected to main power
     """
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
 
     power_io = new ElectricPower
     """
     I/O power supply (VDDIO) - internally connected to main power
     """
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ package.GND
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ package.GND
 
     # Power consumption specifications (typical values)
     # VDD current: 2.1μA (sleep) to 12mA (gas measurement)
     # VDDIO current: < 1μA (typical I/O operation)
-    power_core.current = 2.1uA to 12mA  # Depends on operation mode
-    power_io.current = 0.1uA to 1mA     # I/O interface current
+    power_core.max_current = 2.1uA to 12mA  # Depends on operation mode
+    power_io.max_current = 0.1uA to 1mA  # I/O interface current
 
     # Power sequencing: VDD and VDDIO can be powered simultaneously
     # No specific power-up sequence required
@@ -96,11 +96,13 @@ module Bosch_BME680:
 
     # I2C address selection via SDO pin
     # SDO=0 (GND): Address 0x76, SDO=1 (VDDIO): Address 0x77
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x76  # Default address when SDO to GND
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
-    assert addressor.address is i2c.address
+    assert addressor.address within i2c.address
+    # Default to base address (0x76), can be overridden by user
+    i2c.address.default = 0x76
 
     # I2C pull-up resistors (required for proper I2C operation)
     i2c_pullups = new Resistor[2]
