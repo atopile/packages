@@ -3205,20 +3205,9 @@ class ReviewRun:
             if already_published:
                 with self._lock:
                     job = self._jobs.get(pkg_name)
-                    # Only mark as published if the package has already been built locally
-                    # (has build_rc entries) or is currently building/verifying
-                    if job and job.status in ("building", "verifying"):
-                        # Cancel ongoing builds if already published
-                        job.status = "published"
-                        if pkg_name in self._queue:
-                            self._queue.remove(pkg_name)
-                        if hasattr(self, "_mp_cancel"):
-                            try:
-                                self._mp_cancel[pkg_name] = True
-                            except Exception:
-                                pass
-                        self._write_state()
-                    elif job and job.status not in ("not_started") and job.build_rc:
+                    # Only mark as published if the package has been built locally
+                    # (has build_rc entries). Don't interrupt running builds.
+                    if job and job.status not in ("not_started", "building", "verifying") and job.build_rc:
                         # Package has been built locally, safe to mark as published
                         job.status = "published"
                         if pkg_name in self._queue:
@@ -3253,16 +3242,13 @@ class ReviewRun:
                     job.published_pr_author = cached_pr.get("author") or job.published_pr_author
 
                     # Only update status if package has been built locally at least once
-                    # (has build_rc entries) OR is currently building/verifying
+                    # (has build_rc entries). Don't interrupt running builds or skip unbuilt packages.
                     should_update_status = False
 
-                    if job.status in ("building", "verifying"):
-                        # Cancel ongoing builds if PR exists
-                        should_update_status = True
-                    elif job.status == "branch_pushed" and cached_pr.get("url"):
+                    if job.status == "branch_pushed" and cached_pr.get("url"):
                         # Update branch_pushed to pr_opened when PR is discovered
                         should_update_status = True
-                    elif job.status not in ("not_started") and job.build_rc:
+                    elif job.status not in ("not_started", "building", "verifying") and job.build_rc:
                         # Package has been built locally, safe to update status
                         should_update_status = True
 
@@ -3271,12 +3257,6 @@ class ReviewRun:
                         # Remove from queue if still queued
                         if pkg_name in self._queue:
                             self._queue.remove(pkg_name)
-                        # Cancel build if running
-                        if hasattr(self, "_mp_cancel"):
-                            try:
-                                self._mp_cancel[pkg_name] = True
-                            except Exception:
-                                pass
 
                 self._write_state()
 
