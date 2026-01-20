@@ -18,7 +18,9 @@ A comprehensive driver for the NXP PCF8574 remote 8-bit I/O expander for I2C-bus
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import I2C, ElectricPower, ElectricLogic
+import I2C
+import ElectricPower
+import ElectricLogic
 from "atopile/nxp-pcf8574/nxp-pcf8574.ato" import NXP_PCF8574
 
 module Usage:
@@ -47,7 +49,7 @@ module Usage:
 
     # Set I2C address (using hardware address pins)
     # Address will be 0x20 + value set by A2:A1:A0 pins
-    assert gpio_expander.i2c.address is 0x20  # Default address with A2=A1=A0=0
+    assert gpio_expander.i2c.address within 0x20 +/- 0%  # Default address with A2=A1=A0=0
 
     # Optional: Connect interrupt line for input change notifications
     interrupt_signal = new ElectricLogic

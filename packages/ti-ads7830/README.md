@@ -31,7 +31,7 @@ module Usage:
 
     # --- ADC instance ---
     adc = new TI_ADS7830
-    assert adc.i2c.address is 0x48
+    assert adc.i2c.address within 0x48
 
     # --- Connections ---
     power ~ adc.power
