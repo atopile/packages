@@ -36,7 +36,7 @@ module ST_VL6180:
     Address can be changed via software but resets to 0x29 on power cycle
     """
     i2c.required = True
-    assert i2c.address is 0x29
+    assert i2c.address within 0x29
 
     power_io = new ElectricPower
     """
