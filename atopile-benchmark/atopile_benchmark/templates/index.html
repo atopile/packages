@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>atopile Benchmark Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root {
+            /* atopile orange accent colors */
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: #fb923c;
+            --primary-bg: #fff7ed;
+            --success: #10b981;
+            --success-bg: #d1fae5;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 24px 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-stat-value {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .header-stat-label {
+            opacity: 0.9;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px 32px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-primary:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .btn-secondary.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0;
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+            margin-left: -1px;
+        }
+
+        .btn-group .btn:first-child {
+            border-radius: 8px 0 0 8px;
+            margin-left: 0;
+        }
+
+        .btn-group .btn:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Control groups */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-500);
+        }
+
+        /* Version Editor */
+        .version-editor {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .version-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-light);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--gray-800);
+        }
+
+        .version-tag .type {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .version-tag .remove-btn {
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            padding: 2px;
+            line-height: 1;
+            font-size: 16px;
+        }
+
+        .version-tag .remove-btn:hover {
+            color: var(--danger);
+        }
+
+        .version-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .version-input-group select,
+        .version-input-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .version-input-group select {
+            min-width: 100px;
+        }
+
+        .version-input-group input {
+            min-width: 200px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 6px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* First column (benchmark name) - auto width based on content */
+        th:first-child,
+        td:first-child {
+            width: 220px;
+            min-width: 220px;
+            text-align: left;
+        }
+
+        /* Version columns - fixed width to prevent resizing during builds */
+        th:not(:first-child),
+        td:not(:first-child) {
+            width: 130px;
+            min-width: 130px;
+            max-width: 130px;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: var(--gray-800);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+            cursor: pointer;
+        }
+
+        .badge-danger:hover {
+            background: #fecaca;
+        }
+
+        .badge-stub {
+            background: #fef3c7;
+            color: #d97706;
+            cursor: pointer;
+        }
+
+        .badge-stub:hover {
+            background: #fde68a;
+        }
+
+        /* Result cell container - used for all cells with badge + rerun btn */
+        .result-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Package version display */
+        .pkg-version {
+            font-size: 9px;
+            color: var(--gray-400);
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        .badge-pending {
+            background: var(--gray-100);
+            color: var(--gray-400);
+            min-width: 40px;
+        }
+
+        .rerun-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: var(--gray-200);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.15s ease;
+            color: var(--gray-600);
+        }
+
+        .rerun-btn:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .rerun-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .badge-running {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            width: 100px;
+            max-width: 100px;
+            flex-direction: column;
+            padding: 6px 8px;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .badge-running .top-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-running .time {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-running .phase {
+            font-size: 9px;
+            opacity: 0.95;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Run button in table */
+        .run-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .run-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Chart toggles */
+        .benchmark-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .toggle-chip:hover {
+            background: var(--gray-200);
+        }
+
+        .toggle-chip.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .toggle-chip input {
+            display: none;
+        }
+
+        .toggle-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Error modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--danger);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-400);
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--gray-600);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .error-text {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            background: var(--gray-900);
+            color: var(--gray-100);
+            padding: 16px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-x: auto;
+        }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-card-label {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .summary-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .summary-card-sub {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+
+        /* Connection status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .connection-dot.connected {
+            background: #4ade80;
+        }
+
+        /* Chart options */
+        .chart-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 16px;
+        }
+
+        /* Version header styling */
+        .version-header {
+            font-size: 10px !important;
+            max-width: 100px;
+            word-wrap: break-word;
+            white-space: normal;
+            line-height: 1.3;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .header-stats {
+                display: none;
+            }
+
+            .card-body {
+                padding: 16px;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            color: var(--gray-400);
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Chart container */
+        #chart {
+            margin-top: 16px;
+        }
+
+        /* Stats table above results */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            table-layout: fixed;
+            background: var(--gray-50);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .stats-table td {
+            padding: 6px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: top;
+        }
+
+        .stats-table td:first-child {
+            width: 220px;
+            min-width: 220px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-600);
+            background: var(--gray-100);
+        }
+
+        .stats-table td:not(:first-child) {
+            width: 130px;
+            min-width: 130px;
+            max-width: 130px;
+        }
+
+        .stats-table .stat-label {
+            font-size: 10px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .stats-table .stat-value {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 13px;
+        }
+
+        .stats-table .stat-value.good {
+            color: var(--success);
+        }
+
+        .stats-table .stat-value.bad {
+            color: var(--danger);
+        }
+
+        .stats-table .stat-value.neutral {
+            color: var(--gray-600);
+        }
+
+        .stats-table .stat-sub {
+            font-size: 10px;
+            color: var(--gray-400);
+        }
+
+        .stats-table tr.version-header-row td {
+            background: var(--primary-bg);
+            border-bottom: 2px solid var(--primary-light);
+            padding: 8px 12px;
+        }
+
+        .stats-table .version-name {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 12px;
+        }
+
+        .stats-table .version-meta {
+            font-size: 10px;
+            color: var(--gray-500);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>atopile Build Benchmarks</h1>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <span class="header-stat-value" id="totalVersions">-</span>
+                    <span class="header-stat-label">Versions</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-value" id="totalBenchmarks">-</span>
+                    <span class="header-stat-label">Benchmarks</span>
+                </div>
+                <div class="header-stat">
+                    <span class="header-stat-value" id="totalResults">-</span>
+                    <span class="header-stat-label">Results</span>
+                </div>
+                <div class="connection-status">
+                    <span class="connection-dot" id="connectionDot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Version Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h2>atopile Versions</h2>
+                <span style="font-size: 12px; color: var(--gray-500);">Configure which versions to benchmark</span>
+            </div>
+            <div class="card-body">
+                <div class="version-editor" id="versionEditor">
+                    <!-- Version tags will be inserted here -->
+                </div>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+                    <div class="version-input-group">
+                        <select id="newVersionType">
+                            <option value="release">Release</option>
+                            <option value="branch">Branch</option>
+                            <option value="commit">Commit</option>
+                            <option value="local">Local</option>
+                        </select>
+                        <input type="text" id="newVersionValue" placeholder="e.g., 0.12.4, main, ~/path/to/repo">
+                        <button class="btn btn-primary btn-sm" onclick="addVersion()" id="addVersionBtn">Add Version</button>
+                    </div>
+                    <div style="font-size: 11px; color: var(--gray-500); margin-top: 6px;">
+                        Date is auto-detected from git commit history
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid" id="summaryGrid">
+            <div class="summary-card">
+                <div class="summary-card-label">Fastest Version</div>
+                <div class="summary-card-value" id="fastestVersion">-</div>
+                <div class="summary-card-sub" id="fastestVersionTime">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Slowest Version</div>
+                <div class="summary-card-value" id="slowestVersion">-</div>
+                <div class="summary-card-sub" id="slowestVersionTime">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Success Rate</div>
+                <div class="summary-card-value" id="successRate">-</div>
+                <div class="summary-card-sub" id="successRateSub">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-label">Running</div>
+                <div class="summary-card-value" id="runningCount">0</div>
+                <div class="summary-card-sub" id="runningSub">benchmarks</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Controls</h2>
+            </div>
+            <div class="card-body">
+                <div class="controls">
+                    <button class="btn btn-primary" id="runAllBtn" onclick="runAllBenchmarks()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Run Missing
+                    </button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopAllBenchmarks()" style="display: none;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                        </svg>
+                        Stop All
+                    </button>
+                    <button class="btn btn-secondary" id="rerunAllBtn" onclick="rerunAllBenchmarks()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Rerun All
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshData()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-secondary" onclick="reloadConfig()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Reload Config
+                    </button>
+                    <button class="btn btn-secondary" onclick="showCacheModal()" title="Manage cache and free disk space">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span id="cacheSizeLabel">Cache</span>
+                    </button>
+                    <div class="parallelism-control" style="display: flex; align-items: center; gap: 8px; margin-left: 16px;">
+                        <label for="maxParallel" style="font-size: 13px; color: var(--gray-600);">Max Parallel:</label>
+                        <select id="maxParallel" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px;">
+                            <option value="1">1 (Sequential)</option>
+                            <option value="2">2</option>
+                            <option value="4" selected>4</option>
+                            <option value="8">8</option>
+                            <option value="0">Unlimited</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Build Command Checkboxes -->
+                <div class="build-commands-control" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+                    <label style="font-size: 13px; color: var(--gray-600); margin-right: 12px;">Build Commands:</label>
+                    <div id="buildCommandCheckboxes" style="display: inline-flex; gap: 16px; flex-wrap: wrap;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card">
+            <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <h2>Results Matrix</h2>
+                    <span id="tableLastUpdated" style="font-size: 12px; color: var(--gray-500);"></span>
+                </div>
+                <!-- Filter and Sort Controls -->
+                <div class="table-controls" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 13px; color: var(--gray-600);">Filter:</label>
+                        <input type="text" id="filterInput" placeholder="Search packages..." style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px; width: 180px;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 13px; color: var(--gray-600);">Status:</label>
+                        <select id="statusFilter" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px;">
+                            <option value="all">All</option>
+                            <option value="success">Passed</option>
+                            <option value="failure">Failed</option>
+                            <option value="pending">Pending</option>
+                            <option value="running">Running</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 13px; color: var(--gray-600);">Sort by:</label>
+                        <select id="sortColumn" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px;">
+                            <option value="name">Package Name</option>
+                            <!-- Version columns added dynamically -->
+                        </select>
+                        <select id="sortDirection" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px;">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                    <span id="filteredCount" style="font-size: 12px; color: var(--gray-500);"></span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Version Stats Table -->
+                <div class="stats-table-container" style="margin-bottom: 16px; overflow-x: auto;">
+                    <table id="statsTable" class="stats-table">
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-container" style="max-height: 800px; overflow-y: auto;">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Benchmark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Build Time Trends</h2>
+            </div>
+            <div class="card-body">
+                <div class="chart-options">
+                    <div class="control-group">
+                        <span class="control-label">Y-Axis</span>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-sm active" id="yLinearBtn" onclick="setYScale('linear')">Linear</button>
+                            <button class="btn btn-secondary btn-sm" id="yLogBtn" onclick="setYScale('log')">Log</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <span class="control-label">Values</span>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-sm active" id="yAbsBtn" onclick="setNormalize(false)">Seconds</button>
+                            <button class="btn btn-secondary btn-sm" id="yNormBtn" onclick="setNormalize(true)">Normalized</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <span class="control-label">X-Axis</span>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-sm active" id="xDiscreteBtn" onclick="setXMode('discrete')">Discrete</button>
+                            <button class="btn btn-secondary btn-sm" id="xChronoBtn" onclick="setXMode('chronological')">Timeline</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="benchmark-toggles" id="benchmarkToggles"></div>
+                <div id="chart" style="height: 450px;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Error Modal -->
+    <div class="modal-overlay" id="errorModal" onclick="closeErrorModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Build Error</h3>
+                <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="error-text" id="errorText"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cache Management Modal -->
+    <div class="modal-overlay" id="cacheModal" onclick="closeCacheModal(event)">
+        <div class="modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Cache Management</h3>
+                <button class="modal-close" onclick="closeCacheModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="cacheInfo" style="margin-bottom: 16px;">
+                    <p style="color: var(--gray-500);">Loading cache info...</p>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-danger" onclick="cleanupCache()" id="cleanupBtn">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Clean Unused Venvs
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadCacheInfo()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const state = {
+            config: {},
+            resultsMatrix: {},
+            allResults: [],
+            runningBenchmarks: {},
+            ws: null,
+            wsConnected: false,
+            chart: {
+                yScale: 'linear',
+                normalize: false,
+                xMode: 'discrete',
+                enabledPackages: new Set()  // Track enabled packages for chart (not per build command)
+            },
+            // Filter and sort state
+            filter: {
+                text: '',
+                status: 'all',
+                sortColumn: 'name',
+                sortDirection: 'asc'
+            },
+            // Enabled build commands - load from localStorage or default to all enabled
+            enabledBuildCommands: new Set(
+                localStorage.getItem('enabledBuildCommands')
+                    ? JSON.parse(localStorage.getItem('enabledBuildCommands'))
+                    : ['default', 'keep-picked-parts', 'all-targets']
+            )
+        };
+
+        // atopile orange color palette for chart lines
+        const COLORS = [
+            '#f97316', '#0ea5e9', '#22c55e', '#a855f7', '#ec4899',
+            '#14b8a6', '#f59e0b', '#6366f1', '#ef4444', '#84cc16'
+        ];
+
+        // ==================== WebSocket ====================
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            state.ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+
+            state.ws.onopen = () => {
+                state.wsConnected = true;
+                updateConnectionStatus();
+                // Start ping interval
+                setInterval(() => {
+                    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                        state.ws.send('ping');
+                    }
+                }, 30000);
+            };
+
+            state.ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleWebSocketMessage(message);
+                } catch (e) {
+                    // Ignore pong responses
+                }
+            };
+
+            state.ws.onclose = () => {
+                state.wsConnected = false;
+                updateConnectionStatus();
+                // Reconnect after 2 seconds
+                setTimeout(connectWebSocket, 2000);
+            };
+
+            state.ws.onerror = () => {
+                state.wsConnected = false;
+                updateConnectionStatus();
+            };
+        }
+
+        function handleWebSocketMessage(message) {
+            switch (message.type) {
+                case 'benchmark_started':
+                    // Update running benchmark with phase info
+                    if (message.run_key) {
+                        state.runningBenchmarks[message.run_key] = {
+                            status: 'running',
+                            start_time: Date.now() / 1000,
+                            phase: 'initializing',
+                            benchmark_name: message.benchmark,
+                            version_id: message.version_id
+                        };
+                    }
+                    // Update UI immediately without full refresh
+                    updateTable();
+                    updateSummaryCards();
+                    updateStopButtonVisibility();
+                    break;
+                case 'benchmark_progress':
+                    // Update phase information
+                    if (message.run_key && state.runningBenchmarks[message.run_key]) {
+                        state.runningBenchmarks[message.run_key].phase = message.phase || 'building';
+                    }
+                    updateTable();
+                    break;
+                case 'benchmark_completed':
+                    // Remove from running benchmarks
+                    if (message.run_key) {
+                        delete state.runningBenchmarks[message.run_key];
+                    }
+                    // Full refresh to get updated results
+                    refreshData();
+                    updateStopButtonVisibility();
+                    break;
+                case 'benchmark_stopped':
+                    // Remove stopped benchmark from running
+                    if (message.run_key) {
+                        delete state.runningBenchmarks[message.run_key];
+                    }
+                    updateTable();
+                    updateStopButtonVisibility();
+                    break;
+                case 'benchmarks_stopped':
+                    // All benchmarks stopped by user
+                    state.runningBenchmarks = {};
+                    refreshData();
+                    updateStopButtonVisibility();
+                    break;
+                case 'all_benchmarks_completed':
+                    // Clear all running benchmarks
+                    state.runningBenchmarks = {};
+                    refreshData();
+                    updateStopButtonVisibility();
+                    break;
+            }
+        }
+
+        function updateConnectionStatus() {
+            const dot = document.getElementById('connectionDot');
+            const text = document.getElementById('connectionText');
+
+            if (state.wsConnected) {
+                dot.classList.add('connected');
+                text.textContent = 'Connected';
+            } else {
+                dot.classList.remove('connected');
+                text.textContent = 'Reconnecting...';
+            }
+        }
+
+        // ==================== Data Loading ====================
+
+        async function loadData() {
+            try {
+                const [configRes, matrixRes, resultsRes, runningRes] = await Promise.all([
+                    fetch('/api/config'),
+                    fetch('/api/results/matrix'),
+                    fetch('/api/results'),
+                    fetch('/api/running')
+                ]);
+
+                state.config = await configRes.json();
+                state.resultsMatrix = await matrixRes.json();
+                state.allResults = await resultsRes.json();
+                state.runningBenchmarks = await runningRes.json();
+
+                updateUI();
+            } catch (error) {
+                console.error('Failed to load data:', error);
+            }
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        // ==================== UI Updates ====================
+
+        function updateUI() {
+            updateHeaderStats();
+            updateVersionEditor();
+            updateSummaryCards();
+            updateStatsTable();
+            updateTable();
+            updateBenchmarkToggles();
+            updateChart();
+            updateLastUpdated();
+            updateStopButtonVisibility();
+        }
+
+        function updateHeaderStats() {
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+
+            document.getElementById('totalVersions').textContent = versions.length;
+            document.getElementById('totalBenchmarks').textContent = packages.length * commands.length;
+            document.getElementById('totalResults').textContent = state.allResults.length;
+        }
+
+        function updateVersionEditor() {
+            const container = document.getElementById('versionEditor');
+            container.innerHTML = '';
+
+            const versions = state.config.atopile_versions || [];
+
+            versions.forEach((version) => {
+                const tag = document.createElement('div');
+                tag.className = 'version-tag';
+
+                const typeSpan = document.createElement('span');
+                typeSpan.className = 'type';
+                typeSpan.textContent = version.type;
+
+                const valueSpan = document.createElement('span');
+                // Truncate long paths for display
+                let displayValue = version.version;
+                if (version.type === 'commit' && displayValue.length > 10) {
+                    displayValue = displayValue.substring(0, 7);
+                } else if (displayValue.length > 30) {
+                    displayValue = '...' + displayValue.slice(-27);
+                }
+                valueSpan.textContent = displayValue;
+                valueSpan.title = `${version.version} (${version.date || 'no date'})`; // Show full path and date on hover
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = 'Remove version';
+                // Store type and version in data attributes for the async handler
+                removeBtn.dataset.type = version.type;
+                removeBtn.dataset.version = version.version;
+                removeBtn.onclick = function() {
+                    removeVersion(this.dataset.type, this.dataset.version);
+                };
+
+                tag.appendChild(typeSpan);
+                tag.appendChild(valueSpan);
+                tag.appendChild(removeBtn);
+                container.appendChild(tag);
+            });
+
+            if (versions.length === 0) {
+                container.innerHTML = '<span style="color: var(--gray-400); font-size: 13px;">No versions configured. Add a version below.</span>';
+            }
+        }
+
+        function updateSummaryCards() {
+            const results = state.allResults.filter(r => r.status === 'success' && r.total_time);
+
+            // Calculate version averages
+            const versionTimes = {};
+            results.forEach(r => {
+                const vId = `${r.version_spec.type}:${r.version_spec.version}`;
+                if (!versionTimes[vId]) versionTimes[vId] = [];
+                versionTimes[vId].push(r.total_time);
+            });
+
+            const versionAvgs = Object.entries(versionTimes).map(([id, times]) => ({
+                id,
+                avg: times.reduce((a, b) => a + b, 0) / times.length
+            })).sort((a, b) => a.avg - b.avg);
+
+            if (versionAvgs.length > 0) {
+                const fastest = versionAvgs[0];
+                const slowest = versionAvgs[versionAvgs.length - 1];
+
+                // Get short display name
+                const fastestName = getShortVersionName(fastest.id);
+                const slowestName = getShortVersionName(slowest.id);
+
+                document.getElementById('fastestVersion').textContent = fastestName;
+                document.getElementById('fastestVersionTime').textContent = `${fastest.avg.toFixed(2)}s avg`;
+
+                document.getElementById('slowestVersion').textContent = slowestName;
+                document.getElementById('slowestVersionTime').textContent = `${slowest.avg.toFixed(2)}s avg`;
+            }
+
+            // Success rate
+            const total = state.allResults.length;
+            const success = state.allResults.filter(r => r.status === 'success').length;
+            const rate = total > 0 ? Math.round((success / total) * 100) : 0;
+
+            document.getElementById('successRate').textContent = `${rate}%`;
+            document.getElementById('successRateSub').textContent = `${success}/${total} builds`;
+
+            // Running count
+            const running = Object.keys(state.runningBenchmarks).length;
+            document.getElementById('runningCount').textContent = running;
+            document.getElementById('runningSub').textContent = running === 1 ? 'benchmark' : 'benchmarks';
+        }
+
+        function getShortVersionName(versionId) {
+            const [type, version] = versionId.split(':');
+            if (type === 'local') {
+                // Show just the last folder name
+                const parts = version.split('/');
+                return parts[parts.length - 1] || 'local';
+            }
+            return version;
+        }
+
+        function updateStatsTable() {
+            const statsTable = document.getElementById('statsTable');
+            const tbody = statsTable.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+
+            if (versions.length === 0) return;
+
+            // Sort versions by date (oldest first = newest on right)
+            const sortedVersions = [...versions].sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return dateA - dateB;
+            });
+
+            // Build all benchmark names (filtered by enabled build commands)
+            const benchmarkNames = [];
+            packages.forEach(pkg => {
+                commands.forEach(cmd => {
+                    if (state.enabledBuildCommands.has(cmd.name)) {
+                        benchmarkNames.push(`${pkg.name}:${cmd.name}`);
+                    }
+                });
+            });
+
+            // Calculate stats for each version
+            const versionStats = {};
+            sortedVersions.forEach(version => {
+                const versionId = `${version.type}:${version.version}`;
+                let passed = 0;
+                let failed = 0;
+                let pending = 0;
+                let totalTime = 0;
+                let timeCount = 0;
+
+                benchmarkNames.forEach(benchmarkName => {
+                    const result = state.resultsMatrix[benchmarkName]?.[versionId];
+                    if (result) {
+                        if (result.status === 'success') {
+                            passed++;
+                            if (result.total_time) {
+                                totalTime += result.total_time;
+                                timeCount++;
+                            }
+                        } else {
+                            failed++;
+                        }
+                    } else {
+                        pending++;
+                    }
+                });
+
+                versionStats[versionId] = {
+                    passed,
+                    failed,
+                    pending,
+                    total: benchmarkNames.length,
+                    avgTime: timeCount > 0 ? totalTime / timeCount : null
+                };
+            });
+
+            // Calculate normalized times using first version as baseline
+            // Only for packages where ALL versions have successful results
+            const normalizedTimes = {};
+            const baselineVersionId = `${sortedVersions[0].type}:${sortedVersions[0].version}`;
+
+            // For each package, check if all versions passed
+            packages.forEach(pkg => {
+                commands.forEach(cmd => {
+                    if (!state.enabledBuildCommands.has(cmd.name)) return;
+                    const benchmarkName = `${pkg.name}:${cmd.name}`;
+
+                    // Check if all versions have successful results
+                    const allPassed = sortedVersions.every(v => {
+                        const vId = `${v.type}:${v.version}`;
+                        const result = state.resultsMatrix[benchmarkName]?.[vId];
+                        return result && result.status === 'success' && result.total_time;
+                    });
+
+                    if (allPassed) {
+                        const baselineResult = state.resultsMatrix[benchmarkName]?.[baselineVersionId];
+                        const baselineTime = baselineResult?.total_time;
+
+                        if (baselineTime) {
+                            sortedVersions.forEach(v => {
+                                const vId = `${v.type}:${v.version}`;
+                                const result = state.resultsMatrix[benchmarkName]?.[vId];
+                                const normalizedTime = (result.total_time / baselineTime) * 100;
+
+                                if (!normalizedTimes[vId]) {
+                                    normalizedTimes[vId] = { sum: 0, count: 0 };
+                                }
+                                normalizedTimes[vId].sum += normalizedTime;
+                                normalizedTimes[vId].count++;
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Row 1: Version name and metadata
+            const headerRow = document.createElement('tr');
+            headerRow.className = 'version-header-row';
+
+            const headerLabel = document.createElement('td');
+            headerLabel.innerHTML = '<span class="stat-label">Version</span>';
+            headerRow.appendChild(headerLabel);
+
+            sortedVersions.forEach(version => {
+                const td = document.createElement('td');
+                let displayName = version.version;
+                if (version.type === 'local') {
+                    const parts = version.version.split('/');
+                    displayName = parts[parts.length - 1] || 'local';
+                } else if (version.type === 'commit') {
+                    displayName = version.version.substring(0, 7);
+                }
+
+                let metaHtml = `<span class="stat-label">${version.type}</span>`;
+                if (version.local_version) {
+                    metaHtml += `<br><b>v${version.local_version}</b>`;
+                }
+                if (version.date) {
+                    metaHtml += `<br>${version.date}`;
+                }
+                if (version.type === 'commit') {
+                    metaHtml += `<br><code style="font-size: 9px;">${version.version.substring(0, 10)}</code>`;
+                }
+                if (version.type === 'local') {
+                    metaHtml += `<br><span style="font-size: 9px; word-break: break-all;">${version.version}</span>`;
+                }
+
+                td.innerHTML = `<div class="version-name">${displayName}</div><div class="version-meta">${metaHtml}</div>`;
+                headerRow.appendChild(td);
+            });
+            tbody.appendChild(headerRow);
+
+            // Row 2: Pass rate
+            const passRow = document.createElement('tr');
+            const passLabel = document.createElement('td');
+            passLabel.innerHTML = '<span class="stat-label">Pass Rate</span>';
+            passRow.appendChild(passLabel);
+
+            sortedVersions.forEach(version => {
+                const versionId = `${version.type}:${version.version}`;
+                const stats = versionStats[versionId];
+                const td = document.createElement('td');
+
+                const rate = stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0;
+                const rateClass = rate === 100 ? 'good' : rate >= 80 ? 'neutral' : 'bad';
+
+                td.innerHTML = `
+                    <div class="stat-value ${rateClass}">${stats.passed}/${stats.total}</div>
+                    <div class="stat-sub">${rate}% passed</div>
+                `;
+                passRow.appendChild(td);
+            });
+            tbody.appendChild(passRow);
+
+            // Row 3: Average time
+            const avgTimeRow = document.createElement('tr');
+            const avgTimeLabel = document.createElement('td');
+            avgTimeLabel.innerHTML = '<span class="stat-label">Avg Time</span>';
+            avgTimeRow.appendChild(avgTimeLabel);
+
+            sortedVersions.forEach(version => {
+                const versionId = `${version.type}:${version.version}`;
+                const stats = versionStats[versionId];
+                const td = document.createElement('td');
+
+                if (stats.avgTime !== null) {
+                    td.innerHTML = `<div class="stat-value">${stats.avgTime.toFixed(2)}s</div>`;
+                } else {
+                    td.innerHTML = `<div class="stat-value neutral">—</div>`;
+                }
+                avgTimeRow.appendChild(td);
+            });
+            tbody.appendChild(avgTimeRow);
+
+            // Row 4: Normalized time (relative to first/baseline version)
+            const normRow = document.createElement('tr');
+            const normLabel = document.createElement('td');
+            normLabel.innerHTML = `<span class="stat-label">Normalized</span><div class="stat-sub">vs ${getShortVersionName(baselineVersionId)}</div>`;
+            normRow.appendChild(normLabel);
+
+            sortedVersions.forEach((version, idx) => {
+                const versionId = `${version.type}:${version.version}`;
+                const td = document.createElement('td');
+
+                const normData = normalizedTimes[versionId];
+                if (normData && normData.count > 0) {
+                    const avgNorm = normData.sum / normData.count;
+                    const normClass = avgNorm <= 100 ? 'good' : avgNorm <= 120 ? 'neutral' : 'bad';
+                    const arrow = avgNorm < 100 ? '↓' : avgNorm > 100 ? '↑' : '—';
+
+                    td.innerHTML = `
+                        <div class="stat-value ${normClass}">${avgNorm.toFixed(0)}%</div>
+                        <div class="stat-sub">${normData.count} pkg${normData.count !== 1 ? 's' : ''} ${arrow}</div>
+                    `;
+                } else {
+                    td.innerHTML = `<div class="stat-value neutral">—</div><div class="stat-sub">no data</div>`;
+                }
+                normRow.appendChild(td);
+            });
+            tbody.appendChild(normRow);
+        }
+
+        function updateTable() {
+            const table = document.getElementById('resultsTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            thead.innerHTML = '<th>Benchmark</th>';
+            tbody.innerHTML = '';
+
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+
+            if (versions.length === 0) return;
+
+            // Sort versions by date (oldest first = newest on right)
+            const sortedVersions = [...versions].sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return dateA - dateB;
+            });
+
+            // Update sort column dropdown with version options
+            updateSortColumnOptions(sortedVersions);
+
+            // Add version columns
+            sortedVersions.forEach(version => {
+                const th = document.createElement('th');
+                th.className = 'version-header';
+                let displayName = version.type + ':';
+                if (version.type === 'local') {
+                    const parts = version.version.split('/');
+                    displayName += parts[parts.length - 1] || 'local';
+                } else if (version.type === 'commit') {
+                    displayName += version.version.substring(0, 7);
+                } else {
+                    displayName += version.version;
+                }
+                th.textContent = displayName;
+                th.title = `${version.type}:${version.version}`;
+                thead.appendChild(th);
+            });
+
+            // Build benchmark rows - filter by enabled build commands
+            let benchmarks = [];
+            packages.forEach(pkg => {
+                commands.forEach(cmd => {
+                    if (state.enabledBuildCommands.has(cmd.name)) {
+                        benchmarks.push(`${pkg.name}:${cmd.name}`);
+                    }
+                });
+            });
+
+            // Apply text filter
+            if (state.filter.text) {
+                const filterText = state.filter.text.toLowerCase();
+                benchmarks = benchmarks.filter(b => b.toLowerCase().includes(filterText));
+            }
+
+            // Apply status filter
+            if (state.filter.status !== 'all') {
+                benchmarks = benchmarks.filter(benchmarkName => {
+                    // Check if any version matches the status filter
+                    return sortedVersions.some(version => {
+                        const versionId = `${version.type}:${version.version}`;
+                        const runKey = `${benchmarkName}@${versionId}`;
+                        const result = state.resultsMatrix[benchmarkName]?.[versionId];
+                        const isRunning = state.runningBenchmarks[runKey];
+
+                        if (state.filter.status === 'running') return isRunning;
+                        if (state.filter.status === 'pending') return !result && !isRunning;
+                        if (state.filter.status === 'success') return result?.status === 'success';
+                        if (state.filter.status === 'failure') return result?.status === 'failure';
+                        return true;
+                    });
+                });
+            }
+
+            // Apply sorting
+            benchmarks = sortBenchmarks(benchmarks, sortedVersions);
+
+            // Update filtered count
+            const totalBenchmarks = packages.length * commands.filter(c => state.enabledBuildCommands.has(c.name)).length;
+            document.getElementById('filteredCount').textContent =
+                benchmarks.length === totalBenchmarks ? '' : `Showing ${benchmarks.length} of ${totalBenchmarks}`;
+
+            benchmarks.forEach(benchmarkName => {
+                const tr = document.createElement('tr');
+
+                // Benchmark name
+                const nameTd = document.createElement('td');
+                nameTd.textContent = benchmarkName;
+                tr.appendChild(nameTd);
+
+                // Version cells
+                sortedVersions.forEach((version) => {
+                    const td = document.createElement('td');
+                    const versionId = `${version.type}:${version.version}`;
+                    const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
+                    const runKey = `${benchmarkName}@${versionId}`;
+                    const result = state.resultsMatrix[benchmarkName]?.[versionId];
+                    const isRunning = state.runningBenchmarks[runKey];
+
+                    const createRerunBtn = () => {
+                        const btn = document.createElement('button');
+                        btn.className = 'rerun-btn';
+                        btn.title = 'Run benchmark';
+                        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>`;
+                        btn.dataset.benchmark = benchmarkName;
+                        btn.dataset.versionIdx = versionIdx;
+                        btn.onclick = function(e) {
+                            e.stopPropagation();
+                            runSingleBenchmarkByIndex(this.dataset.benchmark, parseInt(this.dataset.versionIdx));
+                        };
+                        return btn;
+                    };
+
+                    if (isRunning) {
+                        const elapsed = Math.floor((Date.now() / 1000) - isRunning.start_time);
+                        const phase = isRunning.phase || 'initializing';
+                        td.innerHTML = `
+                            <span class="badge badge-running">
+                                <span class="top-row">
+                                    <span class="spinner"></span>
+                                    <span class="time">${elapsed}s</span>
+                                </span>
+                                <span class="phase">${phase}</span>
+                            </span>
+                        `;
+                    } else if (result) {
+                        const container = document.createElement('div');
+                        container.className = 'result-cell';
+
+                        if (result.status === 'success') {
+                            const time = result.total_time || 0;
+                            const pkgVer = result.package_version;
+
+                            // Package version display (left of badge)
+                            if (pkgVer) {
+                                const verSpan = document.createElement('span');
+                                verSpan.className = 'pkg-version';
+                                verSpan.textContent = pkgVer;
+                                verSpan.title = `Package version: ${pkgVer}`;
+                                container.appendChild(verSpan);
+                            }
+
+                            const badge = document.createElement('span');
+                            badge.className = 'badge badge-success';
+                            badge.textContent = `${time.toFixed(2)}s`;
+                            container.appendChild(badge);
+                        } else if (result.status === 'stub') {
+                            const time = result.total_time || 0;
+                            const badge = document.createElement('span');
+                            badge.className = 'badge badge-stub';
+                            badge.textContent = `N/A`;
+                            badge.title = `Package not available for this version (stub built in ${time.toFixed(2)}s)`;
+                            badge.onclick = () => showError('Package not available for this atopile version. A stub project was built instead.');
+                            container.appendChild(badge);
+                        } else {
+                            const errorMsg = escapeHtml(result.error_message || 'Build failed');
+                            const badge = document.createElement('span');
+                            badge.className = 'badge badge-danger';
+                            badge.textContent = 'Failed';
+                            badge.style.cursor = 'pointer';
+                            badge.onclick = () => showError(errorMsg);
+                            container.appendChild(badge);
+                        }
+
+                        container.appendChild(createRerunBtn());
+                        td.appendChild(container);
+                    } else {
+                        const container = document.createElement('div');
+                        container.className = 'result-cell';
+
+                        const placeholder = document.createElement('span');
+                        placeholder.className = 'badge badge-pending';
+                        placeholder.textContent = '—';
+                        container.appendChild(placeholder);
+
+                        container.appendChild(createRerunBtn());
+                        td.appendChild(container);
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function sortBenchmarks(benchmarks, sortedVersions) {
+            const { sortColumn, sortDirection } = state.filter;
+            const multiplier = sortDirection === 'asc' ? 1 : -1;
+
+            return [...benchmarks].sort((a, b) => {
+                if (sortColumn === 'name') {
+                    return multiplier * a.localeCompare(b);
+                }
+
+                // Sort by version column (time or status)
+                const versionId = sortColumn;
+                const resultA = state.resultsMatrix[a]?.[versionId];
+                const resultB = state.resultsMatrix[b]?.[versionId];
+
+                // Get sortable values (time for success, Infinity for failure, -Infinity for pending)
+                const getVal = (result) => {
+                    if (!result) return sortDirection === 'asc' ? Infinity : -Infinity;
+                    if (result.status === 'success') return result.total_time || 0;
+                    if (result.status === 'failure') return sortDirection === 'asc' ? Infinity - 1 : -Infinity + 1;
+                    return sortDirection === 'asc' ? Infinity : -Infinity;
+                };
+
+                return multiplier * (getVal(resultA) - getVal(resultB));
+            });
+        }
+
+        function updateSortColumnOptions(sortedVersions) {
+            const select = document.getElementById('sortColumn');
+            const currentValue = select.value;
+
+            // Keep name option, add version options
+            select.innerHTML = '<option value="name">Package Name</option>';
+            sortedVersions.forEach(version => {
+                const versionId = `${version.type}:${version.version}`;
+                let displayName = version.type + ':';
+                if (version.type === 'local') {
+                    const parts = version.version.split('/');
+                    displayName += parts[parts.length - 1] || 'local';
+                } else if (version.type === 'commit') {
+                    displayName += version.version.substring(0, 7);
+                } else {
+                    displayName += version.version;
+                }
+                const option = document.createElement('option');
+                option.value = versionId;
+                option.textContent = displayName;
+                select.appendChild(option);
+            });
+
+            // Restore selection if still valid
+            if ([...select.options].some(o => o.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        function updateBenchmarkToggles() {
+            const container = document.getElementById('benchmarkToggles');
+            container.innerHTML = '';
+
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+
+            // Initialize enabled packages (all enabled by default)
+            if (state.chart.enabledPackages.size === 0) {
+                packages.forEach(pkg => state.chart.enabledPackages.add(pkg.name));
+            }
+
+            packages.forEach((pkg, idx) => {
+                const chip = document.createElement('label');
+                chip.className = `toggle-chip${state.chart.enabledPackages.has(pkg.name) ? ' active' : ''}`;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = state.chart.enabledPackages.has(pkg.name);
+                checkbox.onchange = () => togglePackage(pkg.name, chip);
+
+                const dot = document.createElement('span');
+                dot.className = 'toggle-dot';
+                dot.style.background = COLORS[idx % COLORS.length];
+
+                chip.appendChild(checkbox);
+                chip.appendChild(dot);
+                chip.appendChild(document.createTextNode(pkg.name));
+                container.appendChild(chip);
+            });
+        }
+
+        function togglePackage(name, chip) {
+            if (state.chart.enabledPackages.has(name)) {
+                state.chart.enabledPackages.delete(name);
+                chip.classList.remove('active');
+            } else {
+                state.chart.enabledPackages.add(name);
+                chip.classList.add('active');
+            }
+            updateChart();
+        }
+
+        function updateChart() {
+            const versions = state.config.atopile_versions || [];
+            if (versions.length === 0) {
+                Plotly.newPlot('chart', [], {});
+                return;
+            }
+
+            // Always sort versions by date (oldest first = newest on right)
+            // Both display modes use chronological order, only the x-axis spacing differs
+            const sortedVersions = [...versions].sort((a, b) => {
+                const dateA = new Date(a.date || '1970-01-01');
+                const dateB = new Date(b.date || '1970-01-01');
+                return dateA - dateB;
+            });
+
+            // Always use sorted versions - chronological order for both modes
+            const displayVersions = sortedVersions;
+
+            const traces = [];
+
+            // Get all benchmarks
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+
+            // Track package index for consistent coloring
+            let colorIdx = 0;
+            packages.forEach((pkg) => {
+                // Skip if package is not enabled for chart
+                if (!state.chart.enabledPackages.has(pkg.name)) {
+                    return;
+                }
+
+                const pkgColorIdx = colorIdx++;
+
+                commands.forEach(cmd => {
+                    const benchmarkName = `${pkg.name}:${cmd.name}`;
+
+                    const benchmarkResults = state.resultsMatrix[benchmarkName] || {};
+                    const xValues = [];
+                    const yValues = [];
+                    const hoverText = [];
+
+                    // Get first successful result for normalization
+                    let firstTime = null;
+                    if (state.chart.normalize) {
+                        for (const v of displayVersions) {
+                            const r = benchmarkResults[`${v.type}:${v.version}`];
+                            if (r && r.status === 'success' && r.total_time) {
+                                firstTime = r.total_time;
+                                break;
+                            }
+                        }
+                    }
+
+                    displayVersions.forEach((version, idx) => {
+                        const versionId = `${version.type}:${version.version}`;
+                        const result = benchmarkResults[versionId];
+
+                        if (result && result.status === 'success' && result.total_time) {
+                            if (state.chart.xMode === 'chronological') {
+                                xValues.push(new Date(version.date || '1970-01-01'));
+                            } else {
+                                xValues.push(idx);
+                            }
+
+                            let yValue = result.total_time;
+                            if (state.chart.normalize && firstTime) {
+                                yValue = (result.total_time / firstTime) * 100;
+                            }
+
+                            yValues.push(yValue);
+
+                            // Short version name for hover
+                            const shortName = getShortVersionName(versionId);
+                            hoverText.push(
+                                `<b>${benchmarkName}</b><br>` +
+                                `Version: ${shortName}<br>` +
+                                `Time: ${result.total_time.toFixed(2)}s`
+                            );
+                        }
+                    });
+
+                    if (xValues.length > 0) {
+                        traces.push({
+                            x: xValues,
+                            y: yValues,
+                            mode: 'lines+markers',
+                            name: benchmarkName,
+                            text: hoverText,
+                            hoverinfo: 'text',
+                            line: { color: COLORS[pkgColorIdx % COLORS.length], width: 2 },
+                            marker: { size: 8 }
+                        });
+                    }
+                });
+            });
+
+            // Create short tick labels
+            const tickLabels = displayVersions.map(v => {
+                if (v.type === 'local') {
+                    const parts = v.version.split('/');
+                    return parts[parts.length - 1] || 'local';
+                }
+                return v.version;
+            });
+
+            const layout = {
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.25,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { size: 11 }
+                },
+                margin: { t: 30, b: 120, l: 60, r: 20 },
+                xaxis: {
+                    title: state.chart.xMode === 'chronological' ? 'Date' : 'Version',
+                    type: state.chart.xMode === 'chronological' ? 'date' : 'category',
+                    tickmode: state.chart.xMode === 'discrete' ? 'array' : 'auto',
+                    tickvals: state.chart.xMode === 'discrete' ? displayVersions.map((_, i) => i) : undefined,
+                    ticktext: state.chart.xMode === 'discrete' ? tickLabels : undefined,
+                    tickangle: -45,
+                    tickfont: { size: 11 }
+                },
+                yaxis: {
+                    title: state.chart.normalize ? 'Normalized Time (%)' : 'Build Time (seconds)',
+                    type: state.chart.yScale,
+                    rangemode: 'tozero'
+                },
+                hovermode: 'closest',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            };
+
+            Plotly.newPlot('chart', traces, layout, config);
+        }
+
+        function updateLastUpdated() {
+            const el = document.getElementById('tableLastUpdated');
+            el.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // ==================== Chart Controls ====================
+
+        function setYScale(scale) {
+            state.chart.yScale = scale;
+            document.getElementById('yLinearBtn').classList.toggle('active', scale === 'linear');
+            document.getElementById('yLogBtn').classList.toggle('active', scale === 'log');
+            updateChart();
+        }
+
+        function setNormalize(normalize) {
+            state.chart.normalize = normalize;
+            document.getElementById('yAbsBtn').classList.toggle('active', !normalize);
+            document.getElementById('yNormBtn').classList.toggle('active', normalize);
+            updateChart();
+        }
+
+        function setXMode(mode) {
+            state.chart.xMode = mode;
+            document.getElementById('xDiscreteBtn').classList.toggle('active', mode === 'discrete');
+            document.getElementById('xChronoBtn').classList.toggle('active', mode === 'chronological');
+            updateChart();
+        }
+
+        // ==================== Version Management ====================
+
+        async function addVersion() {
+            const type = document.getElementById('newVersionType').value;
+            const version = document.getElementById('newVersionValue').value.trim();
+            const btn = document.getElementById('addVersionBtn');
+
+            if (!version) {
+                alert('Please enter a version value');
+                return;
+            }
+
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const res = await fetch('/api/versions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, version })
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || 'Failed to add version');
+                }
+
+                // Clear inputs
+                document.getElementById('newVersionValue').value = '';
+
+                // Refresh data to get updated config
+                await refreshData();
+
+            } catch (error) {
+                alert('Error adding version: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Version';
+            }
+        }
+
+        async function removeVersion(type, version) {
+            if (!confirm(`Remove ${type}:${version} from benchmarks?`)) {
+                return;
+            }
+
+            try {
+                const encodedVersion = encodeURIComponent(version);
+                const res = await fetch(`/api/versions/${type}/${encodedVersion}`, {
+                    method: 'DELETE'
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || 'Failed to remove version');
+                }
+
+                // Refresh data to get updated config
+                await refreshData();
+
+            } catch (error) {
+                alert('Error removing version: ' + error.message);
+            }
+        }
+
+        // ==================== Actions ====================
+
+        async function runAllBenchmarks() {
+            const btn = document.getElementById('runAllBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></span> Running...';
+
+            const maxParallel = document.getElementById('maxParallel').value;
+            const commands = [...state.enabledBuildCommands].join(',');
+
+            try {
+                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}&commands=${encodeURIComponent(commands)}`, { method: 'POST' });
+                const data = await res.json();
+
+                if (res.status === 409) {
+                    alert(data.message || 'Benchmarks already running');
+                }
+            } catch (error) {
+                console.error('Failed to start benchmarks:', error);
+                alert('Failed to start benchmarks');
+            }
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Run Missing
+                `;
+            }, 2000);
+        }
+
+        async function rerunAllBenchmarks() {
+            if (!confirm('This will rerun ALL benchmarks for the selected build commands, including ones that already passed. Continue?')) {
+                return;
+            }
+
+            const maxParallel = document.getElementById('maxParallel').value;
+            const commands = [...state.enabledBuildCommands].join(',');
+
+            try {
+                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}&force=true&commands=${encodeURIComponent(commands)}`, { method: 'POST' });
+                const data = await res.json();
+
+                if (res.status === 409) {
+                    alert(data.message || 'Benchmarks already running');
+                }
+            } catch (error) {
+                console.error('Failed to start benchmarks:', error);
+                alert('Failed to start benchmarks');
+            }
+        }
+
+        async function stopAllBenchmarks() {
+            const stopBtn = document.getElementById('stopBtn');
+            stopBtn.disabled = true;
+            stopBtn.innerHTML = '<span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></span> Stopping...';
+
+            try {
+                const res = await fetch('/api/run/stop', { method: 'POST' });
+                const data = await res.json();
+                console.log('Stop result:', data);
+            } catch (error) {
+                console.error('Failed to stop benchmarks:', error);
+                alert('Failed to stop benchmarks');
+            }
+
+            setTimeout(() => {
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = `
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                    </svg>
+                    Stop All
+                `;
+                updateStopButtonVisibility();
+            }, 1000);
+        }
+
+        function updateStopButtonVisibility() {
+            const stopBtn = document.getElementById('stopBtn');
+            const runAllBtn = document.getElementById('runAllBtn');
+            const rerunAllBtn = document.getElementById('rerunAllBtn');
+            const hasRunning = Object.keys(state.runningBenchmarks).length > 0;
+
+            if (hasRunning) {
+                stopBtn.style.display = 'inline-flex';
+                runAllBtn.style.display = 'none';
+                rerunAllBtn.style.display = 'none';
+            } else {
+                stopBtn.style.display = 'none';
+                runAllBtn.style.display = 'inline-flex';
+                rerunAllBtn.style.display = 'inline-flex';
+            }
+        }
+
+        async function runSingleBenchmarkByIndex(benchmarkName, versionIdx) {
+            const versions = state.config.atopile_versions || [];
+            if (versionIdx >= versions.length) {
+                console.error('Invalid version index');
+                return;
+            }
+
+            const version = versions[versionIdx];
+            const versionId = `${version.type}:${version.version}`;
+
+            try {
+                // URL encode the version ID to handle special characters like ~
+                const encodedVersionId = encodeURIComponent(versionId);
+                const res = await fetch(`/api/run/benchmark/${benchmarkName}/version/${encodedVersionId}`, {
+                    method: 'POST'
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    console.error('Failed to start benchmark:', data);
+                }
+
+                refreshData();
+            } catch (error) {
+                console.error('Failed to start benchmark:', error);
+            }
+        }
+
+        async function reloadConfig() {
+            try {
+                await fetch('/api/config/reload', { method: 'POST' });
+                refreshData();
+            } catch (error) {
+                console.error('Failed to reload config:', error);
+            }
+        }
+
+        // ==================== Error Modal ====================
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('errorModal').classList.add('active');
+        }
+
+        function closeErrorModal(event) {
+            if (event && event.target !== document.getElementById('errorModal')) return;
+            document.getElementById('errorModal').classList.remove('active');
+        }
+
+        // ==================== Utilities ====================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+                .replace(/`/g, '&#96;')
+                .replace(/\\/g, '\\\\');
+        }
+
+        // ==================== Polling for Running Benchmarks ====================
+
+        // Poll more frequently when benchmarks are running to keep timers updated
+        setInterval(() => {
+            if (Object.keys(state.runningBenchmarks).length > 0) {
+                // Update table to refresh running timers
+                updateTable();
+                updateSummaryCards();
+            }
+        }, 1000);
+
+        // Also poll API periodically to catch any missed WebSocket messages
+        setInterval(async () => {
+            try {
+                const runningRes = await fetch('/api/running');
+                const apiRunning = await runningRes.json();
+
+                // If API shows running benchmarks but we don't have them, sync up
+                const apiKeys = Object.keys(apiRunning);
+                const localKeys = Object.keys(state.runningBenchmarks);
+
+                if (apiKeys.length !== localKeys.length ||
+                    apiKeys.some(k => !localKeys.includes(k))) {
+                    // State is out of sync, do a full refresh
+                    refreshData();
+                }
+            } catch (e) {
+                console.error('Polling error:', e);
+            }
+        }, 3000);
+
+        // ==================== Keyboard Shortcuts ====================
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeErrorModal();
+            }
+            if (e.key === 'r' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT') {
+                refreshData();
+            }
+        });
+
+        // ==================== Initialize ====================
+
+        connectWebSocket();
+        loadData();
+
+        // Set up filter and sort event listeners
+        document.getElementById('filterInput').addEventListener('input', (e) => {
+            state.filter.text = e.target.value;
+            updateTable();
+        });
+
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+            state.filter.status = e.target.value;
+            updateTable();
+        });
+
+        document.getElementById('sortColumn').addEventListener('change', (e) => {
+            state.filter.sortColumn = e.target.value;
+            updateTable();
+        });
+
+        document.getElementById('sortDirection').addEventListener('change', (e) => {
+            state.filter.sortDirection = e.target.value;
+            updateTable();
+        });
+
+        // ==================== Build Command Checkboxes ====================
+
+        function saveBuildCommandsToStorage() {
+            localStorage.setItem('enabledBuildCommands', JSON.stringify([...state.enabledBuildCommands]));
+        }
+
+        function updateBuildCommandCheckboxes() {
+            const container = document.getElementById('buildCommandCheckboxes');
+            container.innerHTML = '';
+
+            const commands = state.config.build_commands || [];
+            commands.forEach(cmd => {
+                const btn = document.createElement('button');
+                btn.className = `btn btn-sm ${state.enabledBuildCommands.has(cmd.name) ? 'btn-primary' : 'btn-secondary'}`;
+                btn.style.cssText = 'padding: 6px 14px; font-size: 12px;';
+                btn.textContent = cmd.name;
+                btn.title = cmd.description || cmd.command;
+                btn.onclick = () => {
+                    if (state.enabledBuildCommands.has(cmd.name)) {
+                        // Don't allow disabling all commands
+                        if (state.enabledBuildCommands.size <= 1) {
+                            alert('At least one build command must be enabled');
+                            return;
+                        }
+                        state.enabledBuildCommands.delete(cmd.name);
+                        btn.className = 'btn btn-sm btn-secondary';
+                    } else {
+                        state.enabledBuildCommands.add(cmd.name);
+                        btn.className = 'btn btn-sm btn-primary';
+                    }
+                    saveBuildCommandsToStorage();
+                    updateTable();
+                    updateBenchmarkToggles();
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        // Override updateUI to also update build command checkboxes
+        const originalUpdateUI = updateUI;
+        updateUI = function() {
+            originalUpdateUI();
+            updateBuildCommandCheckboxes();
+        };
+
+        // ==================== Cache Management ====================
+
+        async function loadCacheInfo() {
+            try {
+                const response = await fetch('/api/cache/info');
+                const data = await response.json();
+
+                const cacheInfoDiv = document.getElementById('cacheInfo');
+                const unusedVenvs = data.venvs.filter(v => !v.in_config);
+                const usedVenvs = data.venvs.filter(v => v.in_config);
+
+                let html = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="background: var(--gray-50); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--gray-500); text-transform: uppercase;">Venv Cache</div>
+                            <div style="font-size: 20px; font-weight: 600; color: var(--gray-800);">${data.venv_cache_size}</div>
+                        </div>
+                        <div style="background: var(--gray-50); padding: 12px; border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--gray-500); text-transform: uppercase;">Workspaces</div>
+                            <div style="font-size: 20px; font-weight: 600; color: var(--gray-800);">${data.workspace_size}</div>
+                        </div>
+                    </div>
+                `;
+
+                if (usedVenvs.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
+                                Active Venvs (${usedVenvs.length})
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                ${usedVenvs.map(v => `
+                                    <span style="background: var(--success-bg); color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: monospace;">
+                                        ${v.name}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (unusedVenvs.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
+                                Unused Venvs (${unusedVenvs.length}) - can be cleaned
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                ${unusedVenvs.map(v => `
+                                    <span style="background: var(--warning-bg); color: var(--warning); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: monospace;">
+                                        ${v.name}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('cleanupBtn').disabled = false;
+                } else {
+                    html += `<p style="color: var(--gray-500); font-size: 13px;">No unused venvs to clean up.</p>`;
+                    document.getElementById('cleanupBtn').disabled = true;
+                }
+
+                cacheInfoDiv.innerHTML = html;
+
+                // Update the cache button label in the header
+                document.getElementById('cacheSizeLabel').textContent = `Cache (${data.venv_cache_size})`;
+
+            } catch (error) {
+                console.error('Failed to load cache info:', error);
+                document.getElementById('cacheInfo').innerHTML = `
+                    <p style="color: var(--danger);">Failed to load cache info: ${error.message}</p>
+                `;
+            }
+        }
+
+        function showCacheModal() {
+            document.getElementById('cacheModal').classList.add('active');
+            loadCacheInfo();
+        }
+
+        function closeCacheModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                document.getElementById('cacheModal').classList.remove('active');
+            }
+        }
+
+        async function cleanupCache() {
+            const btn = document.getElementById('cleanupBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span>Cleaning...</span>';
+
+            try {
+                const response = await fetch('/api/cache/cleanup', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    let message = 'Cache cleaned!';
+                    if (data.removed_venvs && data.removed_venvs.length > 0) {
+                        message += ` Removed ${data.removed_venvs.length} unused venv(s).`;
+                    }
+                    alert(message);
+                    loadCacheInfo();  // Refresh the display
+                } else {
+                    alert(`Cleanup failed: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Cleanup failed:', error);
+                alert(`Cleanup failed: ${error.message}`);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Load initial cache size for button label
+        fetch('/api/cache/info')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('cacheSizeLabel').textContent = `Cache (${data.venv_cache_size})`;
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>

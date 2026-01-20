@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Dashboard Data</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+        h2 { color: #333; margin-top: 30px; }
+        .value { color: #2ecc71; font-weight: bold; }
+        .key { color: #3498db; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Data Debugger</h1>
+
+    <h2>Results Matrix</h2>
+    <pre id="matrix">Loading...</pre>
+
+    <h2>Parsed Times</h2>
+    <div id="times">Loading...</div>
+
+    <script>
+        async function debug() {
+            try {
+                const res = await fetch('http://127.0.0.1:8080/api/results/matrix');
+                const matrix = await res.json();
+
+                document.getElementById('matrix').textContent = JSON.stringify(matrix, null, 2);
+
+                // Parse times
+                let html = '<table border="1" cellpadding="5"><tr><th>Benchmark</th><th>Version</th><th>total_time</th><th>start_time</th><th>Status</th></tr>';
+
+                for (const [benchmark, versions] of Object.entries(matrix)) {
+                    for (const [versionId, result] of Object.entries(versions)) {
+                        const totalTime = result.total_time || 'N/A';
+                        const startTime = result.start_time || 'N/A';
+                        const status = result.status;
+
+                        html += `<tr>
+                            <td>${benchmark}</td>
+                            <td>${versionId}</td>
+                            <td class="value">${totalTime}</td>
+                            <td>${startTime}</td>
+                            <td>${status}</td>
+                        </tr>`;
+                    }
+                }
+
+                html += '</table>';
+                document.getElementById('times').innerHTML = html;
+
+            } catch (e) {
+                document.getElementById('matrix').textContent = 'Error: ' + e;
+                document.getElementById('times').textContent = 'Error: ' + e;
+            }
+        }
+
+        debug();
+        setInterval(debug, 5000); // Refresh every 5 seconds
+    </script>
+</body>
+</html>

@@ -5812,10 +5812,10 @@ class ReviewRun:
         old_version = m.group(1)
         new_version = _bump_patch(old_version)
 
-        # 4. Update version in the content
+        # 4. Update version in the content (without quotes)
         txt2 = re.sub(
             r'(?m)^(\s*version:\s*)("?)(\d+\.\d+\.\d+)\2\s*$',
-            rf'\g<1>"{new_version}"',
+            rf'\g<1>{new_version}',
             txt,
             count=1,
         )
@@ -5930,10 +5930,10 @@ class ReviewRun:
         if not job:
             raise KeyError(package)
 
-        # Use the actual repo root (parent of packages_repo_root)
-        # packages_repo_root is typically /path/to/packages/packages
-        # but git commands need /path/to/packages
-        repo = self.packages_repo_root.parent
+        # Use the packages repo root (which is the git repository root)
+        # packages_repo_root is /path/to/packages (the git root)
+        # packages_root is /path/to/packages/packages (the packages directory)
+        repo = self.packages_repo_root
         pkg_rel = f"packages/{package}"
 
         print(
@@ -5995,8 +5995,8 @@ class ReviewRun:
         if not job:
             raise KeyError(package)
 
-        # Use the actual repo root (parent of packages_repo_root)
-        repo = self.packages_repo_root.parent
+        # Use the packages repo root (which is the git repository root)
+        repo = self.packages_repo_root
         pkg_rel = f"packages/{package}"
 
         print(f"[SYNC] Syncing {package} from origin/main in {repo}", flush=True)

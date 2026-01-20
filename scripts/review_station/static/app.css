@@ -845,12 +845,12 @@ button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
     "model todo";
 }
 .grid.modeDiff {
-  grid-template-rows: auto 1fr 1fr minmax(280px, 360px);
+  grid-template-columns: 1fr 1.5fr;
+  grid-template-rows: auto auto 1fr;
   grid-template-areas:
     "summary diff"
-    "layout diff"
-    "layout diff"
-    "model todo";
+    "todo diff"
+    "issues diff";
 }
 .card {
   position: relative; /* for progress bars */
@@ -1316,6 +1316,11 @@ model-viewer {
   to { transform: rotate(360deg); }
 }
 
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
 .issuesSummary {
   display: flex;
   gap: 10px;
@@ -1624,6 +1629,18 @@ model-viewer {
   :root:not([data-theme]) .kicanvasWrap,
   :root:not([data-theme]) .diffWrap {
     background: rgba(17, 17, 27, 0.35);
+  }
+}
+
+:root[data-theme="light"] .diffMetaBox,
+:root:not([data-theme]) .diffMetaBox {
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .diffMetaBox {
+    background: rgba(17, 17, 27, 0.35);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
   }
 }
 

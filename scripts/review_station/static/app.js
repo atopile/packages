@@ -83,6 +83,7 @@ const state = {
   lastTodoSavedAt: null,
   diff: "",
   diffInfo: null,
+  diffShowHidden: false, // Toggle to show/hide hidden files in diff
   viewTab: "viewer", // "viewer" | "diff"
   lastViewTab: null,
   // Issues panel
@@ -376,26 +377,28 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       const err = job.build_err?.[name] || 0;
       const secs = job.build_seconds?.[name];
 
-      let statusIcon, statusClass, stageText;
+      let statusIcon, statusClass, stageText, isActivelyBuilding = false;
       if (!hasResult) {
         // Not started or in progress
         if (job.status === "building") {
           // Check for per-build progress
           const buildProgress = perBuildProgress[name];
           if (buildProgress) {
-            statusIcon = "●";
+            statusIcon = `<span class="spinner">⟳</span>`;
             statusClass = "inprogress";
             stageText = buildProgress;
+            isActivelyBuilding = true;
           } else if (Object.keys(perBuildProgress).length > 0) {
             // Other builds have progress but not this one - it's queued
             statusIcon = "○";
             statusClass = "pending";
             stageText = "queued";
           } else {
-            // No per-build progress - show generic building
-            statusIcon = "●";
+            // No per-build progress - show generic building with spinner
+            statusIcon = `<span class="spinner">⟳</span>`;
             statusClass = "inprogress";
             stageText = "building";
+            isActivelyBuilding = true;
           }
         } else {
           // Build hasn't started yet
@@ -419,7 +422,16 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
 
       const warnText = warn > 0 ? `<span class="buildWarn">${warn}w</span>` : "";
       const errText = err > 0 ? `<span class="buildErr">${err}e</span>` : "";
-      const timeText = secs != null ? `${secs.toFixed(1)}s` : "-";
+
+      // Show live timer for actively building targets
+      let timeText;
+      if (isActivelyBuilding && job.started_at) {
+        const startMs = new Date(job.started_at.replace(" ", "T")).getTime();
+        const elapsedSecs = (Date.now() - startMs) / 1000;
+        timeText = `<span class="buildLiveTimer" data-started="${escHtml(job.started_at)}">${Math.floor(elapsedSecs)}s</span>`;
+      } else {
+        timeText = secs != null ? `${secs.toFixed(1)}s` : "-";
+      }
 
       return `<tr class="buildRow ${statusClass}">
         <td class="buildIcon">${statusIcon}</td>
@@ -438,12 +450,13 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
       const verr = job.verify_err || 0;
       const vsecs = job.verify_seconds;
 
-      let vIcon, vClass, vStage;
+      let vIcon, vClass, vStage, isActivelyVerifying = false;
       if (vrc === undefined || vrc === null) {
-        vIcon = "●";
+        vIcon = `<span class="spinner">⟳</span>`;
         vClass = "inprogress";
         // Show actual progress during verify if available
         vStage = (job.status === "verifying" && job.build_progress) ? job.build_progress : "verifying";
+        isActivelyVerifying = true;
       } else if (Number(vrc) !== 0) {
         vIcon = "✗";
         vClass = "failed";
@@ -460,7 +473,16 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
 
       const vWarnText = vwarn > 0 ? `<span class="buildWarn">${vwarn}w</span>` : "";
       const vErrText = verr > 0 ? `<span class="buildErr">${verr}e</span>` : "";
-      const vTimeText = vsecs != null ? `${vsecs.toFixed(1)}s` : "-";
+
+      // Show live timer for active verify
+      let vTimeText;
+      if (isActivelyVerifying && job.started_at) {
+        const startMs = new Date(job.started_at.replace(" ", "T")).getTime();
+        const elapsedSecs = (Date.now() - startMs) / 1000;
+        vTimeText = `<span class="buildLiveTimer" data-started="${escHtml(job.started_at)}">${Math.floor(elapsedSecs)}s</span>`;
+      } else {
+        vTimeText = vsecs != null ? `${vsecs.toFixed(1)}s` : "-";
+      }
 
       verifyRow = `<tr class="buildRow ${vClass} verifyRow">
         <td class="buildIcon">${vIcon}</td>
@@ -1170,17 +1192,30 @@ function _renderRightImpl() {
       pills.push(pillHtml("neutral", `shown ${info.shown_total}/${info.changed_total} files`));
     }
     if (typeof info.hidden_total === "number" && info.hidden_total > 0) {
-      pills.push(pillHtml("warn", `hidden ${info.hidden_total} files`));
+      const hiddenText = state.diffShowHidden ? `hide ${info.hidden_total} files` : `show ${info.hidden_total} hidden files`;
+      pills.push(`<button class="pill warn diffToggleHidden" style="cursor: pointer;">${hiddenText}</button>`);
     }
     const items = Object.entries(hidden)
       .sort((a, b) => (b[1] || 0) - (a[1] || 0))
       .slice(0, 12)
       .map(([k, v]) => pillHtml("neutral", `${k}: ${v}`))
       .join("");
+    const hiddenSection = state.diffShowHidden && items
+      ? `<div style="margin-top:6px;">${items}</div>`
+      : (state.diffShowHidden && !items ? `<div class="muted">No hidden file changes.</div>` : "");
     diffMeta.innerHTML = `
       <div class="sumPills">${pills.join("")}</div>
-      ${items ? `<div style="margin-top:6px;">${items}</div>` : `<div class="muted">No hidden file changes.</div>`}
+      ${hiddenSection}
     `;
+
+    // Add click handler for hidden files toggle
+    const toggleBtn = diffMeta.querySelector(".diffToggleHidden");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        state.diffShowHidden = !state.diffShowHidden;
+        renderRight();
+      });
+    }
 
     diffViewer.innerHTML = renderDiffToHtml(state.diff || "(loading diff…)");
   } else {
@@ -2009,6 +2044,8 @@ async function restartSelected() {
   // Build --frozen: ato build -t all --frozen (fail if layout changes needed)
   await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true, keep_picked_parts: true });
   state.selectedLogContent = "";
+  state.issues = null;  // Clear old issues immediately
+  state.issuesFetchedAt = 0;  // Force refetch on next poll
   await fetchLogIndex();
   await refresh(true);
 }
@@ -2019,6 +2056,8 @@ async function rebuildSelected() {
   // Build: ato build -t all (allow layout changes, re-pick parts)
   await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false, keep_picked_parts: false });
   state.selectedLogContent = "";
+  state.issues = null;  // Clear old issues immediately
+  state.issuesFetchedAt = 0;  // Force refetch on next poll
   await fetchLogIndex();
   await refresh(true);
 }
@@ -2668,6 +2707,16 @@ async function bootstrap() {
     // Update summary pane timer (in the summary card)
     const summaryTimers = document.querySelectorAll(".summaryActiveTimer");
     for (const timer of summaryTimers) {
+      const startedAt = timer.dataset.started;
+      if (!startedAt) continue;
+      const startMs = new Date(startedAt.replace(" ", "T")).getTime();
+      const elapsedSecs = Math.max(0, (Date.now() - startMs) / 1000);
+      timer.textContent = `${Math.floor(elapsedSecs)}s`;
+    }
+
+    // Update build table live timers (per-build-target timers)
+    const buildTimers = document.querySelectorAll(".buildLiveTimer");
+    for (const timer of buildTimers) {
       const startedAt = timer.dataset.started;
       if (!startedAt) continue;
       const startMs = new Date(startedAt.replace(" ", "T")).getTime();
