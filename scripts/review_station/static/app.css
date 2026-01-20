@@ -385,6 +385,33 @@ aside#left {
   border-color: var(--ctp-teal);
   color: var(--ctp-teal);
 }
+/* Pass filter - Green */
+.statusFilterBtn[data-status="pass"] {
+  border-color: rgba(166, 227, 161, 0.3);
+}
+.statusFilterBtn[data-status="pass"].active {
+  background: rgba(166, 227, 161, 0.2);
+  border-color: var(--ctp-green);
+  color: var(--ctp-green);
+}
+/* Fail filter - Red */
+.statusFilterBtn[data-status="fail"] {
+  border-color: rgba(243, 139, 168, 0.3);
+}
+.statusFilterBtn[data-status="fail"].active {
+  background: rgba(243, 139, 168, 0.2);
+  border-color: var(--ctp-red);
+  color: var(--ctp-red);
+}
+/* Not Run filter - Gray */
+.statusFilterBtn[data-status="notrun"] {
+  border-color: rgba(147, 153, 178, 0.3);
+}
+.statusFilterBtn[data-status="notrun"].active {
+  background: rgba(147, 153, 178, 0.2);
+  border-color: var(--ctp-overlay2);
+  color: var(--ctp-overlay2);
+}
 .statusFilterBtn[data-status="agent"] {
   border-color: rgba(203, 166, 247, 0.3);
 }
@@ -1782,4 +1809,204 @@ model-viewer {
   font-size: 9px;
   vertical-align: middle;
   animation: pulse 2s ease-in-out infinite;
+}
+
+/* =============================================================================
+   Sync Progress Line
+   ============================================================================= */
+.syncLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  background: rgba(137, 180, 250, 0.1);
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.syncLine.active {
+  color: var(--ctp-blue);
+}
+
+.syncLine.done {
+  background: rgba(166, 227, 161, 0.1);
+  color: var(--ctp-green);
+}
+
+.syncIcon {
+  font-size: 12px;
+}
+
+.syncLine.active .syncIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.syncBar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg2);
+  border-radius: 2px;
+  overflow: hidden;
+  max-width: 100px;
+}
+
+.syncFill {
+  height: 100%;
+  background: var(--ctp-blue);
+  transition: width 0.3s ease;
+}
+
+/* =============================================================================
+   Git Source Tracking
+   ============================================================================= */
+.gitInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  font-size: 12px;
+}
+
+.gitLabel {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.gitBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.gitMain {
+  background: var(--ctp-green);
+  color: #fff;
+}
+
+.gitPr {
+  background: var(--ctp-mauve);
+  color: #fff;
+}
+
+.gitBranch {
+  background: var(--ctp-blue);
+  color: #fff;
+}
+
+.gitLocal {
+  background: var(--ctp-overlay0);
+  color: var(--text);
+}
+
+.gitSyncing {
+  background: var(--ctp-blue);
+  color: #fff;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.gitPending {
+  background: var(--ctp-overlay1);
+  color: var(--text);
+  border: 1px dashed var(--ctp-overlay2);
+}
+
+.gitError {
+  background: var(--ctp-red);
+  color: #fff;
+}
+
+.gitInfo.syncing {
+  border-color: var(--ctp-blue);
+  background: rgba(137, 180, 250, 0.1);
+}
+
+.gitCommit {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg2);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.gitPulled {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+/* =============================================================================
+   Action Button Styling - Distinct colors for key actions
+   ============================================================================= */
+
+/* Build button - Green (primary action) */
+#rebuildBtn {
+  background: var(--ctp-green) !important;
+  color: #fff !important;
+  border-color: var(--ctp-green) !important;
+  font-weight: 600;
+}
+#rebuildBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ctp-green) 85%, #000) !important;
+}
+#rebuildBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Build --frozen button - Blue */
+#restartBtn {
+  background: var(--ctp-blue) !important;
+  color: #fff !important;
+  border-color: var(--ctp-blue) !important;
+  font-weight: 600;
+}
+#restartBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ctp-blue) 85%, #000) !important;
+}
+#restartBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Publish button - Orange (important action) */
+#publishBtn {
+  background: var(--ctp-peach) !important;
+  color: #1e1e2e !important;
+  border-color: var(--ctp-peach) !important;
+  font-weight: 600;
+}
+#publishBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ctp-peach) 85%, #000) !important;
+  color: #fff !important;
+}
+#publishBtn:disabled {
+  opacity: 0.5;
+}
+
+/* Uprev button - Yellow-ish (related to publish) */
+#uprevBtn {
+  background: var(--ctp-yellow) !important;
+  color: #1e1e2e !important;
+  border-color: var(--ctp-yellow) !important;
+  font-weight: 500;
+}
+#uprevBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ctp-yellow) 85%, #000) !important;
+}
+#uprevBtn:disabled {
+  opacity: 0.5;
 }

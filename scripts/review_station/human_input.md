@@ -7,13 +7,14 @@ The Package Review Station is a web dashboard for reviewing, building, and publi
 
 ## 0. Main Workflow
 * When the app opens
-    * Get the latest code from origin/main from https://github.com/atopile/packages
+    * Get the latest code from origin/main from https://github.com/atopile/packages. Udpate git info in status pane
     * Identify all available packages by parsing the ato.yaml files in packages/packages
     * For each identified package
     * Check the package server for the latest published version of the package, and the latest version of the package
     * Check if there are any open branches or PRs related to this package
+      * If there is a PR open for this package, pull the latest code from the PR branch and use that. Udpate git info in status pane
     * Run ato build for every available package
-* The most important indicator flag is the 'pass' or 'fail' flag that will show the result of the latest ato build
+* The most important indicator flag is the 'pass' or 'fail' flag that will show the result of the latest ato build. Add a filtering option in the sidebar to show these statuses
 * Based on this latest build status, we can identify which packages need attention.
 
 ## 1. Frontend Display
@@ -44,6 +45,7 @@ The Package Review Station is a web dashboard for reviewing, building, and publi
 
 ### 1.3 Status & Summary Pane
 - [ ] Build stage progress indicator (stages: queued → building → verifying → review → pr_opened → ci_running → published)
+- [ ] Git branch that was last pulled from and git hash of last pull for package directory, time of last commit
 - [ ] Per-build-target status table:
   - Build name
   - Return code (pass/fail)
@@ -196,17 +198,14 @@ The Package Review Station is a web dashboard for reviewing, building, and publi
 ## 4. User Interface Commands (Buttons/Actions)
 
 ### 4.1 Package Actions
-- [ ] **Restart (frozen)**: Rebuild with `--frozen --keep-picked-parts` (fail if layout changes)
-- [ ] **Rebuild**: Rebuild without frozen (allow layout changes, re-pick parts)
+- [ ] **build**: run 'ato build -t all'
+- [ ] **build --frozen**: run 'ato build -t all --froezne
 - [ ] **Open in Cursor**: Open package directory in Cursor IDE
 - [ ] **Open in KiCad**: Open PCB file in KiCad
-- [ ] **Approve**: Mark package as reviewed/approved
-- [ ] **Unapprove**: Remove approval
 
 ### 4.2 Publishing Actions
 - [ ] **Publish**: Create new PR branch, commit, push, create/update PR
 - [ ] **Uprev**: Bump version and create PR (quick publish)
-- [ ] **Push to PR**: Push local changes to existing PR branch
 - [ ] **Pull from PR**: Pull PR branch changes to local working tree
 - [ ] **GitHub**: Open PR URL in browser
 
@@ -247,8 +246,6 @@ The Package Review Station is a web dashboard for reviewing, building, and publi
 ### 5.2 Global State
 - [ ] Selected package
 - [ ] Selected build target
-- [ ] Frozen mode flag
-- [ ] Publish anyway flag
 - [ ] Server origin URL
 - [ ] Build queue order
 

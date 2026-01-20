@@ -25,12 +25,18 @@
           <span id="buildProgressText" class="progressText">Build Progress: —</span>
           <div id="buildProgressBar" class="progressBar"><div class="progressFill" style="width:0%"></div></div>
         </div>
+        <div class="syncLine" id="syncProgress" style="display:none;">
+          <span class="syncIcon">⟳</span>
+          <span class="syncText">Syncing...</span>
+        </div>
         <div class="filterRow">
           <input id="filter" type="text" placeholder="Filter packages…" />
           <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>
         </div>
         <div class="statusFilters" id="statusFilters">
           <button class="statusFilterBtn active" data-status="all">All</button>
+          <button class="statusFilterBtn pass" data-status="pass">✓ Pass</button>
+          <button class="statusFilterBtn fail" data-status="fail">✗ Fail</button>
           <button class="statusFilterBtn" data-status="recent">Recent</button>
           <button class="statusFilterBtn" data-status="building">Build</button>
           <button class="statusFilterBtn" data-status="error">Err</button>
@@ -40,6 +46,7 @@
           <button class="statusFilterBtn" data-status="ci_failing">CI ✗</button>
           <button class="statusFilterBtn" data-status="published">Done</button>
           <button class="statusFilterBtn" data-status="queue">Queue</button>
+          <button class="statusFilterBtn" data-status="notrun">Not Run</button>
           <button class="statusFilterBtn agent" data-status="agent">Agent</button>
           <button class="statusFilterBtn help" data-status="help">Help</button>
         </div>
@@ -66,10 +73,9 @@
           <input id="targetAtopile" type="text" placeholder="Target atopile (e.g. ^0.14.0)" value="^0.14.0" />
           <button id="cursorBtn" disabled>Open in Cursor</button>
           <button id="openBtn" disabled>Open in KiCad</button>
-          <button id="restartBtn" disabled title="Restart build with --frozen (fail if layout changes needed)">Restart
-            (frozen)</button>
           <button id="rebuildBtn" disabled
-            title="Restart build without --frozen (allow layout changes)">Rebuild</button>
+            title="Run 'ato build -t all' (allow layout changes, re-pick parts)">Build</button>
+          <button id="restartBtn" disabled title="Run 'ato build -t all --frozen' (fail if layout changes needed)">Build --frozen</button>
           <button id="approveBtn" disabled>Approve</button>
           <button id="unapproveBtn" disabled>Unapprove</button>
           <button id="publishBtn" disabled>Publish</button>

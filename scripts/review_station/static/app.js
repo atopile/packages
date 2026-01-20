@@ -526,9 +526,59 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
     `;
   }
 
+  // Git source tracking - where did the code come from?
+  let gitInfoHtml = "";
+  const syncStatus = job.git_sync_status;
+  const isSyncing = syncStatus === "syncing" || syncStatus === "checking_pr";
+  const isPending = syncStatus === "pending";
+  const hasSyncError = syncStatus === "error";
+
+  if (isSyncing || isPending || job.git_source || job.git_branch || job.git_commit) {
+    let sourceBadge = "";
+    if (isSyncing) {
+      const syncLabel = syncStatus === "checking_pr" ? "Checking PRs…" : "Syncing…";
+      sourceBadge = `<span class="gitBadge gitSyncing" title="Syncing from origin">${syncLabel}</span>`;
+    } else if (isPending) {
+      sourceBadge = `<span class="gitBadge gitPending" title="Waiting to sync">pending</span>`;
+    } else if (hasSyncError) {
+      const errMsg = job.git_sync_error || "sync failed";
+      sourceBadge = `<span class="gitBadge gitError" title="${escHtml(errMsg)}">sync error</span>`;
+    } else {
+      const source = job.git_source || "local";
+      if (source === "main") {
+        sourceBadge = `<span class="gitBadge gitMain" title="Synced from origin/main">main</span>`;
+      } else if (source.startsWith("pr:")) {
+        const prNum = source.replace("pr:", "");
+        sourceBadge = `<span class="gitBadge gitPr" title="Pulled from PR #${prNum}">PR #${prNum}</span>`;
+      } else if (source.startsWith("branch:")) {
+        const branchName = source.replace("branch:", "");
+        sourceBadge = `<span class="gitBadge gitBranch" title="Branch: ${branchName}">${branchName.length > 20 ? branchName.slice(0, 18) + "…" : branchName}</span>`;
+      } else {
+        sourceBadge = `<span class="gitBadge gitLocal" title="Local changes">local</span>`;
+      }
+    }
+
+    const commitInfo = job.git_commit && !isSyncing && !isPending
+      ? `<span class="gitCommit" title="${escHtml(job.git_commit_time || '')}">${escHtml(job.git_commit)}</span>`
+      : "";
+
+    const pulledAt = job.git_pulled_at && !isSyncing && !isPending
+      ? `<span class="gitPulled" title="Last pulled">@ ${escHtml(job.git_pulled_at.split(" ")[1] || job.git_pulled_at)}</span>`
+      : "";
+
+    gitInfoHtml = `
+      <div class="gitInfo${isSyncing ? ' syncing' : ''}">
+        <span class="gitLabel">Source:</span>
+        ${sourceBadge}
+        ${commitInfo}
+        ${pulledAt}
+      </div>
+    `;
+  }
+
   const grid = rows.filter(Boolean).join("") || "";
   const gridHtml = grid ? `<div class="sumGrid">${grid}</div>` : "";
-  return `${prog}<div class="sumPills">${pills.join("")}</div>${buildTable}${timingHtml}${gridHtml}`;
+  return `${prog}<div class="sumPills">${pills.join("")}</div>${gitInfoHtml}${buildTable}${timingHtml}${gridHtml}`;
 }
 
 function setHash(pkg) {
@@ -708,8 +758,20 @@ function _renderListImpl() {
     const warn = getTotalWarn(j);
     const err = getTotalErr(j);
 
+    // Helper: compute build pass/fail status
+    const hasBuildResults = j.build_rc && Object.keys(j.build_rc).length > 0;
+    const hasVerifyResult = j.verify_rc !== undefined && j.verify_rc !== null;
+    const allBuildsPass = hasBuildResults && Object.values(j.build_rc).every(rc => Number(rc) === 0);
+    const verifyPass = hasVerifyResult && Number(j.verify_rc) === 0;
+    const hasAnyResults = hasBuildResults || hasVerifyResult;
+    const isAllPassed = allBuildsPass && verifyPass;
+    const isAnyFailed = (hasBuildResults && !allBuildsPass) || (hasVerifyResult && !verifyPass);
+
     switch (state.statusFilter) {
       case "all": return true;
+      case "pass": return isAllPassed;  // All builds + verify passed
+      case "fail": return isAnyFailed;  // Any build or verify failed
+      case "notrun": return !hasAnyResults && j.status !== "building" && j.status !== "verifying";  // Never run
       case "recent": return !!state.recentlyTouched[n];
       case "building": return j.status === "building" || j.status === "verifying";
       case "error": return j.status === "error" || err > 0;
@@ -1683,8 +1745,68 @@ async function fetchState(full = false) {
       // These must be updated on every poll for the health indicator to work
       if (summary.build_rc !== undefined) pkg.build_rc = summary.build_rc;
       if (summary.verify_rc !== undefined) pkg.verify_rc = summary.verify_rc;
+      // Git source tracking - where did the code come from
+      if (summary.git_source !== undefined) pkg.git_source = summary.git_source;
+      if (summary.git_branch !== undefined) pkg.git_branch = summary.git_branch;
+      if (summary.git_commit !== undefined) pkg.git_commit = summary.git_commit;
+      if (summary.git_commit_time !== undefined) pkg.git_commit_time = summary.git_commit_time;
+      if (summary.git_pulled_at !== undefined) pkg.git_pulled_at = summary.git_pulled_at;
+      // Sync status for background sync progress
+      if (summary.git_sync_status !== undefined) pkg.git_sync_status = summary.git_sync_status;
+      if (summary.git_sync_error !== undefined) pkg.git_sync_error = summary.git_sync_error;
       state.packages[name] = pkg;
     }
+
+    // Update global sync progress
+    if (s.sync) {
+      state.syncInfo = s.sync;
+      updateSyncProgress();
+    }
+  }
+}
+
+function updateSyncProgress() {
+  const syncEl = document.getElementById("syncProgress");
+  if (!syncEl) return;
+
+  const info = state.syncInfo || {};
+  // Prevent "sync done" from flashing repeatedly on every poll.
+  if (info.in_progress) {
+    state.syncDoneDismissed = false;
+  }
+
+  if (!info.in_progress && !info.completed) {
+    syncEl.style.display = "none";
+    return;
+  }
+
+  if (info.completed && state.syncDoneDismissed) {
+    syncEl.style.display = "none";
+    return;
+  }
+
+  syncEl.style.display = "flex";
+  const done = info.done || 0;
+  const total = info.total || 0;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  if (info.in_progress) {
+    syncEl.innerHTML = `
+      <span class="syncIcon">⟳</span>
+      <span class="syncText">Syncing ${done}/${total}</span>
+      <div class="syncBar"><div class="syncFill" style="width:${pct}%"></div></div>
+    `;
+    syncEl.classList.add("active");
+    syncEl.classList.remove("done");
+  } else if (info.completed) {
+    syncEl.innerHTML = `<span class="syncIcon">✓</span><span class="syncText">Sync done</span>`;
+    syncEl.classList.remove("active");
+    syncEl.classList.add("done");
+    // Hide after a few seconds
+    setTimeout(() => {
+      syncEl.style.display = "none";
+      state.syncDoneDismissed = true;
+    }, 5000);
   }
 }
 
@@ -1884,7 +2006,7 @@ async function unapproveSelected() {
 async function restartSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Restart with frozen=true, keep_picked_parts=true (fail if layout changes needed, use existing picks)
+  // Build --frozen: ato build -t all --frozen (fail if layout changes needed)
   await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true, keep_picked_parts: true });
   state.selectedLogContent = "";
   await fetchLogIndex();
@@ -1894,7 +2016,7 @@ async function restartSelected() {
 async function rebuildSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Rebuild with frozen=false, keep_picked_parts=false (allow layout changes, re-pick parts)
+  // Build: ato build -t all (allow layout changes, re-pick parts)
   await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false, keep_picked_parts: false });
   state.selectedLogContent = "";
   await fetchLogIndex();

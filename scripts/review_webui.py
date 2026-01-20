@@ -83,6 +83,231 @@ def _now_ts() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _check_and_pull_pr_for_package(
+    pkg_name: str, pkg_dir: Path, git_root: Path, console: "Console"
+) -> dict[str, str | None]:
+    """
+    Check if there's an open PR for this package and pull from it if so.
+
+    Returns git info dict with source, branch, commit, commit_time, pr_number.
+    """
+    result = {
+        "source": "main",
+        "branch": "origin/main",
+        "commit": None,
+        "commit_time": None,
+        "pr_number": None,
+        "pulled_from_pr": False,
+    }
+
+    try:
+        # Query GitHub for open PRs related to this package
+        gh_result = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "list",
+                "--state",
+                "open",
+                "--json",
+                "number,url,headRefName,title",
+                "--limit",
+                "50",
+            ],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+
+        if gh_result.returncode != 0:
+            return result
+
+        prs = json.loads(gh_result.stdout.strip()) if gh_result.stdout.strip() else []
+
+        # Find PR for this package by branch name or title
+        matching_pr = None
+        for pr in prs:
+            branch = pr.get("headRefName", "")
+            title = pr.get("title", "")
+
+            # Check if branch matches package name pattern
+            if f"-{pkg_name}" in branch or pkg_name in branch:
+                matching_pr = pr
+                break
+
+            # Check if title starts with package name
+            if title.lower().startswith(f"{pkg_name.lower()}:"):
+                matching_pr = pr
+                break
+
+        if not matching_pr:
+            return result
+
+        pr_branch = matching_pr.get("headRefName")
+        pr_number = matching_pr.get("number")
+        console.print(
+            f"[cyan]  → Found open PR #{pr_number} for {pkg_name}, pulling from {pr_branch}[/cyan]"
+        )
+
+        # Fetch and checkout from PR branch
+        pkg_rel = f"packages/{pkg_name}"
+        fetch_ref = f"{pr_branch}:refs/remotes/origin/{pr_branch}"
+
+        fetch_result = subprocess.run(
+            ["git", "fetch", "origin", fetch_ref],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if fetch_result.returncode != 0:
+            console.print(
+                f"[yellow]    Warning: fetch failed for {pr_branch}[/yellow]"
+            )
+            return result
+
+        checkout_result = subprocess.run(
+            ["git", "checkout", f"origin/{pr_branch}", "--", pkg_rel],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if checkout_result.returncode != 0:
+            console.print(
+                f"[yellow]    Warning: checkout failed for {pr_branch}[/yellow]"
+            )
+            return result
+
+        # Get commit info from the PR branch ref (not HEAD)
+        rel_path = Path(pkg_rel)
+        ref = f"origin/{pr_branch}"
+        commit_info = _get_git_commit_for_ref(git_root, ref, rel_path)
+        result["commit"] = commit_info.get("commit")
+        result["commit_time"] = commit_info.get("commit_time")
+
+        result["source"] = f"pr:{pr_number}"
+        result["branch"] = ref
+        result["pr_number"] = pr_number
+        result["pulled_from_pr"] = True
+
+        console.print(
+            f"[green]    ✓ Pulled {pkg_name} from PR #{pr_number} ({pr_branch})[/green]"
+        )
+
+    except subprocess.TimeoutExpired:
+        pass
+    except Exception as e:
+        console.print(f"[yellow]    Warning: PR check failed for {pkg_name}: {e}[/yellow]")
+
+    return result
+
+
+def _get_git_info_for_package(pkg_dir: Path, git_root: Path | None = None) -> dict[str, str | None]:
+    """
+    Get git info for a package directory.
+
+    Returns:
+        dict with keys: branch, commit, commit_time, source
+    """
+    result = {
+        "branch": None,
+        "commit": None,
+        "commit_time": None,
+        "source": "local",  # default
+    }
+
+    try:
+        # Find git root if not provided
+        if git_root is None:
+            git_root_result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                cwd=pkg_dir,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if git_root_result.returncode != 0:
+                return result
+            git_root = Path(git_root_result.stdout.strip()).resolve()
+
+        # Get current branch
+        branch_result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if branch_result.returncode == 0:
+            result["branch"] = branch_result.stdout.strip()
+
+        # Get relative path from git root to package
+        try:
+            rel_path = pkg_dir.relative_to(git_root)
+        except ValueError:
+            rel_path = pkg_dir
+
+        # Get latest commit for the package directory
+        commit_result = subprocess.run(
+            ["git", "log", "-1", "--format=%h|%ci", "--", str(rel_path)],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if commit_result.returncode == 0 and commit_result.stdout.strip():
+            parts = commit_result.stdout.strip().split("|")
+            if len(parts) >= 2:
+                result["commit"] = parts[0]
+                result["commit_time"] = parts[1]
+
+        # Determine source based on branch name
+        branch = result.get("branch", "")
+        if branch in ("main", "master"):
+            result["source"] = "main"
+        elif branch.startswith("package-update-"):
+            # Try to extract PR number from branch or check if there's a PR
+            result["source"] = f"branch:{branch}"
+        elif branch:
+            result["source"] = f"branch:{branch}"
+
+    except subprocess.TimeoutExpired:
+        pass
+    except Exception:
+        pass
+
+    return result
+
+
+def _get_git_commit_for_ref(
+    git_root: Path, ref: str, rel_path: Path
+) -> dict[str, str | None]:
+    """
+    Get the latest commit info for a specific ref and path.
+
+    Returns: {"commit": <sha>, "commit_time": <timestamp>}
+    """
+    result = {"commit": None, "commit_time": None}
+    try:
+        commit_result = subprocess.run(
+            ["git", "log", "-1", "--format=%h|%ci", ref, "--", str(rel_path)],
+            cwd=git_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if commit_result.returncode == 0 and commit_result.stdout.strip():
+            parts = commit_result.stdout.strip().split("|")
+            if len(parts) >= 2:
+                result["commit"] = parts[0]
+                result["commit_time"] = parts[1]
+    except Exception:
+        pass
+    return result
+
+
 def _discover_packages(packages_root: Path) -> list[Path]:
     out: list[Path] = []
     for d in sorted(packages_root.iterdir()):
@@ -94,18 +319,24 @@ def _discover_packages(packages_root: Path) -> list[Path]:
 
 
 def _sync_all_packages_from_main(
-    packages_repo_root: Path, packages_root: Path, console: "Console"
-) -> dict[str, str]:
+    packages_repo_root: Path,
+    packages_root: Path,
+    console: "Console",
+    check_prs: bool = True,
+) -> dict[str, dict[str, Any]]:
     """
-    Sync all packages from origin/main at startup.
+    Sync all packages from origin/main at startup, then check for open PRs.
 
     Workflow:
     1. git fetch origin - get the latest code from origin
     2. For each package in packages/packages with ato.yaml:
-       - git checkout origin/main -- packages/<pkg>/ to sync from main
+       - First sync from origin/main
+       - Then check if there's an open PR for this package
+       - If so, pull from the PR branch instead
        - Preserve build/ directory (don't overwrite local builds)
 
-    Returns dict mapping package name -> sync result ("synced", "error: ...", "skipped")
+    Returns dict mapping package name -> sync result with git info:
+        {"status": "synced"|"pr"|"error", "source": "main"|"pr:N", "branch": ..., etc.}
     """
     import shutil
 
@@ -209,25 +440,66 @@ def _sync_all_packages_from_main(
                 shutil.move(str(build_backup), str(build_dir))
 
             if r.returncode == 0:
-                results[pkg_name] = "synced"
+                rel_path = Path(pkg_rel)
+                commit_info = _get_git_commit_for_ref(git_root, "origin/main", rel_path)
+                results[pkg_name] = {
+                    "status": "synced",
+                    "source": "main",
+                    "branch": "origin/main",
+                    "commit": commit_info.get("commit"),
+                    "commit_time": commit_info.get("commit_time"),
+                }
             else:
                 # Package might not exist in origin/main - that's OK
                 err = r.stderr.strip()
                 if "did not match any file" in err or "pathspec" in err:
-                    results[pkg_name] = "new_package"
+                    results[pkg_name] = {"status": "new_package", "source": "local"}
                 else:
-                    results[pkg_name] = f"error: {err[:100]}"
+                    results[pkg_name] = {"status": "error", "error": err[:100]}
         except subprocess.TimeoutExpired:
-            results[pkg_name] = "error: timeout"
+            results[pkg_name] = {"status": "error", "error": "timeout"}
         except Exception as e:
-            results[pkg_name] = f"error: {type(e).__name__}: {str(e)[:80]}"
+            results[pkg_name] = {"status": "error", "error": f"{type(e).__name__}: {str(e)[:80]}"}
 
-    synced = sum(1 for v in results.values() if v == "synced")
-    new_pkgs = sum(1 for v in results.values() if v == "new_package")
-    errors = sum(1 for v in results.values() if v.startswith("error:"))
+    # Step 4: Check for open PRs and pull from them if they exist
+    if check_prs:
+        console.print(
+            "[bold blue]Checking for open PRs...[/bold blue]"
+        )
+        pr_count = 0
+        for pkg_dir in packages:
+            pkg_name = pkg_dir.name
+            # Only check packages that synced successfully from main
+            if results.get(pkg_name, {}).get("status") not in ("synced", "new_package"):
+                continue
+
+            # Check for PR and pull from it if found
+            pr_info = _check_and_pull_pr_for_package(
+                pkg_name, pkg_dir, git_root, console
+            )
+            if pr_info.get("pulled_from_pr"):
+                pr_count += 1
+                results[pkg_name] = {
+                    "status": "pr",
+                    "source": pr_info.get("source"),
+                    "branch": pr_info.get("branch"),
+                    "pr_number": pr_info.get("pr_number"),
+                    "commit": pr_info.get("commit"),
+                    "commit_time": pr_info.get("commit_time"),
+                }
+
+        if pr_count > 0:
+            console.print(
+                f"[cyan]Pulled {pr_count} packages from open PRs[/cyan]"
+            )
+
+    synced = sum(1 for v in results.values() if v.get("status") == "synced")
+    from_pr = sum(1 for v in results.values() if v.get("status") == "pr")
+    new_pkgs = sum(1 for v in results.values() if v.get("status") == "new_package")
+    errors = sum(1 for v in results.values() if v.get("status") == "error")
 
     console.print(
-        f"[green]Sync complete: {synced} synced, {new_pkgs} new, {errors} errors[/green]"
+        f"[green]Sync complete: {synced} from main, {from_pr} from PRs, {new_pkgs} new, {errors} errors[/green]"
     )
 
     return results
@@ -2048,6 +2320,49 @@ def _rerun_ci_for_pr(pr_url: str, repo_root: Path) -> dict[str, Any]:
         return {"success": False, "message": f"Error: {e}", "run_url": None}
 
 
+def _get_central_log_db_path() -> Path | None:
+    """
+    Get the path to the central SQLite log database (atopile 0.14+).
+
+    Tries multiple methods in order:
+    1. Import from atopile.logging if available
+    2. Use platformdirs if available
+    3. Fallback to known platform-specific paths
+    """
+    # Method 1: Try importing from atopile
+    try:
+        from atopile.logging import get_central_log_db
+        return get_central_log_db()
+    except ImportError:
+        pass
+
+    # Method 2: Try platformdirs
+    try:
+        import platformdirs
+        log_dir = Path(platformdirs.user_log_dir("atopile"))
+        db_path = log_dir / "build_logs.db"
+        if db_path.exists():
+            return db_path
+    except ImportError:
+        pass
+
+    # Method 3: Platform-specific fallbacks
+    home = Path.home()
+    fallback_paths = [
+        # macOS
+        home / "Library" / "Logs" / "atopile" / "build_logs.db",
+        # Linux
+        home / ".local" / "state" / "atopile" / "build_logs.db",
+        # Old location (pre-platformdirs)
+        home / ".local" / "share" / "atopile" / "logs" / "build_logs.db",
+    ]
+    for path in fallback_paths:
+        if path.exists():
+            return path
+
+    return None
+
+
 def _extract_issues_from_sqlite(
     pkg_dir: Path, pkg_name: str, issues: list[dict[str, Any]]
 ) -> None:
@@ -2057,37 +2372,26 @@ def _extract_issues_from_sqlite(
     Adds issues directly to the provided issues list.
     """
     try:
-        # Try to import the logging module from atopile to get the DB path
-        import sys
-        atopile_path = pkg_dir.parent.parent.parent / "atopile_reorg" / "src"
-        if atopile_path.exists() and str(atopile_path) not in sys.path:
-            sys.path.insert(0, str(atopile_path))
-
-        try:
-            from atopile.logging import get_central_log_db
-            db_path = get_central_log_db()
-        except ImportError:
-            # Fallback to default location
-            from pathlib import Path as P
-            home = P.home()
-            db_path = home / ".local" / "share" / "atopile" / "logs" / "build_logs.db"
-
-        if not db_path.exists():
+        db_path = _get_central_log_db_path()
+        if not db_path or not db_path.exists():
             return
 
         import sqlite3
-        conn = sqlite3.connect(str(db_path), timeout=2.0)
+        conn = sqlite3.connect(str(db_path), timeout=5.0)
         conn.row_factory = sqlite3.Row
 
         # Query logs for this package (match by project_path containing package name)
+        # Get only recent logs (last 24 hours) to avoid stale data
         query = """
             SELECT l.timestamp, l.stage, l.level, l.message, l.ato_traceback, l.python_traceback,
-                   b.target
+                   b.target, b.project_path
             FROM logs l
             JOIN builds b ON l.build_id = b.build_id
-            WHERE b.project_path LIKE ? AND l.level IN ('WARNING', 'ERROR')
+            WHERE b.project_path LIKE ?
+              AND l.level IN ('WARNING', 'ERROR')
+              AND datetime(l.timestamp) > datetime('now', '-1 day')
             ORDER BY l.id DESC
-            LIMIT 500
+            LIMIT 200
         """
 
         cursor = conn.execute(query, [f"%{pkg_name}%"])
@@ -2095,7 +2399,7 @@ def _extract_issues_from_sqlite(
 
         for row in rows:
             level = row["level"]
-            message = row["message"]
+            message = row["message"] or ""
             ato_tb = row["ato_traceback"]
             python_tb = row["python_traceback"]
             stage = row["stage"] or "build"
@@ -2104,26 +2408,26 @@ def _extract_issues_from_sqlite(
             # Build full message with tracebacks
             full_msg = message
             if ato_tb:
-                full_msg = f"{message}\n{ato_tb}"
+                full_msg = f"{message}\n\n{ato_tb}"
             elif python_tb:
-                full_msg = f"{message}\n{python_tb}"
+                full_msg = f"{message}\n\n{python_tb}"
 
             # Clean ANSI codes
             clean_msg = re.sub(r"\x1b\[[0-9;]*m", "", full_msg).strip()
 
-            if len(clean_msg) > 10:
+            if len(clean_msg) > 5:
                 issues.append({
                     "type": "error" if level == "ERROR" else "warning",
                     "message": clean_msg,
-                    "source": f"SQLite DB ({target})",
+                    "source": f"ato build ({target})",
                     "stage": stage,
                     "line_num": 0,
                 })
 
         conn.close()
     except Exception as e:
-        # Silently fail - SQLite logs are optional
-        pass
+        # Log the error for debugging but don't fail
+        print(f"[SQLITE] Error extracting issues for {pkg_name}: {e}", flush=True)
 
 
 def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
@@ -2525,6 +2829,12 @@ def _update_todo_auto_section(
         todo_path.write_text(merged, encoding="utf-8")
 
 
+class _NullConsole:
+    """Dummy console that suppresses output for background operations."""
+    def print(self, *args, **kwargs):
+        pass
+
+
 @dataclass
 class JobState:
     package: str
@@ -2613,6 +2923,15 @@ class JobState:
         None  # CI failure we've already auto-rebuilt for (pr#:conclusion)
     )
 
+    # Git source tracking - where the code came from
+    git_source: str | None = None  # "main", "pr:<number>", "local"
+    git_branch: str | None = None  # Branch name the code was checked out from
+    git_commit: str | None = None  # Commit hash (short, 8 chars)
+    git_commit_time: str | None = None  # Commit timestamp
+    git_pulled_at: str | None = None  # When the code was pulled/synced
+    git_sync_status: str | None = None  # "pending", "syncing", "checking_pr", "done", "error"
+    git_sync_error: str | None = None  # Error message if sync failed
+
     def to_public(self) -> dict[str, Any]:
         """Return state for API, excluding heavy cached data."""
         d = asdict(self)
@@ -2641,6 +2960,7 @@ class ReviewRun:
         publish_anyway: bool = False,
         registry_url: str = "https://packages.atopileapi.com",
         registry_refresh_seconds: float = 60.0,
+        sync_results: dict[str, dict[str, Any]] | None = None,
     ):
         self.packages_root = packages_root
         self.packages_repo_root = packages_repo_root or packages_root.parent.resolve()
@@ -2683,6 +3003,14 @@ class ReviewRun:
         self._gh_pr_cache_by_package: dict[str, dict[str, Any]] = {}
         self._gh_pr_cache_updated_at: float = 0.0
 
+        # Background sync state
+        self._sync_enabled = False  # Will be set by start() if sync_from_main=True
+        self._sync_in_progress = False
+        self._sync_completed = False
+        self._sync_packages_done = 0
+        self._sync_packages_total = 0
+        self._sync_results = sync_results or {}
+
         for pkg_dir in selected_packages:
             build_names = _read_ato_yaml_builds(pkg_dir / "ato.yaml")
             build_entries = _read_ato_yaml_build_entries(pkg_dir / "ato.yaml")
@@ -2704,6 +3032,37 @@ class ReviewRun:
             # before a build has completed (layouts are typically checked into the package).
             js.layout_paths = _find_layout_pcb_paths(pkg_dir, build_names)
             js.model_paths = _find_model_glb_paths(pkg_dir, build_names)
+
+            # Initialize git source tracking - use sync_results if available
+            pkg_name = pkg_dir.name
+            sync_info = (sync_results or {}).get(pkg_name)
+            if sync_info and sync_info.get("status") in ("synced", "pr"):
+                # Use info from sync operation (sync already done)
+                js.git_source = sync_info.get("source", "main")
+                js.git_branch = sync_info.get("branch", "origin/main")
+                js.git_commit = sync_info.get("commit")
+                js.git_commit_time = sync_info.get("commit_time")
+                js.git_sync_status = "done"
+                js.git_pulled_at = _now_ts()
+            elif sync_results:
+                # Sync was attempted but this package had issues
+                js.git_source = sync_info.get("source", "local") if sync_info else "local"
+                js.git_sync_status = "error" if sync_info and sync_info.get("status") == "error" else "done"
+                js.git_sync_error = sync_info.get("error") if sync_info else None
+                # Probe git for current state
+                git_info = _get_git_info_for_package(pkg_dir)
+                js.git_branch = git_info.get("branch")
+                js.git_commit = git_info.get("commit")
+                js.git_commit_time = git_info.get("commit_time")
+            else:
+                # No sync was performed - will be synced in background if enabled
+                # Probe git for current state
+                git_info = _get_git_info_for_package(pkg_dir)
+                js.git_source = git_info.get("source")
+                js.git_branch = git_info.get("branch")
+                js.git_commit = git_info.get("commit")
+                js.git_commit_time = git_info.get("commit_time")
+                js.git_sync_status = "pending"  # Will be synced in background
 
             self._jobs[pkg_dir.name] = js
             self._queue.append(pkg_dir.name)
@@ -2782,6 +3141,179 @@ class ReviewRun:
         )
         t.start()
         self._threads.append(t)
+
+    def start_background_sync(self) -> None:
+        """
+        Start background sync from origin/main (and check for PRs).
+        Called after server is ready so UI loads immediately.
+        """
+        if self._sync_completed or self._sync_in_progress:
+            return
+        self._sync_enabled = True
+        t = threading.Thread(
+            target=self._background_sync_worker,
+            name="background-sync",
+            daemon=True,
+        )
+        t.start()
+        self._threads.append(t)
+
+    def _background_sync_worker(self) -> None:
+        """
+        Background worker to sync packages from origin/main and check for PRs.
+        Updates each package's git_sync_status as it progresses.
+        """
+        import shutil
+
+        if not self._sync_enabled:
+            return
+
+        self._sync_in_progress = True
+        packages = list(self._jobs.keys())
+        self._sync_packages_total = len(packages)
+        self._sync_packages_done = 0
+
+        print(f"[SYNC] Starting background sync for {len(packages)} packages", flush=True)
+
+        try:
+            # Find git root
+            git_root_result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                cwd=self.packages_repo_root,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if git_root_result.returncode != 0:
+                print(f"[SYNC] Cannot find git root: {git_root_result.stderr}", flush=True)
+                self._sync_in_progress = False
+                return
+
+            git_root = Path(git_root_result.stdout.strip()).resolve()
+
+            # Fetch from origin first (one time)
+            print("[SYNC] Fetching from origin...", flush=True)
+            fetch_result = subprocess.run(
+                ["git", "fetch", "origin"],
+                cwd=git_root,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if fetch_result.returncode != 0:
+                print(f"[SYNC] Warning: git fetch failed: {fetch_result.stderr}", flush=True)
+
+            # Calculate relative path
+            try:
+                rel_packages_path = self.packages_root.relative_to(git_root)
+            except ValueError:
+                rel_packages_path = Path("packages")
+
+            # Now sync each package
+            for pkg_name in packages:
+                if self._stop:
+                    break
+
+                job = self._jobs.get(pkg_name)
+                if not job:
+                    continue
+
+                # Skip if already synced
+                if job.git_sync_status == "done":
+                    self._sync_packages_done += 1
+                    continue
+
+                pkg_dir = Path(job.package_dir)
+                pkg_rel = str(rel_packages_path / pkg_name)
+
+                # Update status to syncing
+                job.git_sync_status = "syncing"
+                self._write_state()
+
+                try:
+                    # Backup build directory
+                    build_dir = pkg_dir / "build"
+                    build_backup = None
+                    if build_dir.exists():
+                        build_backup = pkg_dir / "_build_backup_sync"
+                        if build_backup.exists():
+                            shutil.rmtree(build_backup)
+                        shutil.move(str(build_dir), str(build_backup))
+
+                    # Checkout from origin/main
+                    r = subprocess.run(
+                        ["git", "checkout", "origin/main", "--", f"{pkg_rel}/"],
+                        cwd=git_root,
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                    )
+
+                    # Restore build directory
+                    if build_backup and build_backup.exists():
+                        if build_dir.exists():
+                            shutil.rmtree(build_dir)
+                        shutil.move(str(build_backup), str(build_dir))
+
+                    if r.returncode == 0:
+                        job.git_source = "main"
+                        job.git_branch = "origin/main"
+                    else:
+                        err = r.stderr.strip()
+                        if "did not match any file" not in err and "pathspec" not in err:
+                            job.git_sync_error = err[:100]
+
+                    # Now check for open PR
+                    job.git_sync_status = "checking_pr"
+                    self._write_state()
+
+                    pr_info = _check_and_pull_pr_for_package(
+                        pkg_name, pkg_dir, git_root, _NullConsole()
+                    )
+                    if pr_info.get("pulled_from_pr"):
+                        job.git_source = pr_info.get("source")
+                        job.git_branch = pr_info.get("branch")
+                        job.git_commit = pr_info.get("commit")
+                        job.git_commit_time = pr_info.get("commit_time")
+                    else:
+                        # Get commit info from origin/main (not HEAD)
+                        try:
+                            rel_path = pkg_dir.relative_to(git_root)
+                        except ValueError:
+                            rel_path = Path(pkg_dir)
+                        commit_info = _get_git_commit_for_ref(
+                            git_root, "origin/main", rel_path
+                        )
+                        job.git_commit = commit_info.get("commit")
+                        job.git_commit_time = commit_info.get("commit_time")
+
+                    job.git_sync_status = "done"
+                    job.git_pulled_at = _now_ts()
+
+                    # Re-read ato.yaml in case it changed
+                    ato_yaml = pkg_dir / "ato.yaml"
+                    if ato_yaml.exists():
+                        job.build_names = _read_ato_yaml_builds(ato_yaml)
+                        job.build_entries = _read_ato_yaml_build_entries(ato_yaml)
+                        job.layout_paths = _find_layout_pcb_paths(pkg_dir, job.build_names)
+                        job.model_paths = _find_model_glb_paths(pkg_dir, job.build_names)
+
+                except subprocess.TimeoutExpired:
+                    job.git_sync_status = "error"
+                    job.git_sync_error = "timeout"
+                except Exception as e:
+                    job.git_sync_status = "error"
+                    job.git_sync_error = f"{type(e).__name__}: {str(e)[:80]}"
+
+                self._sync_packages_done += 1
+                self._write_state()
+
+        except Exception as e:
+            print(f"[SYNC] Background sync error: {e}", flush=True)
+        finally:
+            self._sync_in_progress = False
+            self._sync_completed = True
+            print(f"[SYNC] Background sync complete: {self._sync_packages_done}/{self._sync_packages_total}", flush=True)
 
     def _agent_watchdog(self) -> None:
         """
@@ -3741,11 +4273,39 @@ class ReviewRun:
                     entry["build_rc"] = dict(job.build_rc)
                 if job.verify_rc is not None:
                     entry["verify_rc"] = job.verify_rc
+                # Git source tracking for accountability
+                if job.git_source:
+                    entry["git_source"] = job.git_source
+                if job.git_branch:
+                    entry["git_branch"] = job.git_branch
+                if job.git_commit:
+                    entry["git_commit"] = job.git_commit
+                if job.git_commit_time:
+                    entry["git_commit_time"] = job.git_commit_time
+                if job.git_pulled_at:
+                    entry["git_pulled_at"] = job.git_pulled_at
+                # Sync status for background sync progress
+                if job.git_sync_status:
+                    entry["git_sync_status"] = job.git_sync_status
+                if job.git_sync_error:
+                    entry["git_sync_error"] = job.git_sync_error
                 packages_summary[name] = entry
+
+            # Include global sync progress
+            sync_info = {}
+            if self._sync_in_progress or self._sync_enabled:
+                sync_info = {
+                    "in_progress": self._sync_in_progress,
+                    "completed": self._sync_completed,
+                    "done": self._sync_packages_done,
+                    "total": self._sync_packages_total,
+                }
+
             return {
                 "updated_at": self._state_cache.get("updated_at", _now_ts()),
                 "queue": list(self._queue),
                 "packages": packages_summary,
+                "sync": sync_info,
             }
 
     def get_job(self, package: str) -> JobState | None:
@@ -4899,10 +5459,25 @@ class ReviewRun:
                 j.model_paths = _find_model_glb_paths(
                     Path(j.package_dir), j.build_names
                 )
+                # Update git source tracking
+                pr_num = (pr_data or {}).get("number")
+                j.git_source = f"pr:{pr_num}" if pr_num else f"branch:{branch}"
+                j.git_branch = branch
+                pkg_dir = Path(j.package_dir)
+                git_info = _get_git_info_for_package(pkg_dir, repo)
+                j.git_commit = git_info.get("commit")
+                j.git_commit_time = git_info.get("commit_time")
+                j.git_pulled_at = _now_ts()
         self._write_state()
 
         pr_url = (pr_data or {}).get("url") or (pr_data or {}).get("pr_url")
-        return {"branch": branch, "pr_url": pr_url, "commands": out}
+        return {
+            "branch": branch,
+            "pr_url": pr_url,
+            "commands": out,
+            "git_source": job.git_source if job else None,
+            "git_commit": job.git_commit if job else None,
+        }
 
     def push_to_pr(
         self,
@@ -5486,6 +6061,16 @@ class ReviewRun:
             if m:
                 version = m.group(1)
 
+        # Update git source tracking in job state
+        pkg_dir = Path(job.package_dir)
+        git_info = _get_git_info_for_package(pkg_dir, repo)
+        job.git_source = "main"  # We synced from main
+        job.git_branch = "origin/main"
+        job.git_commit = git_info.get("commit")
+        job.git_commit_time = git_info.get("commit_time")
+        job.git_pulled_at = _now_ts()
+        self._write_state()
+
         result = {
             "synced": True,
             "package": package,
@@ -5493,6 +6078,9 @@ class ReviewRun:
             "branch": current_branch,
             "files_changed": files_changed,
             "diff_stat": diff_stat,
+            "git_source": job.git_source,
+            "git_commit": job.git_commit,
+            "git_commit_time": job.git_commit_time,
         }
         print(f"[SYNC] Result: {result}", flush=True)
         return result
@@ -5763,6 +6351,10 @@ class ReviewRun:
         ).resolve()
 
         issues: list[dict[str, Any]] = []
+
+        # FIRST: Extract from SQLite database (atopile 0.14+ structured logs)
+        # This is the primary source for build errors/warnings
+        _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues)
 
         # Patterns for matching errors/warnings in Rich-style logs
         # Match lines like: "ERROR  some message" or "│ ERROR │ message"
@@ -8116,17 +8708,13 @@ def serve(
             "`atopile/src/vscode-atopile/resources/model-viewer/model-viewer.min.js` exists."
         )
 
-    # Sync from origin/main if requested (Step 1 of main workflow)
+    # Note: If sync_from_main is enabled, sync will happen in background after server starts
+    # This allows the dashboard to open immediately
     if sync_from_main:
         console.print(
             "[bold cyan]Starting Package Review Station with --sync-from-main[/bold cyan]"
         )
-        console.print("[dim]This will fetch origin and sync all packages from origin/main[/dim]")
-        try:
-            _sync_all_packages_from_main(packages_repo_root, packages_root, console)
-        except Exception as e:
-            console.print(f"[red]Sync failed: {e}[/red]")
-            console.print("[yellow]Continuing with local package state...[/yellow]")
+        console.print("[dim]Packages will be synced from origin/main in the background after dashboard opens[/dim]")
 
     pkgs = _discover_packages(packages_root)
     pkgs = _select_by_regex(pkgs, package_regex)
@@ -8167,8 +8755,14 @@ def serve(
         publish_anyway=publish_anyway,
         registry_url=registry_url,
         registry_refresh_seconds=registry_refresh_seconds,
+        sync_results={},  # No pre-sync; will be done in background
     )
     rr.start()
+
+    # Start background sync if requested (after server starts, so dashboard opens immediately)
+    if sync_from_main:
+        console.print("[bold blue]Starting background sync...[/bold blue]")
+        rr.start_background_sync()
 
     # Record pid for `--kill-existing` convenience.
     try:
