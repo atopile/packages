@@ -16,7 +16,6 @@ import I2C
 # --- Package import ---
 from "atopile/bosch-bme280/bosch-bme280.ato" import Bosch_BME280
 
-
 module Usage:
     """
     Minimal usage example for `bosch-bme280`.
