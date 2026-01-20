@@ -75,7 +75,7 @@ module Bosch_BME280:
     addressor.base = 0x76
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
-    assert addressor.base is 0x76
+    assert addressor.base within 0x76
     assert addressor.address is i2c.address
     # Default to address 0x76 (SDO=0), can be overridden to 0x77 (SDO=1)
     i2c.address.default = 0x76

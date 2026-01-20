@@ -46,7 +46,8 @@ module Usage:
     i2c_bus ~ sensor.i2c
 
     # Override the default address (0x76) to use 0x77 (SDO=1)
-    sensor.i2c.address = 0x77
+    assert sensor.i2c.address within 0x77
+
 ```
 
 ## Contributing
