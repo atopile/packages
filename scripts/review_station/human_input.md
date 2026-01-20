@@ -5,6 +5,17 @@ The Package Review Station is a web dashboard for reviewing, building, and publi
 
 ---
 
+## 0. Main Workflow
+* When the app opens
+    * Get the latest code from origin/main from https://github.com/atopile/packages
+    * Identify all available packages by parsing the ato.yaml files in packages/packages
+    * For each identified package
+    * Check the package server for the latest published version of the package, and the latest version of the package
+    * Check if there are any open branches or PRs related to this package
+    * Run ato build for every available package
+* The most important indicator flag is the 'pass' or 'fail' flag that will show the result of the latest ato build
+* Based on this latest build status, we can identify which packages need attention.
+
 ## 1. Frontend Display
 
 ### 1.1 Package List (Left Sidebar)

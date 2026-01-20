@@ -15,8 +15,16 @@
     <aside id="left">
       <div class="toolbar">
         <div class="title">Package Review <span id="frozenStatus" class="frozenStatus"
-            title="Frozen build mode"></span><button id="ghRefreshBtn" class="ghSyncStatus" type="button"
-            title="Click to refresh GitHub data">⟳ GitHub</button></div>
+            title="Frozen build mode"></span></div>
+        <div class="statusLine" id="githubStatusLine">
+          <button id="ghRefreshBtn" class="ghSyncStatus" type="button" title="Click to refresh GitHub data">⟳ GitHub</button>
+          <span id="openPrsCount" class="statusItem" title="Open PRs">PRs: —</span>
+          <span id="ciFailuresCount" class="statusItem bad" title="CI Failures">CI ✗: —</span>
+        </div>
+        <div class="progressLine" id="buildProgressLine">
+          <span id="buildProgressText" class="progressText">Build Progress: —</span>
+          <div id="buildProgressBar" class="progressBar"><div class="progressFill" style="width:0%"></div></div>
+        </div>
         <div class="filterRow">
           <input id="filter" type="text" placeholder="Filter packages…" />
           <button id="sortToggle" class="sortBtn" type="button" title="Toggle sort order">A→Z</button>

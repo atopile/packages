@@ -111,11 +111,35 @@ def _sync_all_packages_from_main(
 
     results: dict[str, str] = {}
 
+    # Step 0: Find the actual git repository root
+    # packages_repo_root might not be the git root if running from a subdirectory
+    git_root_result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=packages_repo_root,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if git_root_result.returncode != 0:
+        # Try from packages_root
+        git_root_result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=packages_root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    if git_root_result.returncode != 0:
+        raise RuntimeError(f"git fetch failed: {git_root_result.stderr.strip()}")
+
+    git_root = Path(git_root_result.stdout.strip()).resolve()
+    console.print(f"[dim]Git repository root: {git_root}[/dim]")
+
     # Step 1: Fetch from origin
     console.print("[bold blue]Fetching from origin...[/bold blue]")
     fetch_result = subprocess.run(
         ["git", "fetch", "origin"],
-        cwd=packages_repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
         timeout=60,
@@ -129,7 +153,7 @@ def _sync_all_packages_from_main(
     # Step 2: Check if origin/main exists
     check_ref = subprocess.run(
         ["git", "rev-parse", "--verify", "origin/main"],
-        cwd=packages_repo_root,
+        cwd=git_root,
         capture_output=True,
         text=True,
     )
@@ -145,9 +169,19 @@ def _sync_all_packages_from_main(
         f"[bold blue]Syncing {len(packages)} packages from origin/main...[/bold blue]"
     )
 
+    # Determine the relative path from git root to packages
+    # e.g., if git_root=/Users/foo/packages and packages_root=/Users/foo/packages/packages
+    # then rel_packages_path = "packages"
+    try:
+        rel_packages_path = packages_root.relative_to(git_root)
+    except ValueError:
+        # packages_root is not under git_root - use absolute path reference
+        rel_packages_path = Path("packages")
+        console.print(f"[dim]Using default packages path: {rel_packages_path}[/dim]")
+
     for pkg_dir in packages:
         pkg_name = pkg_dir.name
-        pkg_rel = f"packages/{pkg_name}"
+        pkg_rel = str(rel_packages_path / pkg_name)
 
         try:
             # Save build directory if it exists (don't overwrite local builds)
@@ -162,7 +196,7 @@ def _sync_all_packages_from_main(
             # Checkout package files from origin/main
             r = subprocess.run(
                 ["git", "checkout", "origin/main", "--", f"{pkg_rel}/"],
-                cwd=packages_repo_root,
+                cwd=git_root,
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -2014,6 +2048,84 @@ def _rerun_ci_for_pr(pr_url: str, repo_root: Path) -> dict[str, Any]:
         return {"success": False, "message": f"Error: {e}", "run_url": None}
 
 
+def _extract_issues_from_sqlite(
+    pkg_dir: Path, pkg_name: str, issues: list[dict[str, Any]]
+) -> None:
+    """
+    Extract errors/warnings from the central SQLite log database (atopile 0.14+).
+
+    Adds issues directly to the provided issues list.
+    """
+    try:
+        # Try to import the logging module from atopile to get the DB path
+        import sys
+        atopile_path = pkg_dir.parent.parent.parent / "atopile_reorg" / "src"
+        if atopile_path.exists() and str(atopile_path) not in sys.path:
+            sys.path.insert(0, str(atopile_path))
+
+        try:
+            from atopile.logging import get_central_log_db
+            db_path = get_central_log_db()
+        except ImportError:
+            # Fallback to default location
+            from pathlib import Path as P
+            home = P.home()
+            db_path = home / ".local" / "share" / "atopile" / "logs" / "build_logs.db"
+
+        if not db_path.exists():
+            return
+
+        import sqlite3
+        conn = sqlite3.connect(str(db_path), timeout=2.0)
+        conn.row_factory = sqlite3.Row
+
+        # Query logs for this package (match by project_path containing package name)
+        query = """
+            SELECT l.timestamp, l.stage, l.level, l.message, l.ato_traceback, l.python_traceback,
+                   b.target
+            FROM logs l
+            JOIN builds b ON l.build_id = b.build_id
+            WHERE b.project_path LIKE ? AND l.level IN ('WARNING', 'ERROR')
+            ORDER BY l.id DESC
+            LIMIT 500
+        """
+
+        cursor = conn.execute(query, [f"%{pkg_name}%"])
+        rows = cursor.fetchall()
+
+        for row in rows:
+            level = row["level"]
+            message = row["message"]
+            ato_tb = row["ato_traceback"]
+            python_tb = row["python_traceback"]
+            stage = row["stage"] or "build"
+            target = row["target"] or "unknown"
+
+            # Build full message with tracebacks
+            full_msg = message
+            if ato_tb:
+                full_msg = f"{message}\n{ato_tb}"
+            elif python_tb:
+                full_msg = f"{message}\n{python_tb}"
+
+            # Clean ANSI codes
+            clean_msg = re.sub(r"\x1b\[[0-9;]*m", "", full_msg).strip()
+
+            if len(clean_msg) > 10:
+                issues.append({
+                    "type": "error" if level == "ERROR" else "warning",
+                    "message": clean_msg,
+                    "source": f"SQLite DB ({target})",
+                    "stage": stage,
+                    "line_num": 0,
+                })
+
+        conn.close()
+    except Exception as e:
+        # Silently fail - SQLite logs are optional
+        pass
+
+
 def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
     """
     Extract all errors/warnings from logs for a job.
@@ -2028,6 +2140,9 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
 
     issues: list[dict[str, Any]] = []
 
+    # First, try to extract from SQLite database (atopile 0.14+)
+    _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues)
+
     # Patterns for matching errors/warnings
     error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
     warning_pattern = re.compile(r"\bWARNING\b", re.IGNORECASE)
@@ -2041,7 +2156,7 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
         stage: str,
         max_bytes: int = 2_000_000,
     ) -> None:
-        """Extract errors/warnings from a single log file."""
+        """Extract errors/warnings from a single log file (plain text or JSONL)."""
         if not log_path.exists():
             return
         try:
@@ -2051,6 +2166,55 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
         except Exception:
             return
 
+        # Check if this is a JSONL file (JSON Lines format)
+        if log_path.name.endswith(".jsonl"):
+            # Parse JSONL format: each line is a JSON object with "level", "message", etc.
+            for i, line in enumerate(txt.splitlines()):
+                line_num = i + 1
+                if not line.strip():
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                level = str(entry.get("level", "")).upper()
+                message = entry.get("message", "")
+                # Include traceback info if present
+                ato_tb = entry.get("ato_traceback", "")
+                exc_info = entry.get("exc_info", "")
+                # Build full message
+                full_msg = message
+                if ato_tb:
+                    full_msg = f"{message}\n{ato_tb}"
+                elif exc_info:
+                    full_msg = f"{message}\n{exc_info}"
+                # Clean ANSI codes
+                clean_msg = re.sub(r"\x1b\[[0-9;]*m", "", full_msg).strip()
+                if len(clean_msg) < 10:
+                    continue
+                if level == "ERROR":
+                    issues.append(
+                        {
+                            "type": "error",
+                            "message": clean_msg,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                        }
+                    )
+                elif level == "WARNING":
+                    issues.append(
+                        {
+                            "type": "warning",
+                            "message": clean_msg,
+                            "source": source_label,
+                            "stage": stage,
+                            "line_num": line_num,
+                        }
+                    )
+            return
+
+        # Plain text log parsing (legacy format)
         lines = txt.splitlines()
         in_traceback = False
 
@@ -2101,8 +2265,13 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
         fname = f"build.{b}.log"
         extract_from_log(run_logs_dir / fname, f"build ({b})", "build")
 
-    # Extract from verify log
-    extract_from_log(run_logs_dir / "verify.log", "verify", "verify")
+    # Extract from verify log (try both .jsonl and .log)
+    verify_jsonl = run_logs_dir / "verify.jsonl"
+    verify_log = run_logs_dir / "verify.log"
+    if verify_jsonl.exists():
+        extract_from_log(verify_jsonl, "verify", "verify")
+    elif verify_log.exists():
+        extract_from_log(verify_log, "verify", "verify")
 
     # Extract from package internal logs
     if pkg_build_latest.exists():
@@ -2113,7 +2282,7 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
             for p in sorted(bdir.iterdir()):
                 if not p.is_file():
                     continue
-                if not (p.name.endswith(".log") or p.name.endswith(".txt")):
+                if not (p.name.endswith(".log") or p.name.endswith(".txt") or p.name.endswith(".jsonl")):
                     continue
                 extract_from_log(p, f"{b} / {p.name}", "build")
 

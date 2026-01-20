@@ -636,6 +636,9 @@ function _renderListImpl() {
   const root = $("#pkgList");
   root.innerHTML = "";
 
+  // Update the build progress counter in the header
+  updateBuildProgress();
+
   const filter = (state.filter || "").toLowerCase().trim();
   const now = Date.now();
 
@@ -749,8 +752,56 @@ function _renderListImpl() {
 
     const metaPills = [];
 
-    // Show queue position for queued packages
+    // PRIMARY INDICATOR: Show build PASS/FAIL as the first, most prominent pill
+    // This indicator is ALWAYS shown - it's the most important per workflow requirements
+    const hasBuildResults = j.build_rc && Object.keys(j.build_rc).length > 0;
+    const hasVerifyResult = j.verify_rc !== undefined && j.verify_rc !== null;
+    const allBuildsPass = hasBuildResults && Object.values(j.build_rc).every(rc => Number(rc) === 0);
+    const verifyPass = hasVerifyResult && Number(j.verify_rc) === 0;
+    const isBuilding = j.status === "building" || j.status === "verifying";
     const isQueued = j.status === "not_started" || j.status === "paused" || j.status === "skipped";
+    const hasAnyResults = hasBuildResults || hasVerifyResult;
+
+    // Always show a build status indicator - this is the most important indicator
+    if (allBuildsPass && verifyPass) {
+      // All builds and verify passed
+      metaPills.push(el("span", { class: "pill good buildResult", title: "All builds and verify passed" }, [
+        el("span", { text: "✓ PASS" }),
+      ]));
+    } else if (allBuildsPass && hasVerifyResult && !verifyPass) {
+      // Builds passed but verify failed
+      metaPills.push(el("span", { class: "pill bad buildResult", title: "Package verify failed" }, [
+        el("span", { text: "✗ VERIFY" }),
+      ]));
+    } else if (allBuildsPass && !hasVerifyResult && hasBuildResults) {
+      // Builds passed, verify not run yet
+      metaPills.push(el("span", { class: "pill good buildResult", title: "Builds passed, awaiting verify" }, [
+        el("span", { text: "✓ BUILD" }),
+      ]));
+    } else if (hasBuildResults && !allBuildsPass) {
+      // At least one build failed
+      const failedBuilds = Object.entries(j.build_rc || {}).filter(([_, rc]) => Number(rc) !== 0).map(([n]) => n);
+      metaPills.push(el("span", { class: "pill bad buildResult", title: `Failed: ${failedBuilds.join(", ")}` }, [
+        el("span", { text: "✗ FAIL" }),
+      ]));
+    } else if (isBuilding) {
+      // Currently building - show progress indicator
+      metaPills.push(el("span", { class: "pill purple buildResult", title: "Build in progress" }, [
+        el("span", { text: "● BUILDING" }),
+      ]));
+    } else if (!hasAnyResults) {
+      // NO BUILD RESULTS - this package has never been run
+      metaPills.push(el("span", { class: "pill notrun buildResult", title: "Build has not been run yet" }, [
+        el("span", { text: "○ NOT RUN" }),
+      ]));
+    } else {
+      // Unknown state - show neutral
+      metaPills.push(el("span", { class: "pill neutral buildResult", title: `Status: ${j.status}` }, [
+        el("span", { text: "— PENDING" }),
+      ]));
+    }
+
+    // Show queue position for queued packages
     if (isQueued && Array.isArray(state.queue)) {
       const queuePosition = state.queue.filter(p => {
         const pj = state.packages[p];
@@ -1628,6 +1679,10 @@ async function fetchState(full = false) {
       // Include started_at and current_step for active builds to support timer display
       if (summary.started_at !== undefined) pkg.started_at = summary.started_at;
       if (summary.step !== undefined) pkg.current_step = summary.step;
+      // CRITICAL: Include build_rc and verify_rc for pass/fail indicator
+      // These must be updated on every poll for the health indicator to work
+      if (summary.build_rc !== undefined) pkg.build_rc = summary.build_rc;
+      if (summary.verify_rc !== undefined) pkg.verify_rc = summary.verify_rc;
       state.packages[name] = pkg;
     }
   }
@@ -2128,6 +2183,19 @@ async function fetchGhCacheStatus() {
       }
       el.title = `Last sync: ${Math.round(age)}s ago\nClick to refresh GitHub data`;
     }
+
+    // Update the separate status line elements if they exist
+    const prsEl = document.getElementById("openPrsCount");
+    const ciEl = document.getElementById("ciFailuresCount");
+    if (prsEl) {
+      prsEl.textContent = `PRs: ${pkgsWithCi}`;
+      prsEl.classList.toggle("good", pkgsWithCi > 0);
+    }
+    if (ciEl) {
+      ciEl.textContent = ciFailures > 0 ? `CI ✗: ${ciFailures}` : `CI ✓: 0`;
+      ciEl.classList.toggle("bad", ciFailures > 0);
+      ciEl.classList.toggle("good", ciFailures === 0);
+    }
   } catch (e) {
     console.warn("[GitHub Status] Error fetching status:", e);
     el.classList.remove("loading", "synced");
@@ -2135,6 +2203,76 @@ async function fetchGhCacheStatus() {
     el.textContent = "⚠ GitHub";
     el.title = `${String(e)}\nClick to retry`;
     // Don't crash the dashboard - just show error state
+  }
+}
+
+/**
+ * Update the build progress counter in the header.
+ * Shows: passed / failed / building / not run / total packages
+ */
+function updateBuildProgress() {
+  const textEl = document.getElementById("buildProgressText");
+  const barEl = document.getElementById("buildProgressBar");
+  if (!textEl || !barEl) return;
+
+  const packages = state.packages || {};
+  const allNames = Object.keys(packages);
+  const total = allNames.length;
+
+  if (total === 0) {
+    textEl.textContent = "Build Progress: No packages";
+    return;
+  }
+
+  let passed = 0;
+  let failed = 0;
+  let completed = 0;
+  let building = 0;
+  let notRun = 0;
+
+  for (const name of allNames) {
+    const j = packages[name];
+    const hasBuildResults = j.build_rc && Object.keys(j.build_rc).length > 0;
+    const hasVerifyResult = j.verify_rc !== undefined && j.verify_rc !== null;
+    const hasAnyResults = hasBuildResults || hasVerifyResult;
+    const allBuildsPass = hasBuildResults && Object.values(j.build_rc).every(rc => Number(rc) === 0);
+    const verifyPass = hasVerifyResult && Number(j.verify_rc) === 0;
+    const isBuilding = j.status === "building" || j.status === "verifying";
+
+    if (isBuilding) {
+      building++;
+    } else if (hasAnyResults) {
+      completed++;
+      if (allBuildsPass && verifyPass) {
+        passed++;
+      } else if (allBuildsPass && !hasVerifyResult) {
+        // Builds passed but verify not run yet - still count as "passed builds"
+        passed++;
+      } else {
+        failed++;
+      }
+    } else {
+      // No build results at all - not run
+      notRun++;
+    }
+  }
+
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  // Text shows: PASS | FAIL | building | not run | done/total
+  let statusText = `✓ ${passed} PASS`;
+  if (failed > 0) statusText += ` | ✗ ${failed} FAIL`;
+  if (building > 0) statusText += ` | ● ${building} building`;
+  if (notRun > 0) statusText += ` | ○ ${notRun} not run`;
+  statusText += ` | ${completed}/${total} done`;
+
+  textEl.textContent = statusText;
+
+  // Update progress bar
+  const fillEl = barEl.querySelector(".progressFill");
+  if (fillEl) {
+    fillEl.style.width = `${pct}%`;
+    fillEl.classList.toggle("hasFailures", failed > 0);
   }
 }
 

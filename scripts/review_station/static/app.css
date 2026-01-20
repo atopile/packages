@@ -231,6 +231,66 @@ aside#left {
   display: grid;
   gap: 10px;
 }
+
+/* GitHub status line */
+.statusLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background: var(--card);
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  font-size: 11px;
+}
+.statusLine .statusItem {
+  font-weight: 500;
+  color: var(--muted);
+}
+.statusLine .statusItem.bad {
+  color: var(--bad);
+}
+.statusLine .statusItem.good {
+  color: var(--good);
+}
+.statusLine .statusItem.warn {
+  color: var(--warn);
+}
+
+/* Build progress line */
+.progressLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--card);
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  font-size: 11px;
+}
+.progressText {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 180px;
+}
+.progressBar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progressBar .progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--good), #40a02b);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.progressBar .progressFill.hasFailures {
+  background: linear-gradient(90deg, var(--warn), #df8e1d);
+}
+
 .filterRow {
   display: flex;
   gap: 6px;
@@ -558,6 +618,48 @@ option {
 .pill.bad  .dot { background: var(--bad); }
 .pill.blue .dot { background: var(--blue); }
 .pill.purple .dot { background: var(--purple); }
+
+/* Build result pill - prominent PASS/FAIL indicator (always visible) */
+.pill.buildResult {
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  letter-spacing: 0.5px;
+  border-radius: 4px !important;
+  text-transform: uppercase;
+}
+.pill.buildResult.good {
+  background: #40a02b !important; /* Catppuccin green - explicit hex for reliability */
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+.pill.buildResult.bad {
+  background: #d20f39 !important; /* Catppuccin red - explicit hex for reliability */
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+.pill.buildResult.purple {
+  background: #8839ef !important; /* Catppuccin mauve - explicit hex for reliability */
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.pill.buildResult.neutral {
+  background: #6c6f85 !important; /* Catppuccin overlay1 - gray for pending/queued */
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+.pill.buildResult.notrun {
+  background: #7c7f93 !important; /* Catppuccin overlay2 - distinct gray for not run */
+  color: #ffffff !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  border: 1px dashed rgba(255,255,255,0.3);
+}
+/* Ensure buildResult is always first and visible */
+.pkgMeta .pill.buildResult {
+  order: -1;
+  margin-right: 6px;
+}
 
 /* Build progress pill - pulsing animation for active builds */
 .pill.buildProgress {
