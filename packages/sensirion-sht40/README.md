@@ -26,7 +26,6 @@ import I2C
 # --- Package import ---
 from "atopile/sensirion-sht40/sensirion-sht40.ato" import Sensirion_SHT40
 
-
 module Usage:
     """
     Minimal usage example for `sensirion-sht40`.
