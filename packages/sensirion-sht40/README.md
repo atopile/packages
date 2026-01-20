@@ -55,7 +55,7 @@ module Usage:
     i2c_bus ~ sensor.i2c
 
     # Address is fixed at 0x44 (no configuration needed)
-    sensor.i2c.address = 0x44
+    assert sensor.i2c.address within 0x44
 
 ```
 
