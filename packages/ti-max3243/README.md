@@ -120,7 +120,6 @@ module DE9RS232Male:
 
     package.MH1 ~ rs232.has_single_electric_reference.reference.lv
     package.MH2 ~ rs232.has_single_electric_reference.reference.lv
-
 ```
 
 ## Interfaces
