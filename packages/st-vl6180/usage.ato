@@ -40,8 +40,7 @@ module Usage:
     i2c_bus ~ tof_sensor.i2c
 
     # I2C address is fixed at 0x29 by default
-    tof_sensor.i2c.address = 0x29
-
+    assert tof_sensor.i2c.address within 0x29
 
     # --- Optional: GPIO usage ---
     # GPIO0/CE can be used for chip enable and data ready interrupt
