@@ -1,10 +1,10 @@
-#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
 # --- Standard library imports ---
 import ElectricPower
 import I2C
+import Resistor
 
 # --- Package import ---
 from "atopile/ti-tca6408/ti-tca6408.ato" import TI_TCA6408
@@ -26,16 +26,14 @@ module Usage:
     i2c_bus = new I2C
 
     # GPIO expander instances
-    expanders = new TI_TCA6408[2]
+    expander = new TI_TCA6408
 
     # Set addresses
-    expanders[0].i2c.address = 0x20
-    expanders[1].i2c.address = 0x21
+    expander.i2c.address = 0x20
 
     # Connect power and I²C
-    for expander in expanders:
-        power_3v3 ~ expander.power
-        i2c_bus ~ expander.i2c
+    power_3v3 ~ expander.power
+    expander.i2c ~ i2c_bus
 
     # Provide logic references
     power_3v3 ~ i2c_bus.scl.reference

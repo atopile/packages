@@ -1,0 +1,31 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: espressif-esp32-s3.ato:Espressif_ESP32_S3
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/espressif-esp32-s3
+  repository: https://github.com/atopile/packages
+  homepage:
+    https://github.com/atopile/packages/blob/main/packages/espressif-esp32-s3/README.md
+  version: 0.2.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: Espressif ESP32-S3-WROOM-1/1U Module with Buttons and Touch
+  license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/buttons
+  release: 0.3.1

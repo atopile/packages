@@ -1,38 +1,39 @@
-requires-atopile: ^0.10.6
-
+requires-atopile: ^0.11.4
 paths:
   src: .
   layout: ./layouts
-
 builds:
+  default:
+    entry: espressif-esp32-c3-mini.ato:ESP32_C3_MINI_1
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
   esp32_c3_mini_1_driver:
-    entry: esp32_c3_mini.ato:ESP32_C3_MINI_1_driver
+    entry: espressif-esp32-c3-mini.ato:ESP32_C3_MINI_1
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-  esp32_c3_mini_1_driver_example:
-    entry: esp32_c3_mini.ato:ESP32_C3_MINI_1_driver_example
-    hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
+    exclude_checks:
+    - PCB.requires_drc_check
   esp32_c3_wroom_02_driver:
-    entry: esp32_c3_wroom.ato:ESP32_C3_WROOM_02_driver
+    entry: espressif-esp32-c3-wroom.ato:ESP32_C3_WROOM_02
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-  esp32_c3_wroom_02_driver_example:
-    entry: esp32_c3_wroom.ato:ESP32_C3_WROOM_02_driver_example
-    hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/espressif-esp32-c3
   repository: https://github.com/atopile/packages
-  version: 0.1.4
+  version: 0.2.1
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: The ESP32-C3 microcontroller family from Espressif
   license: MIT
+  homepage: https://github.com/atopile/packages/blob/main/packages/espressif-esp32-c3/README.md
 dependencies:
-  - type: registry
-    identifier: atopile/buttons
-    release: 0.2.4
+- type: registry
+  identifier: atopile/buttons
+  release: 0.2.4

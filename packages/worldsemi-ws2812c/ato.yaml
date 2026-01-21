@@ -1,0 +1,42 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  ws2812c-2020:
+    entry: worldsemi-ws2812c.ato:Worldsemi_WS2812C_2020
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  ws2812c-4020:
+    entry: worldsemi-ws2812c.ato:Worldsemi_WS2812C_4020
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  ws2812c-5050:
+    entry: worldsemi-ws2812c.ato:Worldsemi_WS2812C_5050
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  strip:
+    entry: worldsemi-ws2812c.ato:WS2812C_5050_Strip
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  matrix:
+    entry: worldsemi-ws2812c.ato:WS2812C_5050_Matrix
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/worldsemi-ws2812c
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/worldsemi-ws2812c/README.md
+  version: "0.3.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: Worldsemi; WS2812C; RGB; LED; Addressable; Digital; Strip; NeoPixel; 5050; SMD5050; C114587"
+  license: MIT

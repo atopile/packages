@@ -1,26 +1,26 @@
-requires-atopile: "^0.10.8"
-
+requires-atopile: ^0.14.0
 paths:
-  src: "./"
+  src: ./
   layout: ./layouts
-
 builds:
   default:
     entry: maxim-ds3231.ato:Maxim_DS3231
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/maxim-ds3231
   repository: https://github.com/atopile/packages
   homepage: https://github.com/atopile/packages/blob/main/packages/maxim-ds3231/README.md
   authors:
-    - name: atopile
-      email: hi@atopile.io
-  version: "0.1.0"
-  summary: Maxim Integrated DS3231; RTC; I2C; Temperature compensated; Crystal; Clock; SQW; STEMMA; Adafruit; 5188
+  - name: atopile
+    email: hi@atopile.io
+  version: 0.3.0
+  summary: Maxim Integrated DS3231; RTC; I2C; Temperature compensated; Crystal; Clock;
+    SQW; STEMMA; Adafruit; 5188
   license: MIT

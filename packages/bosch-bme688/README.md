@@ -52,7 +52,7 @@ module Usage:
     # - I2C pull-ups (4.7kΩ)
     # - Power filtering (100nF + 10nF caps)
     # - Protocol selection (I2C default)
-    assert sensor.i2c.address is 0x77
+    assert sensor.i2c.address within 0x77
 
 ```
 

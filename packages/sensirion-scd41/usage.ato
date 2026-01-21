@@ -35,7 +35,7 @@ module Usage:
     power_3v3 ~ i2c_bus.sda.reference
 
     # --- I2C address is fixed at 0x62 ---
-    co2_sensor.i2c.address = 0x62
+    assert co2_sensor.i2c.address within 0x62
 
     # --- I2C pull-up resistors are included in the sensor module ---
     # No external pullup resistors needed

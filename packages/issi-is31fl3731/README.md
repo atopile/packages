@@ -17,16 +17,9 @@ import LED
 
 from "atopile/issi-is31fl3731/issi-is31fl3731.ato" import ISSI_IS31FL3731
 
-module MCU:
-    """Host microcontroller providing I²C and 3.3 V rail."""
-    power = new ElectricPower
-    i2c = new I2C
-    irq = new ElectricLogic
-
 module Usage:
     """Minimal usage example for ISSI_IS31FL3731 LED matrix driver."""
 
-    mcu = new MCU
     led_driver = new ISSI_IS31FL3731
     row_0_led = new LED[8]
     # ... more rows ...
@@ -34,27 +27,28 @@ module Usage:
     # power
     power = new ElectricPower
     power.voltage = 3.3V
-    power ~ mcu.power
     power ~ led_driver.power
 
     # I²C connection
-    mcu.i2c ~ led_driver.i2c
+    i2c_bus = new I2C
+    i2c_bus ~ led_driver.i2c
 
     # Interrupt line (optional)
-    led_driver.interrupt ~ mcu.irq
+    interrupt_line = new ElectricLogic
+    led_driver.interrupt ~ interrupt_line
 
     # leds
     for led in row_0_led:
         led.lcsc_id = "C2286"
-        led_driver.channel_a[0].line ~ led.cathode
-    led_driver.channel_a[1].line ~ row_0_led[0].anode
-    led_driver.channel_a[2].line ~ row_0_led[1].anode
-    led_driver.channel_a[3].line ~ row_0_led[2].anode
-    led_driver.channel_a[4].line ~ row_0_led[3].anode
-    led_driver.channel_a[5].line ~ row_0_led[4].anode
-    led_driver.channel_a[6].line ~ row_0_led[5].anode
-    led_driver.channel_a[7].line ~ row_0_led[6].anode
-    led_driver.channel_a[8].line ~ row_0_led[7].anode
+        led_driver.channel_a[0].line ~ led.diode.cathode
+    led_driver.channel_a[1].line ~ row_0_led[0].diode.anode
+    led_driver.channel_a[2].line ~ row_0_led[1].diode.anode
+    led_driver.channel_a[3].line ~ row_0_led[2].diode.anode
+    led_driver.channel_a[4].line ~ row_0_led[3].diode.anode
+    led_driver.channel_a[5].line ~ row_0_led[4].diode.anode
+    led_driver.channel_a[6].line ~ row_0_led[5].diode.anode
+    led_driver.channel_a[7].line ~ row_0_led[6].diode.anode
+    led_driver.channel_a[8].line ~ row_0_led[7].diode.anode
 
     # ... more rows ...
 

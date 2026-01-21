@@ -41,6 +41,8 @@ jobs:
       packages: read
       id-token: write
     runs-on: ubuntu-latest
+    env:
+      GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -50,30 +52,86 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      # FIXME: handle deps properly
-      # ideally it'd determine if the package is in the same repo and, if so,
-      # install via file instead
-      - uses: atopile/setup-atopile@v1.6
         with:
-          working-directory: ${{ matrix.package }}
+          fetch-depth: 0
+
+      # Build against a feature branch of atopile for 0.14.x package updates
+      # Uses pre-built Docker image from the branch (built by atopile CI)
+      # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
+      - uses: atopile/setup-atopile@v1.8
+        with:
+          docker-tag: feature-fabll_part2
+
+      - name: Print atopile + KiCad versions
+        run: |
+          set -euo pipefail
+          echo "ato version: $(ato --version)"
+          echo "ato githash: $(docker image inspect atopile-local --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+          echo "kicad version: $(docker run --rm --entrypoint kicad-cli atopile-local --version)"
+
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build
-        working-directory: ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }} -t all
+        env:
+          GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
 
-      - uses: atopile/publish-package@v1
-        name: Publish package
+      - name: Publish dry run
+        if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish --dry-run ${{ matrix.package }}
+
+      - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish ${{ matrix.package }}
+
+      - name: Print errors and warnings on failure
+        if: failure()
+        run: |
+          pkg="${{ matrix.package }}"
+          echo "::group::Error Logs"
+          find "$pkg/build/logs" -name "*.error.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
+          echo "::group::Warning Logs"
+          find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
+
+      - name: Archive build logs
+        id: archive_logs
+        if: always()
+        run: |
+          pkg="${{ matrix.package }}"
+          logs_dir="$pkg/build/logs"
+          mkdir -p artifacts
+          safe_pkg=$(echo "$pkg" | tr '/' '-')
+          artifact_name="build-logs-$safe_pkg-${{ github.run_id }}-${{ github.run_attempt }}"
+          archive="artifacts/$artifact_name.zip"
+          if [ -d "$logs_dir" ]; then
+            zip -r "$archive" "$logs_dir" -q
+            echo "archive_path=$archive" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+          else
+            echo "No logs directory at $logs_dir"
+            echo "archive_path=" >> "$GITHUB_OUTPUT"
+            echo "artifact_name=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload build logs
+        if: always() && steps.archive_logs.outputs.archive_path != ''
+        uses: actions/upload-artifact@v4
         with:
-          package-entrypoint: ${{ matrix.package }}
-          skip-duplicate-versions: true
-          package-version: "" # Use the embedded version key
-          ato-config: ${{ matrix.package }}/ato.yaml
+          name: ${{ steps.archive_logs.outputs.artifact_name }}
+          path: ${{ steps.archive_logs.outputs.archive_path }}
+          if-no-files-found: warn
+          retention-days: 14
 
   verify-matrix:
     runs-on: ubuntu-latest

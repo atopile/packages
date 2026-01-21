@@ -5,14 +5,19 @@ This package provides USB connectors for convenience.
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import USB2_0
 import ElectricPower
+import has_part_removed
 
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCVerticalConnector
 
 module MCU:
     """Host MCU providing USB bus and power rail."""
+
+    trait has_part_removed
 
     power = new ElectricPower
     usb_1 = new USB2_0

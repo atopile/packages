@@ -50,15 +50,15 @@
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
-			(dashed_line_dash_ratio 12.000000)
-			(dashed_line_gap_ratio 3.000000)
+			(dashed_line_dash_ratio 12)
+			(dashed_line_gap_ratio 3)
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
 			(useauxorigin no)
 			(hpglpennumber 1)
 			(hpglpenspeed 20)
-			(hpglpendiameter 15.000000)
+			(hpglpendiameter 15)
 			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
@@ -69,11 +69,15 @@
 			(psnegative no)
 			(psa4output no)
 			(plot_black_and_white yes)
+			(plotinvisibletext no)
 			(sketchpadsonfab no)
+			(plotreference yes)
+			(plotvalue yes)
 			(plotpadnumbers no)
 			(hidednponfab no)
 			(sketchdnponfab yes)
 			(crossoutdnponfab yes)
+			(plotfptext yes)
 			(subtractmaskfromsilk no)
 			(outputformat 1)
 			(mirror no)
@@ -83,14 +87,14 @@
 		)
 	)
 	(net 0 "")
-	(net 1 "GND")
-	(net 2 "_3")
-	(net 3 "VCC")
-	(net 4 "_4")
+	(net 1 "lv")
+	(net 2 "3")
+	(net 3 "hv")
+	(net 4 "4")
 	(footprint "AMASS_XT30PW_F20_G_Y:CONN-TH_XT30PW-F-1"
 		(layer "F.Cu")
 		(uuid "2c99ce8f-7e24-472d-8c44-f8ba4642524b")
-		(at 200 96.0125)
+		(at 200 96.0125 0)
 		(property "Reference" "U1"
 			(at 0 -6.5 0)
 			(layer "F.SilkS")
@@ -106,6 +110,7 @@
 		(property "Value" ""
 			(at 0 6.5 0)
 			(layer "F.Fab")
+			(hide no)
 			(uuid "8c0d5c72-07e7-4257-9609-512da8fd4753")
 			(effects
 				(font
@@ -138,23 +143,11 @@
 				)
 			)
 		)
-		(property "checksum" "e122005c60d6d13f20e23f0ff9c696c9520ce1b85a1f0379e6be53d14ff94fcf"
+		(property "__atopile_lib_fp_hash__" "78684d23-1c74-f916-ee53-78e1b436cfe8"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
-			(uuid "b3f3cd9a-c782-4042-b605-a0afd2690b49")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "__atopile_lib_fp_hash__" "b5658201-7fde-5e1b-9fd7-5e7bdcd0dcd4"
-			(at 0 0 0)
-			(layer "User.9")
-			(hide yes)
-			(uuid "13c19dc5-46b9-45f2-b753-c4ea4642524b")
+			(uuid "959a563d-931b-4c63-b3c4-748c4642524b")
 			(effects
 				(font
 					(size 0.125 0.125)
@@ -209,6 +202,12 @@
 					(thickness 0.01875)
 				)
 			)
+		)
+		(property "lcsc_id" "C2913282"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "91b56af1-5d4d-4b98-8aad-5b544642524b")
 		)
 		(attr through_hole)
 		(fp_line
@@ -496,13 +495,37 @@
 			(layer "F.Fab")
 			(uuid "3cf5158d-75ac-4d2f-8b5d-5f02ebd371b2")
 		)
+		(fp_text user "${REFERENCE}"
+			(at 0 -6.5 0)
+			(layer "F.SilkS")
+			(uuid "0ec18e38-2d02-4bfc-aa03-a7b983bc50cf")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(hide yes)
+			)
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 0 0)
+			(layer "F.Fab")
+			(uuid "55e32599-ee8b-4d80-ab6c-92ca3b571774")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+				(hide yes)
+			)
+		)
 		(pad "1" thru_hole circle
 			(at -2.5 -2.5)
 			(size 2.5 2.5)
 			(drill 1.700022)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 3 "VCC")
+			(net 3 "hv")
 			(uuid "0677cf59-cfbb-493d-87b7-19c112c88489")
 		)
 		(pad "2" thru_hole circle
@@ -511,7 +534,7 @@
 			(drill 1.700022)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 1 "GND")
+			(net 1 "lv")
 			(uuid "9815cf0b-866d-457b-9622-d94ccf61036c")
 		)
 		(pad "3" thru_hole circle
@@ -520,7 +543,7 @@
 			(drill 0.999998)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 2 "_3")
+			(net 2 "3")
 			(uuid "5f9d195a-0d12-4f13-8d50-41b65f05afb8")
 		)
 		(pad "4" thru_hole circle
@@ -529,7 +552,7 @@
 			(drill 0.999998)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 4 "_4")
+			(net 4 "4")
 			(uuid "6a35460f-cf7e-4239-848e-c3a454a54768")
 		)
 		(embedded_fonts no)
@@ -541,7 +564,7 @@
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -0 -0 -0)
 			)
 		)
 	)
@@ -554,6 +577,7 @@
 				(size 2 2)
 				(thickness 0.2)
 			)
+			(hide no)
 			(justify left bottom)
 		)
 	)
@@ -566,6 +590,7 @@
 				(size 2 1.5)
 				(thickness 0.2)
 			)
+			(hide no)
 			(justify left bottom)
 		)
 	)

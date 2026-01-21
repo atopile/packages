@@ -1,12 +1,12 @@
-requires-atopile: "^0.11.3"
+requires-atopile: ^0.14.0
 
 paths:
   src: "."
   layout: ./layouts
 
 builds:
-  default:
-    entry: saleae-header.ato:SaleaeHeader
+  usage:
+    entry: usage.ato:Usage
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
   rightangle-2:
@@ -29,15 +29,11 @@ builds:
     entry: saleae-header.ato:SaleaeHeaderRightAngle_4
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  usage:
-    entry: usage.ato:Usage
-    hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/saleae-header
   repository: https://github.com/atopile/packages
-  version: "0.2.3"
+  version: "0.3.0"
   authors:
     - name: atopile
       email: hi@atopile.io

@@ -1,0 +1,227 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+import I2C
+import USB2_0
+import Addressor
+import TVS
+import MOSFET
+import Diode
+
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+
+from "parts/STMicroelectronics_STUSB4500QTR/STMicroelectronics_STUSB4500QTR.ato" import STMicroelectronics_STUSB4500QTR_package
+
+module STUSB4500_driver:
+    """
+    STUSB4500 USB PD controller
+    - 5A 20V
+    - I2C interface for configuration (defaults to 20V 1A)
+    - USB2 pass-through for downstream devices
+
+    I2C Addressing:
+    The 7-bit I2C address is determined by the ADDR0 and ADDR1 pins.
+    The default address is set by connecting ADDR0 and ADDR1 to GND (logic 0).
+
+    | ADDR1 | ADDR0 | 7-bit Address |
+    |-------|-------|---------------|
+    | 0     | 0     | 0x28          | (Default in this configuration)
+    | 0     | 1     | 0x29          |
+    | 1     | 0     | 0x2A          |
+    | 1     | 1     | 0x2B          |
+
+    The full 8-bit address format is: 01010[ADDR1][ADDR0][R/W]
+    """
+
+    # --- External Interfaces ---
+    power_vbus = new ElectricPower
+    """
+    USB Bus power
+    """
+    assert power_vbus.voltage within 5V to 20V
+
+    power_vsink = new ElectricPower
+    """
+    Power supply for the USB2 connector
+    """
+    assert power_vsink.voltage within 5V to 20V
+
+    usb2 = new USB2_0
+    """
+    USB2 connector
+    """
+    i2c = new I2C
+    """
+    I2C bus interface
+    """
+    cc1 = new ElectricLogic
+    """
+    CC1 pin
+    """
+
+    cc2 = new ElectricLogic
+    """
+    CC2 pin
+    """
+
+    alert = new ElectricLogic
+    """
+    Alert pin
+    """
+
+    reset = new ElectricLogic
+    """
+    Reset pin
+    """
+
+    # --- Internal interfaces ---
+    power_2v7 = new ElectricPower
+    """
+    Power supply for the 2.7V regulator
+    """
+    power_1v2 = new ElectricPower
+    """
+    Power supply for the 1.2V regulator
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_STUSB4500QTR_package
+
+    # --- Power ---
+    power_vbus.lv ~ power_vsink.lv
+    power_vbus.lv ~ power_1v2.lv
+    power_vbus.lv ~ power_2v7.lv
+
+    decoupling_caps = new Capacitor[3]
+    for cap in decoupling_caps:
+        cap.capacitance = 1uF +/- 20%
+        cap.package = "0402"
+    power_2v7.hv ~> decoupling_caps[0] ~> power_2v7.lv
+    power_1v2.hv ~> decoupling_caps[1] ~> power_1v2.lv
+    power_vbus.hv ~> decoupling_caps[2] ~> power_vbus.lv
+    assert decoupling_caps[2].max_voltage >= 20V
+
+    vbus_cap = new Capacitor
+    vbus_cap.capacitance = 2.2uF +/- 20%
+    assert vbus_cap.max_voltage >= 40V
+    vbus_cap.package = "0603"
+    power_vbus.lv ~> vbus_cap ~> power_vbus.hv
+
+    vsink_cap = new Capacitor
+    vsink_cap.capacitance = 1uF +/- 20%
+    assert vsink_cap.max_voltage >= 40V
+    vsink_cap.package = "0603"
+    power_vsink.lv ~> vsink_cap ~> power_vsink.hv
+
+    # Addressing
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x28
+    addressor.address_lines[0].line ~ package.ADDR0
+    addressor.address_lines[0].reference ~ power_2v7
+    addressor.address_lines[1].line ~ package.ADDR1
+    addressor.address_lines[1].reference ~ power_2v7
+
+    assert addressor.address is i2c.address
+
+    # --- Internal components ---
+    # Discharge resistors
+    vbus_vs_disch_r = new Resistor
+    vbus_vs_disch_r.resistance = 1kohm +/- 1%
+    vbus_vs_disch_r.package = "0402"
+    power_vbus.hv ~> vbus_vs_disch_r ~> package.VBUS_VS_DISCH
+
+    vsink_disch_r = new Resistor
+    vsink_disch_r.resistance = 1kohm +/- 1%
+    vsink_disch_r.package = "0402"
+    power_vsink.hv ~> vsink_disch_r ~> package.DISCH
+
+    # ESD diodes
+    vbus_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
+    power_vbus.lv ~> vbus_esd_diode ~> power_vbus.hv
+    vsink_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
+    power_vsink.lv ~> vsink_esd_diode ~> power_vsink.hv
+    cc1_esd_diode = new CDSOD323_T24SC
+    cc1.line ~> cc1_esd_diode ~> power_vbus.lv
+    cc2_esd_diode = new CDSOD323_T24SC
+    cc2.line ~> cc2_esd_diode ~> power_vbus.lv
+
+    # --- Pass FET parts ---
+    vsink_mosfet = new MOSFET
+    vsink_mosfet.lcsc_id = "C471913"
+    vsink_mosfet.channel_type = "P_CHANNEL"
+    vbus_mosfet = new MOSFET
+    vbus_mosfet.lcsc_id = "C471913"
+    vbus_mosfet.channel_type = "P_CHANNEL"
+    vsink_gate_r = new Resistor
+    vsink_gate_r.resistance = 22kohm +/- 1%
+    vsink_gate_r.package = "0402"
+    vsink_gate_pullup = new Resistor
+    vsink_gate_pullup.resistance = 100kohm +/- 1%
+    vsink_gate_pullup.package = "0402"
+    vsink_gate_snub_r = new Resistor
+    vsink_gate_snub_r.resistance = 100ohm +/- 1%
+    vsink_gate_snub_r.package = "0402"
+    vsink_gate_snub_c = new Capacitor
+    vsink_gate_snub_c.capacitance = 100nF +/- 20%
+    vsink_gate_snub_c.package = "0402"
+
+    # --- Pass FET connections ---
+    power_vbus.hv ~ vbus_mosfet.drain
+    vbus_mosfet.source ~ vsink_mosfet.source
+    vbus_mosfet.gate ~ vsink_mosfet.gate
+    power_vsink.hv ~ vsink_mosfet.drain
+    vsink_mosfet.gate ~> vsink_gate_r ~> package.VBUS_EN_SNK
+    vbus_mosfet.source ~> vsink_gate_pullup ~> vsink_mosfet.gate
+    vsink_mosfet.gate ~> vsink_gate_snub_r ~> vsink_gate_snub_c ~> power_vsink.hv
+
+    reset_pulldown = new Resistor
+    reset_pulldown.resistance = 10kohm +/- 1%
+    reset_pulldown.package = "0402"
+    reset.line ~> reset_pulldown ~> power_vbus.lv
+
+    # --- Connections ---
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.CC1 ~ cc1.line
+    package.CC2 ~ cc2.line
+    package.ALERT ~ alert.line
+    package.RESET ~ reset.line
+
+    package.VREG_1V2 ~ power_1v2.hv
+    package.VREG_2V7 ~ power_2v7.hv
+    package.VDD ~ power_vbus.hv
+    package.VSYS ~ power_vbus.lv
+
+    package.CC1 ~ package.CC1DB
+    package.CC2 ~ package.CC2DB
+
+    package.GND ~ power_vbus.lv
+    package.EP ~ power_vbus.lv
+
+
+module STUSB4500_USBC_Connector:
+    driver = new STUSB4500_driver
+    usb_connector = new USB2_0TypeCHorizontalConnector
+    usb_connector.usb.usb_if.buspower ~ driver.power_vbus
+
+    # USB2
+    usb_connector.usb ~ driver.usb2
+
+    # CC
+    driver.cc1 ~ usb_connector.connector.cc[0]
+    driver.cc2 ~ usb_connector.connector.cc[1]
+
+module STMicroelectronics_ESDA25P35_1U1M from Diode:
+    lcsc_id = "C1974707"
+    anode ~ pin 2
+    cathode ~ pin 1
+
+module CDSOD323_T24SC from TVS:
+    lcsc_id = "C22363664"
+    anode ~ pin 1
+    cathode ~ pin 2

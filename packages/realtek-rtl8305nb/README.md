@@ -46,7 +46,7 @@ module MySwitch:
     # switch.ethernets[0-4] available for connections
 
     # Optional: Connect management interface
-    # switch.i2c_mdio for MDIO configuration
+    # switch.i2c for MDIO configuration
     # switch.reset for external reset control
 ```
 
@@ -60,7 +60,7 @@ module MySwitch:
 import ElectricPower
 import Resistor
 
-from "realtek-rtl8305nb.ato" import Realtek_RTL8305NB
+from "atopile/realtek-rtl8305nb/realtek-rtl8305nb.ato" import Realtek_RTL8305NB
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 from "atopile/espressif-esp32-c3/esp32_c3_mini.ato" import ESP32_C3_MINI_1_driver
 from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
@@ -70,7 +70,10 @@ from "atopile/opsco-sk6805-side/opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
 from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
-from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen, LEDIndicatorYellow, LEDIndicatorRed, LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorYellow
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
@@ -142,6 +145,26 @@ module Usage:
     Port 0 is used internally for ESP32-C3 via W5500
     """
 
+    # --- Status LED with level shifter ---
+    status_led = new OPSCO_SK6805_SIDE
+    """
+    Addressable RGB LED for system status indication
+    Can show power, network activity, error states, etc.
+    """
+
+    level_shifter = new Diodes_Inc_74LVC1T45DW_7
+    """
+    3.3V to 5V level shifter for LED data signal
+    Translates ESP32-C3 3.3V GPIO to 5V logic for SK6805
+    """
+
+    # --- Debug header ---
+    debug_header = new SaleaeHeaderRightAngle_2
+    """
+    Saleae logic analyzer debug header
+    Monitors: SPI (SCLK, MOSI, MISO, CS), I2C (SCL, SDA), Reset, Loop indication
+    """
+
     # --- Ethernet status LEDs ---
     link_led = new LEDIndicatorGreen
     """
@@ -168,26 +191,6 @@ module Usage:
     Shows when 3.3V regulator output is active
     """
 
-    # --- Status LED with level shifter ---
-    status_led = new OPSCO_SK6805_SIDE
-    """
-    Addressable RGB LED for system status indication
-    Can show power, network activity, error states, etc.
-    """
-
-    level_shifter = new Diodes_Inc_74LVC1T45DW_7
-    """
-    3.3V to 5V level shifter for LED data signal
-    Translates ESP32-C3 3.3V GPIO to 5V logic for SK6805
-    """
-
-    # --- Debug header ---
-    debug_header = new SaleaeHeaderRightAngle_2
-    """
-    Saleae logic analyzer debug header
-    Monitors: SPI (SCLK, MOSI, MISO, CS), I2C (SCL, SDA), Reset, Loop indication
-    """
-
     # --- Connections ---
     # Power supply chain: USB-C → 5V → Buck Converter → 3.3V
     usb_connector.usb.usb_if.buspower ~ power_5v
@@ -197,7 +200,7 @@ module Usage:
     switch.power_3v3 ~ power_3v3
     esp32.power ~ power_3v3
     w5500.power ~ power_3v3
-    status_led.power ~ power_5v              # SK6805 Addressable LED requires 5V
+    status_led.power ~ power_5v              # LED needs 5V
     level_shifter.power_a ~ power_3v3        # 3.3V side (ESP32)
     level_shifter.power_b ~ power_5v         # 5V side (LED)
 
@@ -225,8 +228,8 @@ module Usage:
     esp32.gpio[0] ~ w5500.interrupt                   # GPIO0: W5500 interrupt (ADC capable)
     esp32.gpio[1] ~ w5500.reset                       # GPIO1: W5500 reset (ADC capable)
 
-    # Switch management via MDIO (optional - for advanced configuration)
-    switch.i2c_mdio ~ esp32.i2c       # ESP32 can also manage switch directly via MDIO (uses GPIO5/GPIO6)
+    # Switch management via MDIO (uses I2C peripheral: GPIO5=SDA, GPIO6=SCL)
+    switch.i2c ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
     switch.reset ~ esp32.gpio[4]      # GPIO4: Switch reset control
     switch.loop_indication ~ esp32.gpio[20]  # GPIO20: Switch loop detection monitor
 
@@ -255,6 +258,8 @@ module Usage:
     debug_header.headers[1].channels[1] ~ esp32.i2c.sda       # I2C SDA (GPIO5)
     debug_header.headers[1].channels[2] ~ esp32.gpio[4]       # Switch reset (GPIO4)
     debug_header.headers[1].channels[3] ~ esp32.gpio[20]      # Loop detection (GPIO20)
+
+
 ```
 
 ## Architecture
@@ -334,7 +339,7 @@ SK6805 RGB LED (5V)
 
 ### Optional EEPROM Support
 
-For custom configuration, connect an **M24C02** (or compatible) I2C EEPROM to the `i2c_mdio` interface at address **0x50**. The RTL8305NB will auto-load configuration from EEPROM during power-on.
+For custom configuration, connect an **M24C02** (or compatible) I2C EEPROM to the `i2c` interface at address **0x50**. The RTL8305NB will auto-load configuration from EEPROM during power-on.
 
 ## Management Capabilities
 

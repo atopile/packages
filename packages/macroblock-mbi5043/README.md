@@ -21,7 +21,9 @@ The Macroblock MBI5043GP-A is a high-performance 16-channel constant current LED
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-import ElectricPower, Resistor, ElectricLogic
+import ElectricLogic
+import ElectricPower
+import Resistor
 
 from "atopile/macroblock-mbi5043/macroblock-mbi5043.ato" import Macroblock_MBI5043
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue

@@ -1,0 +1,243 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import Resistor
+import can_bridge_by_name
+from "parts/Worldsemi_WS2812B_2020/Worldsemi_WS2812B_2020.ato" import Worldsemi_WS2812B_2020_package
+from "parts/Worldsemi_WS2812B_4020/Worldsemi_WS2812B_4020.ato" import Worldsemi_WS2812B_4020_package
+from "parts/Worldsemi_WS2812B_V5_W/Worldsemi_WS2812B_V5_W.ato" import Worldsemi_WS2812B_V5_W_package
+
+module Worldsemi_WS2812B_2020:
+    """
+    Driver for Worldsemi WS2812B-2020 ultra-compact addressable RGB LED.
+
+    Key features:
+    - Ultra-compact 2020 package (2.0mm × 2.0mm × 0.84mm)
+    - Integrated RGB LED with WS2812B controller
+    - Single-wire serial communication protocol
+    - 24-bit color depth (8-bit per R/G/B channel)
+    - Wide voltage range: 3.5V-5.3V
+    - Low power consumption: ~ 20mA per LED max
+    - High-density applications and wearables
+    - 800kHz data rate with 1.25μs pulse width
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812B_2020_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.5V-5.3V, typically 5V)
+    Ultra-low current: ~ 20mA per LED at full brightness
+    Improved power efficiency compared to 5050 variants
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets at 800kHz
+    Compatible with 3.3V and 5V logic levels
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    Built-in signal reshaping and amplification
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.5V to 5.3V
+
+    # --- Power decoupling (critical for 2020 package) ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Package connections ---
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    data_in.line ~ package.DI
+    package.DO ~ data_out.line
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module Worldsemi_WS2812B_4020:
+    """
+    Driver for Worldsemi WS2812B-4020 right angle addressable RGB LED.
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812B_4020_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.5V-5.3V, typically 5V)
+    Ultra-low current: ~ 20mA per LED at full brightness
+    Improved power efficiency compared to 5050 variants
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets at 800kHz
+    Compatible with 3.3V and 5V logic levels
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    Built-in signal reshaping and amplification
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.5V to 5.3V
+
+    # --- Power decoupling (critical for 2020 package) ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Package connections ---
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+    data_in.line ~ package.DIN
+    package.DOUT ~ data_out.line
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module Worldsemi_WS2812B_5050:
+    """
+    Driver for Worldsemi WS2812B-5050 addressable RGB LED.
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812B_V5_W_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.5V-5.3V, typically 5V)
+    Ultra-low current: ~ 20mA per LED at full brightness
+    Improved power efficiency compared to 5050 variants
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets at 800kHz
+    Compatible with 3.3V and 5V logic levels
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    Built-in signal reshaping and amplification
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.5V to 5.3V
+
+    # --- Power decoupling (critical for 2020 package) ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Package connections ---
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+    data_in.line ~ package.DIN
+    package.DOUT ~ data_out.line
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module WS2812B_2020_HighDensity_Strip:
+    """
+    High-density WS2812B-2020 LED strip with 10 ultra-compact LEDs.
+    Perfect for applications requiring maximum LED density in minimal space.
+
+    Applications:
+    - Wearable electronics and fashion
+    - High-resolution LED matrices
+    - Backlighting for small displays
+    - Precision decorative lighting
+    - Space-constrained installations
+    """
+
+    # Create array of 20 compact LEDs
+    leds = new Worldsemi_WS2812B_2020[5]
+
+    # External interfaces
+    power = new ElectricPower
+    """High-density strip power supply (5V recommended)"""
+
+    data_in = new ElectricLogic
+    """Strip data input from microcontroller"""
+
+    data_out = new ElectricLogic
+    """Strip data output to next LED"""
+
+    # Connect power to all LEDs
+    for led in leds:
+        power ~ led.power
+
+    # Chain data signals through all LEDs
+    data_in ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> data_out
+
+    # Additional filtering for 2020 LEDs
+    hf_filter_cap = new Capacitor
+    hf_filter_cap.capacitance = 10uF +/- 20%
+    hf_filter_cap.package = "0603"
+    power.hv ~> hf_filter_cap ~> power.lv
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module WS2812B_2020_Matrix:
+    """
+    4×4 LED matrix using WS2812B-2020 for high-resolution displays.
+    Compact design perfect for wearable displays and indicators.
+    """
+
+    # Create 5x5 matrix (25 LEDs total)
+    strips = new WS2812B_2020_HighDensity_Strip[5]
+
+    # External interfaces
+    power = new ElectricPower
+    """Matrix power supply"""
+
+    data_in = new ElectricLogic
+    """Matrix data input"""
+
+    data_out = new ElectricLogic
+    """Matrix data output to next strip"""
+
+    # Connect power to all LEDs
+    for strip in strips:
+        power ~ strip.power
+
+    # Chain LEDs in matrix order (row by row)
+    data_in ~> strips[0] ~> strips[1] ~> strips[2] ~> strips[3] ~> strips[4] ~> data_out
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">

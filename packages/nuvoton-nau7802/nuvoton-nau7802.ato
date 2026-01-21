@@ -1,0 +1,149 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import Resistor
+import Capacitor
+import ElectricPower
+import DifferentialPair
+
+from "parts/Nuvoton_Tech_NAU7802SGI/Nuvoton_Tech_NAU7802SGI.ato" import Nuvoton_Tech_NAU7802SGI_package
+
+
+module Nuvoton_NAU7802_base:
+    """Base for the amp without any application-specific components"""
+    # --- Package ---
+    package = new Nuvoton_Tech_NAU7802SGI_package
+
+    # --- External Interfaces ---
+    power_digital = new ElectricPower
+    """
+    Digital Power Supply (2.7V to 5.5V)
+    """
+    power_digital.required = True
+
+    power_analog = new ElectricPower
+    """
+    Analog power supply (either leave disconnected or connect to supply at least 0.3V lower than digital supply)
+    """
+
+    i2c = new I2C
+    """
+    I²C bus interface (fixed 7-bit address 0x2A)
+    """
+    i2c.required = True
+
+    # --- Power Supply ---
+    assert power_digital.voltage within 2.7V to 5.5V
+    assert power_analog.voltage within 2.7V to 5.5V
+
+    # Digital Power
+    power_digital.hv ~ package.DVDD
+    power_digital.lv ~ package.DVSS
+
+    # Analog Power
+    power_analog.hv ~ package.AVDD_LDO
+    power_analog.lv ~ package.AVSS
+
+    # Join Grounds
+    power_digital.lv ~ power_analog.lv
+
+    # --- I2C Interface ---
+    i2c.sda.line ~ package.SDIO
+    i2c.scl.line ~ package.SCLK
+    i2c.sda.reference ~ power_digital
+    i2c.scl.reference ~ power_digital
+    i2c.address = 0x2A
+
+    # --- Bypass Capacitors ---
+    dvdd_cap = new Capacitor
+    dvdd_cap.capacitance = 1uF +/- 20%
+    dvdd_cap.package = "C0402"
+    power_digital.hv ~> dvdd_cap ~> power_digital.lv
+
+    avdd_cap = new Capacitor
+    avdd_cap.capacitance = 1uF +/- 20%
+    avdd_cap.package = "C0402"
+    power_analog.hv ~> avdd_cap ~> power_analog.lv
+
+    vbg_cap = new Capacitor
+    vbg_cap.capacitance = 100nF +/- 20%
+    vbg_cap.package = "C0402"
+    package.VBG ~> vbg_cap ~> power_digital.lv
+
+    refp_cap = new Capacitor
+    refp_cap.capacitance = 100nF +/- 20%
+    refp_cap.package = "C0402"
+    package.REFP ~> refp_cap ~> package.REFN
+    package.REFP ~ power_analog.hv
+    package.REFN ~ power_analog.lv
+
+module Nuvoton_NAU7802_Single from Nuvoton_NAU7802_base:
+    """
+    NAU7802 configured in a typical single-channel application
+    """
+    # --- External Interfaces ---
+    sense_input = new DifferentialPair
+    """
+    1x Analog differential input
+    """
+
+    # --- Input Filter ---
+    filter = new _DifferentialFilter
+    sense_input ~ filter.input
+
+    filter.output.p.line ~ package.VIN1P
+    filter.output.n.line ~ package.VIN1N
+
+    filter.output.p.reference ~ power_analog
+    filter.output.n.reference ~ power_analog
+
+    # --- Terminate Unused Channel ---
+    input_termination_cap = new Capacitor
+    input_termination_cap.capacitance = 470pF +/- 50%
+    input_termination_cap.package = "C0402"
+    package.VIN2N ~> input_termination_cap ~> package.VIN2P
+
+module Nuvoton_NAU7802_Dual from Nuvoton_NAU7802_base:
+    """
+    NAU7802 configured in a typical dual-channel application
+    """
+    # --- External Interfaces ---
+    sense_inputs = new DifferentialPair[2]
+    """
+    2x Analog differential inputs
+    """
+
+    # --- Input Filters ---
+    filters = new _DifferentialFilter[2]
+    sense_inputs[0] ~ filters[0].input
+    sense_inputs[1] ~ filters[1].input
+
+    filters[0].output.p.line ~ package.VIN1P
+    filters[0].output.n.line ~ package.VIN1N
+    filters[1].output.p.line ~ package.VIN2P
+    filters[1].output.n.line ~ package.VIN2N
+
+    filters[0].output.p.reference ~ power_analog
+    filters[0].output.n.reference ~ power_analog
+    filters[1].output.p.reference ~ power_analog
+    filters[1].output.n.reference ~ power_analog
+
+module _DifferentialFilter:
+    """Typical input lowpass differential filter"""
+    input = new DifferentialPair
+    output = new DifferentialPair
+
+    input_resistors = new Resistor[2]
+    for r in input_resistors:
+        r.resistance = 51ohm +/- 20%
+        r.package = "R0402"
+
+    filter_cap = new Capacitor
+    filter_cap.capacitance = 100nF +/- 20%
+    filter_cap.package = "C0402"
+
+    input.p.line ~> input_resistors[0] ~> output.p.line
+    input.n.line ~> input_resistors[1] ~> output.n.line
+
+    output.p.line ~> filter_cap ~> output.n.line

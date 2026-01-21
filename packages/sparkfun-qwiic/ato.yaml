@@ -5,12 +5,20 @@ paths:
   layout: ./layouts
 
 builds:
-  default:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  horizontal:
     entry: sparkfun-qwiic.ato:QwiicHorizontal
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  usage:
-    entry: usage.ato:Usage
+  vertical:
+    entry: sparkfun-qwiic.ato:QwiicVertical
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  default:
+    entry: sparkfun-qwiic.ato:QwiicHorizontal
     hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
@@ -18,7 +26,7 @@ package:
   identifier: atopile/sparkfun-qwiic
   repository: https://github.com/atopile/packages
   homepage: https://github.com/atopile/packages/blob/main/packages/sparkfun-qwiic/README.md
-  version: "0.1.1"
+  version: "0.1.2"
   authors:
     - name: atopile
       email: hi@atopile.io
