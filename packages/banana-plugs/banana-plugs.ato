@@ -1,0 +1,102 @@
+import Electrical
+import ElectricPower
+
+from "parts/Changzhou_Amass_Elec_24_243_1/Changzhou_Amass_Elec_24_243_1.ato" import Changzhou_Amass_Elec_24_243_1_package
+from "parts/Changzhou_Amass_Elec_24_243_2/Changzhou_Amass_Elec_24_243_2.ato" import Changzhou_Amass_Elec_24_243_2_package
+from "parts/Changzhou_Amass_Elec_24_243_3/Changzhou_Amass_Elec_24_243_3.ato" import Changzhou_Amass_Elec_24_243_3_package
+from "parts/Changzhou_Amass_Elec_24_243_4/Changzhou_Amass_Elec_24_243_4.ato" import Changzhou_Amass_Elec_24_243_4_package
+from "parts/Changzhou_Amass_Elec_24_243_5/Changzhou_Amass_Elec_24_243_5.ato" import Changzhou_Amass_Elec_24_243_5_package
+from "parts/Changzhou_Amass_Elec_24_245_1/Changzhou_Amass_Elec_24_245_1.ato" import Changzhou_Amass_Elec_24_245_1_package
+from "parts/Changzhou_Amass_Elec_24_245_2/Changzhou_Amass_Elec_24_245_2.ato" import Changzhou_Amass_Elec_24_245_2_package
+
+module SimpleBananaPlugBlack:
+    """Simple black banana plug"""
+    package = new Changzhou_Amass_Elec_24_243_2_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module SimpleBananaPlugRed:
+    """Simple red banana plug"""
+    package = new Changzhou_Amass_Elec_24_243_1_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module SimpleBananaPlugYellow:
+    """Simple yellow banana plug"""
+    package = new Changzhou_Amass_Elec_24_243_3_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module SimpleBananaPlugGreen:
+    """Simple green banana plug"""
+    package = new Changzhou_Amass_Elec_24_243_4_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module SimpleBananaPlugBlue:
+    """Simple blue banana plug"""
+    package = new Changzhou_Amass_Elec_24_243_5_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module SimpleBananaPlugPower:
+    """Read + Black banana plugs with 3/4inch (19.05mm) spacing"""
+    power = new ElectricPower
+    power.required = True
+
+    black_plug = new SimpleBananaPlugBlack
+    red_plug = new SimpleBananaPlugRed
+
+    black_plug.contact ~ power.lv
+    red_plug.contact ~ power.hv
+
+module PremiumBananaPlugBlack:
+    """Premium black banana plug"""
+    package = new Changzhou_Amass_Elec_24_245_2_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module PremiumBananaPlugRed:
+    """Premium red banana plug"""
+    package = new Changzhou_Amass_Elec_24_245_1_package
+
+    contact = new Electrical
+    contact.required = True
+
+    contact ~ package.1
+    contact ~ package.2
+
+module PremiumBananaPlugPower:
+    """Premium read + Black banana plugs with 3/4inch (19.05mm) spacing"""
+    power = new ElectricPower
+    power.required = True
+
+    black_plug = new PremiumBananaPlugBlack
+    red_plug = new PremiumBananaPlugRed
+
+    black_plug.contact ~ power.lv
+    red_plug.contact ~ power.hv
