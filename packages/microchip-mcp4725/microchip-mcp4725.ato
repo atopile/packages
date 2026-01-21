@@ -48,7 +48,7 @@ module Microchip_MCP4725_driver:
     assert addressor.address is i2c.address
     # Default to base address (0x60), can be overridden by user
     i2c.address.default = 0x60
-    assert addressor.base is 0x60
+    assert addressor.base within 0x60
 
 module Test:
     # Create 2 DACs
@@ -73,5 +73,5 @@ module Test:
         dac.i2c ~ i2c
 
     # Set DAC addresses
-    dacs[0].i2c.address = 0x60
-    dacs[1].i2c.address = 0x61
+    assert dacs[0].i2c.address within 0x60
+    assert dacs[1].i2c.address within 0x61
