@@ -54,7 +54,8 @@ module Usage:
     onewire_bus ~ bridge.onewire
 
     # Set I2C address (default 0x18)
-    bridge.i2c.address = 0x18
+    assert bridge.i2c.address within 0x18
+
 ```
 
 ## Technical Specifications
