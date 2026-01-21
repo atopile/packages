@@ -51,6 +51,10 @@ Edit `benchmarks.yaml` to customize:
      - type: commit
        version: "abc123def456"
        date: "2024-11-18"
+
+     - type: local
+       version: "/Users/you/repos/atopile"
+       # date is optional; if omitted the dashboard will infer it where possible
    ```
 
 2. **Package Benchmarks**: Add/remove packages
@@ -69,6 +73,16 @@ Edit `benchmarks.yaml` to customize:
        command: "ato build"
        description: "Standard build"
    ```
+
+4. **Optional: skip `ato add` and use a local packages checkout**
+
+If you already have the `atopile/packages` repo checked out locally (or you’re offline / behind a firewall),
+you can copy packages directly from disk instead of downloading them via `ato add`:
+
+```yaml
+skip_ato_add: true
+local_packages_root: "/Users/you/repos/packages/packages"
+```
 
 ## Usage
 

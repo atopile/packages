@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -70,6 +71,9 @@ class BenchmarkRunner:
         version_manager: VersionManager,
         workspace_dir: Path,
         verbose: bool = False,
+        *,
+        skip_ato_add: bool = False,
+        local_packages_root: Path | None = None,
     ):
         """Initialize the benchmark runner.
 
@@ -82,6 +86,10 @@ class BenchmarkRunner:
         self.workspace_dir = Path(workspace_dir)
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.verbose = verbose
+        self.skip_ato_add = skip_ato_add
+        self.local_packages_root = (
+            Path(local_packages_root) if local_packages_root else None
+        )
 
     def _make_workspace_id(self, benchmark_name: str, version_spec: dict) -> str:
         """Generate a unique workspace ID."""
@@ -162,6 +170,97 @@ class BenchmarkRunner:
             shutil.rmtree(workspace)
         workspace.mkdir(parents=True)
 
+        # Optional fast-path: skip `ato add` entirely and copy the package from a local checkout.
+        # This is useful when benchmarking against a local packages repo without registry access.
+        if self.skip_ato_add:
+            package_setup = False
+            package_version = None
+
+            if not self.local_packages_root:
+                logger.warning(
+                    "skip_ato_add is enabled but local_packages_root is not set; building stub"
+                )
+            else:
+                # Map registry identifier "atopile/<pkg>" -> "<local_packages_root>/<pkg>"
+                pkg_rel = (
+                    package_name.split("/", 1)[1]
+                    if "/" in package_name
+                    else package_name
+                )
+                root = self.local_packages_root.expanduser()
+
+                # Accept either:
+                # - repo root (contains "packages/" or "packages/packages/")
+                # - the packages root itself (contains "<pkg>/ato.yaml")
+                candidates = [
+                    root / pkg_rel,
+                    root / "packages" / pkg_rel,
+                    root / "packages" / "packages" / pkg_rel,
+                ]
+                # Prefer candidates that look like an atopile project root (contain ato.yaml)
+                local_pkg_dir = next(
+                    (p for p in candidates if (p / "ato.yaml").exists()),
+                    next((p for p in candidates if p.exists()), candidates[0]),
+                )
+
+                if local_pkg_dir.exists() and local_pkg_dir.is_dir():
+                    logger.info(f"Using local package from {local_pkg_dir}")
+
+                    # Best-effort package version read (from package's ato.yaml -> package.version)
+                    ato_yaml = local_pkg_dir / "ato.yaml"
+                    if ato_yaml.exists():
+                        try:
+                            import yaml  # type: ignore[import-not-found]
+
+                            data = yaml.safe_load(ato_yaml.read_text())
+                            if isinstance(data, dict):
+                                pkg_meta = data.get("package")
+                                if isinstance(pkg_meta, dict):
+                                    package_version = pkg_meta.get("version")
+                        except Exception as e:
+                            logger.debug(f"Failed to read local package version: {e}")
+
+                    # Copy package contents to workspace root
+                    for item in local_pkg_dir.iterdir():
+                        dest = workspace / item.name
+                        if item.is_dir():
+                            shutil.copytree(item, dest)
+                        else:
+                            shutil.copy2(item, dest)
+
+                    # Only treat it as usable if it actually contains an atopile project.
+                    if (workspace / "ato.yaml").exists():
+                        package_setup = True
+                    else:
+                        logger.warning(
+                            f"Copied {local_pkg_dir} but no ato.yaml ended up in workspace; building stub"
+                        )
+                else:
+                    logger.warning(
+                        f"Local package directory not found: {local_pkg_dir} (building stub)"
+                    )
+
+            if not package_setup:
+                (workspace / "ato.yaml").write_text(
+                    """requires-atopile: '>=0.0.0'
+paths:
+    src: '.'
+    layout: ./layouts
+builds:
+    default:
+        entry: main.ato:App
+"""
+                )
+                (workspace / "layouts").mkdir(exist_ok=True)
+                (workspace / "main.ato").write_text(
+                    f"""# Package {package_name} not available
+module App:
+    pass
+"""
+                )
+
+            return workspace, package_setup, package_version
+
         # Use the TARGET atopile version to download packages
         # This ensures packages are selected based on compatibility with the target version
         # e.g., local v0.14.0 will get packages compatible with ^0.14.0
@@ -216,7 +315,7 @@ builds:
                 ato_yaml_file = temp_project / "ato.yaml"
                 if ato_yaml_file.exists():
                     try:
-                        import yaml
+                        import yaml  # type: ignore[import-not-found]
 
                         ato_data = yaml.safe_load(ato_yaml_file.read_text())
                         if ato_data and "dependencies" in ato_data:
@@ -320,7 +419,7 @@ module App:
         package_name: str,
         version_spec: dict,
         build_command: str,
-        phase_callback: callable = None,
+        phase_callback: Callable[[str], None] | None = None,
     ) -> BenchmarkResult:
         """Run a single benchmark.
 
@@ -399,6 +498,7 @@ module App:
                     cwd=str(workspace),
                     bufsize=1,  # Line buffered
                 )
+                assert process.stdout is not None
 
                 # Read output line by line
                 for line in iter(process.stdout.readline, ""):
@@ -451,11 +551,10 @@ module App:
                 result.error_message = f"Build timed out after {BUILD_TIMEOUT} seconds"
                 result.total_time = float(BUILD_TIMEOUT)
                 logger.error(result.error_message)
-            except Exception as e:
+            except Exception:
                 if "process" in locals():
                     process.kill()
                     process.wait()
-                raise
 
         except Exception as e:
             result.status = "failure"

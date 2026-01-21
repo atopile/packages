@@ -221,7 +221,12 @@ class BenchmarkOrchestrator:
         self.connection_manager = connection_manager
 
         self.config = self._load_config()
-        self.runner = BenchmarkRunner(version_manager, workspace_dir)
+        self.runner = BenchmarkRunner(
+            version_manager,
+            workspace_dir,
+            skip_ato_add=bool(self.config.get("skip_ato_add", False)),
+            local_packages_root=self.config.get("local_packages_root"),
+        )
 
         # Track running benchmarks: {run_key: {status, start_time, phase, ...}}
         self.running_benchmarks: dict[str, dict[str, Any]] = {}
@@ -434,7 +439,6 @@ class BenchmarkOrchestrator:
             )
 
         # Count how many benchmarks we'll actually run (excluding already passed)
-        total_possible = len(versions) * len(packages) * len(build_commands)
         skipped = 0
         to_run = []
 
@@ -934,8 +938,6 @@ def create_app(
     @app.get("/api/cache/info")
     async def get_cache_info():
         """Get information about the cache (size, venvs, etc.)."""
-        import shutil
-
         venvs = orchestrator.version_manager.list_installed_versions()
         cache_size = orchestrator.version_manager.get_cache_size_human()
 
@@ -966,15 +968,19 @@ def create_app(
         for venv in venvs:
             venv["in_config"] = venv["name"] in configured_venvs
 
-        return JSONResponse({
-            "venvs": venvs,
-            "venv_cache_size": cache_size,
-            "workspace_size": workspace_size_human,
-            "configured_venv_names": list(configured_venvs),
-        })
+        return JSONResponse(
+            {
+                "venvs": venvs,
+                "venv_cache_size": cache_size,
+                "workspace_size": workspace_size_human,
+                "configured_venv_names": list(configured_venvs),
+            }
+        )
 
     @app.post("/api/cache/cleanup")
-    async def cleanup_cache(remove_unused_venvs: bool = True, clear_workspaces: bool = True):
+    async def cleanup_cache(
+        remove_unused_venvs: bool = True, clear_workspaces: bool = True
+    ):
         """Clean up cache to free disk space.
 
         Args:
@@ -985,8 +991,7 @@ def create_app(
 
         if orchestrator.is_running():
             raise HTTPException(
-                status_code=409,
-                detail="Cannot cleanup while benchmarks are running"
+                status_code=409, detail="Cannot cleanup while benchmarks are running"
             )
 
         removed_venvs = []
@@ -1024,11 +1029,13 @@ def create_app(
                     except Exception as e:
                         logger.error(f"Failed to remove workspace item {item}: {e}")
 
-        return JSONResponse({
-            "status": "cleaned",
-            "removed_venvs": removed_venvs,
-            "cleared_workspace": cleared_workspace,
-        })
+        return JSONResponse(
+            {
+                "status": "cleaned",
+                "removed_venvs": removed_venvs,
+                "cleared_workspace": cleared_workspace,
+            }
+        )
 
     @app.delete("/api/cache/venv/{venv_name}")
     async def remove_venv(venv_name: str):
@@ -1038,7 +1045,7 @@ def create_app(
         if orchestrator.is_running():
             raise HTTPException(
                 status_code=409,
-                detail="Cannot remove venv while benchmarks are running"
+                detail="Cannot remove venv while benchmarks are running",
             )
 
         venv_path = orchestrator.version_manager.venvs_dir / venv_name

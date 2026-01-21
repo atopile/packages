@@ -73,6 +73,11 @@ atopile_versions:
   - type: commit
     version: "abc123def456789"
     date: "2024-12-10"
+
+  # Local development checkout (installed into the benchmark venv with `pip install -e`)
+  - type: local
+    version: "/Users/you/repos/atopile"
+    # date is optional
 ```
 
 ### Add a new build command:
@@ -81,6 +86,16 @@ build_commands:
   - name: "verbose"
     command: "ato build --verbose"
     description: "Build with verbose output"
+```
+
+### Optional: skip `ato add` and use a local packages checkout
+
+If you already have the `atopile/packages` repo checked out locally (or you’re offline / behind a firewall),
+you can copy packages directly from disk instead of downloading them via `ato add`:
+
+```yaml
+skip_ato_add: true
+local_packages_root: "/Users/you/repos/packages/packages"
 ```
 
 ## Troubleshooting
