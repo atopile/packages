@@ -11,13 +11,13 @@ import I2S
 import UART_Base
 import Ethernet
 import ElectricLogic
-import has_single_electric_reference
 
 from "parts/PJRC_Teensy_4_1/PJRC_Teensy_4_1.ato" import PJRC_Teensy_4_1_package
 from "parts/Hong_Cheng_HC_PM254_8_5H_1x24PZ/Hong_Cheng_HC_PM254_8_5H_1x24PZ.ato" import Hong_Cheng_HC_PM254_8_5H_1x24PZ_package
 from "parts/ZHOURI_PM2_54_1_5/ZHOURI_PM2_54_1_5.ato" import ZHOURI_PM2_54_1_5_package
 from "parts/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A.ato" import Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A_package
 from "parts/Xinyangze_YZ88715155P_02025_01/Xinyangze_YZ88715155P_02025_01.ato" import Xinyangze_YZ88715155P_02025_01_package
+
 
 module PJRC_Teensy_4_1:
     """
@@ -33,24 +33,30 @@ module PJRC_Teensy_4_1:
     header_ethernet = new Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A_package
     usb_pogo = new Xinyangze_YZ88715155P_02025_01_package
 
+    gnd = new Electrical
+
     # --- External interfaces ---
     # power
     power = new ElectricPower
+    power.lv ~ gnd
     """
     Main power input. Also connected to VBUS of the on board USB connector.
     """
     assert power.voltage within 3.6V to 5.5V
     power_3v3 = new ElectricPower
+    power_3v3.lv ~ gnd
     """
     3.3V power output. Used on the module, can power low power external devices (250mA max)
     """
     assert power_3v3.voltage within 3.3V +/- 5%
     power_battery = new ElectricPower
+    power_battery.lv ~ gnd
     """
     Battery backup power input. Used in low power mode and to keep the RTC running.
     """
     assert power_battery.voltage within 2.5V to 3.6V
     power_usb_host = new ElectricPower
+    power_usb_host.lv ~ gnd
     """
     USB host power output. Used to power USB devices conencted to the USB host connector.
     """
@@ -86,24 +92,22 @@ module PJRC_Teensy_4_1:
 
     # --- Internal connections ---
     # logic references
-    trait has_single_electric_reference<ground_only = True>
     for logic in gpio:
         logic.reference ~ power_3v3
+    for logic in spi:
+        logic.has_single_electric_reference.reference ~ power_3v3
     for logic in chip_select:
         logic.reference ~ power_3v3
+    for logic in i2c:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in can:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in uart:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in i2s:
+        logic.has_single_electric_reference.reference ~ power_3v3
     for logic in [spdif_in, spdif_out, on_off, program]:
         logic.reference ~ power_3v3
-    # Interfaces with has_single_electric_reference trait use has_single_electric_reference.reference
-    for bus in spi:
-        bus.has_single_electric_reference.reference ~ power_3v3
-    for bus in i2c:
-        bus.has_single_electric_reference.reference ~ power_3v3
-    for bus in can:
-        bus.has_single_electric_reference.reference ~ power_3v3
-    for bus in uart:
-        bus.has_single_electric_reference.reference ~ power_3v3
-    for bus in i2s:
-        bus.has_single_electric_reference.reference ~ power_3v3
 
     # default pinmux and fixed peripheral connections
     # can
@@ -240,12 +244,12 @@ module PJRC_Teensy_4_1:
     power_usb_host.lv ~ header_usb_host.4
     power_usb_host.lv ~ header_usb_host.5
 
-    ethernet.pairs[0].p.line ~ header_ethernet.1  # rx+
-    ethernet.pairs[0].n.line ~ header_ethernet.2  # rx-
-    ethernet.led_speed.line ~ header_ethernet.3  # led anode
-    ethernet.led_speed.reference.lv ~ header_ethernet.4  # gnd
-    ethernet.pairs[1].n.line ~ header_ethernet.5  # tx-
-    ethernet.pairs[1].p.line ~ header_ethernet.6  # tx+
+    ethernet.pairs[0].p.line ~ header_ethernet.1 # rx+
+    ethernet.pairs[0].n.line ~ header_ethernet.2 # rx-
+    ethernet.led_speed.line ~ header_ethernet.3 # led anode
+    ethernet.led_speed.reference.lv ~ header_ethernet.4 # gnd
+    ethernet.pairs[1].n.line ~ header_ethernet.5 # tx-
+    ethernet.pairs[1].p.line ~ header_ethernet.6 # tx+
 
     usb_device.usb_if.d.n.line ~ usb_pogo.1
     usb_device.usb_if.d.p.line ~ usb_pogo.2

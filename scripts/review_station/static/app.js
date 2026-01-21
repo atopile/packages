@@ -101,6 +101,93 @@ const state = {
   issuesListScroll: 0, // Preserved scroll position for the issues list container
 };
 
+// Activity log for transparency - tracks recent operations
+const activityLog = {
+  entries: [],
+  maxEntries: 50,
+  add(message, type = "info") {
+    const entry = {
+      time: new Date().toISOString(),
+      timeMs: Date.now(),
+      message,
+      type, // "info", "success", "error", "warning"
+    };
+    this.entries.unshift(entry);
+    if (this.entries.length > this.maxEntries) {
+      this.entries.pop();
+    }
+    console.log(`[activity][${type}] ${message}`);
+    // Show toast for important messages
+    if (type === "error" || type === "warning") {
+      showToast(message, type);
+    }
+    return entry;
+  },
+  getRecent(count = 10) {
+    return this.entries.slice(0, count);
+  }
+};
+window.__activityLog = activityLog;
+
+// Toast notification system for user feedback
+const toastQueue = [];
+let toastVisible = false;
+
+function showToast(message, type = "info", durationMs = 5000) {
+  toastQueue.push({ message, type, durationMs });
+  processToastQueue();
+}
+
+function processToastQueue() {
+  if (toastVisible || toastQueue.length === 0) return;
+
+  const { message, type, durationMs } = toastQueue.shift();
+  toastVisible = true;
+
+  let toast = document.getElementById("toastNotification");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toastNotification";
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      max-width: 400px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateY(20px);
+    `;
+    document.body.appendChild(toast);
+  }
+
+  // Set color based on type
+  const colors = {
+    info: "#3b82f6",
+    success: "#22c55e",
+    warning: "#f59e0b",
+    error: "#ef4444",
+  };
+  toast.style.backgroundColor = colors[type] || colors.info;
+  toast.textContent = message;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateY(0)";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(20px)";
+    setTimeout(() => {
+      toastVisible = false;
+      processToastQueue();
+    }, 300);
+  }, durationMs);
+}
+
 // Debug / instrumentation (client-side)
 const debugEnabled = (() => {
   try {
@@ -358,7 +445,9 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
   let buildTable = "";
   if (buildNames.length > 0) {
     // Parse per-build progress if available (JSON format: {"build_name": "status"})
+    // OR use plain text progress string for overall status
     let perBuildProgress = {};
+    let plainTextProgress = null;
     if (job.build_progress) {
       try {
         const parsed = JSON.parse(job.build_progress);
@@ -366,7 +455,8 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
           perBuildProgress = parsed;
         }
       } catch {
-        // Not JSON - legacy single string format
+        // Not JSON - plain text progress string (e.g. "Picking parts 3/10")
+        plainTextProgress = job.build_progress;
       }
     }
 
@@ -393,8 +483,14 @@ function summaryHtml(job, { totalWarn, totalErr, totalSecs }) {
             statusIcon = "○";
             statusClass = "pending";
             stageText = "queued";
+          } else if (plainTextProgress) {
+            // Plain text progress from ato build (e.g. "Picking parts 3/10")
+            statusIcon = `<span class="spinner">⟳</span>`;
+            statusClass = "inprogress";
+            stageText = plainTextProgress;
+            isActivelyBuilding = true;
           } else {
-            // No per-build progress - show generic building with spinner
+            // No progress info - show generic building with spinner
             statusIcon = `<span class="spinner">⟳</span>`;
             statusClass = "inprogress";
             stageText = "building";
@@ -873,8 +969,13 @@ function _renderListImpl() {
       metaPills.push(el("span", { class: "pill purple buildResult", title: "Build in progress" }, [
         el("span", { text: "● BUILDING" }),
       ]));
+    } else if (isQueued) {
+      // Package is queued (not_started, paused, or skipped) - could be restart or initial queue
+      metaPills.push(el("span", { class: "pill purple buildResult", title: "Build queued" }, [
+        el("span", { text: "◷ QUEUED" }),
+      ]));
     } else if (!hasAnyResults) {
-      // NO BUILD RESULTS - this package has never been run
+      // NO BUILD RESULTS and not queued - shouldn't happen often
       metaPills.push(el("span", { class: "pill notrun buildResult", title: "Build has not been run yet" }, [
         el("span", { text: "○ NOT RUN" }),
       ]));
@@ -930,6 +1031,32 @@ function _renderListImpl() {
         el("span", { text: "registry err" }),
       ]));
     }
+    // Show PR indicator prominently when a PR exists
+    if (j.published_pr_url) {
+      // Extract PR number from URL if possible
+      const prMatch = j.published_pr_url.match(/\/pull\/(\d+)/);
+      const prNum = prMatch ? `#${prMatch[1]}` : "PR";
+      metaPills.push(el("span", {
+        class: "pill purple prIndicator",
+        title: `PR: ${j.published_pr_url}`,
+        onclick: (e) => { e.stopPropagation(); window.open(j.published_pr_url, '_blank'); }
+      }, [
+        el("span", { text: `🔀 ${prNum}` }),
+      ]));
+    } else if (j.published_branch) {
+      // Has branch but no PR yet
+      metaPills.push(el("span", { class: "pill neutral", title: `Branch: ${j.published_branch}` }, [
+        el("span", { text: `⎇ branch` }),
+      ]));
+    }
+
+    // Show published version from registry
+    if (j.registry_published_version) {
+      metaPills.push(el("span", { class: "pill neutral versionIndicator", title: `Latest published: v${j.registry_published_version}` }, [
+        el("span", { text: `📦 v${j.registry_published_version}` }),
+      ]));
+    }
+
     // Show PR author for published/pr_opened packages
     if (j.published_pr_author) {
       metaPills.push(el("span", { class: "pill neutral" }, [
@@ -1315,6 +1442,14 @@ function _renderRightImpl() {
     const branch = stateJob?.published_branch || job.published_branch;
     const hasGitHub = prUrl || branch;
     githubBtn.disabled = !hasGitHub;
+    // Add tooltip to explain why button is disabled/enabled
+    if (prUrl) {
+      githubBtn.title = `Open PR: ${prUrl}`;
+    } else if (branch) {
+      githubBtn.title = `Open branch compare: ${branch}`;
+    } else {
+      githubBtn.title = "No PR or branch published yet";
+    }
   }
   // Rerun CI button enabled for packages in states where CI might exist
   // Backend will discover PR from GitHub if needed (stateless approach)
@@ -1335,7 +1470,8 @@ function _renderRightImpl() {
   }
   const pushPrBtn = $("#pushPrBtn");
   if (pushPrBtn) {
-    pushPrBtn.disabled = !prAvailable || !(publishAnyway || publishable) || job.status === "building" || job.status === "verifying";
+    // Push to PR should always work when a PR/branch exists - don't gate on build success
+    pushPrBtn.disabled = !prAvailable || job.status === "building" || job.status === "verifying";
   }
   restartBtn.disabled = (job.status === "building" || job.status === "verifying");
   const rebuildBtn = $("#rebuildBtn");
@@ -2011,18 +2147,32 @@ async function saveTodo() {
   const pkg = state.selected;
   if (!pkg) return;
   const todo = $("#todo").value;
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/todo`, { todo });
-  state.dirtyTodo = false;
-  state.lastTodoSavedAt = new Date().toLocaleTimeString();
-  await fetchSelectedDetail(true);
-  renderRight();
+  try {
+    await apiPost(`/api/package/${encodeURIComponent(pkg)}/todo`, { todo });
+    state.dirtyTodo = false;
+    state.lastTodoSavedAt = new Date().toLocaleTimeString();
+    await fetchSelectedDetail(true);
+    renderRight();
+  } catch (e) {
+    // On error, keep dirtyTodo true so user doesn't lose their changes
+    activityLog.add(`Failed to save todo for ${pkg}: ${e}`, "error");
+    // Don't throw - just show the error via toast
+  }
 }
 
 async function approveSelected() {
   const pkg = state.selected;
   if (!pkg) return;
   const reviewer = ($("#reviewer").value || "").trim() || null;
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/approve`, { reviewer });
+  activityLog.add(`Approving ${pkg}...`, "info");
+  try {
+    await apiPost(`/api/package/${encodeURIComponent(pkg)}/approve`, { reviewer });
+    activityLog.add(`${pkg} approved successfully`, "success");
+    showToast(`${pkg} approved`, "success", 3000);
+  } catch (e) {
+    activityLog.add(`Failed to approve ${pkg}: ${e}`, "error");
+    throw e;
+  }
   await refresh(true);
   state.viewTab = "diff";
   await fetchDiff();
@@ -2041,8 +2191,16 @@ async function unapproveSelected() {
 async function restartSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Build --frozen: ato build -t all --frozen (fail if layout changes needed)
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true, keep_picked_parts: true });
+  activityLog.add(`Restarting build for ${pkg} (frozen mode)...`, "info");
+  try {
+    // Build --frozen: ato build -t all --frozen (fail if layout changes needed)
+    await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: true, keep_picked_parts: true });
+    activityLog.add(`Build restarted for ${pkg}`, "success");
+    showToast(`Build started for ${pkg}`, "success", 3000);
+  } catch (e) {
+    activityLog.add(`Failed to restart build for ${pkg}: ${e}`, "error");
+    throw e;
+  }
   state.selectedLogContent = "";
   state.issues = null;  // Clear old issues immediately
   state.issuesFetchedAt = 0;  // Force refetch on next poll
@@ -2053,8 +2211,16 @@ async function restartSelected() {
 async function rebuildSelected() {
   const pkg = state.selected;
   if (!pkg) return;
-  // Build: ato build -t all (allow layout changes, re-pick parts)
-  await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false, keep_picked_parts: false });
+  activityLog.add(`Rebuilding ${pkg} (full rebuild)...`, "info");
+  try {
+    // Build: ato build -t all (allow layout changes, re-pick parts)
+    await apiPost(`/api/package/${encodeURIComponent(pkg)}/restart`, { frozen: false, keep_picked_parts: false });
+    activityLog.add(`Rebuild started for ${pkg}`, "success");
+    showToast(`Rebuild started for ${pkg}`, "success", 3000);
+  } catch (e) {
+    activityLog.add(`Failed to rebuild ${pkg}: ${e}`, "error");
+    throw e;
+  }
   state.selectedLogContent = "";
   state.issues = null;  // Clear old issues immediately
   state.issuesFetchedAt = 0;  // Force refetch on next poll
@@ -2074,6 +2240,7 @@ async function publishSelected() {
   const reviewer = ($("#reviewer").value || "").trim() || null;
   const target_requires_atopile = ($("#targetAtopile").value || "").trim() || "^0.14.0";
   const commit_message = state.publish.commitMessage || "";
+  activityLog.add(`Publishing ${pkg}...`, "info");
   console.log("[PUBLISH] Making API call...", { pkg, reviewer, target_requires_atopile });
   try {
     if (btn) {
@@ -2087,14 +2254,17 @@ async function publishSelected() {
     // Show success with PR URL if available
     const prUrl = res?.result?.pr_url;
     if (prUrl) {
-      alert(`Published! PR: ${prUrl}`);
+      activityLog.add(`${pkg} published! PR: ${prUrl}`, "success");
+      showToast(`Published! PR created`, "success", 5000);
     } else if (res?.result?.branch) {
-      alert(`Published to branch: ${res.result.branch}`);
+      activityLog.add(`${pkg} published to branch: ${res.result.branch}`, "success");
+      showToast(`Published to branch: ${res.result.branch}`, "success", 5000);
     }
   } catch (e) {
     console.error("[PUBLISH] API error:", e);
     state.publish.error = String(e);
-    alert(`Publish failed: ${String(e)}`);
+    activityLog.add(`Failed to publish ${pkg}: ${e}`, "error");
+    // Don't throw - we already logged and showed toast via activityLog
   } finally {
     if (btn) {
       btn.textContent = originalText || "Publish";
@@ -2111,19 +2281,23 @@ async function uprevSelected() {
     return;
   }
   const reviewer = ($("#reviewer").value || "").trim() || null;
+  activityLog.add(`Uprev ${pkg}...`, "info");
   console.log("[UPREV] Making API call...", { pkg, reviewer });
   try {
     const res = await apiPost(`/api/package/${encodeURIComponent(pkg)}/uprev`, { reviewer });
     console.log("[UPREV] API response:", res);
     const { old_version, new_version, pr_url } = res?.result || {};
     if (pr_url) {
-      alert(`Uprev successful!\n${old_version} → ${new_version}\nPR: ${pr_url}`);
+      activityLog.add(`${pkg} uprev: ${old_version} → ${new_version}, PR: ${pr_url}`, "success");
+      showToast(`Uprev: ${old_version} → ${new_version}`, "success", 5000);
     } else if (new_version) {
-      alert(`Uprev successful!\n${old_version} → ${new_version}`);
+      activityLog.add(`${pkg} uprev: ${old_version} → ${new_version}`, "success");
+      showToast(`Uprev: ${old_version} → ${new_version}`, "success", 5000);
     }
   } catch (e) {
     console.error("[UPREV] API error:", e);
-    alert(`Uprev failed: ${String(e)}`);
+    activityLog.add(`Failed to uprev ${pkg}: ${e}`, "error");
+    // Don't re-throw - activityLog already showed toast
   }
   await refresh(true);
 }
@@ -2199,6 +2373,12 @@ function openGitHub() {
   const prUrl = stateJob?.published_pr_url || detailJob?.published_pr_url;
   const branch = stateJob?.published_branch || detailJob?.published_branch;
 
+  // Debug: log what we found
+  console.log(`[openGitHub] Package: ${pkg}`);
+  console.log(`[openGitHub] stateJob:`, stateJob);
+  console.log(`[openGitHub] detailJob:`, detailJob);
+  console.log(`[openGitHub] prUrl: ${prUrl}, branch: ${branch}`);
+
   // Use PR URL if available, otherwise link to branch compare page
   if (prUrl) {
     window.open(prUrl, "_blank");
@@ -2207,7 +2387,18 @@ function openGitHub() {
     const compareUrl = `https://github.com/atopile/packages/compare/main...${encodeURIComponent(branch)}`;
     window.open(compareUrl, "_blank");
   } else {
-    alert(`No PR URL or branch found for ${pkg}`);
+    // Show more helpful error with debug info
+    const status = stateJob?.status || detailJob?.status || "unknown";
+    alert(
+      `No PR URL or branch found for ${pkg}\n\n` +
+      `Status: ${status}\n` +
+      `This package may not have been published yet.\n\n` +
+      `Debug info (check console for more):\n` +
+      `- stateJob.published_pr_url: ${stateJob?.published_pr_url || "null"}\n` +
+      `- stateJob.published_branch: ${stateJob?.published_branch || "null"}\n` +
+      `- detailJob.published_pr_url: ${detailJob?.published_pr_url || "null"}\n` +
+      `- detailJob.published_branch: ${detailJob?.published_branch || "null"}`
+    );
   }
 }
 
@@ -2328,10 +2519,18 @@ async function fetchGhCacheStatus() {
     const status = res.status || "loading";
     const ciFailures = res.ci_failures || 0;
     const pkgsWithCi = res.packages_with_ci_status || 0;
+    const refreshing = res.refreshing || false;
+
+    // Store refreshing state for polling logic
+    state.ghRefreshing = refreshing;
 
     el.classList.remove("loading", "synced", "error");
 
-    if (age > 60) {
+    if (refreshing) {
+      el.classList.add("loading");
+      el.textContent = "⟳ Refreshing...";
+      el.title = "GitHub refresh in progress...";
+    } else if (age > 60) {
       el.classList.add("loading");
       el.textContent = "⟳ Syncing...";
       el.title = "Fetching PR and CI data from GitHub (click to refresh)";
@@ -2454,10 +2653,31 @@ async function refreshGitHub() {
   try {
     // Use 10 second timeout for GitHub refresh
     await apiPost("/api/refresh_github", {}, 10000);
-    // Wait a moment for the refresh to start processing, then update status
-    setTimeout(() => fetchGhCacheStatus(), 1000);
-    setTimeout(() => fetchGhCacheStatus(), 3000);
-    setTimeout(() => fetchGhCacheStatus(), 8000);
+
+    // Smart polling: wait until refresh completes, then update package list
+    let attempts = 0;
+    const maxAttempts = 15;  // Max 15 seconds
+    const pollInterval = 1000;
+
+    const pollUntilComplete = async () => {
+      attempts++;
+      await fetchGhCacheStatus();
+
+      if (state.ghRefreshing && attempts < maxAttempts) {
+        // Still refreshing, poll again
+        setTimeout(pollUntilComplete, pollInterval);
+      } else {
+        // Refresh complete or timed out - update package list
+        console.log(`[GitHub Refresh] Complete after ${attempts}s, updating package list`);
+        await refresh(true, true);  // Full state refresh to get updated PR data
+        el.classList.remove("loading");
+        el.dataset.refreshing = "false";
+      }
+    };
+
+    // Start polling after a small delay
+    setTimeout(pollUntilComplete, 500);
+    return;  // Don't clear refreshing flag here, let poll handle it
   } catch (e) {
     console.error("[GitHub Refresh] Error:", e);
     el.classList.remove("loading");
@@ -2509,9 +2729,21 @@ async function refresh(keepDetail = true, fullState = false) {
   updateDebugHud();
 }
 
+// Helper to persist user preferences
+function savePrefs() {
+  try {
+    localStorage.setItem("review_station_prefs", JSON.stringify({
+      statusFilter: state.statusFilter,
+      sortOrder: state.sortOrder,
+      filter: state.filter,
+    }));
+  } catch { }
+}
+
 function wireGlobal() {
   $("#filter").addEventListener("input", (e) => {
     state.filter = e.target.value || "";
+    savePrefs();
     renderList();
   });
 
@@ -2523,6 +2755,7 @@ function wireGlobal() {
       // Update active state on buttons
       statusFilters.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
+      savePrefs();
       renderList();
     });
   });
@@ -2532,6 +2765,7 @@ function wireGlobal() {
     state.sortOrder = state.sortOrder === "asc" ? "desc" : "asc";
     const btn = $("#sortToggle");
     if (btn) btn.textContent = state.sortOrder === "asc" ? "A→Z" : "Z→A";
+    savePrefs();
     // Update backend queue order so next build picks from correct end
     try {
       await apiPost("/api/sort_queue", { order: state.sortOrder });
@@ -2645,15 +2879,37 @@ curl -X POST '${origin}/api/package/${pkgEncoded}/message' -H 'Content-Type: app
 }
 
 async function bootstrap() {
+  // Set up global error handler to prevent crashes from losing state
+  window.onerror = (msg, src, line, col, err) => {
+    activityLog.add(`JS Error: ${msg} at ${src}:${line}`, "error");
+    console.error("[global-error]", msg, src, line, col, err);
+    // Don't throw - let the app continue running
+    return true;
+  };
+  window.onunhandledrejection = (event) => {
+    activityLog.add(`Unhandled promise rejection: ${event.reason}`, "error");
+    console.error("[unhandled-rejection]", event.reason);
+    // Don't throw - let the app continue running
+    event.preventDefault();
+  };
+
   wireGlobal();
   initTheme();
 
-  // Load recently touched packages from localStorage
+  // Load persisted state from localStorage
   try {
     const saved = localStorage.getItem("review_station_recent");
     if (saved) {
       state.recentlyTouched = JSON.parse(saved);
     }
+  } catch { }
+
+  // Load persisted filter/sort preferences
+  try {
+    const prefs = JSON.parse(localStorage.getItem("review_station_prefs") || "{}");
+    if (prefs.statusFilter) state.statusFilter = prefs.statusFilter;
+    if (prefs.sortOrder) state.sortOrder = prefs.sortOrder;
+    if (prefs.filter) state.filter = prefs.filter;
   } catch { }
 
   // Initialize sort button text

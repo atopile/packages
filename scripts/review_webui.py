@@ -26,7 +26,9 @@ from __future__ import annotations
 import json
 import os
 import platform
+import queue
 import re
+import select
 import shlex
 import shutil
 import socket
@@ -692,6 +694,76 @@ def _count_log_levels(log_text: str) -> tuple[int, int]:
     return warn, err
 
 
+def _parse_build_output_for_targets(
+    log_text: str, expected_targets: list[str] | None = None
+) -> dict[str, dict[str, object]]:
+    """
+    Parse build output text to extract per-target success/failure.
+
+    This is used when summary.json is stale/missing - we can determine
+    build success from the actual CLI output which contains lines like:
+      - "✓ default completed" (success)
+      - "✗ default failed" (failure)
+      - "Build successful! 🚀 (2 targets)" (overall success)
+      - "Build failed!" (overall failure)
+
+    Returns mapping: target_name -> {status, seconds, warn, err}
+    """
+    result: dict[str, dict[str, object]] = {}
+
+    # Pattern for target completion: "✓ target_name completed" or "✗ target_name failed"
+    # Also handle without checkmarks: "target_name completed" or "target_name failed"
+    target_success_pattern = re.compile(r"[✓✔]\s*(\w+)\s+completed", re.UNICODE)
+    target_fail_pattern = re.compile(r"[✗✘×]\s*(\w+)\s+failed", re.UNICODE)
+
+    # Find all completed targets
+    for match in target_success_pattern.finditer(log_text):
+        target_name = match.group(1)
+        result[target_name] = {
+            "status": "success",
+            "seconds": 0.0,  # We don't have per-target timing from output
+            "warn": 0,
+            "err": 0,
+        }
+
+    # Find all failed targets (overwrite if also marked as success somehow)
+    for match in target_fail_pattern.finditer(log_text):
+        target_name = match.group(1)
+        result[target_name] = {
+            "status": "failed",
+            "seconds": 0.0,
+            "warn": 0,
+            "err": 1,
+        }
+
+    # Check overall build success/failure
+    overall_success = "Build successful" in log_text or "Build successful!" in log_text
+    overall_failure = "Build failed" in log_text and "Build failed!" in log_text
+
+    # If we have expected targets but didn't find them in output, mark based on overall status
+    if expected_targets:
+        for target in expected_targets:
+            if target not in result:
+                # Target not mentioned in output - infer from overall status
+                if overall_success:
+                    result[target] = {
+                        "status": "success",
+                        "seconds": 0.0,
+                        "warn": 0,
+                        "err": 0,
+                    }
+                elif overall_failure:
+                    result[target] = {
+                        "status": "failed",
+                        "seconds": 0.0,
+                        "warn": 0,
+                        "err": 1,
+                    }
+                # Else leave it out - we don't know
+
+    return result
+
+
 def _parse_build_summary_json(summary_json: str) -> dict[str, dict[str, object]]:
     """
     Parse `build/logs/latest/summary.json` produced by `ato build` (new format).
@@ -924,8 +996,9 @@ def _review_worker_process(
             cmd,
             cwd=cwd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,  # Merge stderr into stdout for easier parsing
             text=True,
+            bufsize=1,  # Line buffered
             env=env,
         )
         result_q.put(
@@ -937,60 +1010,151 @@ def _review_worker_process(
             }
         )
 
-        stdout_text = ""
-        stderr_text = ""
+        # Read output line by line in real-time to extract progress
+        stdout_lines = []
+        last_progress = None
+
+        # Progress patterns to match from verbose output
+        progress_patterns = [
+            (r"Picking parts.*?(\d+/\d+|\d+%)", "Picking parts"),
+            (r"Loading PCB", "Loading PCB"),
+            (r"Exporting.*?(\d+/\d+)", "Exporting"),
+            (r"Generating.*?(\d+/\d+)", "Generating"),
+            (r"Building.*?(\d+/\d+)", "Building"),
+            (r"Verifying", "Verifying"),
+        ]
+
         while True:
             poll_count += 1
+
+            # Check for cancellation
             if cancelled(pkg):
                 debug("Cancellation requested, terminating subprocess")
                 try:
                     proc.terminate()
-                except Exception as e:
-                    debug(f"Terminate failed: {e}")
-                try:
-                    stdout_text, stderr_text = proc.communicate(timeout=3)
+                    proc.wait(timeout=3)
                 except subprocess.TimeoutExpired:
                     debug("Terminate timed out, killing subprocess")
                     try:
                         proc.kill()
+                        proc.wait(timeout=3)
                     except Exception as e:
                         debug(f"Kill failed: {e}")
-                    try:
-                        stdout_text, stderr_text = proc.communicate(timeout=3)
-                    except Exception as e:
-                        debug(f"communicate after kill failed: {e}")
                 except Exception as e:
-                    debug(f"communicate after terminate failed: {e}")
+                    debug(f"Terminate failed: {e}")
                 break
-            try:
-                stdout_text, stderr_text = proc.communicate(timeout=0.2)
+
+            # Check if process is still running
+            if proc.poll() is not None:
+                # Process finished, read any remaining output
+                if proc.stdout:
+                    remaining = proc.stdout.read()
+                    if remaining:
+                        stdout_lines.append(remaining)
+                        debug(f"REMAINING OUTPUT: {remaining.rstrip()}")
                 break
-            except subprocess.TimeoutExpired:
-                continue
+
+            # Read available output with timeout
+            if proc.stdout:
+                try:
+                    # Use select to check if data is available (Unix only)
+                    if sys.platform != "win32":
+                        ready, _, _ = select.select([proc.stdout], [], [], 0.2)
+                        if ready:
+                            line = proc.stdout.readline()
+                            if line:
+                                stdout_lines.append(line)
+                                # Print every line from verbose output to debug log
+                                debug(f"OUTPUT: {line.rstrip()}")
+
+                                # Try to extract progress from this line
+                                for pattern, label in progress_patterns:
+                                    match = re.search(pattern, line, re.IGNORECASE)
+                                    if match:
+                                        progress_text = f"{label}"
+                                        if match.lastindex and match.group(match.lastindex):
+                                            progress_text += f" {match.group(match.lastindex)}"
+
+                                        # Only send update if progress changed
+                                        if progress_text != last_progress:
+                                            last_progress = progress_text
+                                            result_q.put({
+                                                "type": "progress",
+                                                "package": pkg,
+                                                "build_progress": progress_text,
+                                            })
+                                            debug(f"Progress: {progress_text}")
+                                        break
+                    else:
+                        # Windows fallback - use readline with timeout via thread
+                        def read_line(q):
+                            try:
+                                line = proc.stdout.readline()
+                                q.put(line)
+                            except:
+                                q.put(None)
+
+                        q = queue.Queue()
+                        t = threading.Thread(target=read_line, args=(q,))
+                        t.daemon = True
+                        t.start()
+
+                        try:
+                            line = q.get(timeout=0.2)
+                            if line:
+                                stdout_lines.append(line)
+                                # Print every line from verbose output to debug log
+                                debug(f"OUTPUT: {line.rstrip()}")
+
+                                # Try to extract progress
+                                for pattern, label in progress_patterns:
+                                    match = re.search(pattern, line, re.IGNORECASE)
+                                    if match:
+                                        progress_text = f"{label}"
+                                        if match.lastindex and match.group(match.lastindex):
+                                            progress_text += f" {match.group(match.lastindex)}"
+
+                                        if progress_text != last_progress:
+                                            last_progress = progress_text
+                                            result_q.put({
+                                                "type": "progress",
+                                                "package": pkg,
+                                                "build_progress": progress_text,
+                                            })
+                                            debug(f"Progress: {progress_text}")
+                                        break
+                        except queue.Empty:
+                            pass
+                except Exception as e:
+                    debug(f"Error reading output: {e}")
+                    time.sleep(0.2)
+
         rc = proc.returncode if proc.returncode is not None else 1
+        stdout_text = "".join(stdout_lines)
+
         debug(f"ACTUAL BUILD: Completed with rc={rc}")
-        debug(f"  stdout len={len(stdout_text or '')}")
-        debug(f"  stderr len={len(stderr_text or '')}")
-        debug(f"  First 500 stdout: {(stdout_text or '')[:500]!r}")
-        debug(f"  First 500 stderr: {(stderr_text or '')[:500]!r}")
+        debug(f"  Total output length: {len(stdout_text)} characters")
+        debug(f"  Total output lines: {len(stdout_lines)}")
+        debug(f"  First 500 chars: {stdout_text[:500]!r}")
+        debug(f"  Last 500 chars: {stdout_text[-500:]!r}")
+
+        # Log full output to debug for troubleshooting
+        if len(stdout_text) > 0:
+            debug("=== FULL VERBOSE OUTPUT START ===")
+            for i, line in enumerate(stdout_text.splitlines()[:100], 1):  # First 100 lines
+                debug(f"  [{i:03d}] {line}")
+            if len(stdout_text.splitlines()) > 100:
+                debug(f"  ... ({len(stdout_text.splitlines()) - 100} more lines)")
+            debug("=== FULL VERBOSE OUTPUT END ===")
 
         # Write log file with captured output
         with log_path.open("w", encoding="utf-8") as f:
             f.write("$ " + " ".join(shlex.quote(c) for c in cmd) + "\n\n")
             if stdout_text:
                 f.write(stdout_text)
-            if stderr_text:
-                f.write("\n--- STDERR ---\n")
-                f.write(stderr_text)
 
-        if not stdout_text and not stderr_text:
+        if not stdout_text:
             debug("WARNING: No output captured at all")
-
-        # Skip progress tracking for MVP
-        last_progress: str | None = None
-        progress = None
-        if False:
-            time.sleep(0.2)
 
         # Clean up status file
         if status_file and status_file.exists():
@@ -1048,6 +1212,23 @@ def _review_worker_process(
 
         # Build
         build_log_path = logs_dir / "build.log"
+
+        # Clear ALL old log files to prevent stale errors from showing
+        # This ensures the frontend doesn't read old errors before new build starts
+        # Use truncate instead of unlink to avoid race conditions with locked files
+        for log_file in [
+            build_log_path,
+            logs_dir / "build.debug.log",
+            logs_dir / "build_status.txt",
+        ]:
+            try:
+                # Truncate if exists (works even if file is open for reading)
+                # Then write a marker so frontend knows logs were cleared
+                with open(log_file, "w") as f:
+                    f.write(f"[{_now_ts()}] Build starting - logs cleared\n")
+            except Exception as e:
+                debug(f"Warning: Could not clear log file {log_file}: {e}")
+
         per_pkg_jobs = int(task.get("jobs_per_pkg") or jobs_per_pkg or 1)
 
         # Use a stable timestamp so we can read the correct summary.json even if
@@ -1103,12 +1284,58 @@ def _review_worker_process(
         build_warn: dict[str, int] = {}
         build_err: dict[str, int] = {}
 
-        summary_path = (
-            pkg_dir / "build" / "logs" / "archive" / build_timestamp / "summary.json"
-        )
-        per_target = _parse_build_summary(pkg_dir, summary_path=summary_path)
+        # Get build names for fallback parsing
+        expected_build_names = list(task.get("build_names") or [])
 
-        for name in list(task.get("build_names") or []):
+        # Try multiple sources for per-target status, in order of preference:
+        # 1. Fresh summary.json (if ato CLI updated it)
+        # 2. Parse from build output log (always available)
+        # 3. Fall back to process return code
+        summary_path = pkg_dir / "build" / "logs" / "latest" / "summary.json"
+        per_target: dict[str, dict[str, object]] = {}
+        used_source = "none"
+
+        # Helper to write debug messages to build debug log
+        def _debug(msg: str) -> None:
+            try:
+                ts = time.strftime("%H:%M:%S")
+                with open(logs_dir / "build.debug.log", "a", encoding="utf-8") as f:
+                    f.write(f"[{ts}] [post-build] {msg}\n")
+            except Exception:
+                pass
+
+        # Check if the summary.json is fresh (modified after our build started)
+        build_start_time = time.time() - b_secs - 60  # Allow 60s buffer
+        try:
+            if summary_path.exists():
+                summary_mtime = summary_path.stat().st_mtime
+                if summary_mtime >= build_start_time:
+                    # Summary was updated during our build - safe to use
+                    per_target = _parse_build_summary(pkg_dir, summary_path=summary_path)
+                    used_source = "summary.json"
+                    _debug(f"Using fresh summary.json (mtime={summary_mtime}, build_start={build_start_time})")
+                else:
+                    # Summary is stale - from a previous build
+                    _debug(f"WARNING: Ignoring stale summary.json (mtime={summary_mtime}, build_start={build_start_time})")
+        except Exception as e:
+            _debug(f"Error checking summary.json freshness: {e}")
+
+        # If summary.json was stale or missing, parse from build output log
+        if not per_target:
+            try:
+                build_log_text = build_log_path.read_text(encoding="utf-8", errors="replace")
+                per_target = _parse_build_output_for_targets(
+                    build_log_text, expected_targets=expected_build_names
+                )
+                if per_target:
+                    used_source = "build_output"
+                    _debug(f"Parsed {len(per_target)} targets from build output: {list(per_target.keys())}")
+                else:
+                    _debug(f"No target status found in build output, using process rc={b_rc}")
+            except Exception as e:
+                _debug(f"Error parsing build output: {e}")
+
+        for name in expected_build_names:
             bname = str(name)
             # New format: per-stage logs in log_dir (*.info.log, *.error.log, etc.)
             # Legacy format: single build.log file
@@ -1131,24 +1358,26 @@ def _review_worker_process(
                 build_err[bname] = int(rec.get("err", 0))  # type: ignore[arg-type]
                 build_rc[bname] = 0 if st in ("success", "warning") else 1
             else:
-                # No per-target summary (build failed early or summary missing).
-                # Leave seconds unset so UI shows "-" instead of misleading "0.0s".
-                build_warn[bname] = 0
-                build_err[bname] = 0
+                # No per-target info - use process return code
+                build_warn[bname] = b_warn
+                build_err[bname] = b_err
                 build_rc[bname] = b_rc
 
-        # If the summary exists, prefer per-target status over the process rc.
+        # Determine effective return code
         effective_rc = b_rc
         if per_target:
+            # Per-target info available - check if any failed
             effective_rc = 1 if any(rc != 0 for rc in build_rc.values()) else 0
-            # If the subprocess rc disagrees with summary, note it in debug log.
+            # If the subprocess rc disagrees with per-target status, note it in debug log
             if b_rc != effective_rc:
                 try:
                     (logs_dir / "build.debug.log").open("a", encoding="utf-8").write(
-                        f"[review-station] build rc mismatch: proc_rc={b_rc} summary_rc={effective_rc}\n"
+                        f"[review-station] build rc mismatch: proc_rc={b_rc} {used_source}_rc={effective_rc}\n"
                     )
                 except Exception:
                     pass
+
+        _debug(f"Build result: effective_rc={effective_rc}, source={used_source}, per_target={per_target}")
 
         if effective_rc != 0:
             result_q.put(
@@ -1168,6 +1397,20 @@ def _review_worker_process(
 
         # Verify
         v_log = logs_dir / "verify.log"
+
+        # Clear ALL old verify logs to prevent stale errors
+        # Use truncate instead of unlink to avoid race conditions with locked files
+        for log_file in [
+            v_log,
+            logs_dir / "verify.debug.log",
+            logs_dir / "verify_status.txt",
+        ]:
+            try:
+                with open(log_file, "w") as f:
+                    f.write(f"[{_now_ts()}] Verify starting - logs cleared\n")
+            except Exception as e:
+                debug(f"Warning: Could not clear verify log file {log_file}: {e}")
+
         v_cmd = [*ato_cmd, "package", "verify", "-s"]
         verify_status_file = logs_dir / "verify_status.txt"
         v_rc, v_secs, v_warn, v_err = run_cmd_to_log(
@@ -1508,6 +1751,7 @@ def _check_existing_pr_for_package(
             capture_output=True,
             text=True,
             check=False,
+            timeout=30,  # Prevent hang if gh is stuck
         )
         if result.returncode == 0 and result.stdout.strip():
             import json as json_mod
@@ -1560,6 +1804,7 @@ def _check_existing_pr_for_package(
             capture_output=True,
             text=True,
             check=False,
+            timeout=30,  # Prevent hang if gh is stuck
         )
         if result.returncode == 0 and result.stdout.strip():
             import json as json_mod
@@ -1589,6 +1834,7 @@ def _check_existing_pr_for_package(
             capture_output=True,
             text=True,
             check=False,
+            timeout=30,  # Prevent hang if git is stuck
         )
         if result.returncode == 0 and expected_branch in (result.stdout or ""):
             return {
@@ -2364,12 +2610,21 @@ def _get_central_log_db_path() -> Path | None:
 
 
 def _extract_issues_from_sqlite(
-    pkg_dir: Path, pkg_name: str, issues: list[dict[str, Any]]
+    pkg_dir: Path, pkg_name: str, issues: list[dict[str, Any]],
+    session_started_at: str | None = None
 ) -> None:
     """
     Extract errors/warnings from the central SQLite log database (atopile 0.14+).
 
     Adds issues directly to the provided issues list.
+
+    Args:
+        pkg_dir: Path to the package directory
+        pkg_name: Package name for filtering
+        issues: List to append issues to
+        session_started_at: ISO timestamp of when the current session build started.
+                           Only issues from builds started AFTER this time are returned.
+                           If None, no session filtering is done (will show most recent build).
     """
     try:
         db_path = _get_central_log_db_path()
@@ -2380,22 +2635,63 @@ def _extract_issues_from_sqlite(
         conn = sqlite3.connect(str(db_path), timeout=5.0)
         conn.row_factory = sqlite3.Row
 
-        # Query logs for this package (match by project_path containing package name)
-        # Get only recent logs (last 24 hours) to avoid stale data
+        # Parse session_started_at to compare with database timestamps
+        session_ts = None
+        if session_started_at:
+            try:
+                from datetime import datetime
+                # Parse ISO format timestamp and convert to epoch seconds
+                session_ts = datetime.fromisoformat(session_started_at.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                pass
+
+        # Query logs for this package - ONLY from the most recent build
+        # This prevents showing stale errors/warnings from previous builds
+        # Use MAX(build_id) which is schema-agnostic (doesn't depend on started_at column)
         query = """
             SELECT l.timestamp, l.stage, l.level, l.message, l.ato_traceback, l.python_traceback,
-                   b.target, b.project_path
+                   b.target, b.project_path, b.build_id
             FROM logs l
             JOIN builds b ON l.build_id = b.build_id
             WHERE b.project_path LIKE ?
               AND l.level IN ('WARNING', 'ERROR')
-              AND datetime(l.timestamp) > datetime('now', '-1 day')
+              AND b.build_id = (
+                  -- Get only the most recent build_id for this package
+                  SELECT MAX(b2.build_id)
+                  FROM builds b2
+                  WHERE b2.project_path LIKE ?
+              )
             ORDER BY l.id DESC
             LIMIT 200
         """
 
-        cursor = conn.execute(query, [f"%{pkg_name}%"])
+        pkg_pattern = f"%{pkg_name}%"
+        cursor = conn.execute(query, [pkg_pattern, pkg_pattern])
         rows = cursor.fetchall()
+
+        # If session filtering is enabled, check if the build is from AFTER the session started
+        # by checking the log timestamps - if ALL logs are from before session start, skip them
+        if session_ts and rows:
+            # Get the latest log timestamp from the results
+            latest_log_ts = None
+            for row in rows:
+                try:
+                    log_timestamp = row["timestamp"]
+                    if log_timestamp:
+                        # Try to parse as ISO format timestamp
+                        from datetime import datetime
+                        ts = datetime.fromisoformat(log_timestamp.replace("Z", "+00:00")).timestamp()
+                        if latest_log_ts is None or ts > latest_log_ts:
+                            latest_log_ts = ts
+                except Exception:
+                    pass
+
+            # If the most recent log is from BEFORE the session started, skip ALL results
+            # This means the build in the database is from a previous session
+            if latest_log_ts is not None and latest_log_ts < session_ts - 60:  # Allow 60s buffer
+                print(f"[SQLITE] Skipping stale issues for {pkg_name}: logs from {latest_log_ts}, session started at {session_ts}", flush=True)
+                conn.close()
+                return
 
         for row in rows:
             level = row["level"]
@@ -2445,7 +2741,8 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
 
     # First, try to extract from SQLite database (atopile 0.14+)
-    _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues)
+    # Pass session_started_at to filter out stale issues from previous sessions
+    _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues, job.started_at)
 
     # Patterns for matching errors/warnings
     error_pattern = re.compile(r"\bERROR\b", re.IGNORECASE)
@@ -2577,7 +2874,16 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
     elif verify_log.exists():
         extract_from_log(verify_log, "verify", "verify")
 
-    # Extract from package internal logs
+    # Extract from package internal logs - ONLY if modified after build started
+    # to avoid stale data from previous builds
+    build_started_ts = None
+    if job.started_at:
+        try:
+            from datetime import datetime
+            build_started_ts = datetime.fromisoformat(job.started_at.replace("Z", "+00:00")).timestamp()
+        except Exception:
+            pass
+
     if pkg_build_latest.exists():
         for b in job.build_names:
             bdir = pkg_build_latest / b
@@ -2588,6 +2894,14 @@ def _extract_issues_for_job(job: "JobState") -> list[dict[str, Any]]:
                     continue
                 if not (p.name.endswith(".log") or p.name.endswith(".txt") or p.name.endswith(".jsonl")):
                     continue
+                # Skip stale logs that were modified before this build started
+                if build_started_ts:
+                    try:
+                        file_mtime = p.stat().st_mtime
+                        if file_mtime < build_started_ts - 60:  # Allow 60s buffer
+                            continue  # Skip stale file
+                    except Exception:
+                        pass
                 extract_from_log(p, f"{b} / {p.name}", "build")
 
     # Sort: errors first, then by stage, then by line number
@@ -3002,6 +3316,7 @@ class ReviewRun:
         self._gh_pr_cache: dict[str, dict[str, Any]] = {}
         self._gh_pr_cache_by_package: dict[str, dict[str, Any]] = {}
         self._gh_pr_cache_updated_at: float = 0.0
+        self._gh_refreshing: bool = False  # True while refresh is in progress
 
         # Background sync state
         self._sync_enabled = False  # Will be set by start() if sync_from_main=True
@@ -3409,6 +3724,7 @@ class ReviewRun:
         """
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
+        self._gh_refreshing = True
         start_time = time.time()
         try:
             # Phase 1: Fast query for basic PR data (no statusCheckRollup)
@@ -3485,9 +3801,26 @@ class ReviewRun:
                 # Extract package name from branch or title
                 package_name = None
                 if "package-update" in branch:
+                    # Format: package-update-{series}-{package}
                     parts = branch.split("-")
                     if len(parts) >= 4:
                         package_name = "-".join(parts[3:])
+                elif "uprev" in branch:
+                    # Format: uprev-{package}-v{version}
+                    # Example: uprev-ti-ina232-v1-2-3
+                    parts = branch.split("-")
+                    if len(parts) >= 2:
+                        # Find where version starts (contains 'v' followed by numbers)
+                        version_start_idx = None
+                        for i, part in enumerate(parts):
+                            if part.startswith("v") and len(parts) > i:
+                                version_start_idx = i
+                                break
+                        if version_start_idx:
+                            package_name = "-".join(parts[1:version_start_idx])
+                        else:
+                            # Fallback: everything after "uprev-"
+                            package_name = "-".join(parts[1:])
                 elif ": " in title:
                     package_name = title.split(":")[0].strip()
 
@@ -3589,6 +3922,8 @@ class ReviewRun:
             print("[GH CACHE] gh pr list timed out", flush=True)
         except Exception as e:
             print(f"[GH CACHE] Error: {e}", flush=True)
+        finally:
+            self._gh_refreshing = False
 
     def _apply_pr_cache_to_packages(self) -> None:
         """Apply cached PR data to all packages."""
@@ -4550,6 +4885,19 @@ class ReviewRun:
             job.model_paths = _find_model_glb_paths(
                 Path(job.package_dir), job.build_names
             )
+
+            # Clear log files on disk immediately to prevent stale logs showing
+            # This ensures frontend doesn't display old errors/warnings from previous builds
+            run_logs_dir = Path(job.run_dir) / "logs"
+            restart_marker = f"[{_now_ts()}] Build restarted - waiting to start...\n"
+            for log_name in ["build.log", "verify.log", "build.debug.log"]:
+                log_file = run_logs_dir / log_name
+                try:
+                    log_file.parent.mkdir(parents=True, exist_ok=True)
+                    with open(log_file, "w") as f:
+                        f.write(restart_marker)
+                except Exception:
+                    pass  # Best effort - worker will clear anyway when it starts
 
             # Move to front of queue so it builds next
             self._queue = [package] + [p for p in self._queue if p != package]
@@ -5585,48 +5933,80 @@ class ReviewRun:
         worktrees_root.mkdir(parents=True, exist_ok=True)
         wt_dir = worktrees_root / branch
 
-        # Reuse existing worktree if it already exists to avoid "branch checked out" errors.
+        # ALWAYS clean up first to avoid "branch already checked out" errors
+        # This handles cases where:
+        # 1. Worktree exists at a different path (e.g., from a previous run_dir)
+        # 2. Git metadata is stale but directory was deleted
+        # 3. Previous publish attempt failed mid-way
+        run_git(["worktree", "prune"], cwd=repo)
+
+        # Find any existing worktree using this branch and remove it
+        wt_list = run_git(["worktree", "list", "--porcelain"], cwd=repo)
+        if wt_list.returncode == 0 and wt_list.stdout:
+            lines = wt_list.stdout.strip().split("\n")
+            current_wt_path = None
+            for line in lines:
+                if line.startswith("worktree "):
+                    current_wt_path = line[9:]  # Extract path after "worktree "
+                elif line.startswith("branch ") and current_wt_path:
+                    wt_branch = line[7:].split("/")[-1]  # refs/heads/X -> X
+                    if wt_branch == branch:
+                        # Found existing worktree with this branch - remove it
+                        print(f"[PUBLISH] Removing existing worktree for {branch} at {current_wt_path}", flush=True)
+                        run_git(["worktree", "remove", "--force", current_wt_path], cwd=repo)
+                        # Also clean up the directory if it still exists
+                        wt_path = Path(current_wt_path)
+                        if wt_path.exists():
+                            shutil.rmtree(wt_path, ignore_errors=True)
+                elif line == "":
+                    current_wt_path = None
+
+        # Clean up target directory if it exists
         if wt_dir.exists():
-            r = run_git(["checkout", "-B", branch, base_ref], cwd=wt_dir)
-            out.append(
-                {
-                    "cmd": ["git", "checkout", "-B", branch, base_ref],
-                    "rc": r.returncode,
-                    "out": r.stdout,
-                    "err": r.stderr,
-                }
-            )
-            if r.returncode != 0:
-                raise RuntimeError(f"git checkout -B failed:\n{r.stderr}")
-        else:
-            # Aggressive cleanup to avoid stale worktree metadata issues
-            run_git(["worktree", "prune"], cwd=repo)
-            run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
-            if wt_dir.exists():
-                shutil.rmtree(wt_dir, ignore_errors=True)
-            r = run_git(
-                ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
-                cwd=repo,
-            )
-            out.append(
-                {
-                    "cmd": [
-                        "git",
-                        "worktree",
-                        "add",
-                        "--force",
-                        "-B",
-                        branch,
-                        str(wt_dir),
-                        base_ref,
-                    ],
-                    "rc": r.returncode,
-                    "out": r.stdout,
-                    "err": r.stderr,
-                }
-            )
-            if r.returncode != 0:
-                raise RuntimeError(f"git worktree add failed:\n{r.stderr}")
+            shutil.rmtree(wt_dir, ignore_errors=True)
+
+        # Now create the worktree fresh
+        r = run_git(
+            ["worktree", "add", "--force", "-B", branch, str(wt_dir), base_ref],
+            cwd=repo,
+        )
+        out.append(
+            {
+                "cmd": [
+                    "git",
+                    "worktree",
+                    "add",
+                    "--force",
+                    "-B",
+                    branch,
+                    str(wt_dir),
+                    base_ref,
+                ],
+                "rc": r.returncode,
+                "out": r.stdout,
+                "err": r.stderr,
+            }
+        )
+        if r.returncode != 0:
+            # Handle worktree failure gracefully - don't crash dashboard
+            with self._lock:
+                job.status = "awaiting_review"
+                job.publish_error = (
+                    f"Git worktree setup failed. This can happen if there's a conflicting worktree.\n\n"
+                    f"To resolve this, try:\n"
+                    f"1. Restart the dashboard (this clears worktree state)\n"
+                    f"2. Or manually run: git worktree prune\n\n"
+                    f"Technical details:\n{r.stderr}"
+                )
+            self._write_state()
+            return {
+                "branch": branch,
+                "pr_url": job.published_pr_url,
+                "pushed": False,
+                "worktree_error": True,
+                "error": job.publish_error,
+                "commands": out,
+            }
 
         wt_repo = wt_dir
         wt_pkg = wt_repo / pkg_rel
@@ -5699,6 +6079,30 @@ class ReviewRun:
             }
         )
         if r.returncode != 0:
+            stderr_lower = (r.stderr or "").lower()
+            # Handle "stale info" / "rejected" - remote branch has changed
+            if "rejected" in stderr_lower or "stale" in stderr_lower or "non-fast-forward" in stderr_lower:
+                # Clean up worktree before returning error
+                run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
+                with self._lock:
+                    job.status = "awaiting_review"  # Go back to review state, don't crash
+                    job.publish_error = (
+                        f"Push rejected: The remote branch has changed since last fetch.\n\n"
+                        f"To resolve this:\n"
+                        f"1. Click 'Pull from PR' to fetch the latest changes\n"
+                        f"2. Review any conflicts in your local changes\n"
+                        f"3. Rebuild if needed, then push again\n\n"
+                        f"Technical details:\n{r.stderr}"
+                    )
+                self._write_state()
+                return {
+                    "branch": branch,
+                    "pr_url": job.published_pr_url,
+                    "pushed": False,
+                    "push_rejected": True,
+                    "error": job.publish_error,
+                    "commands": out,
+                }
             raise RuntimeError(f"git push failed:\n{r.stderr}")
 
         run_git(["worktree", "remove", "--force", str(wt_dir)], cwd=repo)
@@ -6340,10 +6744,23 @@ class ReviewRun:
         - message: the log line content
         - source: which log file/build step produced it
         - line_num: line number in the log file (for reference)
+
+        IMPORTANT: Only returns issues from the current dashboard session to avoid
+        showing stale/outdated warnings from previous runs.
         """
         job = self.get_job(package)
         if not job:
             raise KeyError(package)
+
+        # Only show issues if the package has been built in this session.
+        # This prevents showing stale warnings/errors from previous runs.
+        if not job.started_at:
+            return {
+                "package": package,
+                "issues": [],
+                "note": "Package not built in this session - no issues to show",
+                "session_started": False,
+            }
 
         run_logs_dir = (Path(job.run_dir) / "logs").resolve()
         pkg_build_latest = (
@@ -6354,7 +6771,8 @@ class ReviewRun:
 
         # FIRST: Extract from SQLite database (atopile 0.14+ structured logs)
         # This is the primary source for build errors/warnings
-        _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues)
+        # Pass session_started_at to filter out stale issues from previous sessions
+        _extract_issues_from_sqlite(Path(job.package_dir), job.package, issues, job.started_at)
 
         # Patterns for matching errors/warnings in Rich-style logs
         # Match lines like: "ERROR  some message" or "│ ERROR │ message"
@@ -6498,6 +6916,16 @@ class ReviewRun:
 
         # Extract from job-reported build logs (summary.json log_dir)
         # These are per-target directories with *.error.log, *.warning.log, etc.
+        # IMPORTANT: Only read logs modified AFTER the build started to avoid stale data
+        build_started_ts = None
+        if job.started_at:
+            try:
+                from datetime import datetime
+                # Parse ISO format timestamp
+                build_started_ts = datetime.fromisoformat(job.started_at.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                pass
+
         for b, log_path in (job.build_logs or {}).items():
             if not log_path:
                 continue
@@ -6515,11 +6943,27 @@ class ReviewRun:
                         or lp.name.endswith(".jsonl")
                     ):
                         continue
+                    # Skip stale logs that were modified before this build started
+                    if build_started_ts:
+                        try:
+                            file_mtime = lp.stat().st_mtime
+                            if file_mtime < build_started_ts - 60:  # Allow 60s buffer
+                                continue  # Skip stale file
+                        except Exception:
+                            pass
                     log_id = f"pkg__buildlog__{b}__{lp.name}"
                     extract_from_log(
                         lp, f"{b} / {lp.name}", "build", log_id_override=log_id
                     )
             elif p.is_file():
+                # Skip stale logs that were modified before this build started
+                if build_started_ts:
+                    try:
+                        file_mtime = p.stat().st_mtime
+                        if file_mtime < build_started_ts - 60:  # Allow 60s buffer
+                            continue  # Skip stale file
+                    except Exception:
+                        pass
                 log_id = f"pkg__buildlog__{b}__{p.name}"
                 extract_from_log(p, f"build ({b})", "build", log_id_override=log_id)
 
@@ -6527,58 +6971,19 @@ class ReviewRun:
         v = run_logs_dir / "verify.log"
         extract_from_log(v, "verify", "verify", log_id_override="verify.log")
 
-        # Also scan archive directories referenced by build_logs if they weren't found as directories
-        # This handles the case where logs are in a timestamped archive folder
-        pkg_build_archive = Path(job.package_dir) / "build" / "logs" / "archive"
-        if pkg_build_archive.exists():
-            # Find most recent archive (highest timestamp)
-            archive_dirs = sorted(
-                [d for d in pkg_build_archive.iterdir() if d.is_dir()],
-                reverse=True,
-            )
-            if archive_dirs:
-                latest_archive = archive_dirs[0]
-                for b in job.build_names:
-                    bdir = latest_archive / b
-                    if not bdir.exists() or not bdir.is_dir():
-                        continue
-                    for p in sorted(bdir.iterdir()):
-                        if not p.is_file():
-                            continue
-                        if not (
-                            p.name.endswith(".log")
-                            or p.name.endswith(".txt")
-                            or p.name.endswith(".jsonl")
-                        ):
-                            continue
-                        archive_log_id = f"pkg__archive__{b}__{p.name}"
-                        extract_from_log(
-                            p,
-                            f"{b} / {p.name}",
-                            "build",
-                            log_id_override=archive_log_id,
-                        )
+        # NOTE: Archive scan disabled - the ato CLI no longer updates the archive/latest symlink
+        # properly, so these directories always contain stale data from previous builds.
+        # Issues from the current session's build are extracted from run_logs_dir (our own logs)
+        # and from job.build_logs (which we populate from parsing build output directly).
+        #
+        # Previously scanned: pkg_build_archive = Path(job.package_dir) / "build" / "logs" / "archive"
+        # This always contained OLD log files that led to "stale warnings/errors on startup".
 
-        # Extract from package internal logs (build/logs/latest/<build>/*)
-        if pkg_build_latest.exists():
-            for b in job.build_names:
-                bdir = pkg_build_latest / b
-                if not bdir.exists() or not bdir.is_dir():
-                    continue
-                for p in sorted(bdir.iterdir()):
-                    if not p.is_file():
-                        continue
-                    if not (
-                        p.name.endswith(".log")
-                        or p.name.endswith(".txt")
-                        or p.name.endswith(".jsonl")
-                    ):
-                        continue
-                    # Use pkg__latest__<build>__<filename> format for package logs
-                    pkg_log_id = f"pkg__latest__{b}__{p.name}"
-                    extract_from_log(
-                        p, f"{b} / {p.name}", "build", log_id_override=pkg_log_id
-                    )
+        # NOTE: pkg_build_latest scan disabled for the same reason as archive scan above.
+        # The ato CLI no longer updates build/logs/latest symlink, so it always points to
+        # stale build outputs. Our own logs in run_logs_dir are the source of truth now.
+        #
+        # Previously scanned: pkg_build_latest = Path(job.package_dir) / "build" / "logs" / "latest"
 
         # Sort: errors first, then by stage (build before verify), then by line number
         stage_order = {"build": 0, "verify": 1, "other": 2}
@@ -7248,9 +7653,34 @@ class Server:
                                 "packages_cached": len(run._gh_pr_cache_by_package),
                                 "packages_with_ci_status": prs_with_ci,
                                 "ci_failures": ci_failures,
-                                "status": "loading" if cache_age > 60 else "synced",
+                                "refreshing": run._gh_refreshing,
+                                "status": "refreshing" if run._gh_refreshing else ("loading" if cache_age > 60 else "synced"),
                             },
                         )
+
+                    # Debug endpoint to check PR cache for a package
+                    if path.startswith("/api/debug/pr_cache/"):
+                        pkg = unquote(path.removeprefix("/api/debug/pr_cache/")).strip("/")
+                        with run._lock:
+                            job = run._jobs.get(pkg)
+                            pr_by_name = run._gh_pr_cache_by_package.get(pkg)
+                            pr_by_branch = None
+                            if job and job.published_branch:
+                                pr_by_branch = run._gh_pr_cache.get(job.published_branch)
+
+                            return self._send_json(
+                                HTTPStatus.OK,
+                                {
+                                    "package": pkg,
+                                    "job_exists": job is not None,
+                                    "job_published_branch": job.published_branch if job else None,
+                                    "job_published_pr_url": job.published_pr_url if job else None,
+                                    "pr_cache_by_name": pr_by_name,
+                                    "pr_cache_by_branch": pr_by_branch,
+                                    "cache_size": len(run._gh_pr_cache_by_package),
+                                    "sample_keys": list(run._gh_pr_cache_by_package.keys())[:10],
+                                },
+                            )
 
                     if path == "/api/health":
                         # Health check for AI agents to verify service is running
@@ -8351,10 +8781,10 @@ class Server:
                                 j = run.get_job(pkg)
                                 if j:
                                     with run._lock:
-                                        j.status = "error"
+                                        # Set to awaiting_review, not "error" - allows user to retry
+                                        # "error" status crashes the dashboard workflow
+                                        j.status = "awaiting_review"
                                         j.publish_error = str(e)
-                                        j.error = str(e)
-                                        j.finished_at = _now_ts()
                                         run._write_state()
                             except Exception:
                                 pass
@@ -8425,10 +8855,10 @@ class Server:
                                 j = run.get_job(pkg)
                                 if j:
                                     with run._lock:
-                                        j.status = "error"
+                                        # Set to awaiting_review, not "error" - allows user to retry
+                                        # "error" status crashes the dashboard workflow
+                                        j.status = "awaiting_review"
                                         j.publish_error = str(e)
-                                        j.error = str(e)
-                                        j.finished_at = _now_ts()
                                         run._write_state()
                             except Exception:
                                 pass
