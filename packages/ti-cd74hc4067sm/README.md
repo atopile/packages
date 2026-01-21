@@ -15,9 +15,11 @@ The CD74HC4067SM is a 16-channel analog multiplexer/demultiplexer with 4 select 
 
 ```ato
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 # --- Standard library imports ---
 import ElectricPower
+import has_part_removed
 
 # --- Package import ---
 from "atopile/ti-cd74hc4067sm/ti-cd74hc4067sm.ato" import TI_CD74HC4067SM
@@ -28,6 +30,8 @@ module FakeMCU:
     """
     power = new ElectricPower
     gpio = new ElectricLogic[5]
+
+    trait has_part_removed
 
 module Usage:
     """
