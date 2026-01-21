@@ -45,7 +45,7 @@ module Microchip_MCP9601:
     I²C bus interface (7-bit addr 0x60 to 0x67)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # --- Thermocouple differential inputs ---
     thermocouple_positive = new ElectricLogic
@@ -113,14 +113,14 @@ module Microchip_MCP9601:
 
     Address | Configuration
     --------|-------------
-    0x60    | ADDR pin to GND via 0Ω resistor (allows easy address changes)
-    0x61    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=2.2kΩ to GND
-    0x62    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=4.3kΩ to GND
-    0x63    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=7.5kΩ to GND
-    0x64    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=13kΩ to GND
-    0x65    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=22kΩ to GND
-    0x66    | ADDR pin to voltage divider: R1=10kΩ to VDD, R2=43kΩ to GND
-    0x67    | ADDR pin tied to VDD
+    0x60 | ADDR pin to GND via 0Ω resistor (allows easy address changes)
+    0x61 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 2.2kΩ to GND
+    0x62 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 4.3kΩ to GND
+    0x63 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 7.5kΩ to GND
+    0x64 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 13kΩ to GND
+    0x65 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 22kΩ to GND
+    0x66 | ADDR pin to voltage divider: R1 = 10kΩ to VDD, R2 = 43kΩ to GND
+    0x67 | ADDR pin tied to VDD
 
     For multiple MCP9601 devices on the same I2C bus, use different addresses.
     Standard 5% tolerance resistors are sufficient, though 1% provides better matching.
