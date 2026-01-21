@@ -47,7 +47,7 @@ module Usage:
     power_3v3 ~ pressure_sensor.power
 
     # Set I2C address (SA0 connected to GND = 0x5C, SA0 connected to VDD = 0x5D)
-    assert pressure_sensor.i2c.address is 0x5C
+    assert pressure_sensor.i2c.address within 0x5C
 
 ```
 
