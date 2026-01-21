@@ -35,7 +35,7 @@ module Usage:
     # I²C bus
     i2c = new I2C
     i2c ~ accelerometer.i2c
-    accelerometer.i2c.address = 0x53
+    assert accelerometer.i2c.address within 0x54
 
 ```
 
