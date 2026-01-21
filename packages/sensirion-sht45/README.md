@@ -50,7 +50,7 @@ module Usage:
     i2c_bus ~ temp_humidity_sensor.i2c
 
     # The SHT45-AD1F has a default I2C address of 0x44
-    assert temp_humidity_sensor.i2c.address is 0x44
+    assert temp_humidity_sensor.i2c.address within 0x44
 
 ```
 
