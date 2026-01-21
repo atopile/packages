@@ -9,23 +9,34 @@ YLPTEC isolated 2W DC-DC converter modules with multiple input/output voltage op
 #pragma experiment("TRAITS")
 
 import ElectricPower
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import BYYXXS_2WR2
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B2405S_2WR3
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B0505S_2WR3
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B1205S_2WR2
 
 module Usage:
     """
-    Minimal usage example for ylptech-byyxx.
-    Shows how to use the YLPTEC isolated DC-DC converter.
+    Usage example for ylptech-byyxx package.
+    Demonstrates all three YLPTEC isolated DC-DC converter variants.
     """
 
-    # Create the regulator
-    regulator = new BYYXXS_2WR2
-
-    # Create power rails
+    # --- 24V to 5V isolated converter ---
+    reg_24v_to_5v = new YLPTEC_B2405S_2WR3
     power_24v = new ElectricPower
-    power_5v = new ElectricPower
+    power_5v_from_24v = new ElectricPower
+    power_24v ~> reg_24v_to_5v ~> power_5v_from_24v
 
-    # Connect the regulator between the rails
-    power_24v ~> regulator ~> power_5v
+    # --- 5V to 5V isolated converter ---
+    reg_5v_to_5v = new YLPTEC_B0505S_2WR3
+    power_5v_in = new ElectricPower
+    power_5v_isolated = new ElectricPower
+    power_5v_in ~> reg_5v_to_5v ~> power_5v_isolated
+
+    # --- 12V to 5V isolated converter ---
+    reg_12v_to_5v = new YLPTEC_B1205S_2WR2
+    power_12v = new ElectricPower
+    power_5v_from_12v = new ElectricPower
+    power_12v ~> reg_12v_to_5v ~> power_5v_from_12v
+
 ```
 
 ## Contributing

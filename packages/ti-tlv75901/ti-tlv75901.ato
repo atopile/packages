@@ -8,7 +8,7 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "regulators.ato" import AdjustableLDO
 from "parts/Texas_Instruments_TLV75901PDRVR/Texas_Instruments_TLV75901PDRVR.ato" import Texas_Instruments_TLV75901PDRVR_package
@@ -51,21 +51,21 @@ module TI_TLV75901 from AdjustableLDO:
     power_in.hv ~> input_decoupling_capacitor ~> power_in.lv
 
     # --- Feedback Divider ---
-    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm * (1 + (-0.01 to 0.01))
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
+    assert feedback_divider.total_resistance within 5kohm to 150kohm * (1 + (-0.01 to 0.01))
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
 
     # --- Enable ---
     # enable by default
-    _enable.line ~ power_in.vcc
+    _enable.line ~ power_in.hv
 
     # --- Other connections ---
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Package Connections ---
-    power_in.vcc ~ package.IN
-    power_in.gnd ~ package.GND
-    power_out.vcc ~ package.OUT
-    power_out.gnd ~ package.EP
+    power_in.hv ~ package.IN
+    power_in.lv ~ package.GND
+    power_out.hv ~ package.OUT
+    power_out.lv ~ package.EP
     _enable.line ~ package.EN
-    feedback_divider.output.line ~ package.FB
+    feedback_divider.ref_out.hv ~ package.FB

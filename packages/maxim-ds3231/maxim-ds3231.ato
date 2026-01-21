@@ -15,11 +15,11 @@ module Maxim_DS3231:
     Maxim Integrated DS3231 – extremely accurate I²C real-time clock (RTC) with integrated TCXO and crystal.
 
     Exposes:
-      * i2c          – I²C bus interface (fixed 7-bit addr 0x68)
-      * power        – Primary supply rail (2.3 V – 5.5 V)
-      * backup_power – Backup battery rail for VBAT (optional)
-      * sqw_int      – INT/SQW open-drain output (optional)
-      * clk_32khz    – 32.768 kHz push-pull clock output (optional)
+        * i2c – I²C bus interface (fixed 7-bit addr 0x68)
+        * power – Primary supply rail (2.3 V – 5.5 V)
+        * backup_power – Backup battery rail for VBAT (optional)
+        * sqw_int – INT/SQW open-drain output (optional)
+        * clk_32khz – 32.768 kHz push-pull clock output (optional)
     """
 
     # --- Package ---
@@ -33,7 +33,7 @@ module Maxim_DS3231:
     backup_power = new ElectricPower
     backup_power.required = True
     square_interrupt = new ElectricLogic
-    power_lost = new ElectricLogic # RST, internal 50k pull-up
+    power_lost = new ElectricLogic  # RST, internal 50k pull-up
     clock_32khz_out = new ElectricLogic
 
     # --- Power supply ---
@@ -43,7 +43,7 @@ module Maxim_DS3231:
     # --- I²C bus ---
     i2c.scl.reference ~ power
     i2c.sda.reference ~ power
-    assert i2c.address is 0x68
+    assert i2c.address within 0x68
 
     # --- I²C pull-up resistors ---
     i2c_pullups = new Resistor[2]
@@ -76,12 +76,12 @@ module Maxim_DS3231:
     power.hv ~> decoupling_capacitor ~> power.lv
 
     # --- Package ---
-    package.VCC  ~ power.hv
-    package.GND  ~ power.lv
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
     package.VBAT ~ backup_power.hv
     package.GND ~ backup_power.lv
-    package.SCL  ~ i2c.scl.line
-    package.SDA  ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
     package.INTSQW ~ square_interrupt.line
     package.P32kHz ~ clock_32khz_out.line
-    package.RST    ~ power_lost.line
+    package.RST ~ power_lost.line
