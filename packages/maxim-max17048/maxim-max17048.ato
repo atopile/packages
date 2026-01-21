@@ -30,7 +30,7 @@ module Maxim_MAX17048:
     I2C bus interface (7-bit addr 0x36)
     """
     i2c.required = True
-    assert i2c.address is 0x36
+    assert i2c.address within 0x36
 
     power = new ElectricPower
     """
@@ -68,8 +68,8 @@ module Maxim_MAX17048:
     # --- Internal connections ---
 
     # Power connections
-    power.vcc ~ package.VDD
-    power.gnd ~ package.GND
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
 
     # I2C connections
     i2c.scl.line ~ package.SCL
@@ -84,10 +84,10 @@ module Maxim_MAX17048:
     qstrt.reference ~ power
 
     # CTG pin (current gain configuration) - typically connected to ground
-    power.gnd ~ package.CTG
+    power.lv ~ package.CTG
 
     # Exposed pad connection (thermal and electrical ground)
-    power.gnd ~ package.EP
+    power.lv ~ package.EP
 
     # Alert pin (connection commented out due to build cache issue)
     alert.line ~ package.nALRT
