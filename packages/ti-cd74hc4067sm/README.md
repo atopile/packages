@@ -45,8 +45,6 @@ module Usage:
     multiplexer.power ~ power
     mcu.power ~ power
 
-    multiplexer.enable.line ~ power.lv  # enable is active low
-
     multiplexer.selects[0].line ~ mcu.gpio[0].line
     multiplexer.selects[1].line ~ mcu.gpio[1].line
     multiplexer.selects[2].line ~ mcu.gpio[2].line
