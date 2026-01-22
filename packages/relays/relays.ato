@@ -30,10 +30,9 @@ from "parts/Omron_Electronics_G5V_1_DC24/Omron_Electronics_G5V_1_DC24.ato" impor
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
-
 """ Example parts """
 # module LogicLevelRelayDPDT3A5V from LogicLevelRelay:
-#     relay -> RelayDPDT3A5V
+# relay -> RelayDPDT3A5V
     # pass
 
 module LogicLevelRelaySPDT3A5V from LogicLevelRelayHack:
@@ -138,37 +137,37 @@ module LogicLevelRelaySPDT1A24V from LogicLevelRelayHack:
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-""" Relay components """
 module Coil:
+    """ Relay components """
     input = new Electrical
     output = new Electrical
     voltage: V
-    trait can_bridge_by_name<input_name="input", output_name="output">
+    """Coil voltage"""
+    trait can_bridge_by_name<input_name = "input", output_name = "output">
 
 module SwitchNC:
     common = new Electrical
     normally_closed = new Electrical
-    trait can_bridge_by_name<input_name="common", output_name="normally_closed">
+    trait can_bridge_by_name<input_name = "common", output_name = "normally_closed">
 
 module SwitchNO:
     common = new Electrical
     normally_open = new Electrical
-    trait can_bridge_by_name<input_name="common", output_name="normally_open">
+    trait can_bridge_by_name<input_name = "common", output_name = "normally_open">
 
 module PowerSwitchNC:
     power_in = new ElectricPower
     power_out = new ElectricPower
 
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
 module PowerSwitchNO:
     power_in = new ElectricPower
     power_out = new ElectricPower
-    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
-
-""" Low side NFET switch for controlling a relay coil """
 module LowSideNFETSwitch:
+    """ Low side NFET switch for controlling a relay coil """
     enable = new ElectricLogic
     gate_resistor = new Resistor
     ilim_resistor = new Resistor
@@ -192,15 +191,14 @@ module LowSideNFETSwitch:
     enable.line ~> gate_resistor ~> mosfet.source
 
     # Bridge
-    trait can_bridge_by_name<input_name="_input", output_name="_output">
+    trait can_bridge_by_name<input_name = "_input", output_name = "_output">
 
-
-""" Base relay module """
 module Relay:
+    """ Base relay module """
     coil = new Coil
 
-""" Standard relay formats """
 module RelaySPST from Relay:
+    """ Standard relay formats """
     pass
 
 module RelaySPDT from Relay:
@@ -211,33 +209,31 @@ module RelayDPDT from Relay:
     switch_nc = new SwitchNC[2]
     switch_no = new SwitchNO[2]
 
-
 # """ Logic level driver for relays """
 # TODO: use this instead when specialization is working
 # module LogicLevelRelay:
-#     coil_power = new ElectricPower
-#     enable = new ElectricLogic
-#     relay = new Relay
-#     coil_switch = new LowSideNFETSwitch
-#     indicator_led = new LEDIndicatorGreen
+# coil_power = new ElectricPower
+# enable = new ElectricLogic
+# relay = new Relay
+# coil_switch = new LowSideNFETSwitch
+# indicator_led = new LEDIndicatorGreen
 
-#     coil_power.require
+# coil_power.require
 
-#     # Parameters
-#     coil_power.voltage = relay.coil.voltage
+# # Parameters
+# coil_power.voltage = relay.coil.voltage
 
-#     # Enable connection
-#     enable ~ coil_switch.enable
+# # Enable connection
+# enable ~ coil_switch.enable
 
-#     # Coil connection
-#     coil_power.hv ~ relay.coil.input
-#     relay.coil.output ~> coil_switch ~> coil_power.lv
+# # Coil connection
+# coil_power.hv ~ relay.coil.input
+# relay.coil.output ~> coil_switch ~> coil_power.lv
 
-#     # Led connection + config
-#     indicator_led.power.voltage = coil_power.voltage
-#     indicator_led.current = 0.5mA +/- 10%
-#     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
-
+# # Led connection + config
+# indicator_led.power.voltage = coil_power.voltage
+# indicator_led.current = 0.5mA +/- 10%
+# coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
 
 module LogicLevelRelayHack:
     coil_power = new ElectricPower
@@ -256,7 +252,6 @@ module LogicLevelRelayHack:
     indicator_led.power.voltage = coil_power.voltage
     indicator_led.current = 0.5mA +/- 10%
     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
-
 
 # Power relays:
 # HK4100F Series:
