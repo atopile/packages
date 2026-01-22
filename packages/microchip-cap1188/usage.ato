@@ -24,7 +24,7 @@ module Usage:
     # --- I²C bus ---
     i2c_bus = new I2C
     assert i2c_bus.frequency <= 400kHz
-    assert i2c_bus.address is 0x2B  # Default address with 100kohm resistor
+    assert i2c_bus.address within 0x2B  # Default address with 100kohm resistor
 
     # --- Optional control signals ---
     reset_pin = new ElectricLogic

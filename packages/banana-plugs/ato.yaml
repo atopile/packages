@@ -1,0 +1,32 @@
+requires-atopile: "^0.14.0"
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  simple-banana-plug-power:
+    entry: banana-plugs.ato:SimpleBananaPlugPower
+    hide_designators: true
+    exclude_checks:
+      - PCB.requires_drc_check
+  premium-banana-plug-power:
+    entry: banana-plugs.ato:PremiumBananaPlugPower
+    hide_designators: true
+    exclude_checks:
+      - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+      - PCB.requires_drc_check
+
+package:
+  identifier: atopile/banana-plugs
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/banana-plugs/README.md
+  version: 0.1.1
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Banana plugs, DMM connector, 3/4" (19.05mm) spacing
+  license: MIT

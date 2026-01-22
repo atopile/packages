@@ -26,6 +26,7 @@ import has_part_removed
 from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
 
 # Mock modules for usage example
+
 module USBCConn:
     trait has_part_removed
     power = new ElectricPower
