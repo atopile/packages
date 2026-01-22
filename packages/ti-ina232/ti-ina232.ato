@@ -11,7 +11,7 @@ import DifferentialPair
 import Resistor
 import Capacitor
 import can_bridge_by_name
-from "ti_addressor.py" import TIAddressor
+import SinglePinAddressor
 
 # --- Part import ---
 from "parts/TEXAS_INSTRUMENTS_INA232AIDDFR/TEXAS_INSTRUMENTS_INA232AIDDFR.ato" import TEXAS_INSTRUMENTS_INA232AIDDFR_package
@@ -93,7 +93,7 @@ module TI_INA232:
     max_current.default = 1A
 
     # INA232 full-scale shunt voltage range
-    shunt_voltage_range = 75mV
+    shunt_voltage_max_range = 65mV to 75mV
 
     # --- External shunt resistor (designer selects value & package) ---
     shunt = new Resistor
@@ -101,9 +101,8 @@ module TI_INA232:
     shunt_input.p.line ~> shunt ~> shunt_input.n.line
 
     # Recommended shunt value bounds given desired max current
-    # Target resistance: shunt_voltage_range / max_current = 75mV / max_current
-    assert shunt.resistance <= shunt_voltage_range / max_current * 1.1
-    assert shunt.resistance >= shunt_voltage_range / max_current * 0.9
+    # Target resistance: shunt_voltage_max_range / max_current = 70mV / max_current
+    assert shunt.resistance within shunt_voltage_max_range / max_current
 
     # --- High-side bridge so designers can insert the monitor inline ---
     power_in = new ElectricPower
@@ -132,14 +131,18 @@ module TI_INA232:
     trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
     # --- I²C address selection (A0 pin) ---
-    addressor = new TIAddressor
+    addressor = new SinglePinAddressor<states = 4>
     addressor.base = 0x40
-    addressor.address_line.line ~ package.A0
-    addressor.i2c ~ i2c
-    addressor.address_line.reference ~ power
     assert addressor.address is i2c.address
     # Default to base address (0x40), can be overridden by user
     i2c.address.default = 0x40
+
+    addressor.address_line.line ~ package.A0
+    addressor.address_line.reference ~ power
+    addressor.states[0] ~ power.lv  # GND → offset 0
+    addressor.states[1] ~ power.hv  # VCC → offset 1
+    addressor.states[2] ~ i2c.sda.line  # SDA → offset 2
+    addressor.states[3] ~ i2c.scl.line  # SCL → offset 3
 
     # --- Decoupling capacitor ---
     decoupling_cap = new Capacitor
