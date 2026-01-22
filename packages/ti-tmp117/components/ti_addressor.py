@@ -80,7 +80,6 @@ class TIAddressor(fabll.Node):
     _single_electric_reference = fabll.Traits.MakeEdge(
         F.has_single_electric_reference.MakeChild()
     )
-    _has_part_removed = fabll.Traits.MakeEdge(F.has_part_removed.MakeChild())
 
     # Design check trait for post-solve address line configuration
     design_check = fabll.Traits.MakeEdge(F.implements_design_check.MakeChild())
