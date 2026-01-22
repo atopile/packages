@@ -9,7 +9,7 @@ import Inductor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-import has_single_electric_reference_shared
+import has_single_electric_reference
 from "regulators.ato" import Buck
 
 from "parts/Texas_Instruments_LV2842XLVDDCR/Texas_Instruments_LV2842XLVDDCR.ato" import Texas_Instruments_LV2842XLVDDCR_package
@@ -51,7 +51,7 @@ module TI_LV2842X from Buck:
     _enable = new ElectricLogic
     _enable.reference ~ power_in
 
-    trait has_single_electric_reference_shared<gnd_only = True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
@@ -83,7 +83,7 @@ module TI_LV2842X from Buck:
     # --- Enable ---
     # by default the shutdown pin is internally pulled up,
     # connection it anyway to power in makes routing more compact
-    _enable.line ~ power_in.vcc
+    _enable.line ~ power_in.hv
 
     # --- Input Capacitor ---
     input_cap = new Capacitor
