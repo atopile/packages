@@ -2,14 +2,13 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
-#pragma experiment("MODULE_TEMPLATING")
+
 import Capacitor
 import Diode
 import Inductor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-import ResistorVoltageDivider
 import has_single_electric_reference_shared
 from "regulators.ato" import Buck
 
@@ -37,8 +36,8 @@ module TI_LV2842X from Buck:
     assert power_in.voltage within 4V to 40V
     assert power_out.voltage >= reference_voltage
     assert power_out.voltage <= 40V
-    assert power_out.max_current within 10mA to 600mA # to be specialized by exact IC
-    K_IND = 0.3 # Ripple factor, 30% of Io
+    assert power_out.max_current within 10mA to 600mA  # to be specialized by exact IC
+    K_IND = 0.3  # Ripple factor, 30% of Io
     current_ripple = K_IND * power_out.max_current
     switching_frequency = 325kHz to 1500kHz
 
@@ -52,7 +51,7 @@ module TI_LV2842X from Buck:
     _enable = new ElectricLogic
     _enable.reference ~ power_in
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference_shared<gnd_only = True>
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
@@ -71,14 +70,15 @@ module TI_LV2842X from Buck:
     bootstrap_capacitor = new Capacitor
     bootstrap_capacitor.capacitance = 200nF to 1uF
     bootstrap_capacitor.package = "C0402"
-    bootstrap_capacitor.p1 ~ _bootstrap.line
-    bootstrap_capacitor.p2 ~ _power_sw_out.hv
+    bootstrap_capacitor.unnamed[0] ~ _bootstrap.line
+    bootstrap_capacitor.unnamed[1] ~ _power_sw_out.hv
 
     # --- Feedback Divider ---
-    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
-    feedback_divider.output ~ _feedback
+    assert feedback_divider.chain.resistors[1].resistance within 1kohm to 100kohm
+    feedback_divider.chain.resistors[0].package = "R0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
+    feedback_divider.ref_out.hv ~ _feedback.line
+    feedback_divider.ref_out.lv ~ _feedback.reference.lv
 
     # --- Enable ---
     # by default the shutdown pin is internally pulled up,
@@ -117,9 +117,8 @@ module TI_LV2842X from Buck:
     assert inductor.saturation_current >= power_out.max_current * 1.10
     assert inductor.max_current >= power_out.max_current
     duty = power_out.voltage / power_in.voltage
-    assert duty <= 0.81 # 81% duty cycle is the maximum for the LV2842
+    assert duty <= 0.81  # 81% duty cycle is the maximum for the LV2842
     # voltage_ripple = current_ripple * (ESR + (1/(8*switching_frequency*output_capacitance)))
-
 
 component Diode_1N5819WS from Diode:
     package = new Guangdong_Hottech_1N5819WS_package
