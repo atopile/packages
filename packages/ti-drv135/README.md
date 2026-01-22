@@ -14,7 +14,7 @@ import ElectricPower
 import ElectricSignal
 import DifferentialPair
 import Capacitor
-import TVS
+# TVS removed - using specific package directly
 import Diode
 
 from "atopile/ti-drv135/ti-drv135.ato" import TI_DRV135

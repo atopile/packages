@@ -33,12 +33,7 @@ module Usage:
     i2c_bus ~ imu.i2c
 
     # Configure I2C address to 0x6A (SA0 pin to GND)
-    i2c_bus.address = 0x6A
-
-    # Connect SA0 pin to GND for 0x6A address
-    # For 0x6B address, connect to VDD instead
-    imu.sdo_sa0.reference ~ power_3v3
-    imu.sdo_sa0.line ~ power_3v3.lv
+    assert imu.i2c.address within 0x6B
 
     # Optional: Connect interrupt pin for motion detection
     # int_pin = new ElectricLogic
