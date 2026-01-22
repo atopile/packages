@@ -3,31 +3,30 @@
 import logging
 
 import faebryk.library._F as F
-from faebryk.core.module import Module
-from faebryk.libs.library import L
+import faebryk.core.node as fabll
 
 logger = logging.getLogger(__name__)
 
 
-class Switch(Module):
+class Switch(fabll.Node):
     """
     Switch
     """
 
-    unnamed = L.list_field(2, F.Electrical)
+    unnamed = [F.Electrical.MakeChild() for _ in range(2)]
 
-    @L.rt_field
-    def can_bridge(self):
-        return F.can_bridge_defined(*self.unnamed)
+    can_bridge = fabll.Traits.MakeEdge(
+        F.can_bridge.MakeChild(["unnamed[0]"], ["unnamed[1]"])
+    )
 
 
-class PowerSwitch(Module):
+class PowerSwitch(fabll.Node):
     """
     Power Switch
     """
 
-    unnamed = L.list_field(2, F.ElectricPower)
+    unnamed = [F.Electrical.MakeChild() for _ in range(2)]
 
-    @L.rt_field
-    def can_bridge(self):
-        return F.can_bridge_defined(*self.unnamed)
+    can_bridge = fabll.Traits.MakeEdge(
+        F.can_bridge.MakeChild(["unnamed[0]"], ["unnamed[1]"])
+    )

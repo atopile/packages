@@ -13,7 +13,7 @@ import USB3
 import UART
 import Ethernet
 import HDMI
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/HRS_DF40C_100DS_0_4V_51/HRS_DF40C_100DS_0_4V_51.ato" import HRS_DF40C_100DS_0_4V_51_package
 from "parts/Sinhoo_SMTSO2515CTJ/Sinhoo_SMTSO2515CTJ.ato" import Sinhoo_SMTSO2515CTJ_package
@@ -24,10 +24,10 @@ module RPI_CM5:
     Raspberry Pi CM5 module
     """
     # Power
-    power_5v = new ElectricPower # Input
-    power_3v3 = new ElectricPower # Output
-    power_1v8 = new ElectricPower # Output
-    gpio_ref = new ElectricPower # Connect to either power_1v8 or power_3v3
+    power_5v = new ElectricPower  # Input
+    power_3v3 = new ElectricPower  # Output
+    power_1v8 = new ElectricPower  # Output
+    gpio_ref = new ElectricPower  # Connect to either power_1v8 or power_3v3
 
     power_5v.required = True
 
@@ -46,8 +46,8 @@ module RPI_CM5:
     # I2S
     i2s_output = new I2S
     i2s_input = new I2S
-    i2s_output.reference_shim ~ gpio_ref
-    i2s_input.reference_shim ~ gpio_ref
+    i2s_output.has_single_electric_reference.reference ~ gpio_ref
+    i2s_input.has_single_electric_reference.reference ~ gpio_ref
 
     # Control
     power_button = new ElectricLogic
@@ -69,7 +69,7 @@ module RPI_CM5:
     studs = new Sinhoo_SMTSO2515CTJ_package[4]
 
     for stud in studs:
-        stud.pad ~ power_3v3.gnd
+        stud.pad ~ power_3v3.lv
 
     # Components
     hdi_a = new HRS_DF40C_100DS_0_4V_51_package
@@ -127,7 +127,6 @@ module RPI_CM5:
         i2c.scl.reference ~ gpio_ref
         i2c.sda.reference ~ gpio_ref
 
-
     for io in gpios:
         io.reference ~ gpio_ref
     # Reference domains for control signals
@@ -140,7 +139,7 @@ module RPI_CM5:
     ethernet_sync.reference ~ gpio_ref
     eeprom_wp.reference ~ gpio_ref
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # HDI-A Pinout (based on cm5.py)
     hdi_a.pins[0] ~ power_5v.lv  # GND
@@ -172,17 +171,17 @@ module RPI_CM5:
     hdi_a.pins[26] ~ gpios[20].line  # GPIO 20
     hdi_a.pins[27] ~ gpios[13].line  # GPIO 13
     hdi_a.pins[28] ~ gpios[16].line  # GPIO 16
-    hdi_a.pins[29] ~ gpios[6].line   # GPIO 6
+    hdi_a.pins[29] ~ gpios[6].line  # GPIO 6
     hdi_a.pins[30] ~ gpios[12].line  # GPIO 12
     hdi_a.pins[31] ~ power_5v.lv  # GND
     hdi_a.pins[32] ~ power_5v.lv  # GND
-    hdi_a.pins[33] ~ gpios[5].line   # GPIO 5
-    hdi_a.pins[34] ~ gpios[1].line   # GPIO 1
-    hdi_a.pins[35] ~ gpios[0].line   # GPIO 0
-    hdi_a.pins[36] ~ gpios[7].line   # GPIO 7
+    hdi_a.pins[33] ~ gpios[5].line  # GPIO 5
+    hdi_a.pins[34] ~ gpios[1].line  # GPIO 1
+    hdi_a.pins[35] ~ gpios[0].line  # GPIO 0
+    hdi_a.pins[36] ~ gpios[7].line  # GPIO 7
     hdi_a.pins[37] ~ gpios[11].line  # GPIO 11
-    hdi_a.pins[38] ~ gpios[8].line   # GPIO 8
-    hdi_a.pins[39] ~ gpios[9].line   # GPIO 9
+    hdi_a.pins[38] ~ gpios[8].line  # GPIO 8
+    hdi_a.pins[39] ~ gpios[9].line  # GPIO 9
     hdi_a.pins[40] ~ gpios[25].line  # GPIO 25
     hdi_a.pins[41] ~ power_5v.lv  # GND
     hdi_a.pins[42] ~ power_5v.lv  # GND
@@ -196,11 +195,11 @@ module RPI_CM5:
     hdi_a.pins[50] ~ gpios[15].line  # GPIO 15
     hdi_a.pins[51] ~ power_5v.lv  # GND
     hdi_a.pins[52] ~ power_5v.lv  # GND
-    hdi_a.pins[53] ~ gpios[4].line   # GPIO 4
+    hdi_a.pins[53] ~ gpios[4].line  # GPIO 4
     hdi_a.pins[54] ~ gpios[14].line  # GPIO 14
-    hdi_a.pins[55] ~ gpios[3].line   # GPIO 3
+    hdi_a.pins[55] ~ gpios[3].line  # GPIO 3
     # hdi_a.pins[56] ~ sd_
-    hdi_a.pins[57] ~ gpios[2].line   # GPIO 2
+    hdi_a.pins[57] ~ gpios[2].line  # GPIO 2
     hdi_a.pins[58] ~ power_5v.lv  # GND
     hdi_a.pins[59] ~ power_5v.lv  # GND
     # hdi_a.pins[60] ~ # Unknown
