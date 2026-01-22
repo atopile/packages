@@ -8,7 +8,9 @@ Charge termination Voltage: 4.20V/4.35V
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 
-import ElectricPower, Resistor
+import ElectricPower
+import Resistor
+
 from "atopile/ti-bq2404x/ti-bq2404x.ato" import BQ24040DSQR
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
@@ -41,6 +43,7 @@ module Usage:
     ts_pull = new Resistor
     ts_pull.resistance = 10kohm +/- 1%
     charger.temperature_sense.line ~> ts_pull ~> vin.gnd
+
 
 ```
 

@@ -1,23 +1,22 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
+
 import Capacitor
 import Resistor
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
-from "can_bridge_by_name.py" import can_bridge_by_name
+import can_bridge_by_name
 
 from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
 from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
-
 
 module BQ24045DSQR from BQ2404XDSQR:
     """
     BQ24045DSQR is a 4.35V version of the BQ2404XDSQR
     """
     package -> TI_BQ24045DSQR_package
-
 
 module BQ24040DSQR from BQ2404XDSQR:
     """
@@ -50,7 +49,7 @@ module BQ2404XDSQR:
     power_batt.gnd ~ package.VSS
 
     # Make bridgable - eg power_in ~> charger ~> battery.power
-    trait can_bridge_by_name<input_name="power_in", output_name="power_batt">
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_batt">
 
     # Power good - active low
     power_good = new ElectricLogic
@@ -82,17 +81,19 @@ module BQ2404XDSQR:
 
     # ISet resistor - 540ohm = 1A to 10.8kohm = 100mA (RISET = 540 / IOUT)
     iset_resistor = new Resistor
-    iset_resistor.p1 ~ package.ISET
-    iset_resistor.p2 ~ package.VSS
+    iset_resistor.unnamed[0] ~ package.ISET
+    iset_resistor.unnamed[1] ~ package.VSS
     iset_resistor.package = "0402"
 
-    # Set default charge current
-    charge_current = 200mA +/- 10%
+    # Set default charge current max constraint
+    assert charge_current <= 1000mA
 
-    assert charge_current is 540V / iset_resistor.resistance
-    assert iset_resistor.resistance is 540V / charge_current
+    assert iset_resistor.resistance within 540V / charge_current
     assert iset_resistor.resistance within 540ohm to 10.8kohm
 
-    #ISET2 - High: input current 500mA max, Low: input current 100mA max
-    #TODO: should be configured based on charge_current
-    package.ISET2 ~ power_in.vcc # set to 500mA
+    # ISET2 - High: input current 500mA max, Low: ISET current, FLOAT: input current 100mA max
+    # TODO: should be configured based on:
+    # 1. charge_current if charge_current < power_in.max_current
+    # 2. elif: power_in.max_current if power_in.max_current not in [100mA, 500mA]
+    # 3. else: 100mA or 500mA
+    package.ISET2 ~ power_in.vcc  # set to 500mA
