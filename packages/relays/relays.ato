@@ -30,108 +30,132 @@ from "parts/Omron_Electronics_G5V_1_DC24/Omron_Electronics_G5V_1_DC24.ato" impor
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
-""" Example parts """
-# module LogicLevelRelayDPDT3A5V from LogicLevelRelay:
-# relay -> RelayDPDT3A5V
-    # pass
+"""
+Power relays:
+HK4100F Series:
+SPDT 3A 5V: C12072
+SPDT 3A 12V: C13467
+SPDT 5A 24V: C38031
 
-module LogicLevelRelaySPDT3A5V from LogicLevelRelayHack:
+G2R-2 Series:
+DPDT 5A 5V: C469145
+DPDT 5A 12V: C48903
+DPDT 5A 24V: C14539
+
+HF115F Series:
+DPDT 8A 5V: C9226
+DPDT 8A 12V: C163534
+DPDT 8A 24V: C34915
+
+Signal Relays:
+SPDT 1A 3V: C397232
+SPDT 1A 5V: C152705
+SPDT 1A 12V: C31113
+SPDT 1A 24V: C28694
+
+DPDT 1A 3V: C2153097
+DPDT 1A 5V: C47190
+DPDT 1A 12V: C397192
+DPDT 1A 24V: C5278023
+"""
+
+module LogicLevelRelaySPDT3A5V from LogicLevelRelay:
     relay = new RelaySPDT3A5V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT3A12V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT3A12V from LogicLevelRelay:
     relay = new RelaySPDT3A12V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT3A24V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT3A24V from LogicLevelRelay:
     relay = new RelaySPDT3A24V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT5A5V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT5A5V from LogicLevelRelay:
     relay = new RelayDPDT5A5V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT5A12V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT5A12V from LogicLevelRelay:
     relay = new RelayDPDT5A12V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT5A24V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT5A24V from LogicLevelRelay:
     relay = new RelayDPDT5A24V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT8A5V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT8A5V from LogicLevelRelay:
     relay = new RelayDPDT8A5V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT8A12V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT8A12V from LogicLevelRelay:
     relay = new RelayDPDT8A12V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT8A24V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT8A24V from LogicLevelRelay:
     relay = new RelayDPDT8A24V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT1A3V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT1A3V from LogicLevelRelay:
     relay = new RelayDPDT1A3V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT1A5V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT1A5V from LogicLevelRelay:
     relay = new RelayDPDT1A5V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT1A12V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT1A12V from LogicLevelRelay:
     relay = new RelayDPDT1A12V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelayDPDT1A24V from LogicLevelRelayHack:
+module LogicLevelRelayDPDT1A24V from LogicLevelRelay:
     relay = new RelayDPDT1A24V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT1A3V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT1A3V from LogicLevelRelay:
     relay = new RelaySPDT1A3V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT1A5V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT1A5V from LogicLevelRelay:
     relay = new RelaySPDT1A5V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT1A12V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT1A12V from LogicLevelRelay:
     relay = new RelaySPDT1A12V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
     coil_power.voltage = relay.coil.voltage
 
-module LogicLevelRelaySPDT1A24V from LogicLevelRelayHack:
+module LogicLevelRelaySPDT1A24V from LogicLevelRelay:
     relay = new RelaySPDT1A24V
     relay.coil.input ~> coil.input
     relay.coil.output ~> coil.output
@@ -218,7 +242,7 @@ module RelayDPDT from Relay:
 # coil_switch = new LowSideNFETSwitch
 # indicator_led = new LEDIndicatorGreen
 
-# coil_power.require
+# coil_power.required = true
 
 # # Parameters
 # coil_power.voltage = relay.coil.voltage
@@ -235,7 +259,7 @@ module RelayDPDT from Relay:
 # indicator_led.current = 0.5mA +/- 10%
 # coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
 
-module LogicLevelRelayHack:
+module LogicLevelRelay:
     coil_power = new ElectricPower
     enable = new ElectricLogic
     coil_switch = new LowSideNFETSwitch
@@ -245,37 +269,10 @@ module LogicLevelRelayHack:
     # Enable connection
     enable ~ coil_switch.enable
 
-    # Coil connection
+        # Coil connection
     coil_power.hv ~> coil ~> coil_switch ~> coil_power.lv
 
     # Led connection + config
     indicator_led.power.voltage = coil_power.voltage
     indicator_led.current = 0.5mA +/- 10%
     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
-
-# Power relays:
-# HK4100F Series:
-# SPDT 3A 5V: C12072
-# SPDT 3A 12V: C13467
-# SPDT 5A 24V: C38031
-
-# G2R-2 Series:
-# DPDT 5A 5V: C469145
-# DPDT 5A 12V: C48903
-# DPDT 5A 24V: C14539
-
-# HF115F Series:
-# DPDT 8A 5V: C9226
-# DPDT 8A 12V: C163534
-# DPDT 8A 24V: C34915
-
-# Signal Relays:
-# SPDT 1A 3V: C397232
-# SPDT 1A 5V: C152705
-# SPDT 1A 12V: C31113
-# SPDT 1A 24V: C28694
-
-# DPDT 1A 3V: C2153097
-# DPDT 1A 5V: C47190
-# DPDT 1A 12V: C397192
-# DPDT 1A 24V: C5278023
