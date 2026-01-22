@@ -14,7 +14,6 @@ Final address = base + offset (where base comes from datasheet)
 """
 
 import logging
-from typing import Self, cast
 
 import pytest
 
@@ -80,50 +79,49 @@ class TIAddressor(fabll.Node):
     _single_electric_reference = fabll.Traits.MakeEdge(
         F.has_single_electric_reference.MakeChild()
     )
+    _has_part_removed = fabll.Traits.MakeEdge(F.has_part_removed.MakeChild())
 
     # Design check trait for post-solve address line configuration
     design_check = fabll.Traits.MakeEdge(F.implements_design_check.MakeChild())
 
-    # ----------------------------------------
-    #     constraints (via MakeChild override)
-    # ----------------------------------------
-    @classmethod
-    def MakeChild(cls) -> fabll._ChildField[Self]:  # type: ignore[override]
-        """
-        Create a TIAddressor child with constraints:
-        - address = base + offset
-        - 0 <= offset <= 3
-        """
-        out = fabll._ChildField(cls)
+    # Bidirectional constraints for address computation.
+    # The solver can fold Add/Subtract but doesn't invert equations, so we need
+    # both directions to support:
+    # 1. Computing offset from address and base: offset = address - base
+    # 2. Computing address from base and offset: address = base + offset
 
-        # Constraint: address = base + offset
-        add_expr = F.Expressions.Add.MakeChild(
-            [out, cls.base],
-            [out, cls.offset],
-        )
-        is_addr_constraint = F.Expressions.Is.MakeChild(
-            [out, cls.address],
-            [add_expr],
-            assert_=True,
-        )
-        out.add_dependant(add_expr)
-        out.add_dependant(is_addr_constraint)
+    # Constraint 1: offset is! (address - base)
+    # Allows deducing offset when address and base are known
+    _is_offset_constraint = F.Expressions.Is.MakeChild(
+        [offset],
+        [
+            _subtract_expr := F.Expressions.Subtract.MakeChild(
+                [address],
+                [base],
+            )
+        ],
+        assert_=True,
+    )
 
-        # Constraint: offset <= 3 (4 possible states: 0, 1, 2, 3)
-        max_offset_lit = F.Literals.Numbers.MakeChild(
-            min=3.0,
-            max=3.0,
-            unit=F.Units.Dimensionless,
-        )
-        offset_bound_constraint = F.Expressions.GreaterOrEqual.MakeChild(
-            [max_offset_lit],
-            [out, cls.offset],
-            assert_=True,
-        )
-        out.add_dependant(max_offset_lit)
-        out.add_dependant(offset_bound_constraint)
+    # Constraint 2: address is! (base + offset)
+    # Allows deducing address when base and offset are known
+    _is_address_constraint = F.Expressions.Is.MakeChild(
+        [address],
+        [
+            _add_expr := F.Expressions.Add.MakeChild(
+                [base],
+                [offset],
+            )
+        ],
+        assert_=True,
+    )
 
-        return cast(fabll._ChildField[Self], out)
+    # Constraint 3: offset must be in range [0, 3]
+    _offset_bound_constraint = F.Expressions.IsSubset.MakeChild(
+        [offset],
+        [_max_offset_lit := F.Literals.Numbers.MakeChild(min=0, max=3)],
+        assert_=True,
+    )
 
     # ----------------------------------------
     #     post-solve check
@@ -137,8 +135,8 @@ class TIAddressor(fabll.Node):
                 nodes=[addressor],
             )
 
-    @F.implements_design_check.register_post_solve_check
-    def __check_post_solve__(self):
+    @F.implements_design_check.register_post_instantiation_setup_check
+    def __check_post_instantiation_setup__(self):
         """
         Connect address_line to the correct destination based on offset.
 
@@ -149,38 +147,31 @@ class TIAddressor(fabll.Node):
         - 2: SDA (i2c.sda.line)
         - 3: SCL (i2c.scl.line)
         """
-        # Try to extract offset from literal
-        numbers = self.offset.get().try_extract_aliased_literal()
-        if numbers is not None and numbers.is_literal.get().is_singleton():
-            offset = int(numbers.get_single())
-        else:
-            # Attempt to use solver to deduce offset
-            from faebryk.core.solver.defaultsolver import DefaultSolver
-            from faebryk.core.solver.nullsolver import NullSolver
+        # Get solver from design check
+        solver = self.design_check.get().get_solver()
 
-            solver = self.design_check.get().get_solver()
-            if isinstance(solver, NullSolver):
-                logger.warning("Solver is NullSolver, cannot deduce TIAddressor offset")
-                return
+        offset_p = self.offset.get().is_parameter.get()
+        logger.debug(f"Running solver for TIAddressor: {self}")
 
-            assert isinstance(solver, DefaultSolver)
-            offset_cbo = self.offset.get().can_be_operand.get()
-            offset_param = self.offset.get().is_parameter.get()
-            logger.info(f"Running solver for TIAddressor: {self}")
+        # Try to extract offset - first check if already resolved, then simplify if needed
+        lit = solver.extract_superset(offset_p)
 
-            solver.update_superset_cache(offset_cbo)
-            lit = solver.inspect_get_known_supersets(offset_param)
-            if lit is None or not lit.is_singleton():
-                # Offset not yet constrained - this is expected when the user
-                # hasn't specified the I2C address. The address line connection
-                # will be made later when the offset is known.
-                logger.warning(
-                    "TIAddressor offset not resolved - address line connection skipped. "
-                    "Constrain the I2C address or offset to enable automatic connection."
-                )
-                return
-            lit_node = fabll.Traits(lit).get_obj_raw()
-            offset = int(lit_node.cast(F.Literals.Numbers).get_single())
+        if lit is None or not lit.op_setic_is_singleton():
+            lit = solver.simplify_and_extract_superset(offset_p)
+
+        if lit is None or not lit.op_setic_is_singleton():
+            # Offset not yet constrained - this is expected when the user
+            # hasn't specified the I2C address. The address line connection
+            # will be made later when the offset is known.
+            logger.warning(
+                "TIAddressor offset not resolved - address line connection skipped. "
+                "Constrain the I2C address or offset to enable automatic connection."
+            )
+            return
+
+        # lit is an is_literal trait - get the actual node it's attached to
+        lit_node = fabll.Traits(lit).get_obj_raw()
+        offset = int(lit_node.cast(F.Literals.Numbers).get_single())
 
         # Validate offset range
         if not 0 <= offset <= 3:
@@ -272,15 +263,16 @@ def test_ti_addressor_parameters():
     app = _App.bind_typegraph(tg=tg).create_instance(g=g)
 
     # Set base and offset
-    app.addressor.get().base.get().alias_to_literal(g, float(0x48))
-    app.addressor.get().offset.get().alias_to_literal(g, 2.0)
+    app.addressor.get().base.get().set_superset(g, float(0x48))
+    app.addressor.get().offset.get().set_superset(g, 2.0)
 
     # Verify they were set
     assert (
-        int(app.addressor.get().base.get().force_extract_literal().get_single()) == 0x48
+        int(app.addressor.get().base.get().force_extract_superset().get_single())
+        == 0x48
     )
     assert (
-        int(app.addressor.get().offset.get().force_extract_literal().get_single()) == 2
+        int(app.addressor.get().offset.get().force_extract_superset().get_single()) == 2
     )
 
 
@@ -295,7 +287,7 @@ def test_ti_addressor_parameters():
 )
 def test_ti_addressor_sets_address_line(offset: int, expected_dest: str):
     """Test that address_line is connected to correct destination based on offset."""
-    from faebryk.core.solver.defaultsolver import DefaultSolver
+    from faebryk.core.solver.solver import Solver
 
     g = graph.GraphView.create()
     tg = fbrk.TypeGraph.create(g=g)
@@ -321,16 +313,18 @@ def test_ti_addressor_sets_address_line(offset: int, expected_dest: str):
     )
 
     # Set base and offset
-    app.addressor.get().base.get().alias_to_literal(g, float(0x48))
-    app.addressor.get().offset.get().alias_to_literal(g, float(offset))
+    app.addressor.get().base.get().set_superset(g, float(0x48))
+    app.addressor.get().offset.get().set_superset(g, float(offset))
 
     # Run solver
-    solver = DefaultSolver()
+    solver = Solver()
     solver.simplify(g, tg)
     fabll.Traits.create_and_add_instance_to(app, F.has_solver).setup(solver)
 
-    # Run post-solve checks
-    check_design(app, stage=F.implements_design_check.CheckStage.POST_SOLVE)
+    # Run post-instantiation-setup checks (this triggers address line setting)
+    check_design(
+        app, stage=F.implements_design_check.CheckStage.POST_INSTANTIATION_SETUP
+    )
 
     # Verify connection
     addr_line = app.addressor.get().address_line.get().line.get()
@@ -355,7 +349,7 @@ def test_ti_addressor_sets_address_line(offset: int, expected_dest: str):
 
 def test_ti_addressor_with_i2c():
     """Test TIAddressor integration with I2C address constraint."""
-    from faebryk.core.solver.defaultsolver import DefaultSolver
+    from faebryk.core.solver.solver import Solver
 
     g = graph.GraphView.create()
     tg = fbrk.TypeGraph.create(g=g)
@@ -381,8 +375,8 @@ def test_ti_addressor_with_i2c():
     )
 
     # Set base=0x48, offset=1 → address should be 0x49
-    app.addressor.get().base.get().alias_to_literal(g, float(0x48))
-    app.addressor.get().offset.get().alias_to_literal(g, 1.0)
+    app.addressor.get().base.get().set_superset(g, float(0x48))
+    app.addressor.get().offset.get().set_superset(g, 1.0)
 
     # Link addressor.address to i2c.address
     F.Expressions.Is.c(
@@ -394,25 +388,27 @@ def test_ti_addressor_with_i2c():
     )
 
     # Run solver
-    solver = DefaultSolver()
+    solver = Solver()
     solver.simplify(g, tg)
     fabll.Traits.create_and_add_instance_to(app, F.has_solver).setup(solver)
 
-    # Run post-solve checks
-    check_design(app, stage=F.implements_design_check.CheckStage.POST_SOLVE)
+    # Run post-instantiation-setup checks
+    check_design(
+        app, stage=F.implements_design_check.CheckStage.POST_INSTANTIATION_SETUP
+    )
 
     # Verify address was computed correctly (0x48 + 1 = 0x49)
     i2c_addr_param = app.i2c.get().address.get().is_parameter.get()
-    result = solver.inspect_get_known_supersets(i2c_addr_param)
+    result = solver.extract_superset(i2c_addr_param)
     assert result is not None
-    assert result.is_singleton()
+    assert result.op_setic_is_singleton()
     result_node = fabll.Traits(result).get_obj_raw().cast(F.Literals.Numbers)
     assert int(result_node.get_single()) == 0x49
 
 
 def test_ti_addressor_expression_propagation():
     """Test that solver can deduce offset from address and base."""
-    from faebryk.core.solver.defaultsolver import DefaultSolver
+    from faebryk.core.solver.solver import Solver
 
     g = graph.GraphView.create()
     tg = fbrk.TypeGraph.create(g=g)
@@ -424,19 +420,16 @@ def test_ti_addressor_expression_propagation():
     app = _App.bind_typegraph(tg=tg).create_instance(g=g)
 
     # Set base=0x48, address=0x4A → offset should be deduced as 2
-    app.addressor.get().base.get().alias_to_literal(g, float(0x48))
-    app.addressor.get().address.get().alias_to_literal(g, float(0x4A))
+    app.addressor.get().base.get().set_superset(g, float(0x48))
+    app.addressor.get().address.get().set_superset(g, float(0x4A))
 
-    # Run solver
-    solver = DefaultSolver()
-    offset_cbo = app.addressor.get().offset.get().can_be_operand.get()
+    # Run solver and extract offset
+    solver = Solver()
     offset_param = app.addressor.get().offset.get().is_parameter.get()
-
-    solver.update_superset_cache(offset_cbo)
-    result = solver.inspect_get_known_supersets(offset_param)
+    result = solver.simplify_and_extract_superset(offset_param)
 
     assert result is not None, "Solver should deduce offset"
-    assert result.is_singleton(), "Offset should be a singleton"
+    assert result.op_setic_is_singleton(), "Offset should be a singleton"
 
     result_node = fabll.Traits(result).get_obj_raw().cast(F.Literals.Numbers)
     assert int(result_node.get_single()) == 2, (

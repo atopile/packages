@@ -26,7 +26,8 @@ module Usage:
     i2c_bus ~ temp_sensor.i2c
 
     # Configure address (Possible addresses: 0x48, 0x49, 0x4A, 0x4B)
-    assert temp_sensor.i2c.address is 0x48
+    # Using default address 0x4B which connects ADD0 to SCL
+    assert temp_sensor.i2c.address within 0x4A
 
     # Alert pin is available for temperature limit notifications
     # Can be connected to microcontroller GPIO for interrupt-driven operation

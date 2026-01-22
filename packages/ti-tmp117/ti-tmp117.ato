@@ -1,15 +1,16 @@
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
 
 import I2C
 import ElectricPower
 import ElectricLogic
 import Resistor
 import Capacitor
+import SinglePinAddressor
 
 from "parts/Texas_Instruments_TMP117AIDRVR/Texas_Instruments_TMP117AIDRVR.ato" import Texas_Instruments_TMP117AIDRVR_package
-from "components/ti_addressor.py" import TIAddressor
 
 module TI_TMP117:
     """
@@ -74,13 +75,17 @@ module TI_TMP117:
     # --- I2C Address Configuration ---
     # TMP117 supports 4 addresses based on ADD0 pin:
     # GND: 0x48, V+: 0x49, SDA: 0x4A, SCL: 0x4B
-    addressor = new TIAddressor
+    addressor = new SinglePinAddressor<states=4>
     addressor.base = 0x48
     addressor.address_line.line ~ package.ADD0
     addressor.address_line.reference ~ power
-    addressor.i2c ~ i2c
+
+    # Connect the 4 possible destinations for the address pin
+    addressor.states[0] ~ power.lv          # GND → offset 0 (0x48)
+    addressor.states[1] ~ power.hv          # VCC → offset 1 (0x49)
+    addressor.states[2] ~ i2c.sda.line      # SDA → offset 2 (0x4A)
+    addressor.states[3] ~ i2c.scl.line      # SCL → offset 3 (0x4B)
     assert addressor.address is i2c.address
-    # Default to base address (0x48), can be overridden by user
     i2c.address.default = 0x48
 
     # --- Alert pin ---
