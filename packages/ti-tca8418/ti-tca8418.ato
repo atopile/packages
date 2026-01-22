@@ -1,11 +1,13 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
 
 import I2C
 import ElectricPower
 import ElectricLogic
 import Capacitor
 import Resistor
+import has_single_electric_reference
 
 from "parts/Texas_Instruments_TCA8418RTWR/Texas_Instruments_TCA8418RTWR.ato" import Texas_Instruments_TCA8418RTWR_package
 
@@ -35,7 +37,9 @@ module TI_TCA8418:
     I2C bus interface (7-bit address: 0x34, fixed)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
 
     # Interrupt output - active low, open drain
     interrupt = new ElectricLogic

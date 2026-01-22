@@ -71,8 +71,8 @@ module Microchip_CAP1188:
         led.required = False
 
     # --- Power connections ---
-    power.vcc ~ package.VDD
-    power.gnd ~ package.GND
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
 
     # --- I²C bus connections ---
     i2c.scl.line ~ package.SMCLK_BC_CLK_SPI_CLK
@@ -126,28 +126,28 @@ module Microchip_CAP1188:
     address_resistor = new Resistor
     address_resistor.package = "0402"
     assert address_resistor.resistance within 0ohm to 200kohm
-    package.ADDR_COMM ~> address_resistor ~> power.gnd
+    package.ADDR_COMM ~> address_resistor ~> power.lv
 
     # Default to 100kohm for I2C address 0x2B
     address_resistor.resistance = 100kohm +/- 5%
-    assert i2c.address is 0x2B
+    assert i2c.address within 0x2B
 
     # --- Decoupling capacitor ---
     power_cap = new Capacitor
     power_cap.capacitance = 100nF +/- 20%
     power_cap.package = "0402"
     assert power_cap.max_voltage >= power.voltage * 1.5
-    power.vcc ~> power_cap ~> power.gnd
+    power.hv ~> power_cap ~> power.lv
 
     # --- Pull-up resistors ---
     # Interrupt pull-up (recommended for open-drain output)
     interrupt_pullup = new Resistor
     interrupt_pullup.resistance = 10kohm +/- 5%
     interrupt_pullup.package = "0402"
-    interrupt.line ~> interrupt_pullup ~> power.vcc
+    interrupt.line ~> interrupt_pullup ~> power.hv
 
     # Reset pull-down (recommended for proper reset behavior)
     reset_pulldown = new Resistor
     reset_pulldown.resistance = 10kohm +/- 5%
     reset_pulldown.package = "0402"
-    reset.line ~> reset_pulldown ~> power.gnd
+    reset.line ~> reset_pulldown ~> power.lv

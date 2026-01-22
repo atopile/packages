@@ -40,7 +40,7 @@ module Microchip_EMC2101:
     I²C bus interface for communication (7-bit address 0x4C default)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # Fan control interface
     pwm_out = new ElectricLogic
