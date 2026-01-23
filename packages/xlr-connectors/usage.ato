@@ -1,0 +1,56 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import ElectricPower, DifferentialPair, Electrical
+
+from "xlr-connectors.ato" import XLR3_Male_PC_Mount, XLR3_Female_PC_Mount
+
+module Usage:
+    """
+    Usage examples for XLR connectors package.
+    
+    Shows how to use both male and female PCB-mounted XLR connectors
+    for balanced audio applications.
+    """
+
+    # --- Power supply for differential pair references ---
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.3V +/- 5%
+    earth = new Electrical
+
+    # --- Example 1: Male XLR connector ---
+    xlr_male = new XLR3_Male_PC_Mount
+    
+    # Connect differential pair reference to power
+    xlr_male.balanced_audio.p.reference ~ power_3v3
+    xlr_male.balanced_audio.n.reference ~ power_3v3
+    
+    # Connect ground to power ground
+    xlr_male.balanced_audio.has_single_electric_reference.reference.lv ~ power_3v3.lv
+
+    # Connect shield to earthq
+    xlr_male.shield ~ earth
+
+    # --- Example 2: Female XLR connector ---
+    xlr_female = new XLR3_Female_PC_Mount
+    
+    # Connect differential pair reference to power
+    xlr_female.balanced_audio.p.reference ~ power_3v3
+    xlr_female.balanced_audio.n.reference ~ power_3v3
+    
+    # Connect ground to power ground
+    xlr_female.balanced_audio.has_single_electric_reference.reference.lv ~ power_3v3.lv
+
+    # --- Example connection: XLR cable simulation ---
+    # Connect male to female to simulate an XLR cable
+    xlr_male.balanced_audio ~ xlr_female.balanced_audio
+    xlr_male.balanced_audio.has_single_electric_reference.reference.lv ~ xlr_female.balanced_audio.has_single_electric_reference.reference.lv
+
+    # Connect shield to earth
+    xlr_female.shield ~ earth
+
+    # --- Example connections to external circuits ---
+    # For audio input/output, you can connect to:
+    # audio_codec.balanced_input ~ xlr_female.audio
+    # audio_amplifier.balanced_output ~ xlr_male.audio
