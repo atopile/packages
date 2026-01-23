@@ -6,7 +6,7 @@ from "atopile/pjrc-teensy-4-1/pjrc-teensy-4-1.ato" import PJRC_Teensy_4_1
 
 from "parts/WIZNET_J1B1211CCD/WIZNET_J1B1211CCD.ato" import WIZNET_J1B1211CCD_package
 
-from "atopile/usb-connectors/usb-connectors.ato" import USBCConn
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
 from "atopile/buttons/buttons.ato" import VerticalButton
 
 module Usage:
@@ -15,13 +15,13 @@ module Usage:
     """
     # --- Components ---
     teensy = new PJRC_Teensy_4_1
-    usb_connector = new USBCConn
+    usb_connector = new USB2_0TypeCHorizontalConnector
     ethernet_connector = new EthernetConnector
     power_button = new VerticalButton
     program_button = new VerticalButton
 
     # --- Connections ---
-    teensy.usb_device ~ usb_connector.usb2
+    teensy.usb_device ~ usb_connector.usb
     teensy.ethernet ~ ethernet_connector.ethernet
 
     teensy.on_off.line ~> power_button ~> teensy.on_off.reference.lv
