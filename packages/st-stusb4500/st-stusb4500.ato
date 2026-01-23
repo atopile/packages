@@ -2,6 +2,7 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 import Capacitor
@@ -9,13 +10,14 @@ import Resistor
 import I2C
 import USB2_0
 import Addressor
-import TVS
 import MOSFET
 import Diode
 
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
 
 from "parts/STMicroelectronics_STUSB4500QTR/STMicroelectronics_STUSB4500QTR.ato" import STMicroelectronics_STUSB4500QTR_package
+from "parts/ElecSuper_CDSOD323_T24SC/ElecSuper_CDSOD323_T24SC.ato" import ElecSuper_CDSOD323_T24SC_package
+from "parts/STMicroelectronics_ESDA25P35_1U1M/STMicroelectronics_ESDA25P35_1U1M.ato" import STMicroelectronics_ESDA25P35_1U1M_package
 
 module STUSB4500_driver:
     """
@@ -30,10 +32,10 @@ module STUSB4500_driver:
 
     | ADDR1 | ADDR0 | 7-bit Address |
     |-------|-------|---------------|
-    | 0     | 0     | 0x28          | (Default in this configuration)
-    | 0     | 1     | 0x29          |
-    | 1     | 0     | 0x2A          |
-    | 1     | 1     | 0x2B          |
+    | 0 | 0 | 0x28 | (Default in this configuration)
+    | 0 | 1 | 0x29 |
+    | 1 | 0 | 0x2A |
+    | 1 | 1 | 0x2B |
 
     The full 8-bit address format is: 01010[ADDR1][ADDR0][R/W]
     """
@@ -119,7 +121,7 @@ module STUSB4500_driver:
     power_vsink.lv ~> vsink_cap ~> power_vsink.hv
 
     # Addressing
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     addressor.base = 0x28
     addressor.address_lines[0].line ~ package.ADDR0
     addressor.address_lines[0].reference ~ power_2v7
@@ -127,6 +129,8 @@ module STUSB4500_driver:
     addressor.address_lines[1].reference ~ power_2v7
 
     assert addressor.address is i2c.address
+    # Default to base address (0x28), can be overridden by user
+    i2c.address.default = 0x28
 
     # --- Internal components ---
     # Discharge resistors
@@ -142,13 +146,20 @@ module STUSB4500_driver:
 
     # ESD diodes
     vbus_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
-    power_vbus.lv ~> vbus_esd_diode ~> power_vbus.hv
+    power_vbus.hv ~ vbus_esd_diode.cathode
+    power_vbus.lv ~ vbus_esd_diode.anode
+
     vsink_esd_diode = new STMicroelectronics_ESDA25P35_1U1M
-    power_vsink.lv ~> vsink_esd_diode ~> power_vsink.hv
+    power_vsink.hv ~ vsink_esd_diode.cathode
+    power_vsink.lv ~ vsink_esd_diode.anode
+
     cc1_esd_diode = new CDSOD323_T24SC
-    cc1.line ~> cc1_esd_diode ~> power_vbus.lv
+    cc1.line ~ cc1_esd_diode.cathode
+    power_vbus.lv ~ cc1_esd_diode.anode
+
     cc2_esd_diode = new CDSOD323_T24SC
-    cc2.line ~> cc2_esd_diode ~> power_vbus.lv
+    cc2.line ~ cc2_esd_diode.cathode
+    power_vbus.lv ~ cc2_esd_diode.anode
 
     # --- Pass FET parts ---
     vsink_mosfet = new MOSFET
@@ -203,7 +214,6 @@ module STUSB4500_driver:
     package.GND ~ power_vbus.lv
     package.EP ~ power_vbus.lv
 
-
 module STUSB4500_USBC_Connector:
     driver = new STUSB4500_driver
     usb_connector = new USB2_0TypeCHorizontalConnector
@@ -216,12 +226,18 @@ module STUSB4500_USBC_Connector:
     driver.cc1 ~ usb_connector.connector.cc[0]
     driver.cc2 ~ usb_connector.connector.cc[1]
 
-module STMicroelectronics_ESDA25P35_1U1M from Diode:
-    lcsc_id = "C1974707"
-    anode ~ pin 2
-    cathode ~ pin 1
+module STMicroelectronics_ESDA25P35_1U1M:
+    package = new STMicroelectronics_ESDA25P35_1U1M_package
+    anode = new Electrical
+    cathode = new Electrical
 
-module CDSOD323_T24SC from TVS:
-    lcsc_id = "C22363664"
-    anode ~ pin 1
-    cathode ~ pin 2
+    anode ~ package.2
+    cathode ~ package.1
+
+module CDSOD323_T24SC:
+    package = new ElecSuper_CDSOD323_T24SC_package
+    anode = new Electrical
+    cathode = new Electrical
+
+    anode ~ package.A
+    cathode ~ package.K
