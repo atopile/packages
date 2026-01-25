@@ -5,6 +5,7 @@ import ElectricPower
 import ElectricLogic
 import Resistor
 import Capacitor
+import can_bridge_by_name
 
 from "parts/BQ25185DLHR_BQ25185DLHR/BQ25185DLHR_BQ25185DLHR.ato" import BQ25185DLHR_BQ25185DLHR_package
 
@@ -161,3 +162,5 @@ module TI_BQ25185:
     battery_cap.capacitance = 1uF +/- 20%
     battery_cap.package = "0402"
     power_battery.hv ~> battery_cap ~> power_battery.lv
+
+    trait can_bridge_by_name<input_name = "power_input", output_name = "power_system">
