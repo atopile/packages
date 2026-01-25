@@ -1,3 +1,20 @@
+# Texas Instruments DRV8837/DRV8838 H-Bridge Motor Drivers
+
+Low-voltage H-bridge motor drivers for brushed DC motors.
+
+- **DRV8837**: IN0/IN1 control interface
+- **DRV8838**: PH/EN (Phase/Enable) control interface
+
+## Features
+
+- Logic voltage: 1.8V to 7V
+- Motor voltage: 0V to 11V
+- Integrated decoupling capacitors
+- Sleep control for low-power mode
+
+## Usage
+
+```ato
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("MODULE_TEMPLATING")
@@ -49,3 +66,32 @@ module Usage:
     motor_driver_ph_en.enable ~ gpio_1
     motor_1 = new FakeMotor
     motor_driver_ph_en.motor_outs[0] ~> motor_1 ~> motor_driver_ph_en.motor_outs[1]
+
+```
+
+### DRV8837 Truth Table (IN0/IN1)
+
+| nSLEEP | IN1 | IN2 | OUT1 | OUT2 | Function |
+| ------ | --- | --- | ---- | ---- | -------- |
+| 0      | X   | X   | Z    | Z    | Coast    |
+| 1      | 0   | 0   | Z    | Z    | Coast    |
+| 1      | 0   | 1   | L    | H    | Reverse  |
+| 1      | 1   | 0   | H    | L    | Forward  |
+| 1      | 1   | 1   | L    | L    | Brake    |
+
+### DRV8838 Truth Table (PH/EN)
+
+| nSLEEP | PH  | EN  | OUT1 | OUT2 | Function |
+| ------ | --- | --- | ---- | ---- | -------- |
+| 0      | X   | X   | Z    | Z    | Coast    |
+| 1      | X   | 0   | L    | L    | Brake    |
+| 1      | 1   | 1   | L    | H    | Reverse  |
+| 1      | 0   | 1   | H    | L    | Forward  |
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
