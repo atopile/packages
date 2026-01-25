@@ -88,7 +88,7 @@ module TI_INA238:
     max_current.default = 1A
 
     # INA238 default full-scale shunt drop (programmable). Use 80 mV typical.
-    shunt_drop = 80mV+/-10%
+    shunt_drop = 80mV
 
     # External shunt resistor (designer selects value & package)
     shunt = new Resistor
@@ -97,9 +97,9 @@ module TI_INA238:
 
     # Recommended shunt value bounds given desired max current
     target_resistance = shunt_drop / max_current
-    # assert shunt.resistance < target_resistance * 1.1
-    # assert shunt.resistance > target_resistance * 0.9
-    assert shunt.resistance within target_resistance
+    assert shunt.resistance <= target_resistance * 1.02
+    assert shunt.resistance >= target_resistance * 0.98
+    # assert shunt.resistance within target_resistance
 
     # --- High-side bridge so designers can insert the monitor inline ---
     power_in = new ElectricPower
@@ -113,16 +113,16 @@ module TI_INA238:
     power_out.lv ~ power.lv
 
     # Bridge VCC path through shunt
-    power_in.hv ~> shunt ~> power_out.hv
+    # power_in.hv ~> shunt ~> power_out.hv
 
     # Mark module as a bridge so it can be inserted inline in power path
     trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
     # --- Decoupling capacitor on VS ---
-    decouple = new Capacitor
-    decouple.capacitance = 100nF +/- 10%
-    decouple.package = "0402"
-    power.hv ~> decouple ~> power.lv
+    # decouple = new Capacitor
+    # decouple.capacitance = 100nF +/- 10%
+    # decouple.package = "0402"
+    # power.hv ~> decouple ~> power.lv
 
     # --- I²C address selection (A1, A0) ---
     addressor = new Addressor<address_bits = 2>
