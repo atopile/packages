@@ -40,7 +40,6 @@ Below are Atopile usage patterns for common DRV8210 operating modes.
 
 ```ato
 import ElectricPower
-import ElectricLogic
 import ElectricSignal
 
 from "atopile/ti-drv8210p/ti-drv8210p.ato" import Texas_Instruments_DRV8210PDSGR
@@ -60,4 +59,5 @@ module Usage:
 
     current_sense = new ElectricSignal
     current_sense ~ driver.current_sense_voltage
+
 ```
