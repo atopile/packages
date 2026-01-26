@@ -1,0 +1,21 @@
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+
+from "atopile/ti-drv8210p/ti-drv8210p.ato" import Texas_Instruments_DRV8210PDSGR
+
+module Usage:
+    # Instantiate driver
+    driver = new Texas_Instruments_DRV8210PDSGR
+
+    # Power rails
+    logic_power = new ElectricPower
+    logic_power.voltage = 3.3V +/- 5%
+    logic_power ~ driver.logic_power
+
+    motor_power = new ElectricPower
+    motor_power.voltage = 11V +/- 5%
+    motor_power ~ driver.motor_power
+
+    current_sense = new ElectricSignal
+    current_sense ~ driver.current_sense_voltage
