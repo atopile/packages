@@ -36,7 +36,9 @@ import ElectricPower
 import ElectricLogic
 import Electrical
 
-from "relays.ato" import LogicLevelRelaySPDT3A12V, LogicLevelRelayDPDT5A5V, LogicLevelRelayDPDT1A3V
+from "atopile/relays/relays.ato" import LogicLevelRelaySPDT3A12V
+from "atopile/relays/relays.ato" import LogicLevelRelayDPDT5A5V
+from "atopile/relays/relays.ato" import LogicLevelRelayDPDT1A3V
 
 
 module Usage:
@@ -97,6 +99,7 @@ module Usage:
     output_power = new ElectricPower
     input_power.vcc ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.vcc
     input_power.gnd ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.gnd
+
 ```
 
 ## Builds
