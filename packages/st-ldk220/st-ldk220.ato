@@ -39,10 +39,10 @@ module LDK220M_R from AdjustableLDO:
     output_decoupling_capacitor.package = "0402"
 
     # voltage divider
-    feedback_divider.output.line ~ package.ADJ_NC
-    feedback_divider.r_top.package = "0402"
-    feedback_divider.r_bottom.package = "0402"
+    feedback_divider.ref_out.hv ~ package.ADJ_NC
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    # trait has_single_electric_reference_shared<gnd_only=True>
 
-    power_out ~ feedback_divider.power
+    power_out ~ feedback_divider.ref_in
