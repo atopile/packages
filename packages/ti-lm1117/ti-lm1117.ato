@@ -1,0 +1,58 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import Capacitor
+import has_single_electric_reference_shared
+
+from "regulators.ato" import AdjustableLDO
+from "parts/Texas_Instruments_LM1117IMPX_ADJ_NOPB/Texas_Instruments_LM1117IMPX_ADJ_NOPB.ato" import Texas_Instruments_LM1117IMPX_ADJ_NOPB_package
+
+module TI_LM1117 from AdjustableLDO:
+    """
+    Texas Instruments LM1117 800mA Low-Dropout Linear Regulator (Adjustable).
+
+    Features:
+    - Adjustable output voltage from 1.25V to 13.8V
+    - Output current up to 800mA
+    - Input voltage range: 2.7V to 15V
+    - 1.25V reference voltage
+    - Low dropout voltage (1.2V typical at 800mA)
+    - Current limiting and thermal protection
+    - SOT-223 package
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_LM1117IMPX_ADJ_NOPB_package
+
+    # --- LDO parameters ---
+    dropout_voltage = 1.1V to 1.3V
+    assert power_in.voltage within 2.7V to 15V
+    assert power_out.voltage within 1.25V to 13.8V
+    assert reference_voltage within 1.25V +/- 1%
+
+    # --- Input decoupling capacitor ---
+    input_decoupling_capacitor = new Capacitor
+    input_decoupling_capacitor.capacitance = 1uF +/- 20%
+    input_decoupling_capacitor.package = "0402"
+    power_in.hv ~> input_decoupling_capacitor ~> power_in.lv
+
+    # --- Output decoupling capacitor ---
+    output_decoupling_capacitor = new Capacitor
+    output_decoupling_capacitor.capacitance = 1uF +/- 20%
+    output_decoupling_capacitor.package = "0402"
+    power_out.hv ~> output_decoupling_capacitor ~> power_out.lv
+
+    # --- Feedback voltage divider ---
+    assert feedback_divider.total_resistance within 5kohm to 150kohm * (1 + (-0.01 to 0.01))
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
+    feedback_divider.ref_out.hv ~ package.ADJ_GND
+
+    # --- Traits ---
+    trait has_single_electric_reference_shared<gnd_only=True>
+
+    # --- Package connections ---
+    power_in.hv ~ package.IN
+    power_out.hv ~ package.OUT
+    power_out.hv ~ package.TAB
