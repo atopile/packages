@@ -35,3 +35,6 @@ module RelaySPDT1A5V from RelaySPDT:
 
     com ~> switch_nc ~> package.1
     com ~> switch_no ~> package.10
+
+    assert coil.voltage within 5V +/- 10%
+    assert coil.resistance within 167ohm +/- 10%

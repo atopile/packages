@@ -90,6 +90,16 @@ builds:
     entry: relays.ato:LogicLevelRelaySPDT1A24V
     exclude_checks: [PCB.requires_drc_check]
     hide_designators: true
+  
+  # Bistable relays
+  LogicLevelBistableRelayDPDT1A3V:
+    entry: relays.ato:LogicLevelBistableRelayDPDT1A3V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelBistableRelayDPDT1A5V:
+    entry: relays.ato:LogicLevelBistableRelayDPDT1A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
 
   # Helpers
   low_side_nfet_switch:
@@ -102,11 +112,14 @@ package:
   repository: https://github.com/atopile/packages
   version: 0.2.0
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: DPDT relay with logic level driver circuit and LED indicator
   license: MIT
 dependencies:
-  - type: registry
-    identifier: atopile/indicator-leds
-    release: 0.2.2
+- type: registry
+  identifier: atopile/indicator-leds
+  release: 0.2.2
+- type: registry
+  identifier: atopile/ti-drv883x
+  release: 0.1.0

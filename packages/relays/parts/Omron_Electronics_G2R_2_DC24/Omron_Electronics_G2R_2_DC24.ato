@@ -38,3 +38,6 @@ module RelayDPDT5A24V from RelayDPDT:
     # Switch 1
     package.6 ~> switch_nc[1] ~> package.7
     package.6 ~> switch_no[1] ~> package.5
+
+    assert coil.voltage within 24V +/- 10%
+    assert coil.resistance within 1100ohm +/- 10%

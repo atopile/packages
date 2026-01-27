@@ -2,7 +2,8 @@
 #pragma experiment("TRAITS")
 #pragma experiment("FOR_LOOP")
 
-from "atopile/relays/helpers.ato" import LogicLevelRelay
+from "atopile/relays/helpers.ato" import LogicLevelRelayBase
+from "atopile/relays/helpers.ato" import LogicLevelBistableRelayBase
 
 from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG.ato" import RelaySPDT3A5V
 from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG.ato" import RelaySPDT3A12V
@@ -21,6 +22,8 @@ from "parts/Omron_Electronics_G5V_1_DC3/Omron_Electronics_G5V_1_DC3.ato" import 
 from "parts/Omron_Electronics_G5V_1_DC5/Omron_Electronics_G5V_1_DC5.ato" import RelaySPDT1A5V
 from "parts/Omron_Electronics_G5V_1_DC12/Omron_Electronics_G5V_1_DC12.ato" import RelaySPDT1A12V
 from "parts/Omron_Electronics_G5V_1_DC24/Omron_Electronics_G5V_1_DC24.ato" import RelaySPDT1A24V
+from "parts/Omron_Electronics_G6KU_2F_Y_TR_DC3/Omron_Electronics_G6KU_2F_Y_TR_DC3.ato" import BistableRelayDPDT1A3V
+from "parts/Omron_Electronics_G6KU_2F_Y_TR_DC5/Omron_Electronics_G6KU_2F_Y_TR_DC5.ato" import BistableRelayDPDT1A5V
 
 """
 Power relays:
@@ -49,106 +52,105 @@ DPDT 1A 3V: C2153097
 DPDT 1A 5V: C47190
 DPDT 1A 12V: C397192
 DPDT 1A 24V: C5278023
+
+Bistable relays:
+DPDT 1A 3V: C6259328
+DPDT 1A 5V: C2153173
 """
 
-module LogicLevelRelaySPDT3A5V from LogicLevelRelay:
+# Uni-stable relays
+
+module LogicLevelRelaySPDT3A5V from LogicLevelRelayBase:
     relay = new RelaySPDT3A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT3A12V from LogicLevelRelay:
+module LogicLevelRelaySPDT3A12V from LogicLevelRelayBase:
     relay = new RelaySPDT3A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT3A24V from LogicLevelRelay:
+module LogicLevelRelaySPDT3A24V from LogicLevelRelayBase:
     relay = new RelaySPDT3A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT5A5V from LogicLevelRelay:
+module LogicLevelRelayDPDT5A5V from LogicLevelRelayBase:
     relay = new RelayDPDT5A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT5A12V from LogicLevelRelay:
+module LogicLevelRelayDPDT5A12V from LogicLevelRelayBase:
     relay = new RelayDPDT5A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT5A24V from LogicLevelRelay:
+module LogicLevelRelayDPDT5A24V from LogicLevelRelayBase:
     relay = new RelayDPDT5A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT8A5V from LogicLevelRelay:
+module LogicLevelRelayDPDT8A5V from LogicLevelRelayBase:
     relay = new RelayDPDT8A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT8A12V from LogicLevelRelay:
+module LogicLevelRelayDPDT8A12V from LogicLevelRelayBase:
     relay = new RelayDPDT8A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT8A24V from LogicLevelRelay:
+module LogicLevelRelayDPDT8A24V from LogicLevelRelayBase:
     relay = new RelayDPDT8A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT1A3V from LogicLevelRelay:
+module LogicLevelRelayDPDT1A3V from LogicLevelRelayBase:
     relay = new RelayDPDT1A3V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT1A5V from LogicLevelRelay:
+module LogicLevelRelayDPDT1A5V from LogicLevelRelayBase:
     relay = new RelayDPDT1A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT1A12V from LogicLevelRelay:
+module LogicLevelRelayDPDT1A12V from LogicLevelRelayBase:
     relay = new RelayDPDT1A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelayDPDT1A24V from LogicLevelRelay:
+module LogicLevelRelayDPDT1A24V from LogicLevelRelayBase:
     relay = new RelayDPDT1A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT1A3V from LogicLevelRelay:
+module LogicLevelRelaySPDT1A3V from LogicLevelRelayBase:
     relay = new RelaySPDT1A3V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT1A5V from LogicLevelRelay:
+module LogicLevelRelaySPDT1A5V from LogicLevelRelayBase:
     relay = new RelaySPDT1A5V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT1A12V from LogicLevelRelay:
+module LogicLevelRelaySPDT1A12V from LogicLevelRelayBase:
     relay = new RelaySPDT1A12V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
 
-module LogicLevelRelaySPDT1A24V from LogicLevelRelay:
+module LogicLevelRelaySPDT1A24V from LogicLevelRelayBase:
     relay = new RelaySPDT1A24V
-    relay.coil.input ~> coil.input
-    relay.coil.output ~> coil.output
-    coil_power.voltage = relay.coil.voltage
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage within relay.coil.voltage
+
+module LogicLevelBistableRelayDPDT1A3V from LogicLevelBistableRelayBase:
+    relay = new BistableRelayDPDT1A3V
+    coil_driver.motor_outs[0] ~> relay.coil ~> coil_driver.motor_outs[1]
+    assert coil_power.voltage within relay.coil.voltage
+
+module LogicLevelBistableRelayDPDT1A5V from LogicLevelBistableRelayBase:
+    relay = new BistableRelayDPDT1A5V
+    coil_driver.motor_outs[0] ~> relay.coil ~> coil_driver.motor_outs[1]
+    assert coil_power.voltage within relay.coil.voltage

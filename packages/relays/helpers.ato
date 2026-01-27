@@ -4,22 +4,37 @@
 
 import ElectricPower
 import ElectricSignal
+import Inductor
 import Resistor
 import Electrical
 import ElectricLogic
 import can_bridge_by_name
+import has_part_removed
 
 from "parts/Alpha___Omega_Semicon_AO3400A/Alpha___Omega_Semicon_AO3400A.ato" import Alpha_Omega_Semicon_AO3400A
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/ti-drv883x/ti-drv883x.ato" import TI_DRV8838
 
 module Coil:
-    """ Relay components """
-    input = new Electrical
-    output = new Electrical
+    """Relay coil"""
+    _inductor = new Inductor
+    contacts = new Electrical[2]
     voltage: V
-    """Coil voltage"""
-    trait can_bridge_by_name<input_name = "input", output_name = "output">
+    """Coil nominal voltage"""
+    resistance: ohm
+    """Coil resistance"""
+
+    trait has_part_removed
+
+    # connect electricals
+    _inductor.unnamed[0] ~ contacts[0]
+    _inductor.unnamed[1] ~ contacts[1]
+    trait can_bridge_by_name<input_name = "contacts[0]", output_name = "contacts[1]">
+
+    # set parameters
+    assert _inductor.max_current is voltage / _inductor.dc_resistance
+    assert _inductor.dc_resistance is resistance
 
 module SwitchNC:
     common = new Electrical
@@ -55,7 +70,7 @@ module LowSideNFETSwitch:
     _input ~ mosfet.drain
     _output ~ mosfet.source
 
-    assert enable.reference.voltage within 2.5V to 10V
+    assert enable.reference.voltage >= mosfet.gate_source_threshold_voltage
 
     # Configure gate resistors
     for resistor in [gate_resistor, ilim_resistor]:
@@ -85,46 +100,37 @@ module RelayDPDT from Relay:
     switch_nc = new SwitchNC[2]
     switch_no = new SwitchNO[2]
 
-# """ Logic level driver for relays """
-# TODO: use this instead when specialization is working
-# module LogicLevelRelay:
-# coil_power = new ElectricPower
-# enable = new ElectricLogic
-# relay = new Relay
-# coil_switch = new LowSideNFETSwitch
-# indicator_led = new LEDIndicatorGreen
-
-# coil_power.required = true
-
-# # Parameters
-# coil_power.voltage = relay.coil.voltage
-
-# # Enable connection
-# enable ~ coil_switch.enable
-
-# # Coil connection
-# coil_power.hv ~ relay.coil.input
-# relay.coil.output ~> coil_switch ~> coil_power.lv
-
-# # Led connection + config
-# indicator_led.power.voltage = coil_power.voltage
-# indicator_led.current = 0.5mA +/- 10%
-# coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
-
-module LogicLevelRelay:
+module LogicLevelRelayBase:
+    """
+    Monostable relay with logic level driver and indicator LED
+    """
     coil_power = new ElectricPower
     enable = new ElectricLogic
     coil_switch = new LowSideNFETSwitch
     indicator_led = new LEDIndicatorGreen
-    coil = new Coil
 
     # Enable connection
     enable ~ coil_switch.enable
-
-        # Coil connection
-    coil_power.hv ~> coil ~> coil_switch ~> coil_power.lv
 
     # Led connection + config
     indicator_led.power.voltage = coil_power.voltage
     indicator_led.current = 0.5mA +/- 10%
     coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
+
+module LogicLevelBistableRelayBase:
+    """
+    Bistable relay with logic level driver
+    """
+    coil_power = new ElectricPower
+    enable = new ElectricLogic
+    phase = new ElectricLogic
+    sleep = new ElectricLogic
+
+    coil_driver = new TI_DRV8838
+
+    # connections
+    coil_power ~ coil_driver.motor_power
+    enable.reference ~ coil_driver.logic_power
+    enable ~ coil_driver.enable
+    phase ~ coil_driver.phase
+    sleep ~ coil_driver.sleep
