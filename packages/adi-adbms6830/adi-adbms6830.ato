@@ -149,7 +149,7 @@ module ADI_ADBMS6830:
     vreg_input_filter.resistor.package = "1206"
     vreg_input_filter.capacitor.capacitance = 10nF +/- 20%
     vreg_input_filter.capacitor.package = "0805"
-    vreg_input_filter.cutoff_frequency = 30kHz to 70kHz
+    vreg_input_filter.filter.cutoff_frequency = 30kHz to 70kHz
     vreg_input_filter.reference_shim.lv ~ vbat.lv
     assert vreg_input_filter.capacitor.max_voltage within 100V to 200V
 
@@ -158,7 +158,7 @@ module ADI_ADBMS6830:
     vreg_drive_filter.resistor.package = "0402"
     vreg_drive_filter.capacitor.capacitance = 10nF +/- 20%
     vreg_drive_filter.capacitor.package = "0402"
-    vreg_drive_filter.cutoff_frequency = 1MHz to 3MHz
+    vreg_drive_filter.filter.cutoff_frequency = 1MHz to 3MHz
     vreg_drive_filter.reference_shim.lv ~ vreg.lv
 
     vplus_filter = new FilterElectricalRC
@@ -166,14 +166,18 @@ module ADI_ADBMS6830:
     vplus_filter.resistor.package = "0805"
     vplus_filter.capacitor.capacitance = 10nF +/- 20%
     vplus_filter.capacitor.package = "0805"
-    vplus_filter.cutoff_frequency = 10kHz to 30kHz
+    vplus_filter.filter.cutoff_frequency = 10kHz to 30kHz
     vplus_filter.reference_shim.lv ~ vbat.lv
 
-    vbat.hv ~> vreg_input_filter ~> npn ~> vreg_fb ~> vreg.hv
-    vreg_drive.line ~> vreg_drive_filter ~> npn.base
+    # FilterElectricalRC has ElectricSignal interfaces, connect through .line
+    vbat.hv ~ vreg_input_filter.in_.line
+    vreg_input_filter.out.line ~> npn ~> vreg_fb ~> vreg.hv
+    vreg_drive.line ~ vreg_drive_filter.in_.line
+    vreg_drive_filter.out.line ~ npn.base
     vreg.lv ~ vbat.lv
 
-    vbat.hv ~> vplus_filter ~> asic_vp.hv
+    vbat.hv ~ vplus_filter.in_.line
+    vplus_filter.out.line ~ asic_vp.hv
     vbat.lv ~ vplus_filter.reference_shim.lv
     # vbat.hv ~ cell_stack[-1].hv
     vbat.lv ~ cell_stack[0].lv
@@ -226,7 +230,8 @@ module ADI_ADBMS6830:
     c9n_filter = new FilterElectricalRC
     c9n_filter.resistor.resistance = 200ohm +/- 5%
     c9n_filter.capacitor.capacitance = 10nF +/- 20%
-    cell_stack[8].lv ~> c9n_filter ~> package.C9N
+    cell_stack[8].lv ~ c9n_filter.in_.line
+    c9n_filter.out.line ~ package.C9N
     c9n_filter.in_.reference.lv ~ cell_sense_inputs[7].p.line
 
     # --- Package Connections ---
@@ -341,7 +346,11 @@ module ADI_ADBMS6830:
     cell_balance_inputs[15].p.line ~ package.S16P
 
     # Cell input filters
-    cell_input_filters = new ADBMS6830InputFilters<number_of_cells=16,sense_filter_resistance_ohms=200,sense_filter_capacitance_nF=10,max_balance_current_mA=100,total_number_of_channels=16>
+    cell_input_filters = new ADBMS6830InputFilters
+    # Configure filter parameters (migrated from template parameters)
+    assert cell_input_filters.sense_filter_resistance within 200ohm +/- 1%
+    assert cell_input_filters.sense_filter_capacitance within 10nF +/- 20%
+    assert cell_input_filters.max_balance_current within 100mA +/- 10%
 
     #TODO: zip connect when zip available
     # cell_input_filters.cell_inputs ~ cell_stack
@@ -482,5 +491,4 @@ module Diodes_Incorporated_FZT853TA from BJT:
     # mpn = "C76888"
 component BLM15HD182SN1D from Inductor:
     lcsc_id = "C76888"
-    unnamed[0] ~ pin 1
-    unnamed[1] ~ pin 2
+    # Note: Lead-pad attachment is handled automatically by Inductor's can_attach_to_any_pad trait
