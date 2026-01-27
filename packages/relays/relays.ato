@@ -147,10 +147,10 @@ module LogicLevelRelaySPDT1A24V from LogicLevelRelayBase:
 
 module LogicLevelBistableRelayDPDT1A3V from LogicLevelBistableRelayBase:
     relay = new BistableRelayDPDT1A3V
-    coil_driver.motor_outs[0] ~> relay.coil ~> coil_driver.motor_outs[1]
+    coil_driver.motor_outs[1] ~> relay.coil ~> coil_driver.motor_outs[0]
     assert coil_power.voltage within relay.coil.voltage
 
 module LogicLevelBistableRelayDPDT1A5V from LogicLevelBistableRelayBase:
     relay = new BistableRelayDPDT1A5V
-    coil_driver.motor_outs[0] ~> relay.coil ~> coil_driver.motor_outs[1]
+    coil_driver.motor_outs[1] ~> relay.coil ~> coil_driver.motor_outs[0]
     assert coil_power.voltage within relay.coil.voltage
