@@ -1,0 +1,81 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import can_bridge_by_name
+
+from "parts/OPSCO_Optoelectronics_SK6805SIDE_G_003/OPSCO_Optoelectronics_SK6805SIDE_G_003.ato" import OPSCO_Optoelectronics_SK6805SIDE_G_003_package
+
+module OPSCO_SK6805_SIDE:
+    """Driver for OPSCO SK6805-SIDE side-emitting addressable RGB LED.
+
+    The SK6805-SIDE is a side-emitting addressable RGB LED with integrated
+    controller, designed for edge lighting and indirect illumination applications.
+    Compatible with WS2812 protocol, it features a unique side-emission design
+    for creating light guides and edge-lit effects.
+
+    Features:
+    - Side-emitting design for edge lighting applications
+    - Integrated control circuit and RGB chip in one package
+    - Single data line control with cascading capability
+    - 24-bit color depth (8 bits per channel)
+    - PWM frequency: 400Hz typical
+    - Data transfer rate: 800Kbps
+    - Forward voltage: 5V ±0.5V
+    - Operating temperature: -25°C to +80°C
+
+    Exposes:
+        * power – Power supply (5V ±0.5V)
+        * data_in – Data input signal
+        * data_out – Data output signal (for chaining)
+    """
+
+    # --- Package ---
+    package = new OPSCO_Optoelectronics_SK6805SIDE_G_003_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply (5V ±0.5V)
+    Powers both RGB LEDs and digital controller
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Data input signal (WS2812 protocol)
+    Receives color and timing data
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Data output signal for chaining LEDs
+    Regenerated signal for next LED in chain
+    """
+    data_out.required = False
+
+    # --- Power connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    assert power.voltage within 4.5V to 5.5V
+
+    # --- Data signal connections ---
+    data_in.line ~ package.DIN
+    data_in.reference ~ power
+
+    data_out.line ~ package.DOUT
+    data_out.reference ~ power
+
+    # --- Enable bridging for chaining LEDs ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+    # --- Power decoupling ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv

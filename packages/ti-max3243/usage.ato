@@ -1,0 +1,103 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import Resistor
+import RS232
+import UART
+
+from "atopile/ti-max3243/ti-max3243.ato" import TI_MAX3243
+
+from "parts/Ckmtw_D_DMR009PF_D002/Ckmtw_D_DMR009PF_D002.ato" import Ckmtw_D_DMR009PF_D002_package
+from "parts/Ckmtw_D_DMR009PM_D002/Ckmtw_D_DMR009PM_D002.ato" import Ckmtw_D_DMR009PM_D002_package
+from "parts/Hanbo_Electronic_HB_PH3_254112PB2GOP/Hanbo_Electronic_HB_PH3_254112PB2GOP.ato" import Hanbo_Electronic_HB_PH3_254112PB2GOP_package
+
+module Usage:
+    """
+    Minimal usage example for ti-max3243.
+    Shows how to connect the TI MAX3243 RS-232 transceiver to a microcontroller UART
+    and external RS-232 connector.
+    """
+
+    # Power supply
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # MAX3243 transceiver
+    rs232_transceiver = new TI_MAX3243
+    rs232_transceiver.power ~ power_3v3
+
+    # Microcontroller UART interface
+    mcu_uart = new UART
+    mcu_uart.base_uart.tx.reference ~ power_3v3
+    mcu_uart.base_uart.rx.reference ~ power_3v3
+    mcu_uart.rts.reference ~ power_3v3
+    mcu_uart.cts.reference ~ power_3v3
+    mcu_uart.dtr.reference ~ power_3v3
+    mcu_uart.dsr.reference ~ power_3v3
+    mcu_uart.dcd.reference ~ power_3v3
+    mcu_uart.ri.reference ~ power_3v3
+    mcu_uart ~ rs232_transceiver.uart
+
+    # External RS-232 connector
+    external_rs232 = new RS232
+    external_rs232.has_single_electric_reference.reference ~ power_3v3
+
+    # Optional: Control signals (can be left floating for auto-powerdown)
+    # Force ON signal (normally low for auto-powerdown)
+    forceon_control = new ElectricLogic
+    forceon_control.reference ~ power_3v3
+    forceon_control ~ rs232_transceiver.forceon
+
+    # Force OFF signal (normally high for normal operation)
+    nforceoff_control = new ElectricLogic
+    nforceoff_control.reference ~ power_3v3
+    nforceoff_control ~ rs232_transceiver.nforceoff
+
+    # Invalid signal indicator
+    invalid_indicator = new ElectricLogic
+    invalid_indicator.reference ~ power_3v3
+    invalid_indicator ~ rs232_transceiver.ninvalid
+
+    de9_rs232_male = new DE9RS232Male
+    de9_rs232_male.rs232 ~ rs232_transceiver.rs232
+
+    power_3v3.hv.override_net_name = "Vin"
+    power_3v3.lv.override_net_name = "VGND"
+
+module DE9RS232Female:
+    package = new Ckmtw_D_DMR009PF_D002_package
+    rs232 = new RS232
+
+    package.1 ~ rs232.dcd.line
+    package.2 ~ rs232.rx.line
+    package.3 ~ rs232.tx.line
+    package.4 ~ rs232.dtr.line
+    package.5 ~ rs232.has_single_electric_reference.reference.lv
+    package.6 ~ rs232.dsr.line
+    package.7 ~ rs232.rts.line
+    package.8 ~ rs232.cts.line
+    package.9 ~ rs232.ri.line
+
+    package.MH1 ~ rs232.has_single_electric_reference.reference.lv
+    package.MH2 ~ rs232.has_single_electric_reference.reference.lv
+
+module DE9RS232Male:
+    package = new Ckmtw_D_DMR009PM_D002_package
+    rs232 = new RS232
+
+    package.1 ~ rs232.dcd.line
+    package.2 ~ rs232.rx.line
+    package.3 ~ rs232.tx.line
+    package.4 ~ rs232.dtr.line
+    package.5 ~ rs232.has_single_electric_reference.reference.lv
+    package.6 ~ rs232.dsr.line
+    package.7 ~ rs232.rts.line
+    package.8 ~ rs232.cts.line
+    package.9 ~ rs232.ri.line
+
+    package.MH1 ~ rs232.has_single_electric_reference.reference.lv
+    package.MH2 ~ rs232.has_single_electric_reference.reference.lv

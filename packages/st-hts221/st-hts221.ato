@@ -1,0 +1,82 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import Resistor
+import I2C
+import ElectricPower
+import ElectricLogic
+
+from "parts/STMicroelectronics_HTS221TR/STMicroelectronics_HTS221TR.ato" import STMicroelectronics_HTS221TR_package
+
+module ST_HTS221:
+    """
+    STMicroelectronics HTS221 Temperature & Humidity Sensor
+
+    A compact digital humidity and temperature sensor with I2C interface.
+    Operating range: -40°C to 120°C, 0-100% RH
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply (1.71V to 3.6V)
+    """
+    power.required = True
+    assert power.voltage within 1.71V to 3.6V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x5F)
+    """
+    i2c.required = True
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    drdy = new ElectricLogic
+    """
+    Data Ready output signal
+    """
+    drdy.reference ~ power
+
+    cs = new ElectricLogic
+    """
+    Chip Select signal (high = I2C mode, low = SPI mode)
+    """
+    cs.reference ~ power
+
+    # I2C address is fixed at 0x5F
+    assert i2c.address within 0x5F
+
+    # --- I²C pull-ups (soft pull-ups) ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Chip Select (enable I2C mode) ---
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 1%
+    cs_pullup.package = "0402"
+    power.hv ~> cs_pullup ~> cs.line
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.package = "0402"
+        power.hv ~> cap ~> power.lv
+    decoupling_caps[0].capacitance = 100nF +/- 20%
+    decoupling_caps[1].capacitance = 10uF +/- 20%
+
+
+    # --- Package ---
+    package = new STMicroelectronics_HTS221TR_package
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.SCL_SPC ~ i2c.scl.line
+    package.SDA_SDI_SDO ~ i2c.sda.line
+    package.DRDY ~ drdy.line
+    package.CS ~ cs.line

@@ -1,39 +1,46 @@
-# ADAU145x - Audio DSP
+# Analog Devices ADAU145x Audio DSP
 
-This package provides a driver for the ADAU145x family of audio DSPs.
+This package provides a driver for the ADAU145x family of audio DSPs (1452, 1451, 1450).
 
 ## Usage
 
 ```ato
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import I2C
 import I2S
 import ElectricPower
 import ElectricLogic
 import Resistor
+import has_part_removed
 
-from "atopile/adi-adau145x/adau145x.ato" import Analog_Devices_ADAU145x_driver
+from "atopile/adi-adau145x/adi-adau145x.ato" import ADI_ADAU145x
 
 module Microcontroller:
     i2c = new I2C
     i2s = new I2S
     gpio = new ElectricLogic
+    trait has_part_removed
 
 module Amplifier:
     i2s = new I2S
+    trait has_part_removed
 
-module Example:
+module Usage:
     """
-    ADAU145x Example
+    Minimal usage example for adi-adau145x.
+    Shows how to connect the ADAU145x DSP with power, I2C control, and I2S audio.
     """
-    dsp = new Analog_Devices_ADAU145x_driver
+    dsp = new ADI_ADAU145x
     mcu = new Microcontroller
     amp = new Amplifier
 
     # Power
     power = new ElectricPower
     power.required = True
-    assert power.voltage within 3.3V
+    assert power.voltage within 3.3V +/- 5%
     power ~ dsp.power
 
     # Reset
@@ -42,14 +49,17 @@ module Example:
     # I2C - for configuration
     mcu.i2c ~ dsp.model.i2c
 
-    # Pullups on I2C
+    # Configure I2C address
+    dsp.model.i2c.address = 0x3B
+
+    # I2C pullups
     pullups = new Resistor[2]
     for pullup in pullups:
         pullup.resistance = 4.7kohm +/- 10%
-        pullup.package = "R0402"
+        pullup.package = "0402"
 
-    mcu.i2c.sda.line ~> pullups[0] ~> power.vcc
-    mcu.i2c.scl.line ~> pullups[1] ~> power.vcc
+    mcu.i2c.sda.line ~> pullups[0] ~> power.hv
+    mcu.i2c.scl.line ~> pullups[1] ~> power.hv
 
     # I2S - for audio
     mcu.i2s ~ dsp.model.i2s_ins[0]

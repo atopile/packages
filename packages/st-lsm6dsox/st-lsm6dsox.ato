@@ -1,0 +1,194 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+import Addressor
+
+from "parts/STMicroelectronics_LSM6DSOXTR/STMicroelectronics_LSM6DSOXTR.ato" import STMicroelectronics_LSM6DSOXTR_package
+
+module ST_LSM6DSOX:
+    """Driver for STMicroelectronics LSM6DSOX 6-axis IMU (I²C/SPI).
+
+    Features:
+      * Built-in I2C pull-up resistors (10kΩ)
+      * Proper decoupling capacitors (VDD: 100nF+10µF, VDDIO: 100nF)
+      * Dual power rail support (VDD/VDDIO)
+      * Configurable I2C address via SA0 pin (0x6A/0x6B)
+      * 3-axis accelerometer and 3-axis gyroscope
+      * Machine learning core and finite state machine support
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_LSM6DSOXTR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Core power supply rail (1.71 V – 3.6 V)
+    """
+    power.required = True
+    assert power.voltage within 1.71V to 3.6V
+
+    power_io = new ElectricPower
+    """
+    I/O power supply rail (1.62 V – 3.6 V)
+    """
+    power_io.required = True
+    assert power_io.voltage within 1.62V to 3.6V
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x6A/0x6B configurable via SA0) with built-in pull-ups
+    """
+
+    int1 = new ElectricLogic
+    """
+    Programmable interrupt 1 output pin
+    """
+
+    int2 = new ElectricLogic
+    """
+    Programmable interrupt 2 output pin / Data enable input
+    """
+
+    spi = new SPI
+    """
+    SPI bus interface (alternative to I2C)
+    """
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select pin
+    """
+
+    # --- I2C address configuration ---
+    """
+    I2C address configurable via SA0 pin:
+    SA0 = GND: 0x6A (1101010b)
+    SA0 = VDD: 0x6B (1101011b)
+    """
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x6A
+    assert addressor.address is i2c.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
+
+    # --- I2C pull-up resistors ---
+    """
+    I²C pull-up resistors (10kΩ)
+    """
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_scl.resistance = 10kohm +/- 5%
+    i2c_pullup_scl.package = "0402"
+    power_io.hv ~> i2c_pullup_scl ~> i2c.scl.line
+
+    i2c_pullup_sda = new Resistor
+    i2c_pullup_sda.resistance = 10kohm +/- 5%
+    i2c_pullup_sda.package = "0402"
+    power_io.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Interrupt pull-up resistors ---
+    """
+    Interrupt pin pull-up resistors (10kΩ)
+    Interrupt pins are open-drain outputs and require external pull-ups
+    """
+    int1_pullup = new Resistor
+    int1_pullup.resistance = 10kohm +/- 5%
+    int1_pullup.package = "0402"
+    power_io.hv ~> int1_pullup ~> int1.line
+
+    int2_pullup = new Resistor
+    int2_pullup.resistance = 10kohm +/- 5%
+    int2_pullup.package = "0402"
+    power_io.hv ~> int2_pullup ~> int2.line
+
+    # --- CS pull-up resistor (I2C mode selection) ---
+    """
+    CS pin pull-up resistor (10kΩ)
+    CS = HIGH selects I²C mode (CS = LOW selects SPI mode)
+    This pullup ensures I²C mode is selected by default
+    """
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 5%
+    cs_pullup.package = "0402"
+    power_io.hv ~> cs_pullup ~> spi_cs.line
+
+    # --- Decoupling capacitors ---
+    # VDD decoupling: 1x 100nF + 1x 10µF
+    vdd_cap_100nf = new Capacitor
+    vdd_cap_100nf.capacitance = 100nF +/- 20%
+    vdd_cap_100nf.package = "0402"
+
+    vdd_cap_10uf = new Capacitor
+    vdd_cap_10uf.capacitance = 10uF +/- 20%
+    vdd_cap_10uf.package = "0603"
+
+    # VDDIO decoupling: 1x 100nF
+    vddio_cap_100nf = new Capacitor
+    vddio_cap_100nf.capacitance = 100nF +/- 20%
+    vddio_cap_100nf.package = "0402"
+
+    # VDD decoupling connections
+    power.hv ~> vdd_cap_100nf ~> power.lv
+    power.hv ~> vdd_cap_10uf ~> power.lv
+
+    # VDDIO decoupling connection
+    power_io.hv ~> vddio_cap_100nf ~> power_io.lv
+
+    # --- Power connections ---
+    """
+    Core and I/O power supply for the module
+    """
+    package.VDD ~ power.hv
+    package.VDDIO ~ power_io.hv
+    package.GND ~ power.lv
+    package.GND ~ power_io.lv
+
+    # --- Reference connections ---
+    """
+    Power reference connections for digital interfaces
+    """
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+    spi_cs.reference ~ power_io
+    int1.reference ~ power_io
+    int2.reference ~ power_io
+    addressor.address_lines[0].reference ~ power_io
+
+    # --- I²C connections ---
+    """
+    I²C bus interface (7-bit addr 0x6A/0x6B configurable via SA0)
+    """
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # --- SPI connections ---
+    """
+    SPI bus interface (alternative to I2C)
+    """
+    package.SCL ~ spi.sclk.line
+    package.SDA ~ spi.mosi.line
+    package.SDO_SA0 ~ spi.miso.line
+    package.CS ~ spi_cs.line
+
+    # --- Interrupt connections ---
+    """
+    Programmable interrupt pins
+    """
+    package.INT1 ~ int1.line
+    package.INT2 ~ int2.line
+
+    # --- I2C address selection ---
+    """
+    SA0/SDO pin connection for I2C address selection
+    """
+    package.SDO_SA0 ~ addressor.address_lines[0].line

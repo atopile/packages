@@ -1,0 +1,113 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import Electrical
+import ElectricLogic
+import ElectricPower
+import I2C
+import Resistor
+from "parts/Maxim_Integrated_MAX17048G_T10/Maxim_Integrated_MAX17048G_T10.ato" import Maxim_Integrated_MAX17048G_T10_package
+
+module Maxim_MAX17048:
+    """
+    MAX17048 LiPoly/LiIon Fuel Gauge and battery Monitor
+
+    Features:
+    - 1S 3.7-4.2V Lithium Ion/Polymer battery monitoring
+    - I2C interface for communication (address 0x36)
+    - Accurate battery percentage calculation
+    - Low power consumption
+    - Operating voltage: 2.5V to 4.5V
+    """
+
+    # --- Package ---
+    package = new Maxim_Integrated_MAX17048G_T10_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (7-bit addr 0x36)
+    """
+    i2c.required = True
+    assert i2c.address within 0x36
+
+    power = new ElectricPower
+    """
+    Power supply for the IC
+    """
+    power.required = True
+    assert power.voltage within 2.5V to 4.5V
+
+    battery_interface = new ElectricPower
+    """
+    battery connection (battery pin) - connect to battery positive terminal
+    """
+    battery_interface.required = True
+
+    qstrt = new ElectricLogic
+    """
+    Quick start pin - connect to ground to force quick start
+    """
+    qstrt.required = False
+    q_pulldown = new Resistor
+    q_pulldown.resistance = 10kohm +/- 5%
+    q_pulldown.package = "0402"
+    qstrt.line ~> q_pulldown ~> power.lv
+
+    alert = new ElectricLogic
+    """
+    Alert output pin (active low) - signals low battery or other alerts
+    """
+    alert.required = False
+    alter_pullup = new Resistor
+    alter_pullup.resistance = 10kohm +/- 5%
+    alter_pullup.package = "0402"
+    alert.line ~> alter_pullup ~> power.hv
+
+    # --- Internal connections ---
+
+    # Power connections
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+
+    # I2C connections
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # battery and configuration pins
+    battery_interface.hv ~ package.CELL
+    battery_interface.lv ~ package.GND
+    qstrt.line ~ package.QSTRT
+    qstrt.reference ~ power
+
+    # CTG pin (current gain configuration) - typically connected to ground
+    power.lv ~ package.CTG
+
+    # Exposed pad connection (thermal and electrical ground)
+    power.lv ~ package.EP
+
+    # Alert pin (connection commented out due to build cache issue)
+    alert.line ~ package.nALRT
+    alert.reference ~ power
+
+    # --- I2C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Decoupling capacitors ---
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 1uF +/- 20%
+    bypass_cap.package = "0402"
+    power.hv ~> bypass_cap ~> power.lv
+
+    battery_cap = new Capacitor
+    battery_cap.capacitance = 1uF +/- 20%
+    battery_cap.package = "0402"
+    battery_interface.hv ~> battery_cap ~> battery_interface.lv

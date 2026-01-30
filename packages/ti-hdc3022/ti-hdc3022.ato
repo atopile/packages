@@ -1,0 +1,120 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import Capacitor
+import Addressor
+
+from "parts/Texas_Instruments_HDC3022DEJR/Texas_Instruments_HDC3022DEJR.ato" import Texas_Instruments_HDC3022DEJR_package
+
+module TI_HDC3022:
+    """
+    Texas Instruments HDC3022 digital temperature and humidity sensor
+
+    Features:
+    - Operating voltage: 1.62V to 5.5V
+    - I2C interface with configurable address (0x44-0x47)
+    - Temperature accuracy: ±0.1°C typical
+    - Humidity accuracy: ±0.5% RH typical
+    - Operating temperature: -40°C to +125°C
+    - Low power consumption: 0.4 µA average
+    - Integrated heater for condensation removal
+    - Alert/interrupt functionality
+    - Reset functionality
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I2C bus interface (7-bit addresses 0x44-0x47)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply for the sensor (1.62V to 5.5V)
+    """
+    power.required = True
+
+    alert = new ElectricLogic
+    """
+    Alert/interrupt output pin
+    """
+    alert.required = False
+
+    reset = new ElectricLogic
+    """
+    Reset input pin (active low)
+    """
+    reset.required = False
+
+    # --- Power rail ---
+    assert power.voltage within 1.62V to 5.5V
+
+    # --- I2C address configuration ---
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x44
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x44), can be overridden by user
+    i2c.address.default = 0x44
+
+    # --- I2C pull-up resistors ---
+    i2c_pullup_scl = new Resistor
+    i2c_pullup_sda = new Resistor
+
+    for pullup in [i2c_pullup_scl, i2c_pullup_sda]:
+        pullup.resistance = 10kohm +/- 20%
+        pullup.package = "0402"
+
+    power.hv ~> i2c_pullup_scl ~> i2c.scl.line
+    power.hv ~> i2c_pullup_sda ~> i2c.sda.line
+
+    # --- Alert and reset pull-up resistors ---
+    alert_pullup = new Resistor
+    reset_pullup = new Resistor
+
+    for pullup in [alert_pullup, reset_pullup]:
+        pullup.resistance = 10kohm +/- 20%
+        pullup.package = "0402"
+
+    power.hv ~> alert_pullup ~> alert.line
+    power.hv ~> reset_pullup ~> reset.line
+
+    # --- Decoupling capacitors ---
+    power_cap = new Capacitor
+    power_cap.capacitance = 100nF +/- 20%
+    power_cap.max_voltage = 10V to 50V
+    power_cap.package = "0402"
+
+    power.hv ~> power_cap ~> power.lv
+
+    # --- Package connections ---
+    package = new Texas_Instruments_HDC3022DEJR_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.EP ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Address configuration
+    package.ADDR ~ addressor.address_lines[0].line
+    package.ADDR1 ~ addressor.address_lines[1].line
+
+    # Optional connections
+    package.ALERT ~ alert.line
+    alert.reference ~ power
+
+    package.nRESET ~ reset.line
+    reset.reference ~ power

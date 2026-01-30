@@ -1,0 +1,174 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+
+from "parts/STMicroelectronics_ISM330DHCXTR/STMicroelectronics_ISM330DHCXTR.ato" import STMicroelectronics_ISM330DHCXTR_package
+
+module ST_ISM330DHCX:
+    """Driver for STMicroelectronics ISM330DHCX 6-axis IMU with machine learning core.
+
+    The ISM330DHCX is a system-in-package featuring a 3D digital accelerometer
+    and a 3D digital gyroscope with embedded machine learning capabilities.
+    It includes an additional auxiliary SPI interface for external sensors.
+
+    Exposes:
+        * i2c – I²C bus interface (7-bit addr 0x6A / 0x6B)
+        * spi – Main SPI bus interface
+        * aux_spi – Auxiliary SPI interface for external sensors
+        * power_core – Core power supply (1.71V - 3.6V)
+        * power_io – I/O power supply (1.71V - 3.6V)
+        * interrupt1 – Interrupt 1 output pin
+        * interrupt2 – Interrupt 2 output pin
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_ISM330DHCXTR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x6A/0x6B based on SA0 pin)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = False
+
+    spi = new SPI
+    """
+    Main SPI bus interface for sensor communication
+    Supports up to 10 MHz clock frequency
+    """
+    spi.required = False
+
+    spi_cs = new ElectricLogic
+    """
+    Main SPI chip select pin (active low)
+    Required when using SPI interface
+    """
+    spi_cs.required = False
+
+    # Auxiliary SPI for external sensors
+    aux_spi = new SPI
+    """
+    Auxiliary SPI interface for external sensors
+    Allows connection of additional sensors to the IMU
+    """
+    aux_spi.required = False
+
+    aux_spi_cs = new ElectricLogic
+    """
+    Auxiliary SPI chip select pin (active low)
+    Required when using auxiliary SPI interface
+    """
+    aux_spi_cs.required = False
+
+    power_core = new ElectricPower
+    """
+    Core power supply (1.71V to 3.6V)
+    Powers the analog and digital core of the IMU
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    I/O power supply (1.71V to 3.6V)
+    Powers the digital I/O interface (I²C/SPI)
+    """
+    power_io.required = True
+
+    interrupt1 = new ElectricLogic
+    """
+    Interrupt 1 output pin (active high)
+    Configurable interrupt for various sensor events
+    """
+    interrupt1.required = False
+
+    interrupt2 = new ElectricLogic
+    """
+    Interrupt 2 output pin (active high)
+    Configurable interrupt for various sensor events
+    """
+    interrupt2.required = False
+
+    # --- Power connections ---
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io.hv ~ package.VDD_IO
+    power_io.lv ~ power_core.lv
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # --- I²C interface ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # I²C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # I²C address selection via SA0 pin
+    addressor = new Addressor<address_bits = 1>
+    addressor.base = 0x6A
+    addressor.address_lines[0].line ~ package.SDO_SA0
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.address within i2c.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
+
+    # --- Main SPI interface ---
+    spi.sclk.line ~ package.SCL
+    spi.mosi.line ~ package.SDA
+    spi.miso.line ~ package.SDO_SA0
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    spi_cs.line ~ package.CS
+    spi_cs.reference ~ power_io
+
+    # --- Auxiliary SPI interface (for external sensors) ---
+    aux_spi.sclk.line ~ package.SCX
+    aux_spi.mosi.line ~ package.SDX
+    aux_spi.miso.line ~ package.SDO_AUX
+    aux_spi.sclk.reference ~ power_io
+    aux_spi.mosi.reference ~ power_io
+    aux_spi.miso.reference ~ power_io
+
+    aux_spi_cs.line ~ package.OCS_AUX
+    aux_spi_cs.reference ~ power_io
+
+    # --- Interrupt pins ---
+    interrupt1.line ~ package.INT1
+    interrupt1.reference ~ power_io
+
+    interrupt2.line ~ package.INT2
+    interrupt2.reference ~ power_io
+
+    # --- Chip select pullup (for I²C mode) ---
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 20%
+    cs_pullup.package = "0402"
+    power_io.hv ~> cs_pullup ~> package.CS
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

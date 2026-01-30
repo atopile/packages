@@ -1,0 +1,44 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+
+from "atopile/st-lis3dh/st-lis3dh.ato" import ST_LIS3DH
+
+module Usage:
+    """
+    Minimal usage example for st-lis3dh.
+
+    This example demonstrates basic I²C connection and interrupt usage
+    for the LIS3DH 3-axis accelerometer.
+    """
+
+    sensor = new ST_LIS3DH
+
+    # Connect external I²C bus
+    i2c = new I2C
+    i2c ~ sensor.i2c
+
+    # Connect power supplies (can be the same rail)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    power_3v3 ~ sensor.power_core
+    power_3v3 ~ sensor.power_io
+
+    # Connect interrupt pins to microcontroller GPIOs
+    interrupt1_gpio = new ElectricLogic
+    interrupt2_gpio = new ElectricLogic
+
+    interrupt1_gpio ~ sensor.interrupt1
+    interrupt2_gpio ~ sensor.interrupt2
+
+    # I²C address is set by the sensor module (default 0x18 with SA0 pulled low via addressor)
+    # To change address, configure the addressor.address_lines in your design
+
+    # Optional: Connect auxiliary ADC inputs if needed
+    # external_signal1 = new ElectricLogic
+    # external_signal1 ~ sensor.adc1

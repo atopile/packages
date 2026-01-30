@@ -1,0 +1,99 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import can_bridge_by_name
+
+from "parts/TI_BQ24045DSQR/TI_BQ24045DSQR.ato" import TI_BQ24045DSQR_package
+from "parts/Texas_Instruments_BQ24040DSQR/Texas_Instruments_BQ24040DSQR.ato" import Texas_Instruments_BQ24040DSQR_package
+
+module BQ24045DSQR from BQ2404XDSQR:
+    """
+    BQ24045DSQR is a 4.35V version of the BQ2404XDSQR
+    """
+    package -> TI_BQ24045DSQR_package
+
+module BQ24040DSQR from BQ2404XDSQR:
+    """
+    BQ24040DSQR is a 4.2V version of the BQ2404XDSQR
+    """
+    # package -> Texas_Instruments_BQ24040DSQR_package
+    pass
+
+module BQ2404XDSQR:
+    """
+    BQ2404XDSQR 1A 1S Battery Charger
+    """
+    package = new Texas_Instruments_BQ24040DSQR_package
+
+    # Parameters
+    charge_current: current
+
+    # Input power
+    power_in = new ElectricPower
+    assert power_in.voltage within 4.45V to 6.45V
+    power_in.required = True
+    power_in.vcc ~ package.IN
+    power_in.gnd ~ package.VSS
+    power_in.gnd ~ package.EP
+
+    # Output power
+    power_batt = new ElectricPower
+    power_batt.required = True
+    power_batt.vcc ~ package.OUT
+    power_batt.gnd ~ package.VSS
+
+    # Make bridgable - eg power_in ~> charger ~> battery.power
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_batt">
+
+    # Power good - active low
+    power_good = new ElectricLogic
+    power_good.line ~ package.nPG
+    power_good.reference.gnd ~ power_in.gnd
+
+    # Charge status - active low
+    charge_status = new ElectricLogic
+    charge_status.line ~ package.nCHG
+    charge_status.reference.gnd ~ power_in.gnd
+
+    # Temperature connection
+    temperature_sense = new ElectricSignal
+    temperature_sense.line ~ package.TS
+    temperature_sense.line.required = True
+    temperature_sense.reference.gnd ~ power_in.gnd
+
+    # Input Capacitor
+    input_cap = new Capacitor
+    input_cap.package = "0402"
+    input_cap.capacitance = 1uF +/- 20%
+    power_in.vcc ~> input_cap ~> power_in.gnd
+
+    # Output Capacitor
+    output_cap = new Capacitor
+    output_cap.package = "0402"
+    output_cap.capacitance = 1uF +/- 20%
+    power_batt.vcc ~> output_cap ~> power_batt.gnd
+
+    # ISet resistor - 540ohm = 1A to 10.8kohm = 100mA (RISET = 540 / IOUT)
+    iset_resistor = new Resistor
+    iset_resistor.unnamed[0] ~ package.ISET
+    iset_resistor.unnamed[1] ~ package.VSS
+    iset_resistor.package = "0402"
+
+    # Set default charge current max constraint
+    assert charge_current <= 1000mA
+
+    assert iset_resistor.resistance within 540V / charge_current
+    assert iset_resistor.resistance within 540ohm to 10.8kohm
+
+    # ISET2 - High: input current 500mA max, Low: ISET current, FLOAT: input current 100mA max
+    # TODO: should be configured based on:
+    # 1. charge_current if charge_current < power_in.max_current
+    # 2. elif: power_in.max_current if power_in.max_current not in [100mA, 500mA]
+    # 3. else: 100mA or 500mA
+    package.ISET2 ~ power_in.vcc  # set to 500mA

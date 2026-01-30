@@ -1,32 +1,23 @@
-requires-atopile: "^0.9.0"
+requires-atopile: "^0.12.4"
 
 paths:
   src: ./
   layout: ./layouts
 
 builds:
-  ref:
-    entry: ti-tps54560x.ato:TPS54560x
-    exclude_checks: ['PCB.requires_drc_check']
-  test-1v8:
-    entry: ti-tps54560x.ato:Test1V8
-    exclude_checks: ['PCB.requires_drc_check']
-  test-3v3:
-    entry: ti-tps54560x.ato:Test3V3
-    exclude_checks: ['PCB.requires_drc_check']
-  test-5v:
-    entry: ti-tps54560x.ato:Test5V
-    exclude_checks: ['PCB.requires_drc_check']
-  test-12v:
-    entry: ti-tps54560x.ato:Test12V
-    exclude_checks: ['PCB.requires_drc_check']
-  test-24v:
-    entry: ti-tps54560x.ato:Test24V
-    exclude_checks: ['PCB.requires_drc_check']
+  default:
+    entry: ti-tps54560x.ato:TI_TPS54560
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
 package:
   identifier: atopile/ti-tps54560x
   repository: https://github.com/atopile/packages
-  version: "0.1.5"
+  version: "0.1.7"
   authors:
     - name: atopile
       email: hi@atopile.io

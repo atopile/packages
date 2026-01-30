@@ -1,0 +1,41 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+
+from "atopile/microchip-mcp4728/microchip-mcp4728.ato" import Microchip_MCP4728
+
+module Usage:
+    """
+    Minimal usage example for microchip-mcp4728.
+    Demonstrates basic connection of the MCP4728 quad DAC with I2C interface and power supply.
+    """
+
+    # Create instance of the MCP4728 DAC
+    dac = new Microchip_MCP4728
+
+    # Power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # I2C bus
+    i2c_bus = new I2C
+    assert i2c_bus.frequency within 100kHz to 400kHz
+    i2c_bus.address = 0x60  # Default address
+
+    # Connect interfaces
+    power_3v3 ~ dac.power
+    i2c_bus ~ dac.i2c
+
+    # Optional: Set LDAC pin low to enable immediate DAC output updates
+    # dac.ldac.line can be connected to a GPIO or tied to ground
+
+    # Optional: Monitor ready/busy status
+    # dac.ready.line can be connected to a GPIO for status monitoring
+
+    # DAC outputs are available on:
+    # dac.vouta.line - Channel A output
+    # dac.voutb.line - Channel B output
+    # dac.voutc.line - Channel C output
+    # dac.voutd.line - Channel D output

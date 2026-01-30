@@ -1,0 +1,46 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricLogic
+import Resistor
+
+from "atopile/maxim-ds18b20/maxim-ds18b20.ato" import Maxim_DS18B20
+from "atopile/maxim-ds18b20/maxim-ds18b20.ato" import Maxim_DS18B20U
+from "atopile/maxim-ds18b20/maxim-ds18b20.ato" import Maxim_DS18B20Z
+
+module Usage:
+    """
+    Minimal usage example for Maxim DS18B20 1-Wire Digital Temperature Sensor.
+
+    The DS18B20 is connected to a microcontroller via a single 1-Wire data line.
+    The one wire data line requires one external 4.7kΩ pull-up resistor to VDD per bus.
+    """
+
+    # Power supply (3.3V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # DS18B20 temperature sensor instance
+    temp_sensor_to92 = new Maxim_DS18B20
+    temp_sensor_msop8 = new Maxim_DS18B20U
+    temp_sensor_soic8 = new Maxim_DS18B20Z
+
+    # 1-Wire data line interface
+    onewire_data = new ElectricLogic
+    onewire_data.reference ~ power_3v3
+
+    # --- 1-Wire bus pull-up resistor ---
+    pullup_resistor = new Resistor
+    pullup_resistor.resistance = 4.7kohm +/- 5%
+    pullup_resistor.package = "0402"
+    onewire_data.line ~> pullup_resistor ~> power_3v3.hv
+
+    # Power distribution
+    power_3v3 ~ temp_sensor_to92.power
+    power_3v3 ~ temp_sensor_msop8.power
+    power_3v3 ~ temp_sensor_soic8.power
+
+    # Connect 1-Wire data line
+    onewire_data ~ temp_sensor_to92.data_line
+    onewire_data ~ temp_sensor_msop8.data_line
+    onewire_data ~ temp_sensor_soic8.data_line

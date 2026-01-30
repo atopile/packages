@@ -4,11 +4,11 @@ import ElectricPower
 import Resistor
 import I2S
 
-from "microphone.ato" import MicrophoneI2S
+from "microphones.ato" import MicrophoneI2S
 
 from "parts/TDK_InvenSense_ICS_43434/TDK_InvenSense_ICS_43434.ato" import TDK_InvenSense_ICS_43434_package
 
-module TDK_InvenSense_ICS_43434_driver from MicrophoneI2S:
+module TDK_InvenSense_ICS_43434 from MicrophoneI2S:
     """
     The ICS-43434 is digital I2S output bottom port microphone. The
     complete ICS-43434 solution consists of a MEMS sensor, signal
@@ -41,17 +41,3 @@ module TDK_InvenSense_ICS_43434_driver from MicrophoneI2S:
     sd_pulldown_resistor.package = "R0402"
     assert sd_pulldown_resistor.resistance within 100 kohm +/- 1%
     i2s.sd.line ~> sd_pulldown_resistor ~> power.lv
-
-module TDK_InvenSense_ICS_43434_example:
-    """
-    Minimal example of how to use the TDK InvenSense ICS-43434 I2S microphone.
-    """
-    #from "atopile/microphones/tdk_invensense_ics_43434.ato" import TDK_InvenSense_ICS_43434_driver
-
-    microphone = new TDK_InvenSense_ICS_43434_driver
-
-    power_3v3 = new ElectricPower
-    power_3v3 ~ microphone.power
-
-    i2s = new I2S
-    i2s ~ microphone.i2s

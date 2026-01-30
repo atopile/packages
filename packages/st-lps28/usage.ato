@@ -1,0 +1,33 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+
+from "atopile/st-lps28/st-lps28.ato" import ST_LPS28
+
+module Usage:
+    """
+    Minimal usage example for ST LPS28 pressure sensor.
+    Shows basic connections for pressure measurement with I2C interface.
+    """
+
+    # Create sensor instance
+    pressure_sensor = new ST_LPS28
+
+    # Create I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz  # Fast mode I2C
+
+    # Create power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.15V to 3.45V  # 3.3V ±5%
+
+    # Connect interfaces
+    i2c_bus ~ pressure_sensor.i2c
+    power_3v3 ~ pressure_sensor.power
+
+    # Set I2C address (SA0 connected to GND = 0x5C, SA0 connected to VDD = 0x5D)
+    assert pressure_sensor.i2c.address within 0x5C

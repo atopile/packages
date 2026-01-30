@@ -1,75 +1,61 @@
-## Overview
+# Debug Header for Saleae Logic Analyzers
 
-Header configured for use with Saleae debug probes, includes interfaces for signals (io + gnd) as well as a few generic interfaces like I2C and spi. So you can monitor your spi bus as easily as saleae.spi ~ micro.spi !
+Features:
 
-![Saleae Debug Header](https://firebasestorage.googleapis.com/v0/b/atopile.appspot.com/o/saleae-debug-header.png?alt=media&token=84e11ffe-b67d-438b-ae7e-e35b59780a78 "Saleae Debug Header")
+- **SaleaeHeaderVertical**: Single vertical header for connection via harness
+- **SaleaeHeaderRightAngle_x**: Right-angle headers for direct connection to Saleae(x=1,2,4)
+- **Built-in protection**: 1kΩ series resistors on all signal lines
+- **Bus monitoring**: Easy connection to I2C, SPI, and other digital signals
 
-## Usage Example
+## SaleaeHeaderRightAngle_2
+
+![Saleae Header Example](https://raw.githubusercontent.com/atopile/packages/refs/heads/main/packages/saleae-header/saleae_header_example.png)
+
+## SaleaeHeaderVertical
+
+![Saleae Header Example](https://raw.githubusercontent.com/atopile/packages/refs/heads/main/packages/saleae-header/vertical_example.png)
+
+## Usage
 
 ```ato
-import saleae-header from "saleae-header/saleae-header.ato"
-import Power from "generics/interfaces.ato"
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
 
-module SaleaeDebugHeader:
-    # Power interface
-    power = new Power
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderVertical
+from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
+import ElectricSignal
+import I2C
+import SPI
 
-    # Header for debugging
-    debug_header = new saleae-header
-    debug_header.pins = 8  # Assuming an 8-pin header for simplicity
+module Usage:
+    # Example signals of interest
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    i2c = new I2C
+    example_signals = new ElectricSignal[4]
 
-    # Manual Signal Definitions
-    signal sclk
-    signal miso
-    signal mosi
-    signal cs
-    signal scl
-    signal sda
-    signal vcc
-    signal gnd
+    # Double right angle female header for direct connection to Saleae Logic 8/16
+    direct_saleae_interface = new SaleaeHeaderRightAngle_2
 
-    # Connections for SPI-like signals
-    sclk ~ debug_header.pin1
-    miso ~ debug_header.pin2
-    mosi ~ debug_header.pin3
-    cs ~ debug_header.pin4
+    spi ~ direct_saleae_interface.headers[0].spi
+    spi_cs ~ direct_saleae_interface.headers[0].spi_cs
 
-    # Connections for I2C-like signals
-    scl ~ debug_header.pin5
-    sda ~ debug_header.pin6
+    i2c ~ direct_saleae_interface.headers[1].i2c
 
-    # Connections for Power and Ground
-    vcc ~ debug_header.pin7
-    gnd ~ debug_header.pin8
+    # Single vertical header for connection with Saleae through harness
+    harness_saleae_debug_header = new SaleaeHeaderVertical
 
+    example_signals[0] ~ harness_saleae_debug_header.channels[0]
+    example_signals[1] ~ harness_saleae_debug_header.channels[1]
+    example_signals[2] ~ harness_saleae_debug_header.channels[2]
+    example_signals[3] ~ harness_saleae_debug_header.channels[3]
 
 ```
 
-## Features
-
-### Debug Interface:
-Configured for direct connection with Saleae logic analyzers.
-
-### Signal Access:
-
-Provides easy access to signals for monitoring and debugging.
-
-### SPI Interface:
-
-Includes connections for SPI bus monitoring.
-
-### I2C Interface:
-Includes connections for I2C bus monitoring.
-
-### Power Connections:
-Accommodates power (VCC) and ground (GND) for the probe.
-
-
 ## Contributing
-Contribute to this package using pull requests.
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
 
 ## License
-This battery connector module is provided under the MIT License.
 
-## Contact
-For further inquiries or support, please contact me at narayan@atopile.io.
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).

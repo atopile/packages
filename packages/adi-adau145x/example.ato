@@ -1,27 +1,31 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import I2C
 import I2S
 import ElectricPower
 import ElectricLogic
 import Resistor
+import has_part_removed
 
-from "adau145x.ato" import Analog_Devices_ADAU145x_driver
+from "adi-adau145x.ato" import ADI_ADAU145x
 
 module Microcontroller:
     i2c = new I2C
     i2s = new I2S
     gpio = new ElectricLogic
+    trait has_part_removed
 
 module Amplifier:
     i2s = new I2S
+    trait has_part_removed
 
 module Example:
     """
     ADAU145x Example
     """
-    dsp = new Analog_Devices_ADAU145x_driver
+    dsp = new ADI_ADAU145x
     mcu = new Microcontroller
     amp = new Amplifier
 
@@ -49,8 +53,8 @@ module Example:
         pullup.resistance = 4.7kohm +/- 10%
         pullup.package = "R0402"
 
-    mcu.i2c.sda.line ~> pullups[0] ~> power.vcc
-    mcu.i2c.scl.line ~> pullups[1] ~> power.vcc
+    mcu.i2c.sda.line ~> pullups[0] ~> power.hv
+    mcu.i2c.scl.line ~> pullups[1] ~> power.hv
 
     # I2S - for audio
     mcu.i2s ~ dsp.model.i2s_ins[0]

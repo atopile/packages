@@ -1,0 +1,26 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: st-vl53l0x.ato:ST_VL53L0X
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/st-vl53l0x
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/st-vl53l0x/README.md
+  version: "0.2.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: ST; VL53L0X; ToF; Time-of-Flight; Distance; Proximity; Sensor; IC; I2C; Laser; Ranging; XSHUT; GPIO; Interrupt"
+  license: MIT

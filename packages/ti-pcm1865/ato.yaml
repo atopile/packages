@@ -1,23 +1,25 @@
-requires-atopile: "^0.9.0"
-
+requires-atopile: ^0.14.0
 paths:
   src: ./
   layout: ./layouts
-
 builds:
   default:
-    entry: ti-pcm1865.ato:Texas_Instruments_PCM1865_driver
-    exclude_checks: ['PCB.requires_drc_check']
-  example:
-    entry: ti-pcm1865.ato:Example
-    exclude_checks: ['PCB.requires_drc_check']
-
+    entry: ti-pcm1865.ato:Texas_Instruments_PCM1865
+    hide_designators: true
+    exclude_checks:
+      - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+      - PCB.requires_drc_check
 package:
   identifier: atopile/ti-pcm1865
-  repository: https://github.com/atopile/ti-pcm1865
-  version: "0.1.4"
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-pcm1865/README.md
+  version: 0.4.0
   authors:
-    - name: Narayan Powderly
-      email: narayan.powderly@gmail.com
+  - name: atopile
+    email: hi@atopile.com
   summary: Texas Instruments PCM1865 Audio ADC
-  license: MIT license
+  license: MIT

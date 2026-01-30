@@ -1,0 +1,106 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+
+from "parts/STMicroelectronics_VL53L0CXV0DH_1/STMicroelectronics_VL53L0CXV0DH_1.ato" import STMicroelectronics_VL53L0CXV0DH_1_package
+
+module ST_VL53L0X:
+    """
+    ST VL53L0X Time-of-Flight (ToF) distance sensor with I2C interface.
+    Provides accurate distance measurements up to 2m with 1mm resolution.
+    Operating voltage: 2.6V to 5.5V (regulated to 2.8V internally).
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_VL53L0CXV0DH_1_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x29 default)
+    """
+    i2c.required = True
+    assert i2c.frequency <= 400kHz
+    assert i2c.address within 0x29
+
+    power = new ElectricPower
+    """
+    Power supply interface (2.6V to 5.5V input, regulated to 2.8V internally)
+    """
+    power.required = True
+    assert power.voltage within 2.6V to 5.5V
+
+    # --- Optional control interfaces ---
+    xshut = new ElectricLogic
+    """
+    Shutdown control pin (active low, optional)
+    """
+    xshut.required = False
+
+    gpio1 = new ElectricLogic
+    """
+    Interrupt/GPIO pin (optional)
+    """
+    gpio1.required = False
+
+    # --- Internal power rails ---
+    power_core = new ElectricPower  # VDD - Core supply
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.VSS
+    assert power_core.voltage within 2.6V to 2.9V
+
+    power_analog = new ElectricPower  # AVDD - Analog supply (VCSEL)
+    power_analog.hv ~ package.AVDD
+    power_analog.lv ~ package.GND
+    assert power_analog.voltage within 2.6V to 2.9V
+
+    # --- Power connections ---
+    power.hv ~ power_core.hv
+    power.hv ~ power_analog.hv
+    power.lv ~ power_core.lv
+    power.lv ~ power_analog.lv
+
+    # Connect additional grounds
+    power.lv ~ package.GND2
+    power.lv ~ package.GND3
+    power.lv ~ package.GND4
+
+    # --- I²C bus connections ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 20%
+        r.package = "0402"
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line
+
+    # --- Control pin connections ---
+    xshut.line ~ package.SHT
+    xshut.reference ~ power
+
+    gpio1.line ~ package.GP1
+    gpio1.reference ~ power
+
+    # --- Decoupling capacitors ---
+    # Core supply decoupling
+    power_core_cap = new Capacitor
+    power_core_cap.capacitance = 100nF +/- 20%
+    power_core_cap.package = "0402"
+    power_core.hv ~> power_core_cap ~> power_core.lv
+
+    # Analog supply decoupling
+    power_analog_cap = new Capacitor
+    power_analog_cap.capacitance = 100nF +/- 20%
+    power_analog_cap.package = "0402"
+    power_analog.hv ~> power_analog_cap ~> power_analog.lv

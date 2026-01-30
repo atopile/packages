@@ -1,0 +1,33 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import ElectricPower
+
+from "atopile/microchip-mcp9808/microchip-mcp9808.ato" import Microchip_MCP9808
+
+
+module Usage:
+    """
+    Minimal usage example for microchip-mcp9808.
+    Shows basic connection of the MCP9808 temperature sensor with I2C and power interfaces.
+    """
+
+    sensor = new Microchip_MCP9808
+
+    # External interfaces
+    i2c = new I2C
+    power = new ElectricPower
+
+    # Connect all required interfaces
+    i2c ~ sensor.i2c
+    power ~ sensor.power
+
+    # Set power supply voltage (example: 3.3V)
+    assert power.voltage within 3.0V to 3.6V
+
+    # Set I2C address to 0x1F (A2=1, A1=1, A0=1 - all address pins high)
+    sensor.i2c.address = 0x1F
+
+    # The alert output is available at sensor.alert if needed

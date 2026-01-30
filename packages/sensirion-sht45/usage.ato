@@ -1,0 +1,34 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "atopile/sensirion-sht45/sensirion-sht45.ato" import Sensirion_SHT45
+
+module Usage:
+    """
+    Minimal usage example for Sensirion SHT45 temperature and humidity sensor.
+    Shows basic I2C connection with 3.3V power supply.
+    """
+
+    # Power rail (3.3V for sensor)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz  # Fast mode I2C
+
+    # Temperature/humidity sensor instance
+    temp_humidity_sensor = new Sensirion_SHT45
+
+    # Connect power
+    power_3v3 ~ temp_humidity_sensor.power
+
+    # Connect I2C bus
+    i2c_bus ~ temp_humidity_sensor.i2c
+
+    # The SHT45-AD1F has a default I2C address of 0x44
+    assert temp_humidity_sensor.i2c.address within 0x44

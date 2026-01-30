@@ -1,0 +1,38 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "atopile/st-lsm6dsox/st-lsm6dsox.ato" import ST_LSM6DSOX
+
+module Usage:
+    """
+    Minimal usage example for ST LSM6DSOX 6-axis IMU.
+    Demonstrates basic I2C connection and dual power supply configuration.
+    """
+
+    # IMU instance
+    imu = new ST_LSM6DSOX
+
+    # External interfaces
+    power_3v3 = new ElectricPower
+    """
+    3.3V power supply for core (VDD) and I/O (VDDIO)
+    """
+
+    i2c_bus = new I2C
+
+    # Connect power supplies
+    power_3v3 ~ imu.power
+    power_3v3 ~ imu.power_io
+
+    assert power_3v3.voltage within 3.0V to 3.6V
+
+    # Connect I2C bus
+    i2c_bus ~ imu.i2c
+
+    # Configure I2C address (0x6A when SA0=GND, 0x6B when SA0=VDD)
+    # Default configuration uses SA0=GND for address 0x6A
+    assert imu.i2c.address within 0x6A

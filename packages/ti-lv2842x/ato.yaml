@@ -1,0 +1,25 @@
+requires-atopile: "^0.12.4"
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  default:
+    entry: ti-lv2842x.ato:TI_LV2842X
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/ti-lv2842x
+  repository: https://github.com/atopile/packages
+  version: "0.2.3"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: LV2842X High-Efficiency, Wide, Input-Voltage-Range (4-40V) Buck Regulator
+  license: MIT

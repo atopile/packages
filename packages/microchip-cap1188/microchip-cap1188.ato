@@ -1,0 +1,153 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/Microchip_Tech_CAP1188_1_CP_TR/Microchip_Tech_CAP1188_1_CP_TR.ato" import Microchip_Tech_CAP1188_1_CP_TR_package
+
+module Microchip_CAP1188:
+    """
+    Microchip CAP1188 8-channel capacitive touch sensor with I2C/SPI interface.
+
+    Features:
+    - 8 capacitive touch sensing inputs
+    - 8 LED drivers for visual feedback
+    - I2C or SPI communication interface
+    - Configurable I2C address via address pin
+    - Operating voltage: 3.0V to 3.6V
+    - Low power consumption
+    """
+
+    # --- Package ---
+    package = new Microchip_Tech_CAP1188_1_CP_TR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C interface for communication (configurable address)
+    """
+    i2c.required = True
+    assert i2c.frequency <= 400kHz
+
+    power = new ElectricPower
+    """
+    Power supply interface (3.0V to 3.6V)
+    """
+    power.required = True
+    assert power.voltage within 3.0V to 3.6V
+
+    # --- Optional interfaces ---
+    reset = new ElectricLogic
+    """
+    Reset pin (active low, optional)
+    """
+    reset.required = False
+
+    interrupt = new ElectricLogic
+    """
+    Interrupt/alert pin (active low, optional)
+    """
+    interrupt.required = False
+
+    # --- Touch sensing inputs ---
+    touch_pads = new ElectricLogic[8]
+    """
+    8 capacitive touch sensing inputs (CS1-CS8)
+    """
+    for pad in touch_pads:
+        pad.required = False
+
+    # --- LED outputs ---
+    led_outputs = new ElectricLogic[8]
+    """
+    8 LED driver outputs (LED1-LED8)
+    """
+    for led in led_outputs:
+        led.required = False
+
+    # --- Power connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+
+    # --- I²C bus connections ---
+    i2c.scl.line ~ package.SMCLK_BC_CLK_SPI_CLK
+    i2c.sda.line ~ package.SMDATA_BC_DATA_SPI_MSIO_SPI_MISO
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Control pin connections ---
+    reset.line ~ package.RESET
+    reset.reference ~ power
+
+    interrupt.line ~ package.nALERT_nBC_IRQ
+    interrupt.reference ~ power
+
+    # --- Touch pad connections ---
+    touch_pads[0].line ~ package.CS1
+    touch_pads[1].line ~ package.CS2
+    touch_pads[2].line ~ package.CS3
+    touch_pads[3].line ~ package.CS4
+    touch_pads[4].line ~ package.CS5
+    touch_pads[5].line ~ package.CS6
+    touch_pads[6].line ~ package.CS7
+    touch_pads[7].line ~ package.CS8
+
+    for pad in touch_pads:
+        pad.reference ~ power
+
+    # --- LED output connections ---
+    led_outputs[0].line ~ package.LED1
+    led_outputs[1].line ~ package.LED2
+    led_outputs[2].line ~ package.LED3
+    led_outputs[3].line ~ package.LED4
+    led_outputs[4].line ~ package.LED5
+    led_outputs[5].line ~ package.LED6
+    led_outputs[6].line ~ package.LED7
+    led_outputs[7].line ~ package.LED8
+
+    for led in led_outputs:
+        led.reference ~ power
+
+    # --- I²C Address Configuration ---
+    # Address select resistor - configures I2C address via ADDR_COMM pin
+    # See datasheet Table 4-1 for address mapping:
+    # 0ohm (GND): 4-wire SPI mode
+    # 82kohm: I2C address 0x2C
+    # 100kohm: I2C address 0x2B
+    # 120kohm: I2C address 0x2A
+    # 150kohm: I2C address 0x29
+    # Open (VDD): I2C address 0x28
+
+    address_resistor = new Resistor
+    address_resistor.package = "0402"
+    assert address_resistor.resistance within 0ohm to 200kohm
+    package.ADDR_COMM ~> address_resistor ~> power.lv
+
+    # Default to 100kohm for I2C address 0x2B
+    address_resistor.resistance = 100kohm +/- 5%
+    assert i2c.address within 0x2B
+
+    # --- Decoupling capacitor ---
+    power_cap = new Capacitor
+    power_cap.capacitance = 100nF +/- 20%
+    power_cap.package = "0402"
+    assert power_cap.max_voltage >= power.voltage * 1.5
+    power.hv ~> power_cap ~> power.lv
+
+    # --- Pull-up resistors ---
+    # Interrupt pull-up (recommended for open-drain output)
+    interrupt_pullup = new Resistor
+    interrupt_pullup.resistance = 10kohm +/- 5%
+    interrupt_pullup.package = "0402"
+    interrupt.line ~> interrupt_pullup ~> power.hv
+
+    # Reset pull-down (recommended for proper reset behavior)
+    reset_pulldown = new Resistor
+    reset_pulldown.resistance = 10kohm +/- 5%
+    reset_pulldown.package = "0402"
+    reset.line ~> reset_pulldown ~> power.lv

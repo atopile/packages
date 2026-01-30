@@ -6,47 +6,43 @@ Charge termination Voltage: 4.20V/4.35V
 ## Usage
 
 ```ato
-import Battery
-import PoweredLED
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
 import Resistor
 
-from "atopile/ti-bq2404x/bq2404x.ato" import BQ24040DSQR
+from "atopile/ti-bq2404x/ti-bq2404x.ato" import BQ24040DSQR
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 
-module Test:
+module Usage:
     """
-    Test module for BQ24040DSQR
+    5V input to 1S Li-ion charger, 500mA charge current, CHG/PG LEDs, TS 10k to GND.
     """
+
     charger = new BQ24040DSQR
 
-    battery = new Battery
-    battery.voltage = 4.2V
-    battery.capacity = 300mAh
+    # Rails
+    vin = new ElectricPower
+    vbatt = new ElectricPower
 
-    # Configure charge current to 1C
-    charger.charge_current = battery.capacity / 1h +/- 10%
+    # Power path
+    vin ~> charger ~> vbatt
 
-    # Connect power
-    power = new ElectricPower
-    power.voltage = 5V
-    power ~ charger.power_in
-    charger.power_batt ~ battery.power
+    # Charge current
+    charger.charge_current = 500mA +/- 10%
 
-    # Charge indicator
-    charge_led = new PoweredLED
-    power.vcc ~> charge_led ~> charger.charge_status.line
-    charge_led.current_limiting_resistor.resistance = 10kohm +/- 10%
-    charge_led.led.lcsc_id = "C2288"
+    # Charge status LED (active low)
+    chg_led = new LEDIndicatorGreen
+    vin.hv ~> chg_led ~> charger.charge_status.line
 
-    # Power good indicator
-    power_good_led = new PoweredLED
-    power.vcc ~> power_good_led ~> charger.power_good.line
-    power_good_led.current_limiting_resistor.resistance = 10kohm +/- 10%
-    power_good_led.led.lcsc_id = "C12624"
+    # Power good LED (active low)
+    pg_led = new LEDIndicatorGreen
+    vin.hv ~> pg_led ~> charger.power_good.line
 
-    # Temperature sensor - 10k ohm NTC
-    temp_sensor = new Resistor
-    temp_sensor.lcsc_id = "C2892547"
-    charger.temperature_sense.line ~> temp_sensor ~> power.gnd
+    # Temperature sense: 10k to GND
+    ts_pull = new Resistor
+    ts_pull.resistance = 10kohm +/- 1%
+    charger.temperature_sense.line ~> ts_pull ~> vin.gnd
 
 
 ```

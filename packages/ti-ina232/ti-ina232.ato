@@ -1,117 +1,151 @@
+#pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 
+# --- Standard library imports ---
+import I2C
 import ElectricPower
 import ElectricLogic
-import I2C
-import Capacitor
 import DifferentialPair
 import Resistor
+import Capacitor
+import can_bridge_by_name
+import SinglePinAddressor
 
-from "components/ti_addressor.py" import TIAddressor
-from "can_bridge_by_name.py" import can_bridge_by_name
-
+# --- Part import ---
 from "parts/TEXAS_INSTRUMENTS_INA232AIDDFR/TEXAS_INSTRUMENTS_INA232AIDDFR.ato" import TEXAS_INSTRUMENTS_INA232AIDDFR_package
 
-module Texas_Instruments_INA232x_driver:
-    """Texas Instruments INA232x driver"""
+module TI_INA232:
+    """
+    Texas Instruments INA232 high-side/low-side bidirectional current and power monitor.
+
+    Features:
+    - I2C interface with 16 programmable addresses
+    - High-side or low-side sensing capability
+    - 0V to 48V common-mode input voltage range
+    - ±75mV full-scale shunt voltage range
+    - 16-bit ADC resolution
+    - Programmable alerts and overlimit detection
+    - SOT-23-8 package
+    """
+
+    # --- Package ---
     package = new TEXAS_INSTRUMENTS_INA232AIDDFR_package
 
+    # --- Supply ---
     power = new ElectricPower
+    """
+    Device power supply (1.7V to 5.5V)
+    """
     power.required = True
     assert power.voltage within 1.7V to 5.5V
-    power.vcc ~ package.VS
-    power.gnd ~ package.GND
+    power.hv ~ package.VS
+    power.lv ~ package.GND
 
-    max_current: current
-    shunt_input_voltage = 75mV
-
-    # i2c
+    # --- I²C bus ---
     i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x40-0x4F based on A0 pin)
+    """
     i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
 
-    # alert
-    alert = new ElectricLogic
-    alert.line ~ package.ALERT
-    alert.reference.gnd ~ power.gnd
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv
 
-    # shunt input
+    # --- Alert pin ---
+    alert = new ElectricLogic
+    """
+    Programmable alert output (open-drain, active low)
+    """
+    alert.required = False
+    alert.line ~ package.ALERT
+    alert.reference ~ power
+
+    # Alert pin pull-up resistor (10kohm 0402)
+    alert_pullup = new Resistor
+    alert_pullup.resistance = 10kohm +/- 5%
+    alert_pullup.package = "0402"
+    alert.line ~> alert_pullup ~> power.hv
+
+    # --- Shunt differential input ---
     shunt_input = new DifferentialPair
+    """
+    Differential shunt voltage input (±75mV full scale)
+    """
+    shunt_input.required = False
     shunt_input.p.line ~ package.INpos
     shunt_input.n.line ~ package.INneg
 
-    # shunt resistor
+    # --- User-defined maximum current parameter ---
+    max_current: current
+    """
+    Maximum expected current for shunt resistor sizing
+    """
+    # Default to 1A to provide initial constraint
+    max_current.default = 1A
+
+    # INA232 full-scale shunt voltage range
+    shunt_voltage_max_range = 65mV to 75mV
+
+    # --- External shunt resistor (designer selects value & package) ---
     shunt = new Resistor
-    shunt.package = "R1206"
+    shunt.package = "1206"  # adequate power rating for most designs
     shunt_input.p.line ~> shunt ~> shunt_input.n.line
-    assert shunt.resistance <= shunt_input_voltage / max_current * 1.1
-    assert shunt.resistance >= shunt_input_voltage / max_current * 0.9
 
-    # Make bridgable - high side sense
+    # Recommended shunt value bounds given desired max current
+    # Target resistance: shunt_voltage_max_range / max_current = 70mV / max_current
+    assert shunt.resistance within shunt_voltage_max_range / max_current
+
+    # --- High-side bridge so designers can insert the monitor inline ---
     power_in = new ElectricPower
-    power_out = new ElectricPower
+    """
+    Input power for current sensing (high-side sensing)
+    """
     power_in.required = True
-    power_out.required = True
-    assert power_in.voltage within 0V to 48V
-    power_in.vcc ~> shunt ~> power_out.vcc
-    power_in.gnd ~ power.gnd
-    power_out.gnd ~ power.gnd
 
+    power_out = new ElectricPower
+    """
+    Output power for current sensing (high-side sensing)
+    """
+    power_out.required = True
+
+    # Voltage range for high-side sensing
+    assert power_in.voltage within 0V to 48V
+
+    # Common ground ties to device ground
+    power_in.lv ~ power.lv
+    power_out.lv ~ power.lv
+
+    # Bridge VCC path through shunt
+    power_in.hv ~> shunt ~> power_out.hv
+
+    # Mark module as a bridge so it can be inserted inline in power path
     trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
 
-    # decoupling cap
-    decoupling_cap = new Capacitor
-    power.vcc ~> decoupling_cap ~> power.gnd
-    decoupling_cap.capacitance = 100nF +/- 10%
-    decoupling_cap.package = "C0402"
+    # --- I²C address selection (A0 pin) ---
+    addressor = new SinglePinAddressor<states = 4>
+    addressor.base = 0x40
+    assert addressor.address is i2c.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
 
-    # addressor
-    addressor = new TIAddressor
-    addressor.i2c ~ i2c
     addressor.address_line.line ~ package.A0
     addressor.address_line.reference ~ power
-    assert addressor.base is 0x48
-    assert i2c.address is addressor.address
+    addressor.states[0] ~ power.lv  # GND → offset 0
+    addressor.states[1] ~ power.hv  # VCC → offset 1
+    addressor.states[2] ~ i2c.sda.line  # SDA → offset 2
+    addressor.states[3] ~ i2c.scl.line  # SCL → offset 3
 
-
-module Test:
-    current_sensors = new Texas_Instruments_INA232x_driver[4]
-
-    current_sensors[0].i2c.address = 0x48
-    current_sensors[1].i2c.address = 0x49
-    current_sensors[2].i2c.address = 0x4A
-    current_sensors[3].i2c.address = 0x4B
-
-    current_sensors[0].max_current = 0.1A
-    current_sensors[1].max_current = 1A
-    current_sensors[2].max_current = 3A
-    current_sensors[3].max_current = 10A
-
-    power = new ElectricPower
-    i2c = new I2C
-
-    # I2C Pullup
-    pullups = new Resistor[2]
-    for pullup in pullups:
-        pullup.package = "R0402"
-        pullup.resistance = 10kohm +/- 10%
-
-    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
-    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
-
-    for sensor in current_sensors:
-        sensor.power ~ power
-        sensor.i2c ~ i2c
-
-    # Power to sense
-    power_source = new ElectricPower
-    power_sink = new ElectricPower
-
-    power_source.voltage = 12V
-
-    # High side sense (all in parallel)
-    for sensor in current_sensors:
-        power_source ~> sensor ~> power_sink
+    # --- Decoupling capacitor ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv

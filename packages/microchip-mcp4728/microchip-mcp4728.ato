@@ -1,67 +1,113 @@
 #pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
-import ElectricSignal
 import ElectricPower
+import ElectricLogic
 import I2C
 import Capacitor
+import Resistor
+import has_single_electric_reference
 
-from "parts/MICROCHIP_MCP4728_E_UN/MICROCHIP_MCP4728_E_UN.ato" import MICROCHIP_MCP4728_E_UN_package
+from "parts/Microchip_Tech_MCP4728_E_UN/Microchip_Tech_MCP4728_E_UN.ato" import Microchip_Tech_MCP4728_E_UN_package
 
-module Microchip_MCP4728_driver:
-    """Microchip_Tech_MCP4728_E_UN component"""
-    ic = new MICROCHIP_MCP4728_E_UN_package
+module Microchip_MCP4728:
+    """
+    Microchip MCP4728 Quad 12-bit DAC with EEPROM
 
-    # Power
+    The MCP4728 is a quad channel, 12-bit voltage output Digital-to-Analog Converter (DAC)
+    with non-volatile memory (EEPROM) and an I2C interface. The device includes an on-chip
+    voltage reference and supports individual channel configuration.
+    """
+
+    # --- External interfaces ---
     power = new ElectricPower
-    power.vcc ~ ic.VDD
-    power.gnd ~ ic.VSS
-
-    # Capacitor
-    bypass_cap = new Capacitor
-    power ~ bypass_cap.power
-    bypass_cap.capacitance = 100nF +/- 20%
-    bypass_cap.package = "C0402"
-
-    # I2C
-    i2c = new I2C
-    i2c.scl.line ~ ic.SCL
-    i2c.sda.line ~ ic.SDA
-    i2c.address = 0x60
-
-    # Set required interfaces
+    """
+    Power supply for the device (2.7V to 5.5V)
+    """
     power.required = True
+
+    assert power.voltage within 2.7V to 5.5V
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x60-0x67, factory programmed)
+    """
     i2c.required = True
 
-    # Outputs
-    outputs = new ElectricSignal[4]
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
 
-    # Connect outputs
-    outputs[0].line ~ ic.VOUTA
-    outputs[1].line ~ ic.VOUTB
-    outputs[2].line ~ ic.VOUTC
-    outputs[3].line ~ ic.VOUTD
+    # DAC output signals
+    vouts = new ElectricLogic[4]
+    """
+    DAC Channel A, B, C, D output
+    """
+    for vout in vouts:
+        vout.reference ~ power
 
-    # Connect outputs to power
-    for output in outputs:
-        output.reference ~ power
+    # Control signals
+    ready = new ElectricLogic
+    """
+    Ready/Busy status output (active low)
+    """
+    ready.reference ~ power
 
-module Test:
-    # Create DAC
-    dac = new Microchip_MCP4728_driver
+    ldac = new ElectricLogic
+    """
+    Load DAC input (active low). When low, transfers data from input registers to DAC registers
+    """
+    ldac.reference ~ power
 
-    # Create power and I2C interfaces
-    power = new ElectricPower
-    i2c = new I2C
+    # --- I²C bus ---
+    # The MCP4728 has factory-programmed I2C addresses from 0x60 to 0x67
+    # The address is selected at ordering time and cannot be changed
+    i2c.address = 0x60
 
-    # Connect power and I2C to DAC
-    power ~ dac.power
-    i2c ~ dac.i2c
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+    power_caps[0].capacitance = 100nF +/- 20%
+    power_caps[0].package = "0402"
+    power_caps[1].capacitance = 10uF +/- 20%
+    for cap in power_caps:
+        power.hv ~> cap ~> power.lv
 
-    # Create example electric logics
-    outputs = new ElectricSignal[4]
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
 
-    # Connect outputs to DAC
-    outputs[0] ~ dac.outputs[0]
-    outputs[1] ~ dac.outputs[1]
-    outputs[2] ~ dac.outputs[2]
-    outputs[3] ~ dac.outputs[3]
+    # --- Other configuration ---
+    ldac_pulldown = new Resistor
+    ldac_pulldown.resistance = 10kohm +/- 5%
+    ldac_pulldown.package = "0402"
+    ldac.line ~> ldac_pulldown ~> power.lv
+
+    rdy_pullup = new Resistor
+    rdy_pullup.resistance = 100kohm +/- 5%
+    rdy_pullup.package = "0402"
+    ready.line ~> rdy_pullup ~> power.hv
+
+    # --- Package ---
+    package = new Microchip_Tech_MCP4728_E_UN_package
+
+    # Power connections
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Control signal connections
+    package.RDY_nBSY ~ ready.line
+
+    package.nLDAC ~ ldac.line
+
+    # DAC output connections
+    package.VOUTA ~ vouts[0].line
+    package.VOUTB ~ vouts[1].line
+    package.VOUTC ~ vouts[2].line
+    package.VOUTD ~ vouts[3].line

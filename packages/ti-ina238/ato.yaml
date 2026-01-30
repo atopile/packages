@@ -1,0 +1,26 @@
+requires-atopile: "^0.12.4"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-ina238.ato:TI_INA238
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/ti-ina238
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-ina238/README.md
+  version: "0.1.1"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "TI; INA238; Current; Power; Voltage; Monitor; IC; I2C"
+  license: MIT

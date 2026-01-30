@@ -1,0 +1,126 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+import I2C
+import DifferentialPair
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Addressor
+import Capacitor
+import Resistor
+from "parts/Texas_Instruments_INA237AIDGSR/Texas_Instruments_INA237AIDGSR.ato" import Texas_Instruments_INA237AIDGSR_package
+
+module TI_INA237:
+    """
+    Texas Instruments INA237 85V 16-bit I2C Current/Voltage/Power Monitor
+
+    High-precision digital power monitor with 16-bit delta-sigma ADC
+    - Common-mode voltage range: -0.3V to +85V
+    - Shunt voltage range: ±163.84mV / ±40.96mV
+    - I2C interface with 16 selectable addresses
+    - Integrated temperature sensor (±1°C accuracy)
+    - Supply voltage: 2.7V to 5.5V
+    """
+
+    # --- External interfaces ---
+
+    power = new ElectricPower
+    """
+    Main power supply (2.7V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 2.7V to 5.5V
+
+    i2c = new I2C
+    """
+    I2C bus interface with 16 selectable addresses (0x40-0x4F)
+    """
+    i2c.required = True
+    i2c.has_single_electric_reference.reference ~ power
+
+    vbus = new ElectricLogic
+    """
+    Bus voltage input (up to 85V common-mode)
+    """
+
+    current_sense = new DifferentialPair
+    """
+    Current sense input (shunt)
+    """
+
+    # User-defined maximum current parameter
+    max_current: current
+    # Default to 1 A to provide initial constraint (can be overridden by instantiations)
+    max_current.default = 1A
+
+    # INA237 default full-scale shunt drop (programmable). Use 163.84 mV typical.
+    shunt_drop = 163.84mV
+
+    # External shunt resistor (designer selects value & package)
+    shunt = new Resistor
+    shunt.package = "M2012"  # adequate power rating for most designs
+    current_sense.p.line ~> shunt ~> current_sense.n.line
+
+    # Recommended shunt value bounds given desired max current
+    assert shunt.resistance <= shunt_drop / max_current * 1.1
+    assert shunt.resistance >= shunt_drop / max_current * 0.9
+
+    alert = new ElectricLogic
+    """
+    Alert output pin (open-drain, active low)
+    """
+
+    addressor = new Addressor<address_bits = 2>
+    """
+    I2C address configuration (A0, A1 pins) - 4 addresses: 0x40-0x43
+    """
+    addressor.base = 0x40
+    assert i2c.address is addressor.address
+    # Default to base address (0x40), can be overridden by user
+    i2c.address.default = 0x40
+
+    # --- Decoupling capacitors ---
+    supply_cap = new Capacitor
+    supply_cap.capacitance = 100nF +/- 20%
+    supply_cap.max_voltage = 10V to 50V
+    supply_cap.package = "0402"
+    power.hv ~> supply_cap ~> power.lv
+
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Package connections ---
+    package = new Texas_Instruments_INA237AIDGSR_package
+
+    # Power connections
+    package.VS ~ power.hv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Address pins connected to addressor
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].reference ~ power
+
+    # Measurement inputs
+    package.VBUS ~ vbus.line
+    package.INpos ~ current_sense.p.line
+    package.INneg ~ current_sense.n.line
+
+    # Alert output
+    package.ALERT ~ alert.line
+
+    # Reference connections
+    vbus.reference ~ power
+    alert.reference ~ power

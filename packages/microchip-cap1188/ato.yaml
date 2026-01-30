@@ -1,23 +1,26 @@
-requires-atopile: "^0.9.0"
-
+requires-atopile: ^0.14.0
 paths:
-  src: "."
+  src: ./
   layout: ./layouts
-
 builds:
   default:
-    entry: microchip_cap1188.ato:Microchip_Tech_CAP1188_1_CP_TR_driver
-    exclude_checks: ['PCB.requires_drc_check']
-  example:
-    entry: microchip_cap1188.ato:CAP1188_Example
-    exclude_checks: ['PCB.requires_drc_check']
-
+    entry: microchip-cap1188.ato:Microchip_CAP1188
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/microchip-cap1188
   repository: https://github.com/atopile/packages
-  version: "0.1.3"
+  homepage: https://github.com/atopile/packages/blob/main/packages/microchip-cap1188/README.md
+  version: 0.3.0
   authors:
-    - name: atopile
-      email: hi@atopile.com
-  summary: Microchip CAP1188 8-channel capacitive touch sensor
+  - name: atopile
+    email: hi@atopile.io
+  summary: 'Tags: Microchip; CAP1188; Capacitive; Touch; Sensor; IC; I2C; SPI; 8-Channel;
+    QFN; Proximity; Button'
   license: MIT

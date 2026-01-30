@@ -1,23 +1,26 @@
-requires-atopile: "^0.9.0"
+requires-atopile: ^0.14.0
 
 paths:
-  src: .
+  src: ./
   layout: ./layouts
 
 builds:
   default:
-    entry: ti-tca6408.ato:Texas_Instruments_TCA6408_driver
-    exclude_checks: ['PCB.requires_drc_check']
-  test:
-    entry: ti-tca6408.ato:Test
-    exclude_checks: ['PCB.requires_drc_check']
+    entry: ti-tca6408.ato:TI_TCA6408
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/ti-tca6408
   repository: https://github.com/atopile/packages
-  version: "0.1.5"
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-tca6408/README.md
+  version: "0.2.0"
   authors:
     - name: atopile
       email: hi@atopile.io
-  summary: Texas Instruments TCA6408 GPIO expander
+  summary: "Texas Instruments; TCA6408; GPIO; Expander; I2C; 8-Channel; QFN"
   license: MIT

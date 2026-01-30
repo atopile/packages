@@ -3,12 +3,18 @@
 ## Usage
 
 ```ato
-from "atopile/logos/atopile_logo_8x8mm.ato" import atopile_logo_8x8mm
+from "atopile/logos/logos.ato" import atopile_logo_4x4mm
+from "atopile/logos/logos.ato" import atopile_logo_8x8mm
+from "atopile/logos/logos.ato" import faebryk_logo_8x9mm
 
-import ElectricPower
+module Usage:
+    """
+    Minimal usage example for the logos package. Places a few logo footprints.
+    """
+    a = new atopile_logo_4x4mm
+    b = new atopile_logo_8x8mm
+    c = new faebryk_logo_8x9mm
 
-module App:
-    logo = new atopile_logo_8x8mm
 ```
 
 ## Overview

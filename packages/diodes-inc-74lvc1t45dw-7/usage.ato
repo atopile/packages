@@ -1,0 +1,147 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricLogic
+
+from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
+from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Level_Shifter_3V3_to_5V
+from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Bidirectional_Level_Shifter
+
+module Usage:
+    """
+    Usage examples for Diodes Inc 74LVC1T45DW-7 level shifter.
+
+    This example demonstrates:
+    - Basic level shifter configuration
+    - Pre-configured 3.3V to 5V shifter
+    - Bidirectional shifter with external control
+    - Multiple level shifter chaining
+    - Common interface scenarios
+    """
+
+    # --- Basic Level Shifter Example ---
+    basic_shifter = new Diodes_Inc_74LVC1T45DW_7
+
+    # Power supplies
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    power_5v = new ElectricPower
+    power_5v.voltage = 5V +/- 5%
+
+    # Connect power supplies
+    power_3v3 ~ basic_shifter.power_a
+    power_5v ~ basic_shifter.power_b
+
+    # Signal interfaces
+    mcu_signal = new ElectricLogic
+    """3.3V signal from microcontroller"""
+    mcu_signal ~ basic_shifter.signal_a
+    power_3v3 ~ mcu_signal.reference
+
+    peripheral_signal = new ElectricLogic
+    """5V signal to peripheral device"""
+    peripheral_signal ~ basic_shifter.signal_b
+    power_5v ~ peripheral_signal.reference
+
+    # --- Pre-configured 3.3V to 5V Shifter Example ---
+    preconfigured_shifter = new Level_Shifter_3V3_to_5V
+
+    # Connect same power supplies
+    power_3v3 ~ preconfigured_shifter.power_3v3
+    power_5v ~ preconfigured_shifter.power_5v
+
+    # Connect signals
+    mcu_spi_clock = new ElectricLogic
+    """SPI clock from 3.3V MCU"""
+    mcu_spi_clock ~ preconfigured_shifter.signal_3v3
+    power_3v3 ~ mcu_spi_clock.reference
+
+    display_spi_clock = new ElectricLogic
+    """SPI clock to 5V display"""
+    display_spi_clock ~ preconfigured_shifter.signal_5v
+    power_5v ~ display_spi_clock.reference
+
+    # --- Bidirectional Level Shifter Example ---
+    bidir_shifter = new Bidirectional_Level_Shifter
+
+    # Connect power supplies
+    power_3v3 ~ bidir_shifter.power_low
+    power_5v ~ bidir_shifter.power_high
+
+    # Bidirectional data line (e.g., I2C SDA)
+    mcu_data = new ElectricLogic
+    """Bidirectional data from MCU"""
+    mcu_data ~ bidir_shifter.signal_low
+    power_3v3 ~ mcu_data.reference
+
+    sensor_data = new ElectricLogic
+    """Bidirectional data to/from sensor"""
+    sensor_data ~ bidir_shifter.signal_high
+    power_5v ~ sensor_data.reference
+
+    # Direction control from MCU
+    direction_ctrl = new ElectricLogic
+    """Direction control signal"""
+    direction_ctrl ~ bidir_shifter.direction_control
+    power_3v3 ~ direction_ctrl.reference
+
+    # --- Multiple Level Shifters for Bus Translation ---
+    # Example: Converting 4-bit bus from 3.3V to 5V
+    bus_shifters = new Diodes_Inc_74LVC1T45DW_7[4]
+
+    # Connect power to all shifters
+    for shifter in bus_shifters:
+        power_3v3 ~ shifter.power_a
+        power_5v ~ shifter.power_b
+
+    # Create bus signals
+    mcu_bus = new ElectricLogic[4]
+    """4-bit bus from MCU (3.3V)"""
+
+    peripheral_bus = new ElectricLogic[4]
+    """4-bit bus to peripheral (5V)"""
+
+    # Connect bus signals through shifters
+    mcu_bus[0] ~ bus_shifters[0].signal_a; peripheral_bus[0] ~ bus_shifters[0].signal_b
+    mcu_bus[1] ~ bus_shifters[1].signal_a; peripheral_bus[1] ~ bus_shifters[1].signal_b
+    mcu_bus[2] ~ bus_shifters[2].signal_a; peripheral_bus[2] ~ bus_shifters[2].signal_b
+    mcu_bus[3] ~ bus_shifters[3].signal_a; peripheral_bus[3] ~ bus_shifters[3].signal_b
+
+    # Set signal references
+    for bus_signal in mcu_bus:
+        power_3v3 ~ bus_signal.reference
+    for bus_signal in peripheral_bus:
+        power_5v ~ bus_signal.reference
+
+    # --- UART Level Shifting Example ---
+    uart_tx_shifter = new Diodes_Inc_74LVC1T45DW_7
+    uart_rx_shifter = new Diodes_Inc_74LVC1T45DW_7
+
+    # Connect power
+    power_3v3 ~ uart_tx_shifter.power_a
+    power_5v ~ uart_tx_shifter.power_b
+    power_3v3 ~ uart_rx_shifter.power_a
+    power_5v ~ uart_rx_shifter.power_b
+
+    # UART TX (MCU to peripheral): 3.3V -> 5V
+    mcu_uart_tx = new ElectricLogic
+    peripheral_uart_rx = new ElectricLogic
+    mcu_uart_tx ~ uart_tx_shifter.signal_a
+    peripheral_uart_rx ~ uart_tx_shifter.signal_b
+    uart_tx_shifter.dir.line ~ power_3v3.hv  # A -> B direction
+
+    # UART RX (peripheral to MCU): 5V -> 3.3V
+    peripheral_uart_tx = new ElectricLogic
+    mcu_uart_rx = new ElectricLogic
+    mcu_uart_rx ~ uart_rx_shifter.signal_a
+    peripheral_uart_tx ~ uart_rx_shifter.signal_b
+    uart_rx_shifter.dir.line ~ power_3v3.lv  # B -> A direction
+
+    # Set signal references
+    power_3v3 ~ mcu_uart_tx.reference
+    power_3v3 ~ mcu_uart_rx.reference
+    power_5v ~ peripheral_uart_rx.reference
+    power_5v ~ peripheral_uart_tx.reference

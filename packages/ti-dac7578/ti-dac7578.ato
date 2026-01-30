@@ -1,0 +1,122 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import Electrical
+import I2C
+import Resistor
+
+from "parts/Texas_Instruments_DAC7578SPWR/Texas_Instruments_DAC7578SPWR.ato" import Texas_Instruments_DAC7578SPWR_package
+
+module TI_DAC7578:
+    """
+    Texas Instruments DAC7578 8-Channel 12-Bit DAC with I2C Interface
+
+    Features:
+    - 8 x 12-bit DAC channels with individual outputs
+    - I2C interface with proper address handling (0x48/0x4A)
+    - Supply voltage: 2.7V to 5.5V
+    - Optional external reference voltage
+    - Control signals: nCLR (clear), nLDAC (load)
+    - Built-in decoupling capacitors
+
+    Design Philosophy:
+    - I2C pull-ups handled at bus level (not included)
+    - External reference voltage supported via vref interface
+    - Default address 0x48, configurable to 0x4A via ADDR0 pin
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_DAC7578SPWR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 2.7V to 5.5V
+
+    i2c = new I2C
+
+    # DAC output channels
+    dac_out_a = new Electrical
+    dac_out_b = new Electrical
+    dac_out_c = new Electrical
+    dac_out_d = new Electrical
+    dac_out_e = new Electrical
+    dac_out_f = new Electrical
+    dac_out_g = new Electrical
+    dac_out_h = new Electrical
+
+    # Control signals
+    clear_n = new ElectricLogic
+    clear_n.reference ~ power
+
+    ldac_n = new ElectricLogic
+    ldac_n.reference ~ power
+
+    # Reference voltage interface
+    vref = new Electrical
+    """
+    Reference voltage input. Connect to external precision reference
+    or leave unconnected to use internal power supply reference.
+    """
+
+    # --- Power supply ---
+    power.hv ~ package.AVDD
+    power.lv ~ package.GND
+
+    # Reference voltage connection
+    package.VREFIN ~ vref
+
+    # --- I²C bus ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C addressing via ADDR0 pin
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x48
+    addressor.address_lines[0].line ~ package.ADDR0
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x48), can be overridden by user
+    i2c.address.default = 0x48
+
+    # I2C pull-up resistors are handled at the bus level
+    # This prevents conflicts when multiple devices share the same I2C bus
+
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+    for capacitor in power_caps:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+        power.hv ~> capacitor ~> power.lv
+
+    # --- Control signal pull-ups ---
+    clear_pullup = new Resistor
+    clear_pullup.resistance = 10kohm +/- 1%
+    clear_pullup.package = "0402"
+    power.hv ~> clear_pullup ~> clear_n.line
+
+    ldac_pullup = new Resistor
+    ldac_pullup.resistance = 10kohm +/- 1%
+    ldac_pullup.package = "0402"
+    power.hv ~> ldac_pullup ~> ldac_n.line
+
+    # --- DAC output connections ---
+    package.VOUTA ~ dac_out_a
+    package.VOUTB ~ dac_out_b
+    package.VOUTC ~ dac_out_c
+    package.VOUTD ~ dac_out_d
+    package.VOUTE ~ dac_out_e
+    package.VOUTF ~ dac_out_f
+    package.VOUTG ~ dac_out_g
+    package.VOUTH ~ dac_out_h
+
+    # --- Control signal connections ---
+    package.nCLR ~ clear_n.line
+    package.nLDAC ~ ldac_n.line

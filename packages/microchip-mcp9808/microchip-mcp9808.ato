@@ -1,0 +1,113 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import Addressor
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+import has_single_electric_reference
+
+from "parts/Microchip_Tech_MCP9808_E_MS/Microchip_Tech_MCP9808_E_MS.ato" import Microchip_Tech_MCP9808_E_MS_package
+
+module Microchip_MCP9808:
+    """
+    Microchip MCP9808 high-precision digital temperature sensor
+
+    Features:
+    - Temperature accuracy: ±0.25°C (typical), ±1°C (maximum) from -40°C to +125°C
+    - User-selectable resolution: 0.5°C, 0.25°C, 0.125°C, or 0.0625°C (default)
+    - Operating voltage: 2.7V to 5.5V
+    - Low power consumption: 200µA (typical operation), 0.1µA (shutdown)
+    - I2C interface with user-programmable address (0x18 to 0x1F)
+    - User-programmable temperature alert output
+    - User-programmable temperature limits for upper, lower, and critical boundaries
+    - Shutdown mode for power saving
+
+    Default Configuration:
+    - I2C mode with address 0x18 (all address pins to GND)
+    - Resolution: 0.0625°C (power-on default)
+    - Alert output: open-drain with internal pull-up resistor
+    - Single power supply with decoupling capacitor
+    """
+
+    # --- Package ---
+    package = new Microchip_Tech_MCP9808_E_MS_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x18 to 0x1F)
+    """
+    i2c.required = True
+
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
+
+    power = new ElectricPower
+    """
+    Main power supply (2.7V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 2.7V to 5.5V
+
+    alert = new ElectricLogic
+    """
+    Temperature alert output (open-drain)
+    """
+    alert.line ~ package.Alert
+    alert.reference ~ power
+
+    # --- Power consumption specifications ---
+    # Operating current: 200µA typical, 400µA maximum
+    # Shutdown current: 0.1µA typical, 2µA maximum
+    power.max_current = 0.1uA to 400uA  # Depends on operating mode
+
+    # Connect main power to package
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+
+    # --- I²C interface ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I2C frequency constraints (MCP9808 supports up to 400kHz)
+    assert i2c.frequency within 10kHz to 400kHz
+
+    # I2C address selection via A2, A1, A0 pins
+    # Base address 0x18 (0011000b) + A2A1A0
+    addressor = new Addressor<address_bits = 3>
+    addressor.base = 0x18  # Base address when all address pins to GND
+    addressor.address_lines[0].line ~ package.A0  # LSB
+    addressor.address_lines[1].line ~ package.A1
+    addressor.address_lines[2].line ~ package.A2  # MSB
+    for address_line in addressor.address_lines:
+        address_line.reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x18), can be overridden by user
+    i2c.address.default = 0x18
+
+    # I2C pull-up resistors (required for proper I2C operation)
+    i2c_pullups = new Resistor[2]
+    for pullup in i2c_pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "0402"
+    power.hv ~> i2c_pullups[0] ~> i2c.scl.line  # SCL pullup
+    power.hv ~> i2c_pullups[1] ~> i2c.sda.line  # SDA pullup
+
+    # Alert pin pull-up resistor
+    alert_pullup = new Resistor
+    alert_pullup.resistance = 10kohm +/- 5%
+    alert_pullup.package = "0402"
+    power.hv ~> alert_pullup ~> alert.line
+
+    # --- Decoupling capacitor ---
+    # Recommended 0.1µF to 1µF ceramic capacitor close to VDD pin
+    vdd_cap = new Capacitor
+    vdd_cap.capacitance = 100nF +/- 20%
+    vdd_cap.package = "0402"
+    power.hv ~> vdd_cap ~> power.lv

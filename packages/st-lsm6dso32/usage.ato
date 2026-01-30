@@ -1,0 +1,41 @@
+import ElectricPower
+import I2C
+import ElectricLogic
+from "atopile/st-lsm6dso32/st-lsm6dso32.ato" import ST_LSM6DSO32
+
+module Usage:
+    """
+    Usage example for ST LSM6DSO32 6-DoF Accelerometer and Gyroscope.
+
+    This example shows:
+    - Single power supply configuration (VDD and VDDIO connected to same rail)
+    - I2C interface with default address 0x6A
+    - Address selection via SA0 pin (connected to GND for 0x6A)
+    - Optional interrupt pin connection
+    """
+
+    # Power supply (3.3V single rail for both VDD and VDDIO)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz +/- 50%
+
+    # IMU sensor
+    imu = new ST_LSM6DSO32
+
+    # Connect power supplies (single supply configuration)
+    power_3v3 ~ imu.power_vdd
+    power_3v3 ~ imu.power_vddio
+
+    # Connect I2C interface
+    i2c_bus ~ imu.i2c
+
+    # Configure I2C address to 0x6A (SA0 pin to GND)
+    assert imu.i2c.address within 0x6B
+
+    # Optional: Connect interrupt pin for motion detection
+    # int_pin = new ElectricLogic
+    # int_pin.reference ~ power_3v3
+    # int_pin ~ imu.int1

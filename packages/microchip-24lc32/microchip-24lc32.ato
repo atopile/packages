@@ -1,0 +1,72 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Addressor
+import Resistor
+
+from "parts/Microchip_Tech_24LC32AT_I_OT/Microchip_Tech_24LC32AT_I_OT.ato" import Microchip_Tech_24LC32AT_I_OT_package
+
+module Microchip_24LC32:
+    """
+    Microchip 24LC32 32-Kbit I²C serial EEPROM.
+    """
+    package = new Microchip_Tech_24LC32AT_I_OT_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x50 fixed)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply (1.8V to 5.5V)
+    Wide operating voltage range for various applications
+    """
+    power.required = True
+
+    write_protect = new ElectricLogic
+    """
+    Write protection control pin
+    Pull high to enable write protection, low to allow writes
+    """
+    write_protect.required = False
+
+    # --- Power supply ---
+    assert power.voltage within 1.8V to 5.5V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x50
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 10kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitor ---
+    decouple = new Capacitor
+    decouple.capacitance = 100nF +/- 20%
+    decouple.package = "0402"
+    power.hv ~> decouple ~> power.lv
+
+    # --- Write-protect ---
+    write_protect.reference ~ power
+
+    # --- Package  ---
+    package.VCC ~ power.hv
+    package.VSS ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    package.WP ~ write_protect.line

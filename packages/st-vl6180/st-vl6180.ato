@@ -1,0 +1,135 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import Resistor
+
+from "parts/STMicroelectronics_VL6180V1NR_1/STMicroelectronics_VL6180V1NR_1.ato" import STMicroelectronics_VL6180V1NR_1_package
+
+module ST_VL6180:
+    """
+    STMicroelectronics VL6180 Time-of-Flight Proximity and Ambient Light Sensor
+
+    Features:
+    - Time-of-Flight ranging up to 100mm (typical), 60cm possible
+    - Ambient light sensing (ALS) capability
+    - I2C interface with default address 0x29
+    - Two programmable GPIO pins for interrupts
+    - Integrated IR emitter and photodiode
+    - Independent of target color and surface reflectance
+    - 2.8V core operation with 2.6V-5.5V I/O voltage tolerance
+    - Low power consumption: 1.7mA average during ranging
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_VL6180V1NR_1_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (default 7-bit address 0x29)
+    Address can be changed via software but resets to 0x29 on power cycle
+    """
+    i2c.required = True
+    assert i2c.address within 0x29
+
+    power_io = new ElectricPower
+    """
+    I/O power supply (2.6V to 5.5V, typically 3.3V)
+    Used for I2C communication and GPIO pins
+    """
+    power_io.required = True
+    assert power_io.voltage within 2.6V to 5.5V
+
+    power_analog = new ElectricPower
+    """
+    Analog power supply (2.8V nominal)
+    Core analog supply for sensor operation
+    """
+    power_analog.required = True
+    assert power_analog.voltage within 2.6V to 3.0V
+
+    power_vcsel = new ElectricPower
+    """
+    VCSEL (Vertical Cavity Surface Emitting Laser) power supply (2.8V nominal)
+    Dedicated supply for the IR emitter
+    """
+    power_vcsel.required = True
+    assert power_vcsel.voltage within 2.6V to 3.0V
+
+    # --- GPIO pins ---
+    gpio0_ce = new ElectricLogic
+    """
+    GPIO0/Chip Enable pin
+    - Input: Chip enable (active high)
+    - Output: Range/ALS data ready interrupt
+    Can be used for power management and interrupt signaling
+    """
+    gpio0_ce.required = False
+    gpio0_ce.reference ~ power_io
+
+    gpio1 = new ElectricLogic
+    """
+    GPIO1 pin
+    - Programmable interrupt output
+    - Can signal range/ALS thresholds, errors, etc.
+    """
+    gpio1.required = False
+    gpio1.reference ~ power_io
+
+    # --- Power connections ---
+    power_analog.hv ~ package.AVDD
+    power_vcsel.hv ~ package.AVDD_VCSEL
+    power_vcsel.lv ~ package.AVSS_VCSEL
+    power_analog.lv ~ package.GND
+    power_io.hv ~ package.AVDD  # I/O power connects to AVDD
+    power_io.lv ~ package.GND
+    power_io.lv ~ package.AVSS_VCSEL
+
+    # --- I2C connections ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- GPIO connections ---
+    gpio0_ce.line ~ package.GPIO0_CE
+    gpio1.line ~ package.GPIO1
+
+    # GPIO0/CE pull-up resistor (required by datasheet)
+    gpio0_pullup = new Resistor
+    gpio0_pullup.resistance = 47kohm +/- 5%
+    gpio0_pullup.package = "0402"
+    gpio0_ce.line ~> gpio0_pullup ~> gpio0_ce.reference.hv
+
+    # GPIO1 pull-up resistor (required if used)
+    gpio1_pullup = new Resistor
+    gpio1_pullup.resistance = 47kohm +/- 5%
+    gpio1_pullup.package = "0402"
+    gpio1.line ~> gpio1_pullup ~> gpio1.reference.hv
+
+    # --- Decoupling capacitors ---
+    # Analog supply decoupling
+    power_analog_cap = new Capacitor
+    power_analog_cap.capacitance = 100nF +/- 20%
+    power_analog_cap.package = "0402"
+    power_analog.hv ~> power_analog_cap ~> power_analog.lv
+
+    # VCSEL supply decoupling
+    power_vcsel_cap = new Capacitor
+    power_vcsel_cap.capacitance = 100nF +/- 20%
+    power_vcsel_cap.package = "0402"
+    power_vcsel.hv ~> power_vcsel_cap ~> power_vcsel.lv

@@ -1,84 +1,142 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
-import ElectricPower, Regulator
-import Capacitor, PoweredLED
+import ElectricPower
+import Regulator
+import Capacitor
 
-module BYYXXS_2WR2 from Regulator:
+from "parts/YLPTEC_B2405S_2WR3/YLPTEC_B2405S_2WR3.ato" import YLPTEC_B2405S_2WR3_package
+from "parts/YLPTEC_B0505S_2WR3/YLPTEC_B0505S_2WR3.ato" import YLPTEC_B0505S_2WR3_package
+from "parts/YLPTEC_B1205S_2WR2/YLPTEC_B1205S_2WR2.ato" import YLPTEC_B1205S_2WR2_package
+
+module YLPTEC_B2405S_2WR3 from Regulator:
     """
-    Isolated 2W DC-DC converter
-    Usage: Specalize converter to part below, eg
-    my_regulator.converter -> _B2405 for 5V output, 24V input
-    """
-    package = new _BYYXX_package
-    package -> _B2405_package # Override
-    package.power_in ~ power_in
-    package.power_out ~ power_out
-
-    led = new PoweredLED
-    led.power ~ power_out
-    led.current_limiting_resistor.package = "R0402"
-    led.current_limiting_resistor.resistance = 2.2kohm +/- 10%
-    led.led.lcsc_id = "C12624"
-
-    input_cap = new Capacitor
-    input_cap.capacitance = 2.2uF +/- 10%
-    input_cap.package = "C0805"
-    power_in ~ input_cap.power
-
-    output_cap = new Capacitor
-    output_cap.capacitance = 10uF +/- 10%
-    output_cap.package = "C0805"
-    power_out ~ output_cap.power
-
-
-component _BYYXX_package:
-    """
-    Generic YLPTEC isolated converter, specalize with
-    - 5V, 9V, 24V output (Below)
+    YLPTEC B2405S-2WR3 Isolated 2W DC-DC Converter
+    - Input: 24V (21.6V to 26.4V)
+    - Output: 5V (400mA max)
+    - Galvanically isolated input/output
+    - SIP-6 package
     """
 
-    # pins
-    power_in = new ElectricPower
-    power_in.vcc ~ pin 1
-    power_in.gnd ~ pin 2
+    # --- External interfaces ---
     power_in.required = True
+    """Input power supply (24V nominal, ±10%)"""
 
-
-    power_out = new ElectricPower
-    power_out.vcc ~ pin 6
-    power_out.gnd ~ pin 4
     power_out.required = True
+    """Isolated 5V output rail"""
 
-component _B2405_package from _BYYXX_package:
-    # 2W, 24V in 5V out
-    lcsc_id = "C5369484"
+    # --- Voltage constraints ---
+    assert power_in.voltage within 21.6V to 26.4V
+    assert power_out.voltage within 4.75V to 5.25V
 
-component _B2409_package from _BYYXX_package:
-    # 2W, 24V in 9V out
-    #TODO: missing LCSC data
-    lcsc_id = "C7428336"
+    # --- Package ---
+    package = new YLPTEC_B2405S_2WR3_package
 
-component _B2424_package from _BYYXX_package:
-    # 2W, 24V in 24V out
-    lcsc_id = "C2992386"
+    # --- Package connections ---
+    # Input side
+    package.Vin ~ power_in.hv
+    package.GND ~ power_in.lv
 
-component _B0505_package from _BYYXX_package:
-    # 2W, 24V in 5V out
-    lcsc_id = "C5369473"
+    # Output side (isolated)
+    package.VOpos ~ power_out.hv
+    package.P0V ~ power_out.lv
 
+    # --- Input decoupling capacitor ---
+    input_cap = new Capacitor
+    input_cap.capacitance = 2.2uF +/- 20%
+    input_cap.package = "0805"
+    power_in.hv ~> input_cap ~> power_in.lv
 
-module Test:
+    # --- Output decoupling capacitor ---
+    output_cap = new Capacitor
+    output_cap.capacitance = 10uF +/- 20%
+    output_cap.package = "0805"
+    power_out.hv ~> output_cap ~> power_out.lv
 
-    # Create 4 regulators, each with a different package
-    regulators = new BYYXXS_2WR2[4]
-    regulators[0].package -> _B2405_package
-    # regulators[1].package -> _B2409_package # currently missing lcsc data :(
-    regulators[2].package -> _B2424_package
-    regulators[3].package -> _B0505_package
+module YLPTEC_B0505S_2WR3 from Regulator:
+    """
+    YLPTEC B0505S-2WR3 Isolated 2W DC-DC Converter
+    - Input: 5V (4.5V to 5.5V)
+    - Output: 5V (400mA max)
+    - Galvanically isolated input/output
+    - SIP-6 package
+    """
 
-    # Create power interfaces
-    power_in = new ElectricPower
-    power_out = new ElectricPower
+    # --- External interfaces ---
+    power_in.required = True
+    """Input power supply (5V nominal, ±10%)"""
 
-    # Example connection
-    power_in ~> regulators[0] ~> power_out
+    power_out.required = True
+    """Isolated 5V output rail"""
+
+    # --- Voltage constraints ---
+    assert power_in.voltage within 4.5V to 5.5V
+    assert power_out.voltage within 4.75V to 5.25V
+
+    # --- Package ---
+    package = new YLPTEC_B0505S_2WR3_package
+
+    # --- Package connections ---
+    # Input side
+    package.VINpos ~ power_in.hv
+    package.GND ~ power_in.lv
+
+    # Output side (isolated)
+    package.Vopos ~ power_out.hv
+    package.Voneg ~ power_out.lv
+
+    # --- Input decoupling capacitor ---
+    input_cap = new Capacitor
+    input_cap.capacitance = 2.2uF +/- 20%
+    input_cap.package = "0805"
+    power_in.hv ~> input_cap ~> power_in.lv
+
+    # --- Output decoupling capacitor ---
+    output_cap = new Capacitor
+    output_cap.capacitance = 10uF +/- 20%
+    output_cap.package = "0805"
+    power_out.hv ~> output_cap ~> power_out.lv
+
+module YLPTEC_B1205S_2WR2 from Regulator:
+    """
+    YLPTEC B1205S-2WR2 Isolated 2W DC-DC Converter
+    - Input: 12V (10.8V to 13.2V)
+    - Output: 5V (400mA max)
+    - Galvanically isolated input/output
+    - SIP-6 package
+    """
+
+    # --- External interfaces ---
+    power_in.required = True
+    """Input power supply (12V nominal, ±10%)"""
+
+    power_out.required = True
+    """Isolated 5V output rail"""
+
+    # --- Voltage constraints ---
+    assert power_in.voltage within 10.8V to 13.2V
+    assert power_out.voltage within 4.75V to 5.25V
+
+    # --- Package ---
+    package = new YLPTEC_B1205S_2WR2_package
+
+    # --- Package connections ---
+    # Input side
+    package.Vin ~ power_in.hv
+    package.GND ~ power_in.lv
+
+    # Output side (isolated)
+    package.Vopos ~ power_out.hv
+    package.P0V ~ power_out.lv
+
+    # --- Input decoupling capacitor ---
+    input_cap = new Capacitor
+    input_cap.capacitance = 2.2uF +/- 20%
+    input_cap.package = "0805"
+    power_in.hv ~> input_cap ~> power_in.lv
+
+    # --- Output decoupling capacitor ---
+    output_cap = new Capacitor
+    output_cap.capacitance = 10uF +/- 20%
+    output_cap.package = "0805"
+    power_out.hv ~> output_cap ~> power_out.lv

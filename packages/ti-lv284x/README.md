@@ -1,1 +1,0 @@
-The LV2841 and LV2842 are PWM DC/DC buck (stepdown) regulators. With a wide input range from 4V-40V, they are suitable for a wide range of application from industrial to automotive for power conditioning from unregulated source.

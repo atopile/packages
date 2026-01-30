@@ -1,23 +1,27 @@
-requires-atopile: "^0.10.5"
+requires-atopile: "^0.12.4"
 
 paths:
-  src: "."
+  src: ./
   layout: ./layouts
 
+# Ensure the project has at least a default build and a usage build
 builds:
-  eemb_battery_lp402535_driver:
-    entry: eemb_battery_lp402535.ato:EMB_BATTERY_LP402535_driver
+  default:
+    entry: batteries.ato:EMB_BATTERY_LP402535
+    hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
-  eemb_battery_lp402535_example:
-    entry: eemb_battery_lp402535.ato:EMB_BATTERY_LP402535_Example
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
     exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/batteries
   repository: https://github.com/atopile/packages
-  version: "0.2.0"
+  homepage: https://github.com/atopile/packages/blob/main/packages/batteries/README.md
+  version: "0.2.3"
   authors:
     - name: atopile
-      email: hi@atopile.com
-  summary: Various batteries
+      email: hi@atopile.io
+  summary: "Tags: Battery; Primary; Secondary; Lithium-ion; Power; Energy; Storage; EEMB; LP402535; Molex; Connector"
   license: MIT

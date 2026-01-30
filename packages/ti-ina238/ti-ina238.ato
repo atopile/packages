@@ -1,0 +1,134 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+
+# --- Standard library imports ---
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import DifferentialPair
+import Resistor
+import Addressor
+import can_bridge_by_name
+
+# --- Part import ---
+from "parts/Texas_Instruments_INA238AIDGSR/Texas_Instruments_INA238AIDGSR.ato" import Texas_Instruments_INA238AIDGSR_package
+
+module TI_INA238:
+    """
+    Texas Instruments INA238 – Precision Digital Power and Current Monitor
+
+    Features:
+    - High-side, bidirectional current sensing up to ±10 A (depends on shunt)
+    - Measures shunt and bus voltage, calculates power internally
+    - 16-bit Δ-Σ ADC with programmable conversion time / averaging
+    - I²C-compatible interface (up to 3.4 MHz)
+    - Two configurable address pins (A1, A0) → 4 possible addresses 0x40-0x43
+
+    External connections provided by this driver:
+    • power        – Device supply (2.7 V … 5.5 V)
+    • power_in     – High-side sense input (before shunt)
+    • power_out    – High-side sense output (after shunt)
+    • i2c          – I²C bus
+    • alert        – Open-drain ALERT pin (over-limit interrupt)
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_INA238AIDGSR_package
+
+    # --- Supply ---
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 2.7V to 5.5V
+    power.vcc ~ package.VS
+    power.gnd ~ package.GND
+
+    # --- I²C bus ---
+    i2c = new I2C
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> power.vcc
+    i2c.sda.line ~> i2c_pullups[1] ~> power.vcc
+
+    # --- ALERT output ---
+    alert = new ElectricLogic
+    """
+    Open-drain ALERT pin (active low)
+    Configurable interrupt for over-limit conditions
+    """
+    alert.required = False
+    alert.line ~ package.ALERT
+    alert.reference ~ power
+
+    # --- Shunt measurement path ---
+    shunt_input = new DifferentialPair
+    """
+    Differential shunt measurement inputs
+    Connect across current sense resistor for bidirectional measurement
+    """
+    shunt_input.required = False
+    shunt_input.p.line ~ package.INpos
+    shunt_input.n.line ~ package.INneg
+
+    # User-defined maximum current parameter
+    max_current: current
+    # Default to 1 A to provide initial constraint (can be overridden by instantiations)
+    max_current = 1A
+
+    # INA238 default full-scale shunt drop (programmable). Use 80 mV typical.
+    shunt_drop = 80mV
+
+    # External shunt resistor (designer selects value & package)
+    shunt = new Resistor
+    shunt.package = "R1206"  # adequate power rating for most designs
+    shunt_input.p.line ~> shunt ~> shunt_input.n.line
+
+    # Recommended shunt value bounds given desired max current
+    assert shunt.resistance <= shunt_drop / max_current * 1.1
+    assert shunt.resistance >= shunt_drop / max_current * 0.9
+
+    # --- High-side bridge so designers can insert the monitor inline ---
+    power_in = new ElectricPower
+    power_in.required = True
+
+    power_out = new ElectricPower
+    power_out.required = True
+
+    # Common ground ties to device ground
+    power_in.gnd ~ power.gnd
+    power_out.gnd ~ power.gnd
+
+    # Bridge VCC path through shunt
+    power_in.vcc ~> shunt ~> power_out.vcc
+
+    # Mark module as a bridge so it can be inserted inline in power path
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+    # --- Decoupling capacitor on VS ---
+    decouple = new Capacitor
+    decouple.capacitance = 100nF +/- 10%
+    decouple.package = "C0402"
+    power.vcc ~> decouple ~> power.gnd
+
+    # --- I²C address selection (A1, A0) ---
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x40
+
+    # Connect address lines to pins (LSB =A0)
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[0].reference ~ power
+
+    addressor.address_lines[1].line ~ package.A1
+    addressor.address_lines[1].reference ~ power
+
+    # Ensure bus uses selected address
+    assert addressor.address is i2c.address

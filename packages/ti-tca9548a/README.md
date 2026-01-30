@@ -1,34 +1,59 @@
-# TCA9548APWR I2C Multiplexer
+# Texas Instruments TCA9548A I2C Multiplexer
+
+8-channel I2C multiplexer/switch with reset functionality for expanding I2C buses.
+
+**Features:**
+- 8 bidirectional I2C channels
+- Wide voltage range: 1.65V to 5.5V
+- 3-bit address selection (8 possible addresses: 0x70-0x77)
+- Active-low reset pin
+- Built-in channel isolation
+- Up to 400kHz I2C speed
+- Low power consumption
 
 ## Usage
 
-```
-import I2C
+```ato
+#pragma experiment("BRIDGE_CONNECT")
+
 import ElectricPower
+import I2C
 
-from "atopile/ti-tca9548a/tca9548a.ato" import TCA9548APWR_driver
-module Test:
-    # Create 8 muxes
-    muxes = new TCA9548APWR_driver[8]
+from "atopile/ti-tca9548a/ti-tca9548a.ato" import TI_TCA9548A
 
-    # Create I2C and Power
-    power = new ElectricPower
-    i2c = new I2C
+module Usage:
+    """
+    Minimal usage example for `ti-tca9548a`.
+    Demonstrates basic connections for the TCA9548A I2C multiplexer.
+    """
 
-    # Connect I2C
-    for mux in muxes:
-        i2c ~ mux.i2c
-        power ~ mux.power
+    # Power supply
+    power_supply = new ElectricPower
+    power_supply.voltage = 3.3V +/- 5%
 
-    # Assert addresses
-    assert muxes[0].i2c.address is 0x70
-    assert muxes[1].i2c.address is 0x71
-    assert muxes[2].i2c.address is 0x72
-    assert muxes[3].i2c.address is 0x73
-    assert muxes[4].i2c.address is 0x74
-    assert muxes[5].i2c.address is 0x75
-    assert muxes[6].i2c.address is 0x76
-    assert muxes[7].i2c.address is 0x77
+    # Main I2C bus
+    main_i2c = new I2C
+    main_i2c.frequency = 400kHz
+
+    # I2C multiplexer
+    mux = new TI_TCA9548A
+
+    # Connections
+    power_supply ~ mux.power
+    main_i2c ~ mux.i2c
+
+    # Configure address - addressor will automatically set the address lines
+    # Valid addresses are 0x70 to 0x77
+    mux.i2c.address = 0x70
+
+    # Connect to I2C channels as needed
+    # Each channel is isolated and can have different devices
+    channel_0 = new I2C
+    channel_1 = new I2C
+
+    channel_0 ~ mux.i2cs[0]
+    channel_1 ~ mux.i2cs[1]
+
 ```
 
 ## Contributing

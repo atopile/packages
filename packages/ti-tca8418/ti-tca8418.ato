@@ -1,0 +1,144 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+import has_single_electric_reference
+
+from "parts/Texas_Instruments_TCA8418RTWR/Texas_Instruments_TCA8418RTWR.ato" import Texas_Instruments_TCA8418RTWR_package
+
+module TI_TCA8418:
+    """
+    Texas Instruments TCA8418 I2C-controlled keypad matrix scanner and GPIO expander.
+
+    Features:
+    - 18 total GPIO pins (10 columns, 8 rows)
+    - Up to 80 switches in matrix configuration
+    - Integrated debounce functionality
+    - 10-element event queue for key presses/releases
+    - Fixed I2C address: 0x34 (7-bit)
+    - Low power: 3μA standby current
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Central power supply for the module (1.65V to 3.6V)
+    """
+    power.required = True
+    assert power.voltage within 1.65V to 3.6V
+
+    i2c = new I2C
+    """
+    I2C bus interface (7-bit address: 0x34, fixed)
+    """
+    i2c.required = True
+
+    trait has_single_electric_reference
+    has_single_electric_reference.reference ~ power
+
+    # Interrupt output - active low, open drain
+    interrupt = new ElectricLogic
+    """
+    Interrupt output (active low, open drain)
+    """
+
+    reset = new ElectricLogic
+    """
+    Reset input (active low)
+    """
+
+    # GPIO/matrix pins - using arrays for repetitive signals
+    gpio_rows = new ElectricLogic[8]
+    """
+    GPIO row pins (ROW0-ROW7) for keypad matrix
+    """
+
+    gpio_cols = new ElectricLogic[10]
+    """
+    GPIO column pins (COL0-COL9) for keypad matrix
+    """
+
+    # --- I2C interface ---
+    # Fixed address - no addressor needed
+    i2c.address = 0x34
+
+    # I2C pull-up resistors (soft pull-ups)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+    power_caps[0].capacitance = 100nF +/- 20%
+    power_caps[1].capacitance = 10uF +/- 20%
+    for cap in power_caps:
+        cap.package = "0402"
+        power.hv ~> cap ~> power.lv
+
+    # --- GPIO configuration ---
+    # Set GPIO references using arrays
+    for gpio_pin in gpio_rows:
+        gpio_pin.reference ~ power
+
+    for gpio_pin in gpio_cols:
+        gpio_pin.reference ~ power
+
+    # --- Other configuration ---
+    interrupt_pullup = new Resistor
+    interrupt_pullup.resistance = 10kohm +/- 1%
+    interrupt_pullup.package = "0402"
+    interrupt.line ~> interrupt_pullup ~> power.lv
+
+    reset_pullup = new Resistor
+    reset_pullup.resistance = 10kohm +/- 1%
+    reset_pullup.package = "0402"
+    reset.line ~> reset_pullup ~> power.hv
+
+    # --- Package ---
+    package = new Texas_Instruments_TCA8418RTWR_package
+
+    # Power connections
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Interrupt connection
+    package.nINT ~ interrupt.line
+    interrupt.reference ~ power
+
+    package.nRESET ~ reset.line
+    reset.reference ~ power
+
+    # GPIO connections - rows
+    package.ROW0 ~ gpio_rows[0].line
+    package.ROW1 ~ gpio_rows[1].line
+    package.ROW2 ~ gpio_rows[2].line
+    package.ROW3 ~ gpio_rows[3].line
+    package.ROW4 ~ gpio_rows[4].line
+    package.ROW5 ~ gpio_rows[5].line
+    package.ROW6 ~ gpio_rows[6].line
+    package.ROW7 ~ gpio_rows[7].line
+
+    # GPIO connections - columns
+    package.COL0 ~ gpio_cols[0].line
+    package.COL1 ~ gpio_cols[1].line
+    package.COL2 ~ gpio_cols[2].line
+    package.COL3 ~ gpio_cols[3].line
+    package.COL4 ~ gpio_cols[4].line
+    package.COL5 ~ gpio_cols[5].line
+    package.COL6 ~ gpio_cols[6].line
+    package.COL7 ~ gpio_cols[7].line
+    package.COL8 ~ gpio_cols[8].line
+    package.COL9 ~ gpio_cols[9].line

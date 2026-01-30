@@ -1,0 +1,37 @@
+#pragma experiment("TRAITS")
+import I2C
+import ElectricPower
+
+from "atopile/bosch-bme680/bosch-bme680.ato" import Bosch_BME680
+
+module Usage:
+    """
+    Usage example for bosch-bme680.
+    Shows how to connect the BME680 sensor with I2C interface and power supply.
+
+    The sensor comes with built-in I2C pull-ups and power filtering.
+    Just connect power and I2C bus - everything else is handled automatically.
+    """
+
+    # Create sensor instance
+    sensor = new Bosch_BME680
+
+    # Create I2C bus
+    i2c = new I2C
+    i2c.frequency = 400kHz  # Fast mode I2C
+
+    # Create power supply
+    power = new ElectricPower
+    power.voltage = 3.3V  # Recommended voltage
+
+    # Connect interfaces - that's it!
+    i2c ~ sensor.i2c
+    power ~ sensor.power
+
+    # Address will be 0x76 (SDO to GND) or 0x77 (SDO floating)
+    # Built-in features automatically included:
+    # - I2C pull-ups (10kΩ)
+    # - Power filtering (100nF caps)
+    # - Protocol selection (I2C default)
+    # - Dual rail support (VDD/VDDIO internally connected)
+    assert sensor.i2c.address within 0x76

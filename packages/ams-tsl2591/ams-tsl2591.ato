@@ -1,0 +1,66 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import I2C
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/Advanced_Monolithic_Systems_TSL25911FN/Advanced_Monolithic_Systems_TSL25911FN.ato" import Advanced_Monolithic_Systems_TSL25911FN_package
+
+module AMS_TSL2591:
+    """
+    AMS TSL2591 High Dynamic Range Digital Light Sensor
+
+    Ultra-high sensitivity light-to-digital converter with 600M: 1 dynamic range.
+    Combines broadband photodiode (visible + infrared) and infrared-responding photodiode.
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x29 fixed)
+    """
+    i2c.required = True
+    i2c.address = 0x29
+
+    power = new ElectricPower
+    """
+    Power supply for the sensor
+    """
+    power.required = True
+    assert power.voltage within 2.7V to 3.6V
+
+    interrupt = new ElectricLogic
+    """
+    Interrupt output pin (active low)
+    """
+    interrupt.required = False
+
+    # --- Decoupling capacitors ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 1uF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- I2C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Package connections ---
+    package = new Advanced_Monolithic_Systems_TSL25911FN_package
+    package.VDD ~ power.hv
+    package.GND ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+    package.INT ~ interrupt.line
+
+    # --- Configuration ---
+    # vbus == vdd
+    i2c.has_single_electric_reference.reference ~ power

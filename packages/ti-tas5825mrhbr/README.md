@@ -8,10 +8,15 @@ import ElectricPower
 import I2C
 import I2S
 
-from "atopile/ti-tas5825mrhbr/ti_tas5825mrhbr.ato" import Texas_Instruments_TAS5825MRHBR_driver
+from "atopile/ti-tas5825mrhbr/ti-tas5825mrhbr.ato" import Texas_Instruments_TAS5825MRHBR
 
-module Example:
-    amp = new Texas_Instruments_TAS5825MRHBR_driver
+module Usage:
+    """
+    Minimal usage example for ti-tas5825mrhbr.
+    Texas Instruments TAS5825MRHBR audio amplifier example
+    """
+
+    amp = new Texas_Instruments_TAS5825MRHBR
 
     power_3v3 = new ElectricPower
     power_20V = new ElectricPower
@@ -27,6 +32,8 @@ module Example:
     amp.i2s ~ i2s
     amp.i2c ~ i2c
 
+    # Set I2C address
+    assert amp.i2c.address is 0x50
 ```
 
 ## Contributing

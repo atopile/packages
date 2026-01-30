@@ -1,0 +1,42 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+
+from "atopile/invensense-icm20948/invensense-icm20948.ato" import Invensense_ICM20948
+
+
+module Usage:
+    """
+    Usage example for the InvenSense ICM-20948 9-axis motion sensor.
+    Demonstrates basic I²C connections with dual power supplies.
+    """
+
+    # --- IMU sensor ---
+    imu = new Invensense_ICM20948
+
+    # --- Power supplies ---
+    power_3v3 = new ElectricPower  # Core power (VDD)
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    power_1v8 = new ElectricPower  # I/O power (VDDIO)
+    assert power_1v8.voltage within 1.7V to 1.9V
+
+    # --- I²C bus ---
+    i2c_bus = new I2C
+    assert i2c_bus.frequency <= 400kHz
+    # I2C address is automatically configured by the sensor (0x68 by default)
+
+    # --- Optional control signals ---
+    interrupt_pin = new ElectricLogic
+    frame_sync = new ElectricLogic
+
+    # --- Connections ---
+    power_3v3 ~ imu.power_core
+    power_1v8 ~ imu.power_io
+    i2c_bus ~ imu.i2c
+    interrupt_pin ~ imu.interrupt
+    frame_sync ~ imu.fsync

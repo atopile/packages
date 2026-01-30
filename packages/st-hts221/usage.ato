@@ -1,0 +1,29 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Resistor
+
+from "atopile/st-hts221/st-hts221.ato" import ST_HTS221
+
+module Usage:
+    """
+    Minimal usage example for st-hts221.
+    Shows how to connect the HTS221 temperature and humidity sensor.
+    """
+
+    sensor = new ST_HTS221
+
+    # Connect power supply
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ sensor.power
+
+    # Connect I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ sensor.i2c

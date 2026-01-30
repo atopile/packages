@@ -5,11 +5,11 @@ import Capacitor
 import ElectricPower
 import I2S
 
-from "microphone.ato" import MicrophoneI2S
+from "microphones.ato" import MicrophoneI2S
 
 from "parts/KNOWLES_SPH0641LU4H_1/KNOWLES_SPH0641LU4H_1.ato" import KNOWLES_SPH0641LU4H_1_package
 
-module Knowles_SPH0641LU4H_1_driver from MicrophoneI2S:
+module Knowles_SPH0641LU4H_1 from MicrophoneI2S:
     """
     The SPH0645LM4H-B is a miniature, low power, bottom port microphone with an I2S digital output.
     The solution consists of a proven high performance SiSonic™ acoustic sensor, a serial Analog to
@@ -43,17 +43,3 @@ module Knowles_SPH0641LU4H_1_driver from MicrophoneI2S:
     assert rf_filter_capacitor.max_voltage >= power.voltage * 1.5
     assert rf_filter_capacitor.capacitance within 200 pF +/- 30%
     power.hv ~> rf_filter_capacitor ~> power.lv
-
-module Knowles_SPH0641LU4H_1_example:
-    """
-    Minimal example of how to use the Knowles SPH0641LU4H I2S microphone.
-    """
-    #from "atopile/microphones/knowles_sph0641lu4h_1.ato" import Knowles_SPH0641LU4H_1_driver
-
-    microphone = new Knowles_SPH0641LU4H_1_driver
-
-    power_3v3 = new ElectricPower
-    power_3v3 ~ microphone.power
-
-    i2s = new I2S
-    i2s ~ microphone.i2s

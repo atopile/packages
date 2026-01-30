@@ -1,0 +1,63 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+from "atopile/nxp-pcf8575/nxp-pcf8575.ato" import NXP_PCF8575
+
+module Usage:
+    """
+    Minimal usage example for nxp-pcf8575.
+    Demonstrates how to use the PCF8575 16-bit I2C GPIO expander
+    in a typical application with SSOP-24 package.
+    """
+
+    # Power supply
+    power_5v = new ElectricPower
+    assert power_5v.voltage within 4.9V to 5.1V
+
+    # I2C bus for communication
+    i2c_bus = new I2C
+    assert i2c_bus.frequency within 100kHz to 400kHz
+
+    # GPIO expander
+    gpio_expander = new NXP_PCF8575
+
+    # Connect power
+    power_5v ~ gpio_expander.power
+
+    # Connect I2C bus
+    i2c_bus ~ gpio_expander.i2c
+
+    # Set I2C address (using hardware address pins)
+    # Address will be 0x20 + value set by A2:A1:A0 pins
+    assert gpio_expander.i2c.address within 0x20 +/- 0  # Default address with A2=A1=A0=0
+
+    # Optional: Connect interrupt line for input change notifications
+    interrupt_signal = new ElectricLogic
+    interrupt_signal ~ gpio_expander.interrupt
+
+    # Example: Connect GPIO pins for typical usage
+    # Port 0 (first 8 pins) as outputs for LEDs
+    led_outputs = new ElectricLogic[8]
+    led_outputs[0] ~ gpio_expander.gpio[0]
+    led_outputs[1] ~ gpio_expander.gpio[1]
+    led_outputs[2] ~ gpio_expander.gpio[2]
+    led_outputs[3] ~ gpio_expander.gpio[3]
+    led_outputs[4] ~ gpio_expander.gpio[4]
+    led_outputs[5] ~ gpio_expander.gpio[5]
+    led_outputs[6] ~ gpio_expander.gpio[6]
+    led_outputs[7] ~ gpio_expander.gpio[7]
+
+    # Port 1 (second 8 pins) as inputs for buttons
+    button_inputs = new ElectricLogic[8]
+    button_inputs[0] ~ gpio_expander.gpio[8]
+    button_inputs[1] ~ gpio_expander.gpio[9]
+    button_inputs[2] ~ gpio_expander.gpio[10]
+    button_inputs[3] ~ gpio_expander.gpio[11]
+    button_inputs[4] ~ gpio_expander.gpio[12]
+    button_inputs[5] ~ gpio_expander.gpio[13]
+    button_inputs[6] ~ gpio_expander.gpio[14]
+    button_inputs[7] ~ gpio_expander.gpio[15]

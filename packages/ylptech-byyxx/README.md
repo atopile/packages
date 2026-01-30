@@ -1,34 +1,41 @@
-# Relays
+# YLPTEC BYYXX Isolated DC-DC Converters
 
-Contains a DPDT relay (HFD4_5) with logic level driver circuit and LED indicator
+YLPTEC isolated 2W DC-DC converter modules with multiple input/output voltage options. These modules provide galvanic isolation and include input/output capacitors and status LED.
 
 ## Usage
 
 ```ato
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import ElectricPower
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B2405S_2WR3
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B0505S_2WR3
+from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import YLPTEC_B1205S_2WR2
 
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import BYYXXS_2WR2
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2405_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2409_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B2424_package
-from "atopile/ylptech-byyxx/ylptech-byyxx.ato" import _B0505_package
+module Usage:
+    """
+    Usage example for ylptech-byyxx package.
+    Demonstrates all three YLPTEC isolated DC-DC converter variants.
+    """
 
-module Test:
+    # --- 24V to 5V isolated converter ---
+    reg_24v_to_5v = new YLPTEC_B2405S_2WR3
+    power_24v = new ElectricPower
+    power_5v_from_24v = new ElectricPower
+    power_24v ~> reg_24v_to_5v ~> power_5v_from_24v
 
-    # Create 4 regulators, each with a different package
-    regulators = new BYYXXS_2WR2[4]
-    regulators[0].package -> _B2405_package
-    # regulators[1].package -> _B2409_package # currently missing lcsc data :(
-    regulators[2].package -> _B2424_package
-    regulators[3].package -> _B0505_package
+    # --- 5V to 5V isolated converter ---
+    reg_5v_to_5v = new YLPTEC_B0505S_2WR3
+    power_5v_in = new ElectricPower
+    power_5v_isolated = new ElectricPower
+    power_5v_in ~> reg_5v_to_5v ~> power_5v_isolated
 
-    # Create power interfaces
-    power_in = new ElectricPower
-    power_out = new ElectricPower
-
-    # Example connection
-    power_in ~> regulators[0] ~> power_out
+    # --- 12V to 5V isolated converter ---
+    reg_12v_to_5v = new YLPTEC_B1205S_2WR2
+    power_12v = new ElectricPower
+    power_5v_from_12v = new ElectricPower
+    power_12v ~> reg_12v_to_5v ~> power_5v_from_12v
 
 ```
 

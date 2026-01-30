@@ -5,24 +5,21 @@ TLV75901 LDO Regulator with adjustable output voltage
 ## Usage
 
 ```ato
-
+#pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
 
-from "atopile/ti-tlv75901/ti-tlv75901.ato" import TLV75901_driver
-from "atopile/buttons/buttons.ato" import ButtonPulldown
-from "atopile/buttons/buttons.ato" import VerticalButton
-
-module Test:
+module Usage:
     # Create LDO
-    ldo = new TLV75901_driver
-
-    # Configure voltages
-    ldo.v_in = 5V +/- 1%
-    ldo.v_out = 3.3V +/- 3%
+    ldo = new TI_TLV75901
 
     # Create example power interfaces
     power_in = new ElectricPower
     power_out = new ElectricPower
+
+    # Configure voltages
+    power_in.voltage = 5V +/- 1%
+    power_out.voltage = 3.3V +/- 3%
 
     # Connect to regulator (bridge connect)
     power_in ~> ldo ~> power_out
@@ -30,12 +27,6 @@ module Test:
     # Connect to regulator (Interfaces)
     power_in ~ ldo.power_in
     power_out ~ ldo.power_out
-
-    # Disable button
-    disable_button = new ButtonPulldown
-    disable_button.button.button -> VerticalButton
-    disable_button.output ~ ldo.enable
-    disable_button.pulldown.resistance = 1kohms +/- 20%
 
 ```
 

@@ -1,38 +1,53 @@
 # USB Connectors
 
-## Installation
-Run in the terminal:
+This package provides USB connectors for convenience.
 
-```ato install usb-connectors```
+## Usage
 
-Add to your `.ato` project:
+```ato
+#pragma experiment("TRAITS")
 
-```import USBCConn from "usb-connectors/usb-connectors.ato"```
+import USB2_0
+import ElectricPower
+import has_part_removed
 
-## Overview
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCVerticalConnector
 
-This package includes a usb-c connector.
+module MCU:
+    """Host MCU providing USB bus and power rail."""
 
-![usbc](https://assets.lcsc.com/images/lcsc/900x900/20230202_Shenzhen-Kinghelm-Elec-KH-TYPE-C-16P_C709357_front.jpg)
+    trait has_part_removed
 
-## Features
+    power = new ElectricPower
+    usb_1 = new USB2_0
+    usb_2 = new USB2_0
 
-- **USB type C connector**
-- **Two cc resistors:** Those set the charge current to three amps.
 
-## Documentation & Resources
+module Usage:
+    """Minimal example of horizontal and vertical USB connectors."""
 
-- [A bit more about the CC resistors](https://hackaday.com/2023/01/04/all-about-usb-c-resistors-and-emarkers/)
-- [LCSC part number](https://www.lcsc.com/product-detail/USB-Connectors_Shenzhen-Kinghelm-Elec-KH-TYPE-C-16P_C709357.html)
+    # MCU & sensor
+    mcu = new MCU
+    usb_connector_horizontal = new USB2_0TypeCHorizontalConnector
+    usb_connector_vertical = new USB2_0TypeCVerticalConnector
+
+    # Shared 5V PD rail
+    power = new ElectricPower
+    power ~ mcu.power
+    power ~ usb_connector_horizontal.usb.usb_if.buspower
+    power ~ usb_connector_vertical.usb.usb_if.buspower
+
+    # USB connection
+    mcu.usb_1 ~ usb_connector_horizontal.usb
+    mcu.usb_2 ~ usb_connector_vertical.usb
+
+```
 
 ## Contributing
 
-Contribute to this package using pull requests.
+Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This usb module is provided under the [MIT License](https://opensource.org/license/mit/).
-
-## Contact
-
-For further inquiries or support, please contact me at [narayan@atopile.io](mailto:email@example.com).
+This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).
