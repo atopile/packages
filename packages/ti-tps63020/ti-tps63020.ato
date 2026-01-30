@@ -77,12 +77,12 @@ module TPS63020_driver from AdjustableRegulator:
     _power_in_a.hv ~> _enable.line
 
     # --- Feedback Divider ---
-    assert feedback_divider.r_bottom.resistance within 200kohm +/- 30%
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
-    feedback_divider.output ~ _feedback
+    assert feedback_divider.total_resistance within 200kohm +/- 30%
+    feedback_divider.chain.resistors[0].package = "R0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
+    feedback_divider.ref_out.hv ~ _feedback.line
     # max_current constraint: 1uA to 100uA for low quiescent current divider
-    assert feedback_divider.max_current within 1uA to 100uA
+    assert feedback_divider.current within 1uA to 100uA
 
     # Inductor
     inductor = new Inductor
