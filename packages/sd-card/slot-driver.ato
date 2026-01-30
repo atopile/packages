@@ -1,14 +1,6 @@
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-import SPI
-import Electrical
-import ElectricPower
-import ElectricSignal
-import ElectricLogic
-import Resistor
-import Capacitor
-import has_single_electric_reference_shared
 
 from "atopile/sd-card/slot-pins.ato" import SDSlotPinsSS
 from "atopile/sd-card/logic.ato" import SDLogicSDBus
@@ -17,7 +9,6 @@ from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import 
 
 module SDSlotDriver:
     pass
-
 
 module SDSlotDriverSS from SDSlotDriver:
     """
@@ -39,7 +30,6 @@ module SDSlotDriverSS from SDSlotDriver:
     sd.clock.line ~ slot_pins.sdcard.CLK
     sd.command.line ~ slot_pins.sdcard.CMD
     sd.chip_select.line ~ slot_pins.sdcard.CD_DAT3
-
 
     # driver
     bypass_cap = new Capacitor

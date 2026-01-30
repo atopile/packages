@@ -8,14 +8,23 @@ builds:
   usd-assembly:
     entry: main.ato:SDCardAssemblyWithRemovableMicroSDWithSPI
     hide-designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide-designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
 
 package:
   identifier: atopile/sd-card
   repository: https://github.com/atopile/packages
   version: 0.1.7
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: SD and microSD card, SD, SDHC, SDXC, SDUC
   license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/espressif-esp32-c3
+  release: 0.3.0

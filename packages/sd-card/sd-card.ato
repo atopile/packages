@@ -2,7 +2,6 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-
 import SPI
 import Electrical
 import ElectricPower
@@ -11,7 +10,7 @@ import ElectricLogic
 import Resistor
 import Capacitor
 import has_part_removed
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "atopile/sd-card/slot-driver.ato" import SDSlotDriverSS
 from "atopile/sd-card/data-logic.ato" import SDTransportSPI
@@ -21,7 +20,6 @@ from "atopile/sd-card/card.ato" import SDCardMicroStandardSpeed
 from "atopile/sd-card/card-pins.ato" import SDCardPinsSS
 
 from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_model
-
 
 module SDLogicSDBusOverPins:
     pins = new SDCardPinsSS
@@ -40,9 +38,8 @@ module SDLogicSDBusOverPins:
     logic.command.line ~ pins.CMD
     logic.chip_select.line ~ pins.CD_DAT3
 
-    #trait has_single_electric_reference_shared
+    # trait has_single_electric_reference
     trait has_part_removed
-
 
 module SDCardAssemblyWithRemovableMicroSDStandardSpeed:
     """
@@ -99,8 +96,7 @@ module SDCardAssemblyWithRemovableMicroSDWithSPI:
     power = new ElectricPower
     power ~ ss_assembly.logic.logic.power
 
-    trait has_single_electric_reference_shared
-
+    trait has_single_electric_reference
 
 module SDCardAssemblyWithRemovableMicroSDWithSPIWithCardInSlot:
     """

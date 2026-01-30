@@ -12,7 +12,7 @@ import ElectricSignal
 import ElectricLogic
 import Resistor
 import Capacitor
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "atopile/sd-card/logic.ato" import SDLogicSDBus
 
@@ -47,10 +47,9 @@ module SDTransportSPI from SDTransportSS:
     spi_cs ~> sd.chip_select
 
     # TODO bug
-    #trait has_single_electric_reference_shared
-    #spi.reference_shim ~ sd.reference_shim
+    # trait has_single_electric_reference
+    # spi.reference_shim ~ sd.reference_shim
     spi.reference_shim ~ sd.power
-
 
 module SDTransportSDBus from SDTransportSS:
     pass

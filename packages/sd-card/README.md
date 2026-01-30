@@ -14,7 +14,7 @@ import ElectricPower
 from "atopile/sd-card/main.ato" import SDCardAssemblyWithRemovableMicroSDWithSPI
 from "atopile/esp32/esp32_c3.ato" import ESP32_C3_WROOM
 
-module App:
+module Usage:
     mcu = new ESP32_C3_WROOM
     sd_card = new SDCardAssemblyWithRemovableMicroSDWithSPI
 
@@ -22,6 +22,7 @@ module App:
     sd_card.spi ~ mcu.spi[0]
     sd_card.spi_cs ~ mcu.gpios[17]
     sd_card.power ~ mcu.power
+
 ```
 
 ## Contributing

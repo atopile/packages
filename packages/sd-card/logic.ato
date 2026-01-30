@@ -1,7 +1,7 @@
 """
 Logic interface between SD card and e.g MCU.
 
-https://www.sdcard.org/downloads/pls/
+https: //www.sdcard.org/downloads/pls/
 """
 
 #pragma experiment("TRAITS")
@@ -10,7 +10,7 @@ https://www.sdcard.org/downloads/pls/
 import DifferentialPair
 import ElectricPower
 import ElectricLogic
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 interface SDLogic:
     pass
@@ -25,8 +25,7 @@ interface SDLogicSDBus from SDLogic:
     command = new ElectricLogic
 
     assert power.voltage within 3.3 V +/- 5%
-    trait has_single_electric_reference_shared
-
+    trait has_single_electric_reference
 
 interface SDLogicUHSII from SDLogic:
     # TODO not 100% checked
@@ -42,7 +41,7 @@ interface SDLogicUHSII from SDLogic:
     assert power[0].voltage within 2.7 V to 3.6 V
     assert power[1].voltage within 1.7 V to 1.95 V
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
     card_detect.reference ~ power[0]
     write_protect.reference ~ power[0]
     # Ensure clock and data differential pairs share the same reference
@@ -51,7 +50,6 @@ interface SDLogicUHSII from SDLogic:
     for pair in data:
         pair.p.reference ~ power[0]
         pair.n.reference ~ power[0]
-
 
 interface SDLogicSDExpress1Lane from SDLogic:
     # SD Express (PCIe) – 1-lane logical interface
@@ -67,7 +65,7 @@ interface SDLogicSDExpress1Lane from SDLogic:
     power = new ElectricPower[3]
 
     # PCIe-specific control
-    perst_n = new ElectricLogic   # PCIe PERST# (active low)
+    perst_n = new ElectricLogic  # PCIe PERST# (active low)
     clkreq_n = new ElectricLogic  # PCIe CLKREQ# (open drain, active low)
 
     # Reference clock provided by host
@@ -83,7 +81,7 @@ interface SDLogicSDExpress1Lane from SDLogic:
     # VDD3 is optional – keep loose tolerance but document recommended range
     assert power[2].voltage within 1.14 V to 1.30 V
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # Tie all single-ended signals to the main 3 V3 reference
     for sig in [card_detect, write_protect, perst_n, clkreq_n]:
@@ -93,7 +91,6 @@ interface SDLogicSDExpress1Lane from SDLogic:
     refclk.p.reference ~ power[0]; refclk.n.reference ~ power[0]
     pcie_tx.p.reference ~ power[0]; pcie_tx.n.reference ~ power[0]
     pcie_rx.p.reference ~ power[0]; pcie_rx.n.reference ~ power[0]
-
 
 interface SDLogicSDExpress2Lane from SDLogic:
     # SD Express (PCIe) – 2-lane logical interface
@@ -117,7 +114,7 @@ interface SDLogicSDExpress2Lane from SDLogic:
     assert power[1].voltage within 1.7 V to 1.95 V
     assert power[2].voltage within 1.14 V to 1.30 V
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     for sig in [card_detect, write_protect, perst_n, clkreq_n]:
         sig.reference ~ power[0]

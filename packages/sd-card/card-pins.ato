@@ -69,7 +69,7 @@ interface SDCardPinsUHSII from SDCardPins:
     | 17    | VSS5  | Ground
     """
     pins = new Electrical[17]
-    sdbus = new SDCardPins
+    sdbus = new SDCardPinsSS
 
     pins[0] ~ sdbus.pins[0]
     pins[1] ~ sdbus.pins[1]
@@ -130,7 +130,7 @@ interface SDCardPinsSDExpress1Lane from SDCardPins:
         Layer Specification Version 8.00 with PCIe Gen4 (Pin #19 does not exist for SD
         Express Card compliant to Part 1 Physical Layer Specification Version 7.XX with PCIe Gen3)
     """
-    sdbus = new SDCardPins
+    sdbus = new SDCardPinsSS
     pins = new Electrical[19]
 
     # connect the sdbus pins to the express pins
@@ -207,7 +207,7 @@ interface SDCardPinsSDExpress2Lane from SDCardPins:
     (1) Pin #18 can be implemented when card supports VDD3. VDD3 is reserved for Standard Size SD Express.
     (2) Pin #19 and #24 are mandatory in 2-Lane SD Express card.
     """
-    sdbus = new SDCardPins
+    sdbus = new SDCardPinsSS
     pins = new Electrical[27]
 
     # connect the sdbus pins to the express pins

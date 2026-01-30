@@ -6,14 +6,14 @@ import SPI
 import ElectricLogic
 import ElectricPower
 
-from "atopile/sd-card/main.ato" import SDCardAssemblyWithRemovableMicroSDWithSPI
-from "atopile/esp32/esp32_c3.ato" import ESP32_C3_WROOM
+from "atopile/sd-card/sd-card.ato" import SDCardAssemblyWithRemovableMicroSDWithSPI
+from "atopile/espressif-esp32-c3/espressif-esp32-c3-mini.ato" import ESP32_C3_MINI_1
 
-module App:
-    mcu = new ESP32_C3_WROOM
+module Usage:
+    mcu = new ESP32_C3_MINI_1
     sd_card = new SDCardAssemblyWithRemovableMicroSDWithSPI
 
     # Connect micro SD Card
-    sd_card.spi ~ mcu.spi[0]
-    sd_card.spi_cs ~ mcu.gpios[17]
+    sd_card.spi ~ mcu.spi
+    sd_card.spi_cs ~ mcu.gpio[17]
     sd_card.power ~ mcu.power
