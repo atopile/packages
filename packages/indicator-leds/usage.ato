@@ -19,6 +19,4 @@ module Usage:
     power = new ElectricPower
     power.voltage = 5V
     power ~ red_led.power
-
-    # Bridge connect across the power rail
-    power.hv ~> green_led ~> power.lv
+    power ~ green_led.power
