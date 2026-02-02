@@ -30,7 +30,7 @@ module LEDIndicator:
 
     resistor.package = "0402"
 
-    assert current within 2mA to 3mA  # TODO: calculate with brightness (TypicalLuminousIntensity) instead
+    current.default = 0.5mA to 0.8mA
 
     assert resistor.resistance within (power.voltage - led.diode.forward_voltage) / current
     assert current <= led.diode.max_current
@@ -47,7 +47,6 @@ module LEDIndicator:
 
 module LEDIndicatorRed from LEDIndicator:
     led -> Hubei_KENTO_Elec_KT_0603R_driver
-    assert power.voltage within 6V +/- 10%
 
 module LEDIndicatorGreen from LEDIndicator:
     led -> Hubei_KENTO_Elec_KT_0603G_driver
