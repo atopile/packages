@@ -39,6 +39,53 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+				(loss_tangent 0)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+				(loss_tangent 0)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+			(dielectric_constraints no)
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -50,15 +97,15 @@
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
-			(dashed_line_dash_ratio 12)
-			(dashed_line_gap_ratio 3)
+			(dashed_line_dash_ratio 12.000000)
+			(dashed_line_gap_ratio 3.000000)
 			(svgprecision 4)
 			(plotframeref no)
 			(mode 1)
 			(useauxorigin no)
 			(hpglpennumber 1)
 			(hpglpenspeed 20)
-			(hpglpendiameter 15)
+			(hpglpendiameter 15.000000)
 			(pdf_front_fp_property_popups yes)
 			(pdf_back_fp_property_popups yes)
 			(pdf_metadata yes)
@@ -103,7 +150,7 @@
 				)
 			)
 		)
-		(property "Value" "[resistance: unknown]"
+		(property "Value" "10000Ω"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "26a4da5f-e547-4976-b7b6-75eca7079a46")
@@ -210,7 +257,7 @@
 				)
 			)
 		)
-		(property "resistance" "[resistance: unknown]"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -222,7 +269,7 @@
 				)
 			)
 		)
-		(property "max_power" "[max_power: unknown]"
+		(property "max_power" "0.062W"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -234,7 +281,7 @@
 				)
 			)
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "50V"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -303,8 +350,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "5ee5f9bc-e0ed-4813-8e50-3578b87ac46b")
 		)
 		(fp_line
@@ -315,8 +360,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "61abd575-c559-4851-8fcb-826068620ab6")
 		)
 		(fp_line
@@ -327,8 +370,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "df317a7e-aaea-4dd8-957e-9a257751bc9a")
 		)
 		(fp_line
@@ -339,8 +380,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "76bef768-1621-42a4-9c9c-a6f695aae36f")
 		)
 		(fp_line
@@ -351,8 +390,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "d357de9b-45a2-4553-be4f-b36eff449f7a")
 		)
 		(fp_line
@@ -363,8 +400,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "fe75aad1-887a-450a-9682-53f9249c5a7b")
 		)
 		(fp_circle
@@ -374,11 +409,11 @@
 				(width 0.06)
 				(type solid)
 			)
+			(fill no)
 			(layer "F.Fab")
-			(locked no)
 			(uuid "eeda9700-a1cb-49cf-8e45-964569c1e525")
 		)
-		(fp_text user "%R"
+		(fp_text user "${REFERENCE}"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(uuid "ffe40ca4-348d-4eba-8695-93d88313fb0f")
@@ -392,14 +427,14 @@
 		(pad "1" smd rect
 			(at -0.43 0 180)
 			(size 0.57 0.54)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 4 "cathode")
 			(uuid "b7527519-b143-445c-941c-481fecde1c37")
 		)
 		(pad "2" smd rect
 			(at 0.43 0 180)
 			(size 0.57 0.54)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 2 "lv")
 			(uuid "b5cf31f5-9b4b-47ad-8f4d-c890a90b53a4")
 		)
@@ -711,7 +746,7 @@
 			(layer "F.Fab")
 			(uuid "fe6864df-32e6-41c6-a1bc-9ec0120a015a")
 		)
-		(fp_text user "%R"
+		(fp_text user "${REFERENCE}"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "8c402576-6943-40e4-a0eb-f3dbd1bcade4")
@@ -722,32 +757,21 @@
 				)
 			)
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 0)
-			(layer "F.SilkS")
-			(uuid "bbc3aa46-4655-4a57-ad4e-d25b666a8dd0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.8 0 90)
 			(size 0.8 0.8)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 1 "red_led-cathode")
 			(uuid "9fcf0e68-bebb-477b-83c8-2dcf49feb22e")
 		)
 		(pad "2" smd rect
 			(at 0.8 0 90)
 			(size 0.8 0.8)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 3 "anode")
 			(uuid "c110fa40-022a-4255-9ce1-ed95f03ba686")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/Hubei_KENTO_Elec_KT_0603R/LED0603-RD-YELLOW.STEP"
 			(offset
 				(xyz 0 0 0)
@@ -1055,7 +1079,7 @@
 			(layer "F.Fab")
 			(uuid "860c254e-afe8-427f-a4d1-8ef2dd58530d")
 		)
-		(fp_text user "%R"
+		(fp_text user "${REFERENCE}"
 			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "904c0873-df29-47de-ac06-f153ea259b4d")
@@ -1066,32 +1090,21 @@
 				)
 			)
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 0)
-			(layer "F.SilkS")
-			(uuid "c2fd7dd3-de11-4284-84e1-0d4762906bc5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.8 0 90)
 			(size 0.8 0.8)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 4 "cathode")
 			(uuid "a8b11086-1174-4f4f-8a4a-0b5a07ca4745")
 		)
 		(pad "2" smd rect
 			(at 0.8 0 90)
 			(size 0.8 0.8)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 3 "anode")
 			(uuid "9b6e2a5e-20c5-4271-a5e6-5ebfefe2b7c6")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/Hubei_KENTO_Elec_KT_0603G/LED0603-RD-YELLOW.STEP"
 			(offset
 				(xyz 0 0 0)
@@ -1104,7 +1117,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "UNI_ROYAL_0402WGF4701TCE:R0402"
 		(layer "F.Cu")
 		(uuid "c2e2c455-8ef2-4a2d-a19c-b0294642524b")
 		(at 138.22 100 180)
@@ -1120,7 +1133,7 @@
 				)
 			)
 		)
-		(property "Value" "[resistance: unknown]"
+		(property "Value" "4700Ω"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "70373ccc-5b72-4962-8468-9ac151504223")
@@ -1131,7 +1144,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010216_UNI-ROYAL-Uniroyal-Elec-0402WGF1001TCE_C11702.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0402WGF4701TCE_C25900.pdf"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1155,7 +1168,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C11702"
+		(property "LCSC" "C25900"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1203,7 +1216,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 990.0000002235174, \"max\": 1009.9999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 4653.000001050532, \"max\": 4746.999998949468}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1215,7 +1228,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1001TCE"
+		(property "Partnumber" "0402WGF4701TCE"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1227,7 +1240,7 @@
 				)
 			)
 		)
-		(property "resistance" "[resistance: unknown]"
+		(property "resistance" "4700±1.0%Ω"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1239,7 +1252,7 @@
 				)
 			)
 		)
-		(property "max_power" "[max_power: unknown]"
+		(property "max_power" "0.062W"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1251,7 +1264,7 @@
 				)
 			)
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "50V"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1287,7 +1300,7 @@
 				)
 			)
 		)
-		(property "lcsc_id" "C11702"
+		(property "lcsc_id" "C25900"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -1320,8 +1333,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "6d1d6acd-b9d9-4220-afc5-a4f80ab60a8c")
 		)
 		(fp_line
@@ -1332,8 +1343,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "32f5888a-364a-43a9-9e36-2c4e1179de07")
 		)
 		(fp_line
@@ -1344,8 +1353,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "47aaa584-4dec-4854-a4b9-b7a9848923cc")
 		)
 		(fp_line
@@ -1356,8 +1363,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "0ae03f4b-b6b8-48d1-b1f1-43e5f253d3bb")
 		)
 		(fp_line
@@ -1368,8 +1373,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "48861b41-998f-4d93-b818-3075f0d07c11")
 		)
 		(fp_line
@@ -1380,8 +1383,6 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
 			(uuid "dd70907e-5703-43d1-9f39-8fb32f36d033")
 		)
 		(fp_circle
@@ -1391,11 +1392,11 @@
 				(width 0.06)
 				(type solid)
 			)
+			(fill no)
 			(layer "F.Fab")
-			(locked no)
 			(uuid "fd78476d-03fb-408f-a5c9-2cc90909db09")
 		)
-		(fp_text user "%R"
+		(fp_text user "${REFERENCE}"
 			(at 0 0 180)
 			(layer "F.Fab")
 			(uuid "1db95035-f346-46da-8542-17eeb2ec966e")
@@ -1409,19 +1410,19 @@
 		(pad "1" smd rect
 			(at -0.43 0 180)
 			(size 0.57 0.54)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 1 "red_led-cathode")
 			(uuid "fc1fc211-50ff-4e68-8292-8d3487a8e531")
 		)
 		(pad "2" smd rect
 			(at 0.43 0 180)
 			(size 0.57 0.54)
-			(layers "F.Cu" "F.Paste" "F.Mask")
+			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 2 "lv")
 			(uuid "ea4f8085-d18c-4f5f-8e27-fec56543ff76")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF4701TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
