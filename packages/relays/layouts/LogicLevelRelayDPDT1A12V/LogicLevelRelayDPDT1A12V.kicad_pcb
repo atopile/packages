@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -1154,7 +1198,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1298,13 +1342,13 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1db43de4-9fab-4695-8b57-94344642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1450,7 +1494,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "UNI_ROYAL_0402WGF2002TCE:R0402"
 		(layer "F.Cu")
 		(uuid "cfe7328c-efb1-4551-834a-79334642524b")
 		(at 32.85206 2.896954 90)
@@ -1466,7 +1510,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "20000Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1478,7 +1522,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF2002TCE_C25765.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1514,7 +1558,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25765"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1538,7 +1582,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0402WGF2002TCE"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1574,7 +1618,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 19800.00000447035, \"max\": 20199.99999552965}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -1610,13 +1654,13 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "20000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5bc9c138-a8a9-43f1-9494-a8344642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1628,7 +1672,7 @@
 			(hide yes)
 			(uuid "4c3390f0-2797-4cd2-9c3d-b9494642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25765"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1750,7 +1794,7 @@
 			(uuid "d95d7f96-6338-400d-a8fb-ebf0fa66c5d4")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF2002TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -1778,7 +1822,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1922,13 +1966,13 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "e6461813-b649-4818-924f-d4b74642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)

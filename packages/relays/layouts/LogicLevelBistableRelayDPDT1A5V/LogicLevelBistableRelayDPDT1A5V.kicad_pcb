@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -112,7 +156,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0F"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "048ea8b6-97e1-4d1a-9233-3c9893b84235")
@@ -219,7 +263,7 @@
 				)
 			)
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -489,7 +533,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0F"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "bd1d26b7-e48b-4e70-a080-b6c6b3868edf")
@@ -596,7 +640,7 @@
 				)
 			)
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1377,56 +1421,56 @@
 			)
 		)
 		(pad "1" smd rect
-			(at -3.8 3.5 0)
+			(at -3.8 3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 15 "motor_outs[0]")
 			(uuid "9f6daa89-c035-4d60-80d8-f1652d9af8a4")
 		)
 		(pad "2" smd rect
-			(at -0.6 3.5 0)
+			(at -0.6 3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 16 "normally_closed")
 			(uuid "28dec514-151e-4d05-b3ec-fbfc4fb559eb")
 		)
 		(pad "3" smd rect
-			(at 1.6 3.5 0)
+			(at 1.6 3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 17 "common")
 			(uuid "cba4332a-6889-40fc-8b67-bb72174a5e56")
 		)
 		(pad "4" smd rect
-			(at 3.8 3.5 0)
+			(at 3.8 3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 18 "normally_open")
 			(uuid "14b85704-03d0-47e4-97ea-c4778499bdbc")
 		)
 		(pad "5" smd rect
-			(at 3.8 -3.5 0)
+			(at 3.8 -3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 19 "relay-normally_open")
 			(uuid "d407dbe8-6fe4-4abd-8ee4-da02649332a6")
 		)
 		(pad "6" smd rect
-			(at 1.6 -3.5 0)
+			(at 1.6 -3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 20 "relay-common")
 			(uuid "a7165fe8-f090-4e88-9ada-52cebd3413a2")
 		)
 		(pad "7" smd rect
-			(at -0.6 -3.5 0)
+			(at -0.6 -3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 21 "relay-normally_closed")
 			(uuid "0be02148-7f7a-4487-afd1-0a8ccb6a7ddc")
 		)
 		(pad "8" smd rect
-			(at -3.8 -3.5 0)
+			(at -3.8 -3.5)
 			(size 0.8 1.8)
 			(layers "F.Cu" "F.Mask" "F.Paste")
 			(net 22 "motor_outs[1]")

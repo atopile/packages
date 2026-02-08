@@ -3,7 +3,6 @@
 #pragma experiment("FOR_LOOP")
 
 import ElectricPower
-import ElectricSignal
 import Inductor
 import Resistor
 import Electrical
@@ -113,9 +112,8 @@ module LogicLevelRelayBase:
     enable ~ coil_switch.enable
 
     # Led connection + config
-    indicator_led.power.voltage = coil_power.voltage
+    indicator_led.power ~ coil_power
     indicator_led.current = 0.5mA +/- 10%
-    coil_power.hv ~> indicator_led ~> coil_switch.mosfet.source
 
 module LogicLevelBistableRelayBase:
     """
@@ -130,7 +128,7 @@ module LogicLevelBistableRelayBase:
 
     # connections
     coil_power ~ coil_driver.motor_power
-    enable.reference ~ coil_driver.logic_power
     enable ~ coil_driver.enable
+    enable.reference ~ coil_driver.logic_power
     phase ~ coil_driver.phase
     sleep ~ coil_driver.sleep
