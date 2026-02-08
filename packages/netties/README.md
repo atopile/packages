@@ -6,13 +6,15 @@ Supported widths:
 
 SMD:
 
-- 0.3mm
 - 0.5mm
+- 1.0mm
+- 2.0mm
 
 THT:
 
-- 0.3mm
+- 0.5mm
 - 1.0mm
+- 2.0mm
 
 Supported pin counts:
 
@@ -24,8 +26,6 @@ Supported Pad Types:
 
 - SMD
 - THT
-
-The connect_gnd parameter can be used to connect the power.lv Electricals together (default) instead of the power.hv Electricals.
 
 ## Usage
 
