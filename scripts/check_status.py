@@ -56,12 +56,24 @@ def get_ato_command(atopile_dir: Optional[Path] = None) -> list[str]:
     return ["ato"]
 
 
-def build_package(
+def build_and_verify(
     package_dir: Path, args: tuple, ato_cmd: list[str]
-) -> tuple[str, bool, float, int, str, str]:
+) -> tuple[
+    str,
+    bool,
+    bool,
+    float,
+    int,
+    str,
+    str,
+    int | None,
+    str | None,
+    str | None,
+]:
     """
-    Runs 'ato build --keep-picked-parts' for a package.
-    Returns: (package_name, build_success, build_seconds, returncode, stdout, stderr)
+    Runs 'ato build --keep-picked-parts' then 'ato package verify -s' for a package.
+    Returns: (package_name, build_success, verify_success, build_seconds,
+              build_rc, build_stdout, build_stderr, verify_rc, verify_stdout, verify_stderr)
     """
     package_name = package_dir.name
 
@@ -77,13 +89,35 @@ def build_package(
     build_success = build_proc.returncode == 0
     build_seconds = max(0.0, time.perf_counter() - build_start)
 
+    # Verify (only if build ok)
+    verify_success = False
+    verify_rc: int | None = None
+    verify_stdout: str | None = None
+    verify_stderr: str | None = None
+    if build_success:
+        verify_proc = subprocess.run(
+            ato_cmd + ["package", "verify", "-s"],
+            cwd=package_dir,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        verify_rc = verify_proc.returncode
+        verify_stdout = verify_proc.stdout
+        verify_stderr = verify_proc.stderr
+        verify_success = verify_rc == 0
+
     return (
         package_name,
         build_success,
+        verify_success,
         build_seconds,
         build_proc.returncode,
         build_proc.stdout,
         build_proc.stderr,
+        verify_rc,
+        verify_stdout,
+        verify_stderr,
     )
 
 
@@ -93,10 +127,12 @@ def _worker_init(ato_cmd: list[str]):
     _ato_cmd = ato_cmd
 
 
-def _worker_build(args: tuple[Path, tuple]) -> tuple[str, bool, float, int, str, str]:
+def _worker_build(
+    args: tuple[Path, tuple]
+) -> tuple[str, bool, bool, float, int, str, str, int | None, str | None, str | None]:
     """Worker function that uses the global ato command."""
     package_dir, build_args = args
-    return build_package(package_dir, build_args, _ato_cmd)
+    return build_and_verify(package_dir, build_args, _ato_cmd)
 
 
 @app.command()
@@ -171,17 +207,24 @@ def main(
     def make_summary_tables() -> Group:
         # Totals
         build_fail = sum(1 for r in results_rows if r["build_success"] is False)
-        build_pass = sum(1 for r in results_rows if r["build_success"] is True)
+        verify_fail = sum(
+            1 for r in results_rows if r["build_success"] and not r["verify_success"]
+        )
+        pass_both = sum(
+            1 for r in results_rows if r["build_success"] and r["verify_success"]
+        )
         pending = total_packages - len(results_rows)
 
         # Top summary table with counts in headers
         summary = Table(show_header=True, header_style="bold magenta")
-        summary.add_column(f"Fails ({build_fail})", justify="center")
-        summary.add_column(f"Passes ({build_pass})", justify="center")
+        summary.add_column(f"Build Fail ({build_fail})", justify="center")
+        summary.add_column(f"Verify Fail ({verify_fail})", justify="center")
+        summary.add_column(f"Pass ({pass_both})", justify="center")
         summary.add_column(f"Pending ({pending})", justify="center")
         summary.add_row(
             f"[red]{build_fail}[/red]",
-            f"[green]{build_pass}[/green]",
+            f"[yellow]{verify_fail}[/yellow]",
+            f"[green]{pass_both}[/green]",
             f"[dim]{pending}[/dim]",
         )
 
@@ -189,6 +232,7 @@ def main(
         detail = Table(show_header=True, header_style="bold cyan")
         detail.add_column("Package", overflow="fold")
         detail.add_column("Build", justify="center")
+        detail.add_column("Verify", justify="center")
         detail.add_column("Time (s)", justify="right")
 
         # Sort by build time (descending: slowest first)
@@ -196,9 +240,16 @@ def main(
             build_cell = (
                 "[green]PASS[/green]" if r["build_success"] else "[red]FAIL[/red]"
             )
+            if not r["build_success"]:
+                verify_cell = "[dim]-[/dim]"
+            else:
+                verify_cell = (
+                    "[green]PASS[/green]" if r["verify_success"] else "[yellow]FAIL[/yellow]"
+                )
             detail.add_row(
                 r["package_name"],
                 build_cell,
+                verify_cell,
                 f"{r['build_seconds']:.1f}",
             )
 
@@ -220,19 +271,27 @@ def main(
                 (
                     package_name,
                     build_ok,
+                    verify_ok,
                     build_secs,
                     build_rc,
                     build_out,
                     build_err,
+                    verify_rc,
+                    verify_out,
+                    verify_err,
                 ) = future.result()
                 results_rows.append(
                     {
                         "package_name": package_name,
                         "build_success": build_ok,
+                        "verify_success": verify_ok,
                         "build_seconds": build_secs,
                         "build_rc": build_rc,
                         "build_stdout": build_out,
                         "build_stderr": build_err,
+                        "verify_rc": verify_rc,
+                        "verify_stdout": verify_out,
+                        "verify_stderr": verify_err,
                     }
                 )
                 # Update live tables
@@ -240,8 +299,16 @@ def main(
 
     # Print final summary
     build_fail = sum(1 for r in results_rows if not r["build_success"])
-    build_pass = sum(1 for r in results_rows if r["build_success"])
-    console.print(f"\n[bold]Summary: {build_pass} passed, {build_fail} failed[/bold]")
+    verify_fail = sum(
+        1 for r in results_rows if r["build_success"] and not r["verify_success"]
+    )
+    pass_both = sum(
+        1 for r in results_rows if r["build_success"] and r["verify_success"]
+    )
+    console.print(
+        f"\n[bold]Summary: {pass_both} passed, {build_fail} build failures, "
+        f"{verify_fail} verify failures[/bold]"
+    )
 
     # Construct DataFrame (optional) and save to CSV if pandas is available
     try:
@@ -251,6 +318,7 @@ def main(
             columns=[
                 "package_name",
                 "build_success",
+                "verify_success",
                 "build_seconds",
             ],
         )
@@ -262,21 +330,37 @@ def main(
             "[yellow]pandas not available; skipping DataFrame export[/yellow]"
         )
 
-    # Exit with non-zero if any failed build; print detailed logs
-    failed_packages = [r for r in results_rows if not r["build_success"]]
-    if failed_packages:
+    # Exit with non-zero if any failed build or verify; print detailed logs
+    any_failed = any(
+        (not r["build_success"]) or (r["build_success"] and not r["verify_success"])
+        for r in results_rows
+    )
+    if any_failed:
         console.rule("[bold red]Failure Details")
-        for r in sorted(failed_packages, key=lambda x: x["package_name"].lower()):
-            console.print(
-                f"[red]❌ {r['package_name']} – Build failed (rc={r.get('build_rc')})[/red]"
-            )
-            if r.get("build_stderr"):
-                console.print("[bold]stderr:[/bold]")
-                console.print(r["build_stderr"])
-            if r.get("build_stdout"):
-                console.print("[bold]stdout:[/bold]")
-                console.print(r["build_stdout"])
-            console.print()
+        for r in sorted(results_rows, key=lambda x: x["package_name"].lower()):
+            if not r["build_success"]:
+                console.print(
+                    f"[red]❌ {r['package_name']} – Build failed (rc={r.get('build_rc')})[/red]"
+                )
+                if r.get("build_stderr"):
+                    console.print("[bold]stderr:[/bold]")
+                    console.print(r["build_stderr"])
+                if r.get("build_stdout"):
+                    console.print("[bold]stdout:[/bold]")
+                    console.print(r["build_stdout"])
+                console.print()
+                continue
+            if r["build_success"] and not r["verify_success"]:
+                console.print(
+                    f"[yellow]⚠️ {r['package_name']} – Verify failed (rc={r.get('verify_rc')})[/yellow]"
+                )
+                if r.get("verify_stderr"):
+                    console.print("[bold]stderr:[/bold]")
+                    console.print(r["verify_stderr"])
+                if r.get("verify_stdout"):
+                    console.print("[bold]stdout:[/bold]")
+                    console.print(r["verify_stdout"])
+                console.print()
         raise typer.Exit(code=1)
 
 
