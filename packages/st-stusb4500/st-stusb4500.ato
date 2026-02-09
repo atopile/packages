@@ -2,7 +2,6 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import Electrical
 import ElectricPower
 import ElectricLogic
 import Capacitor
@@ -228,18 +227,14 @@ module STUSB4500_USBC_Connector:
     driver.cc1 ~ usb_connector.connector.cc[0]
     driver.cc2 ~ usb_connector.connector.cc[1]
 
-module STMicroelectronics_ESDA25P35_1U1M:
+module STMicroelectronics_ESDA25P35_1U1M from Diode:
     package = new STMicroelectronics_ESDA25P35_1U1M_package
-    anode = new Electrical
-    cathode = new Electrical
 
     anode ~ package.2
     cathode ~ package.1
 
-module CDSOD323_T24SC:
+module CDSOD323_T24SC from Diode:
     package = new ElecSuper_CDSOD323_T24SC_package
-    anode = new Electrical
-    cathode = new Electrical
 
     anode ~ package.A
     cathode ~ package.K
