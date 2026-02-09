@@ -214,6 +214,8 @@ module STUSB4500_driver:
     package.GND ~ power_vbus.lv
     package.EP ~ power_vbus.lv
 
+    power_vbus.lv.override_net_name = "GND"
+
 module STUSB4500_USBC_Connector:
     driver = new STUSB4500_driver
     usb_connector = new USB2_0TypeCHorizontalConnector
