@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-      ATO_LOG_DIR: ${{ github.workspace }}/.ato/logs
+      ATO_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
