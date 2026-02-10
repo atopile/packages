@@ -98,11 +98,11 @@ def extract_dependencies(package_dir: Path, package_name: str) -> str:
 def main(
     package_regex: Annotated[
         str,
-        typer.Option("--package-regex", "-p", help="Regex to filter packages to build"),
+        typer.Option("--package-regex", "-p", help="Regex to filter packages list"),
     ] = ".*",
     markdown_output: Annotated[
         Optional[Path],
-        typer.Option("--markdown-output", "-m", help="Export to markdown file"),
+        typer.Option("--markdown-output", "-m", help="Path to export markdown file"),
     ] = None,
     sort_by: Annotated[
         SortBy,
@@ -180,7 +180,10 @@ def main(
         SortBy.version: lambda p: (p["version"], p["name"].lower()),
         SortBy.requires_atopile: lambda p: (p["requires_atopile"], p["name"].lower()),
         SortBy.last_commit: lambda p: (p["last_commit"], p["name"].lower()),
-        SortBy.dependencies: lambda p: (len(p["dependencies"].split("\n")) if p["dependencies"] else 0, p["name"].lower()),
+        SortBy.dependencies: lambda p: (
+            len(p["dependencies"].split("\n")) if p["dependencies"] else 0,
+            p["name"].lower(),
+        ),
     }
     packages_info.sort(key=sort_keys[sort_by], reverse=reverse)
 
