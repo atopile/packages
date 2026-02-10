@@ -72,12 +72,10 @@ jobs:
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build ${{ matrix.package }} -t all
+      - name: Build and verify package
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-
-      - run: ato package verify -s
-        working-directory: ${{ matrix.package }}
+        run: ato build ${{ matrix.package }} -t all && ato package verify -s ${{ matrix.package }}
 
       - name: Publish dry run
         if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
