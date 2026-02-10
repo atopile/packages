@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+      ATO_LOG_DIR: ${{ github.workspace }}/.ato/logs
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -60,7 +61,7 @@ jobs:
       # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
       - uses: atopile/setup-atopile@v1.8
         with:
-          docker-tag: feature-fabll_part2
+          docker-tag: fix-package_verify_warning_check
 
       - name: Print atopile + KiCad versions
         run: |
