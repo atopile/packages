@@ -7,7 +7,7 @@ import Resistor
 
 from "atopile/realtek-rtl8305nb/realtek-rtl8305nb.ato" import Realtek_RTL8305NB
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
-from "atopile/espressif-esp32-c3/esp32_c3_mini.ato" import ESP32_C3_MINI_1_driver
+from "atopile/espressif-esp32-c3/espressif-esp32-c3-mini.ato" import ESP32_C3_MINI_1_driver
 from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
 from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
 from "atopile/ti-tpsm863257/ti-tpsm863257.ato" import TPSM863257
@@ -54,7 +54,7 @@ module Usage:
     buck = new TPSM863257
     """
     TI TPSM863257 synchronous buck converter
-    Converts 5V USB input to 3.3V with ~90% efficiency
+    Converts 5V USB input to 3.3V with ~ 90% efficiency
     Much more efficient than LDO for high current applications
     """
 
@@ -145,10 +145,9 @@ module Usage:
     switch.power_3v3 ~ power_3v3
     esp32.power ~ power_3v3
     w5500.power ~ power_3v3
-    status_led.power ~ power_5v              # LED needs 5V
-    level_shifter.power_a ~ power_3v3        # 3.3V side (ESP32)
-    level_shifter.power_b ~ power_5v         # 5V side (LED)
-
+    status_led.power ~ power_5v  # LED needs 5V
+    level_shifter.power_a ~ power_3v3  # 3.3V side (ESP32)
+    level_shifter.power_b ~ power_5v  # 5V side (LED)
 
     # USB data connection for ESP32-C3 programming and communication
     esp32.usb_if ~ usb_connector.usb.usb_if
@@ -160,27 +159,27 @@ module Usage:
     switch.ethernets[4] ~ ethernet_ports[3].ethernet  # External port 4
 
     # Internal management network (ESP32-C3 connected as network node)
-    switch.ethernets[0] ~ w5500.ethernet              # W5500 connects to switch port 0
-    esp32.spi ~ w5500.spi                             # ESP32-C3 controls W5500 via SPI
+    switch.ethernets[0] ~ w5500.ethernet  # W5500 connects to switch port 0
+    esp32.spi ~ w5500.spi  # ESP32-C3 controls W5500 via SPI
 
     # Status LEDs using bridge connect across power rails
-    w5500.ethernet.led_link.line ~> link_led ~> power_3v3.lv      # Green link status LED
-    w5500.ethernet.led_speed.line ~> activity_led ~> power_3v3.lv # Yellow activity LED
-    power_5v.hv ~> power_5v_led ~> power_5v.lv               # Red 5V power indicator LED
-    power_3v3.hv ~> power_3v3_led ~> power_3v3.lv            # Blue 3.3V power indicator LED
+    w5500.ethernet.led_link.line ~> link_led ~> power_3v3.lv  # Green link status LED
+    w5500.ethernet.led_speed.line ~> activity_led ~> power_3v3.lv  # Yellow activity LED
+    power_5v.hv ~> power_5v_led ~> power_5v.lv  # Red 5V power indicator LED
+    power_3v3.hv ~> power_3v3_led ~> power_3v3.lv  # Blue 3.3V power indicator LED
     # GPIO assignments (avoiding conflicts with peripherals and strapping pins)
-    esp32.gpio[3] ~ w5500.spi_cs                      # GPIO3: W5500 SPI chip select
-    esp32.gpio[0] ~ w5500.interrupt                   # GPIO0: W5500 interrupt (ADC capable)
-    esp32.gpio[1] ~ w5500.reset                       # GPIO1: W5500 reset (ADC capable)
+    esp32.gpio[3] ~ w5500.spi_cs  # GPIO3: W5500 SPI chip select
+    esp32.gpio[0] ~ w5500.interrupt  # GPIO0: W5500 interrupt (ADC capable)
+    esp32.gpio[1] ~ w5500.reset  # GPIO1: W5500 reset (ADC capable)
 
     # Switch management via MDIO (uses I2C peripheral: GPIO5=SDA, GPIO6=SCL)
-    switch.i2c ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
-    switch.reset ~ esp32.gpio[4]      # GPIO4: Switch reset control
+    switch.i2c ~ esp32.i2c  # ESP32 I2C manages switch directly via MDIO
+    switch.reset ~ esp32.gpio[4]  # GPIO4: Switch reset control
     switch.loop_indication ~ esp32.gpio[20]  # GPIO20: Switch loop detection monitor
 
     # Status LED connection via level shifter (3.3V → 5V)
     esp32.gpio[21] ~> level_shifter ~> status_led.data_in  # GPIO21: LED data
-    level_shifter.dir.line ~ power_3v3.hv                  # DIR = HIGH for A→B transmission
+    level_shifter.dir.line ~ power_3v3.hv  # DIR = HIGH for A→B transmission
 
     # I2C/MDIO pull-up resistors (required for proper signaling)
     i2c_pullups = new Resistor[2]
@@ -193,13 +192,13 @@ module Usage:
 
     # Debug header connections (for logic analyzer monitoring)
     # Header 0: SPI signals
-    debug_header.headers[0].channels[0] ~ esp32.spi.sclk      # SPI Clock (GPIO10)
-    debug_header.headers[0].channels[1] ~ esp32.spi.mosi      # SPI MOSI (GPIO7)
-    debug_header.headers[0].channels[2] ~ esp32.spi.miso      # SPI MISO (GPIO8)
-    debug_header.headers[0].channels[3] ~ esp32.gpio[3]       # SPI CS (GPIO3)
+    debug_header.headers[0].channels[0] ~ esp32.spi.sclk  # SPI Clock (GPIO10)
+    debug_header.headers[0].channels[1] ~ esp32.spi.mosi  # SPI MOSI (GPIO7)
+    debug_header.headers[0].channels[2] ~ esp32.spi.miso  # SPI MISO (GPIO8)
+    debug_header.headers[0].channels[3] ~ esp32.gpio[3]  # SPI CS (GPIO3)
 
     # Header 1: I2C and control signals
-    debug_header.headers[1].channels[0] ~ esp32.i2c.scl       # I2C SCL (GPIO6)
-    debug_header.headers[1].channels[1] ~ esp32.i2c.sda       # I2C SDA (GPIO5)
-    debug_header.headers[1].channels[2] ~ esp32.gpio[4]       # Switch reset (GPIO4)
-    debug_header.headers[1].channels[3] ~ esp32.gpio[20]      # Loop detection (GPIO20)
+    debug_header.headers[1].channels[0] ~ esp32.i2c.scl  # I2C SCL (GPIO6)
+    debug_header.headers[1].channels[1] ~ esp32.i2c.sda  # I2C SDA (GPIO5)
+    debug_header.headers[1].channels[2] ~ esp32.gpio[4]  # Switch reset (GPIO4)
+    debug_header.headers[1].channels[3] ~ esp32.gpio[20]  # Loop detection (GPIO20)

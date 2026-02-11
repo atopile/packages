@@ -1,22 +1,26 @@
-"Realtek RTL8305NB Ethernet switch (skeleton)"
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
 import ElectricPower
 import Ethernet
 import Capacitor
 import I2C
 import ElectricLogic
-import ElectricSignal
 import Resistor
+import has_single_electric_reference
 
 from "parts/Realtek_Semicon_RTL8305NB_VB_CG/Realtek_Semicon_RTL8305NB_VB_CG.ato" import Realtek_Semicon_RTL8305NB_VB_CG_package
 from "parts/Yangxing_Tech_X322525MRB4SI/Yangxing_Tech_X322525MRB4SI.ato" import Yangxing_Tech_X322525MRB4SI_package
 
 interface MDIO:
-    # IEEE 802.3 SMI (MDIO/MDC) management bus
+    """
+    IEEE 802.3 SMI (MDIO/MDC) management bus
+    """
     mdc = new ElectricLogic
     mdio = new ElectricLogic
+
+    trait has_single_electric_reference
 
 module Realtek_RTL8305NB:
     """
@@ -63,23 +67,11 @@ module Realtek_RTL8305NB:
     """
     mdio.required = False
 
-    mdio = new MDIO
-    """
-    MDIO/MDC management interface (SMI)
-    """
-    mdio.required = False
-
     reset = new ElectricLogic
     """
     System reset input (active low)
     """
     reset.required = True
-
-    crystal = new Yangxing_Tech_X322525MRB4SI_package
-    """
-    25MHz crystal oscillator (Yangxing Tech X322525MRB4SI)
-    Specifications: 25MHz, 18pF load capacitance, ±10ppm, -40°C to +85°C
-    """
 
     loop_indication = new ElectricLogic
     """
@@ -140,12 +132,6 @@ module Realtek_RTL8305NB:
     mdio.mdc.reference ~ power_3v3
     mdio.mdio.reference ~ power_3v3
 
-    # Parallel MDIO interface mapping (same pins)
-    mdio.mdc.line ~ package.SCL_MDC
-    mdio.mdio.line ~ package.SDA_MDIO
-    mdio.mdc.reference ~ power_3v3
-    mdio.mdio.reference ~ power_3v3
-
     # Reset (active low with pull-up)
     reset.line ~ package.RESETB
     reset.reference ~ power_3v3
@@ -157,6 +143,11 @@ module Realtek_RTL8305NB:
     reset.line ~> reset_pullup ~> power_3v3.hv
 
     # 25MHz crystal with load capacitors
+    crystal = new Yangxing_Tech_X322525MRB4SI_package
+    """
+    25MHz crystal oscillator (Yangxing Tech X322525MRB4SI)
+    Specifications: 25MHz, 18pF load capacitance, ±10ppm, -40°C to +85°C
+    """
     crystal.OSC1 ~ package.XI
     crystal.OSC2 ~ package.XO
     crystal.GND ~ power_3v3.lv
@@ -176,9 +167,9 @@ module Realtek_RTL8305NB:
 
     # --- Configuration strapping resistors ---
     # These set default configurations during power-on/reset
-    package.P0LED_DIS_EEE ~> p0_config_pulldown ~> power_3v3.lv    # EEE disabled (better compatibility)
-    package.P2LED_DIS_RST_BLNK ~> p2_config_pullup ~> power_3v3.hv # Reset blink enabled
-    package.LDIND_DIS_LD ~> ldind_config_pullup ~> power_3v3.hv    # Loop detection enabled
+    package.P0LED_DIS_EEE ~> p0_config_pulldown ~> power_3v3.lv  # EEE disabled (better compatibility)
+    package.P2LED_DIS_RST_BLNK ~> p2_config_pullup ~> power_3v3.hv  # Reset blink enabled
+    package.LDIND_DIS_LD ~> ldind_config_pullup ~> power_3v3.hv  # Loop detection enabled
 
     # IBREF resistor (2.49kΩ ±1% to GND)
     ibref_resistor = new Resistor
