@@ -54,7 +54,7 @@ module Usage:
     logic_power ~ driver.logic_power
 
     motor_power = new ElectricPower
-    motor_power.voltage = 11V +/- 5%
+    assert motor_power.voltage within 10V +/- 5%
     motor_power ~ driver.motor_power
 
     current_sense = new ElectricSignal
