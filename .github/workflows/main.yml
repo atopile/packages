@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
-      FBRK_LOG_DIR: ${{ github.workspace }}/.ato-build-logs/${{ matrix.package }}
+      FBRK_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -63,7 +63,7 @@ jobs:
         # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
         # Defaults to ato version in project ato.yaml if not specified
         with:
-          docker-tag: main
+          docker-tag: fix-package_verify_file_search
 
       - name: Print atopile + KiCad versions
         run: |
