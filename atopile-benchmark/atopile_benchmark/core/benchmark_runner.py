@@ -575,6 +575,8 @@ module App:
                         logger.debug(f"Build output:\n{combined_output}")
                 else:
                     result.status = "failure"
+                    # Parse any phase timings from partial output
+                    result.phases = self._parse_build_output(combined_output)
                     # Keep last 2000 chars of error for readability
                     result.error_message = combined_output[-2000:].strip()
                     logger.error(f"Build failed with return code {process.returncode}")

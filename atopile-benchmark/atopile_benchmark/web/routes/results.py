@@ -45,6 +45,20 @@ def setup_routes(orchestrator: Any) -> APIRouter:
         results = orchestrator.data_store.get_results_by_benchmark(benchmark_name)
         return JSONResponse(results)
 
+    @router.get("/results/version-analysis/{version_type}/{version_value:path}")
+    async def get_version_analysis(version_type: str, version_value: str, baseline_type: str | None = None, baseline_value: str | None = None):
+        """Get aggregate analysis for a specific version.
+
+        Returns average phase timings and exception frequency data.
+        Optionally normalizes against a baseline version.
+        """
+        analysis = orchestrator.data_store.get_version_analysis(
+            version_type, version_value,
+            baseline_type=baseline_type,
+            baseline_value=baseline_value,
+        )
+        return JSONResponse(analysis)
+
     @router.delete("/results")
     async def clear_results():
         """Clear all stored results."""

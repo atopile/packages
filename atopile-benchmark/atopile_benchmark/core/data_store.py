@@ -390,6 +390,143 @@ class DataStore:
         # Sort by average time (None values at the end)
         return sorted(comparisons, key=lambda x: (x["avg_time"] is None, x["avg_time"] or float("inf")))
 
+    def get_version_analysis(self, version_type: str, version_value: str, baseline_type: str | None = None, baseline_value: str | None = None) -> dict[str, Any]:
+        """Get aggregate analysis for a specific version.
+
+        Returns phase timing averages across all successful builds,
+        and exception type frequency from failed builds.
+
+        Args:
+            version_type: Version type (e.g., "release", "branch")
+            version_value: Version value (e.g., "0.12.5", "main")
+            baseline_type: Optional baseline version type for normalization
+            baseline_value: Optional baseline version value for normalization
+
+        Returns:
+            Dictionary with:
+            - phase_averages: List of {name, avg_duration, count} sorted by avg_duration desc
+            - exceptions: List of {type, count, examples} sorted by count desc
+            - total_builds: Total number of builds for this version
+            - successful_builds: Number of successful builds
+            - failed_builds: Number of failed builds
+            - normalized_phase_averages: Optional, if baseline provided
+        """
+        all_results = self.get_all_results()
+
+        # Filter results for this version (most recent per benchmark)
+        version_results: dict[str, dict] = {}
+        for result in all_results:
+            spec = result["version_spec"]
+            if spec["type"] == version_type and spec["version"] == version_value:
+                bname = result["benchmark_name"]
+                existing = version_results.get(bname)
+                if existing is None or result.get("timestamp", "") > existing.get("timestamp", ""):
+                    version_results[bname] = result
+
+        results_list = list(version_results.values())
+
+        success_results = [r for r in results_list if r["status"] == "success"]
+        failure_results = [r for r in results_list if r["status"] == "failure"]
+
+        # Aggregate phase timings from successful builds
+        phase_sums: dict[str, float] = {}
+        phase_counts: dict[str, int] = {}
+        for result in success_results:
+            for phase in result.get("phases", []):
+                name = phase["name"]
+                duration = phase["duration"]
+                phase_sums[name] = phase_sums.get(name, 0.0) + duration
+                phase_counts[name] = phase_counts.get(name, 0) + 1
+
+        phase_averages = [
+            {
+                "name": name,
+                "avg_duration": phase_sums[name] / phase_counts[name],
+                "count": phase_counts[name],
+            }
+            for name in phase_sums
+        ]
+        phase_averages.sort(key=lambda x: x["avg_duration"], reverse=True)
+
+        # Aggregate exception types from failed builds
+        exception_counts: dict[str, int] = {}
+        exception_examples: dict[str, list[str]] = {}
+        for result in failure_results:
+            error_msg = result.get("error_message", "") or ""
+            exc_type = _extract_exception_type(error_msg)
+            exception_counts[exc_type] = exception_counts.get(exc_type, 0) + 1
+            if exc_type not in exception_examples:
+                exception_examples[exc_type] = []
+            if len(exception_examples[exc_type]) < 3:
+                # Store benchmark name as example
+                exception_examples[exc_type].append(result["benchmark_name"])
+
+        exceptions = [
+            {
+                "type": exc_type,
+                "count": count,
+                "examples": exception_examples.get(exc_type, []),
+            }
+            for exc_type, count in exception_counts.items()
+        ]
+        exceptions.sort(key=lambda x: x["count"], reverse=True)
+
+        analysis: dict[str, Any] = {
+            "phase_averages": phase_averages,
+            "exceptions": exceptions,
+            "total_builds": len(results_list),
+            "successful_builds": len(success_results),
+            "failed_builds": len(failure_results),
+        }
+
+        # Compute normalized phase averages if baseline is provided
+        if baseline_type and baseline_value:
+            baseline_results: dict[str, dict] = {}
+            for result in all_results:
+                spec = result["version_spec"]
+                if spec["type"] == baseline_type and spec["version"] == baseline_value:
+                    bname = result["benchmark_name"]
+                    existing = baseline_results.get(bname)
+                    if existing is None or result.get("timestamp", "") > existing.get("timestamp", ""):
+                        baseline_results[bname] = result
+
+            # Compute baseline phase averages
+            baseline_phase_sums: dict[str, float] = {}
+            baseline_phase_counts: dict[str, int] = {}
+            for result in baseline_results.values():
+                if result["status"] == "success":
+                    for phase in result.get("phases", []):
+                        name = phase["name"]
+                        duration = phase["duration"]
+                        baseline_phase_sums[name] = baseline_phase_sums.get(name, 0.0) + duration
+                        baseline_phase_counts[name] = baseline_phase_counts.get(name, 0) + 1
+
+            normalized = []
+            for pa in phase_averages:
+                name = pa["name"]
+                if name in baseline_phase_sums and baseline_phase_counts.get(name, 0) > 0:
+                    baseline_avg = baseline_phase_sums[name] / baseline_phase_counts[name]
+                    if baseline_avg > 0:
+                        normalized.append({
+                            "name": name,
+                            "normalized_duration": (pa["avg_duration"] / baseline_avg) * 100,
+                            "avg_duration": pa["avg_duration"],
+                            "baseline_avg_duration": baseline_avg,
+                            "count": pa["count"],
+                        })
+                    else:
+                        normalized.append({
+                            "name": name,
+                            "normalized_duration": None,
+                            "avg_duration": pa["avg_duration"],
+                            "baseline_avg_duration": 0,
+                            "count": pa["count"],
+                        })
+            normalized.sort(key=lambda x: (x["normalized_duration"] is None, -(x["normalized_duration"] or 0)))
+            analysis["normalized_phase_averages"] = normalized
+
+        return analysis
+
     # ==================== Export Operations ====================
 
     def export_csv(self, output_file: Path):
@@ -458,3 +595,56 @@ class DataStore:
             json.dump(data, f, indent=2, default=str)
 
         logger.info(f"Exported data to {output_file}")
+
+
+def _extract_exception_type(error_message: str) -> str:
+    """Extract the exception type from an error message.
+
+    Tries common Python exception patterns, then falls back to
+    categorizing by known error keywords.
+
+    Args:
+        error_message: The raw error message string
+
+    Returns:
+        A categorized exception type string
+    """
+    import re
+
+    if not error_message:
+        return "Unknown Error"
+
+    # Try to find Python exception class names (e.g., "ValueError: ...")
+    exc_match = re.search(r"(\w+Error|\w+Exception|\w+Warning)[\s:(\[]", error_message)
+    if exc_match:
+        return exc_match.group(1)
+
+    # Try "raise <ExceptionName>" pattern
+    raise_match = re.search(r"raise\s+(\w+)", error_message)
+    if raise_match:
+        return raise_match.group(1)
+
+    # Categorize by keywords
+    msg_lower = error_message.lower()
+    if "timeout" in msg_lower or "timed out" in msg_lower:
+        return "Timeout"
+    if "version mismatch" in msg_lower or "incompatible" in msg_lower:
+        return "VersionMismatch"
+    if "not found" in msg_lower or "no such file" in msg_lower:
+        return "FileNotFound"
+    if "permission denied" in msg_lower:
+        return "PermissionDenied"
+    if "syntax error" in msg_lower or "parse error" in msg_lower:
+        return "SyntaxError"
+    if "import" in msg_lower and "error" in msg_lower:
+        return "ImportError"
+    if "connection" in msg_lower:
+        return "ConnectionError"
+    if "memory" in msg_lower:
+        return "MemoryError"
+
+    # Truncate and return first meaningful line
+    first_line = error_message.strip().split("\n")[-1].strip()
+    if len(first_line) > 80:
+        first_line = first_line[:77] + "..."
+    return first_line or "Unknown Error"
