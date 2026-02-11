@@ -40,7 +40,7 @@ def setup_routes(orchestrator: Any) -> APIRouter:
         """Start all benchmarks.
 
         Args:
-            max_parallel: Maximum number of versions to build in parallel (0 = unlimited)
+            max_parallel: Maximum number of benchmarks to build in parallel (0 = unlimited)
             force: If True, rerun all benchmarks even if they already passed
             commands: Comma-separated list of build command names to run
             include_examples: If True, also run example project benchmarks

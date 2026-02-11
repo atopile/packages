@@ -404,13 +404,14 @@ class BenchmarkOrchestrator:
         """Run all configured benchmarks for all versions.
 
         Args:
-            max_parallel: Maximum number of versions to build in parallel (0 = unlimited)
+            max_parallel: Maximum number of benchmarks to build in parallel (0 = unlimited)
             force: If True, rerun all benchmarks even if they already passed
             enabled_commands: List of build command names to run. If None, run all.
             include_examples: If True, also run benchmarks for example projects
 
         Skips benchmarks that already have a passing result (unless force=True).
-        Benchmarks are run in parallel, with up to max_parallel concurrent version tasks.
+        Individual benchmarks are run in parallel (across all versions and packages),
+        with up to max_parallel concurrent benchmark tasks.
         Versions are installed in parallel first.
         """
         # Reset cancellation flag from any previous stop_all call
@@ -566,32 +567,28 @@ class BenchmarkOrchestrator:
                 if isinstance(result, Exception):
                     logger.error(f"Version installation failed: {result}")
 
-        # Group benchmarks by version for parallel execution
-        benchmarks_by_version: dict[str, list] = {}
-        for benchmark_name, package_config, version_spec, build_cmd_config, build_target in to_run:
-            version_id = self._make_version_id(version_spec)
-            if version_id not in benchmarks_by_version:
-                benchmarks_by_version[version_id] = []
-            benchmarks_by_version[version_id].append(
-                (benchmark_name, package_config, version_spec, build_cmd_config, build_target)
-            )
+        # Run individual benchmarks in parallel, controlled by semaphore.
+        # Each benchmark gets its own task so that e.g. 16 different packages
+        # can build concurrently even when there are only 2 atopile versions.
+        semaphore = asyncio.Semaphore(max_parallel) if max_parallel > 0 else None
 
-        # Run benchmarks in parallel (one task per version)
-        async def run_version_benchmarks(version_id: str, benchmarks: list):
-            """Run all benchmarks for a single version sequentially."""
-            for (
-                benchmark_name,
-                package_config,
-                version_spec,
-                build_cmd_config,
-                build_target,
-            ) in benchmarks:
-                # Check for cancellation before each benchmark
-                if self._cancel_requested:
-                    logger.info(
-                        f"Skipping {benchmark_name}@{version_id} due to cancellation"
-                    )
-                    return
+        async def run_single_with_limit(
+            benchmark_name: str,
+            package_config: dict,
+            version_spec: dict,
+            build_cmd_config: dict,
+            build_target: str | None,
+        ):
+            """Run a single benchmark, optionally gated by the semaphore."""
+            version_id = self._make_version_id(version_spec)
+
+            if self._cancel_requested:
+                logger.info(
+                    f"Skipping {benchmark_name}@{version_id} due to cancellation"
+                )
+                return
+
+            async def _execute():
                 try:
                     await self.run_single_benchmark(
                         benchmark_name,
@@ -602,31 +599,26 @@ class BenchmarkOrchestrator:
                     )
                 except asyncio.CancelledError:
                     logger.info(f"Benchmark {benchmark_name}@{version_id} cancelled")
-                    return
                 except Exception as e:
                     logger.error(f"Benchmark {benchmark_name}@{version_id} failed: {e}")
 
-        # Use semaphore to limit parallelism if max_parallel > 0
-        if max_parallel > 0:
-            semaphore = asyncio.Semaphore(max_parallel)
-
-            async def run_with_semaphore(version_id: str, benchmarks: list):
+            if semaphore:
                 async with semaphore:
-                    await run_version_benchmarks(version_id, benchmarks)
+                    await _execute()
+            else:
+                await _execute()
 
-            version_tasks = [
-                run_with_semaphore(vid, benchmarks)
-                for vid, benchmarks in benchmarks_by_version.items()
-            ]
-        else:
-            # Unlimited parallelism
-            version_tasks = [
-                run_version_benchmarks(vid, benchmarks)
-                for vid, benchmarks in benchmarks_by_version.items()
-            ]
+        # Create one task per benchmark
+        benchmark_tasks = [
+            run_single_with_limit(
+                benchmark_name, package_config, version_spec,
+                build_cmd_config, build_target,
+            )
+            for benchmark_name, package_config, version_spec, build_cmd_config, build_target in to_run
+        ]
 
         # Store tasks for cancellation
-        self._running_tasks = [asyncio.create_task(coro) for coro in version_tasks]
+        self._running_tasks = [asyncio.create_task(coro) for coro in benchmark_tasks]
 
         try:
             await asyncio.gather(*self._running_tasks, return_exceptions=True)
