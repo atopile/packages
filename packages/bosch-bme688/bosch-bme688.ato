@@ -100,7 +100,7 @@ module Bosch_BME688:
     addressor.base = 0x77  # Default address when SDO floating/high
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
-    assert addressor.address within i2c.address
+    assert addressor.address is i2c.address
     # Default to base address (0x77), can be overridden by user
     i2c.address.default = 0x77
 
