@@ -36,6 +36,7 @@ The DRV8210 is a compact, versatile motor driver from Texas Instruments featurin
 ---
 
 # Usage
+
 Below are Atopile usage patterns for common DRV8210 operating modes.
 
 ```ato
