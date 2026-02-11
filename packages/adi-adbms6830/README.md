@@ -23,7 +23,13 @@ from "parts/HRS_DF40HC_3_0__30DS_0_4V_51/HRS_DF40HC_3_0__30DS_0_4V_51.ato" impor
 from "parts/HRS_DF40C_30DP_0_4V_51/HRS_DF40C_30DP_0_4V_51.ato" import HRS_DF40C_30DP_0_4V_51_package
 from "parts/SHOU_HAN_MSK12C02_HB/SHOU_HAN_MSK12C02_HB.ato" import SHOU_HAN_MSK12C02_HB
 
-import ElectricPower, Resistor, Electrical, ElectricSignal, ResistorVoltageDivider, DifferentialPair, ElectricLogic
+import DifferentialPair
+import Electrical
+import ElectricLogic
+import ElectricPower
+import ElectricSignal
+import Resistor
+import ResistorVoltageDivider
 
 import can_bridge_by_name
 import has_part_removed

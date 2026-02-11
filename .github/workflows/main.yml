@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+      FBRK_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -55,30 +56,56 @@ jobs:
         with:
           fetch-depth: 0
 
-      # FIXME: handle deps properly
-      # ideally it'd determine if the package is in the same repo and, if so,
-      # install via file instead
-      - uses: atopile/setup-atopile@v1.6
+      - uses: atopile/setup-atopile@v2
+        # Build against the main branch of atopile by setting the docker-tag
+        # Uses pre-built Docker image from the branch (built by atopile CI)
+        # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
+        # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
+        # Defaults to ato version in project ato.yaml if not specified
         with:
-          ato-config: ${{ matrix.package }}/ato.yaml
+          docker-tag: main
+
+      - name: Print atopile + KiCad versions
+        run: |
+          set -euo pipefail
+          echo "ato version: $(ato --version)"
+          echo "ato githash: $(docker image inspect atopile-local --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+          echo "kicad version: $(docker run --rm --entrypoint kicad-cli atopile-local --version)"
+
       - run: ato sync
         working-directory: ${{ matrix.package }}
 
-      - run: ato build ${{ matrix.package }}
+      - run: ato build ${{ matrix.package }} -t all
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
 
-      - uses: atopile/publish-package@v1
-        name: Publish package
+      - name: Publish dry run
+        if: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish --dry-run ${{ matrix.package }}
+
+      - name: Publish package
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        with:
-          package-entrypoint: ${{ matrix.package }}
-          skip-duplicate-versions: true
-          package-version: "" # Use the embedded version key
-          ato-config: ${{ matrix.package }}/ato.yaml
+        env:
+          ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
+          NONINTERACTIVE: "1"
+        run: ato package publish ${{ matrix.package }}
+
+      - name: Print errors and warnings on failure
+        if: failure()
+        run: |
+          pkg="${{ matrix.package }}"
+          echo "::group::Error Logs"
+          find "$pkg/build/logs" -name "*.error.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
+          echo "::group::Warning Logs"
+          find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+          echo "::endgroup::"
 
       - name: Archive build logs
         id: archive_logs

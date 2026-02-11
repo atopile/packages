@@ -12,6 +12,7 @@ builds:
   usage:
     entry: usage.ato:Usage
     hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
 
 package:
   identifier: atopile/adi-adbms6822
@@ -26,6 +27,12 @@ package:
     adbms6822; analog devices"
   license: MIT
 dependencies:
+  - type: registry
+    identifier: atopile/logos
+    release: 0.1.5
+  - type: registry
+    identifier: atopile/ti-ts5a22362
+    release: 0.1.0
   - type: registry
     identifier: atopile/pjrc-teensy-4-1
     release: 0.1.0

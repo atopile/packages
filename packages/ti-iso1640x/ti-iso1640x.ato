@@ -18,17 +18,6 @@ module TI_ISO1640QDWRQ1 from I2CIsolator:
     - power_rails[1]: Side 2 power supply (2.25V to 5.5V)
     - i2cs[0]: Side 1 I2C bus interface (isolated)
     - i2cs[1]: Side 2 I2C bus interface (isolated)
-
-    Features:
-    - 1500V isolation voltage
-    - Bidirectional I2C communication
-    - Data rates up to 1MHz
-    - Supply voltage range: 2.25V to 5.5V (each side)
-    - Hot-swap capability
-    - Automotive qualified (AEC-Q100)
-    - SOIC-16 package
-    - Built-in I2C pullup resistors (10kΩ 0402) on both sides
-    - Decoupling capacitors (100nF 0402) for stable operation
     """
 
     # --- Part instance ---
@@ -64,7 +53,6 @@ module TI_ISO1640QDWRQ1 from I2CIsolator:
     pullup_scl_side2 = new Resistor
     pullup_sda_side2 = new Resistor
 
-    # Configure pullup resistors
     pullup_scl_side1.resistance = 10kohm +/- 5%
     pullup_scl_side1.package = "0402"
     pullup_sda_side1.resistance = 10kohm +/- 5%
@@ -84,7 +72,6 @@ module TI_ISO1640QDWRQ1 from I2CIsolator:
     decoupling_cap_side1 = new Capacitor
     decoupling_cap_side2 = new Capacitor
 
-    # Configure decoupling capacitors
     decoupling_cap_side1.capacitance = 100nF +/- 20%
     decoupling_cap_side1.package = "0402"
     decoupling_cap_side2.capacitance = 100nF +/- 20%

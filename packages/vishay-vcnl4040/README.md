@@ -18,7 +18,9 @@ The VCNL4040 is a handy two-in-one sensor with a proximity sensor that works fro
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import I2C, ElectricPower, ElectricLogic
+import ElectricLogic
+import ElectricPower
+import I2C
 
 from "atopile/vishay-vcnl4040/vishay-vcnl4040.ato" import Vishay_VCNL4040
 

@@ -23,7 +23,9 @@ Features:
 
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderVertical
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
-import ElectricSignal,SPI,I2C
+import ElectricSignal
+import I2C
+import SPI
 
 module Usage:
     # Example signals of interest

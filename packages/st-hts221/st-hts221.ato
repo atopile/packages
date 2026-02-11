@@ -47,7 +47,7 @@ module ST_HTS221:
     cs.reference ~ power
 
     # I2C address is fixed at 0x5F
-    assert i2c.address is 0x5F
+    assert i2c.address within 0x5F
 
     # --- I²C pull-ups (soft pull-ups) ---
     i2c_pullups = new Resistor[2]

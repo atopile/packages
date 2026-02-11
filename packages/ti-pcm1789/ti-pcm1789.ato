@@ -90,31 +90,33 @@ module TI_PCM1789:
     # --- Internal power rails ---
     _power_vcom = new ElectricPower
     """Internal VCOM reference"""
-    _power_vcom.vcc ~ package.VCOM
-    _power_vcom.gnd ~ package.AGND1
+    _power_vcom.hv ~ package.VCOM
+    _power_vcom.lv ~ package.AGND1
 
     # --- Decoupling capacitors ---
     decoupling_1uf = new Capacitor[3]
     for cap in decoupling_1uf:
         cap.capacitance = 1uF +/- 10%
         cap.package = "0402"
-    power_3v3.vcc ~> decoupling_1uf[0] ~> power_3v3.gnd # VDD
-    power_5v.vcc ~> decoupling_1uf[1] ~> power_5v.gnd # VCC1
-    power_5v.vcc ~> decoupling_1uf[2] ~> power_5v.gnd # VCC2
+    power_3v3.hv ~> decoupling_1uf[0] ~> power_3v3.lv  # VDD
+    power_5v.hv ~> decoupling_1uf[1] ~> power_5v.lv  # VCC1
+    power_5v.hv ~> decoupling_1uf[2] ~> power_5v.lv  # VCC2
 
     decoupling_10uf = new Capacitor[4]
     for cap in decoupling_10uf:
         cap.capacitance = 10uF +/- 10%
         cap.package = "0603"
-    power_3v3.vcc ~> decoupling_10uf[0] ~> power_3v3.gnd # VDD
-    power_5v.vcc ~> decoupling_10uf[1] ~> power_5v.gnd # VCC1
-    power_5v.vcc ~> decoupling_10uf[2] ~> power_5v.gnd # VCC2
-    _power_vcom.vcc ~> decoupling_10uf[3] ~> _power_vcom.gnd # VCOM
+    power_3v3.hv ~> decoupling_10uf[0] ~> power_3v3.lv  # VDD
+    power_5v.hv ~> decoupling_10uf[1] ~> power_5v.lv  # VCC1
+    power_5v.hv ~> decoupling_10uf[2] ~> power_5v.lv  # VCC2
+    _power_vcom.hv ~> decoupling_10uf[3] ~> _power_vcom.lv  # VCOM
 
     # --- I2C bus ---
     # I2C Addressor
-    addressor = new Addressor<address_bits=2>
+    addressor = new Addressor<address_bits = 2>
     assert i2c.address is addressor.address
+    # Default to base address (0x4C), can be overridden by user
+    i2c.address.default = 0x4C
     addressor.base = 0x4C
     addressor.address_lines[1].line ~ package.ADR5_ADR1_RSV
     addressor.address_lines[0].line ~ package.MS_ADR0_RSV
@@ -134,19 +136,19 @@ module TI_PCM1789:
     mute_control_pullup = new Resistor
     mute_control_pullup.resistance = 10kohm +/- 5%
     mute_control_pullup.package = "0402"
-    mute_control.line ~> mute_control_pullup ~> power_3v3.vcc # Pullup for default no mute
+    mute_control.line ~> mute_control_pullup ~> power_3v3.hv  # Pullup for default no mute
 
     # Mute status with pullup
     mute_status_pullup = new Resistor
     mute_status_pullup.resistance = 10kohm +/- 5%
     mute_status_pullup.package = "0402"
-    mute_status.line ~> mute_status_pullup ~> power_3v3.vcc # AMUTEO active low, open drain output
+    mute_status.line ~> mute_status_pullup ~> power_3v3.hv  # AMUTEO active low, open drain output
 
     # Reset with pullup - active low (defaults to normal operation)
     reset_pullup = new Resistor
     reset_pullup.resistance = 10kohm +/- 2%
     reset_pullup.package = "0402"
-    reset.line ~> reset_pullup ~> power_3v3.vcc
+    reset.line ~> reset_pullup ~> power_3v3.hv
 
     # --- I2S interface ---
     i2s_series_resistors = new Resistor[3]
@@ -165,16 +167,16 @@ module TI_PCM1789:
 
     # --- Package connections ---
     # Power connections
-    power_5v.vcc ~ package.VCC1
-    power_5v.vcc ~ package.VCC2
-    power_5v.gnd ~ package.AGND1
-    power_5v.gnd ~ package.AGND2
-    power_3v3.vcc ~ package.VDD
-    power_3v3.gnd ~ package.DGND
-    power_3v3.gnd ~ power_5v.gnd # Connect grounds
+    power_5v.hv ~ package.VCC1
+    power_5v.hv ~ package.VCC2
+    power_5v.lv ~ package.AGND1
+    power_5v.lv ~ package.AGND2
+    power_3v3.hv ~ package.VDD
+    power_3v3.lv ~ package.DGND
+    power_3v3.lv ~ power_5v.lv  # Connect grounds
 
     # Mode select - short to GND for serial I2C
-    package.MODE ~ power_3v3.gnd
+    package.MODE ~ power_3v3.lv
 
     # Control pins
     mute_control.line ~ package.AMUTEI

@@ -31,7 +31,7 @@ module Realtek_RTL8305NB:
 
     Optional EEPROM Support:
     If custom configuration is needed, connect an M24C02 (or compatible)
-    I2C EEPROM to the i2c_mdio interface at address 0x50. The RTL8305NB
+    I2C EEPROM to the i2c interface at address 0x50. The RTL8305NB
     will auto-load configuration from EEPROM during power-on.
     """
 
@@ -51,11 +51,17 @@ module Realtek_RTL8305NB:
     Ethernet interfaces
     """
 
-    i2c_mdio = new I2C
+    i2c = new I2C
     """
     I2C/MDIO management interface (dual function pins)
     """
-    i2c_mdio.required = True
+    i2c.required = True
+
+    mdio = new MDIO
+    """
+    MDIO/MDC management interface (SMI)
+    """
+    mdio.required = False
 
     mdio = new MDIO
     """
@@ -123,10 +129,16 @@ module Realtek_RTL8305NB:
 
     # --- Miscellaneous connections ---
     # I2C/MDIO management interface
-    i2c_mdio.scl.line ~ package.SCL_MDC
-    i2c_mdio.sda.line ~ package.SDA_MDIO
-    i2c_mdio.scl.reference ~ power_3v3
-    i2c_mdio.sda.reference ~ power_3v3
+    i2c.scl.line ~ package.SCL_MDC
+    i2c.sda.line ~ package.SDA_MDIO
+    i2c.scl.reference ~ power_3v3
+    i2c.sda.reference ~ power_3v3
+
+    # Parallel MDIO interface mapping (same pins)
+    mdio.mdc.line ~ package.SCL_MDC
+    mdio.mdio.line ~ package.SDA_MDIO
+    mdio.mdc.reference ~ power_3v3
+    mdio.mdio.reference ~ power_3v3
 
     # Parallel MDIO interface mapping (same pins)
     mdio.mdc.line ~ package.SCL_MDC

@@ -1,0 +1,26 @@
+requires-atopile: "^0.14.0"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    exclude_checks: ['PCB.requires_drc_check']
+    hide_designators: true
+  default:
+    entry: pin-headers.ato:Male_2_54mm_1x2P_TH
+    exclude_checks: ['PCB.requires_drc_check']
+    hide_designators: true
+
+package:
+  identifier: atopile/pin-headers
+  repository: https://github.com/atopile/packages
+  version: "0.2.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: 'Tags: 2.54mm; Pin; Header; 2x2; 2x7; 2x8; 2x10; Receptacle'
+  homepage: https://github.com/atopile/packages/blob/main/packages/pin-headers/README.md
+  license: MIT

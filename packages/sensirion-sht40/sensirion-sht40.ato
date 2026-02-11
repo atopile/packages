@@ -10,14 +10,13 @@ import Resistor
 
 from "parts/Sensirion_SHT40_AD1B_R2/Sensirion_SHT40_AD1B_R2.ato" import Sensirion_SHT40_AD1B_R2_package
 
-
 module Sensirion_SHT40:
     """
     Driver for Sensirion SHT40 temperature & humidity sensor (I²C).
 
     Exposes:
-      * power – Single-rail supply (1.08 V – 3.6 V)
-      * i2c   – I²C bus interface (7-bit addr 0x44, fixed)
+        * power – Single-rail supply (1.08 V – 3.6 V)
+        * i2c – I²C bus interface (7-bit addr 0x44, fixed)
     """
 
     # --- Package ---
@@ -37,7 +36,7 @@ module Sensirion_SHT40:
     Standard mode (100 kHz) and fast mode (400 kHz) supported
     """
     i2c.required = True
-    assert i2c.address is 0x44
+    assert i2c.address within 0x44
 
     # --- Power ---
     package.VDD ~ power.hv

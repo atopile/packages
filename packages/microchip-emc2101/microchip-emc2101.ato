@@ -2,7 +2,11 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
 
-import I2C, ElectricPower, ElectricLogic, Resistor, Capacitor
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import I2C
+import Resistor
 from "parts/Microchip_Tech_EMC2101_R_ACZL_TR/Microchip_Tech_EMC2101_R_ACZL_TR.ato" import Microchip_Tech_EMC2101_R_ACZL_TR_package
 
 module Microchip_EMC2101:
@@ -36,7 +40,7 @@ module Microchip_EMC2101:
     I²C bus interface for communication (7-bit address 0x4C default)
     """
     i2c.required = True
-    i2c.reference_shim ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # Fan control interface
     pwm_out = new ElectricLogic

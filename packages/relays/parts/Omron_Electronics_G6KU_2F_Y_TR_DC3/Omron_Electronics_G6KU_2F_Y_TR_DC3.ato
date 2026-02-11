@@ -1,0 +1,43 @@
+#pragma experiment("TRAITS")
+import has_datasheet
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+
+from "atopile/relays/helpers.ato" import RelayDPDT
+
+component Omron_Electronics_G6KU_2F_Y_TR_DC3_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    # trait is_auto_generated<system = "ato_part", source = "easyeda:C6259328", date = "2026-01-26T23:53:30.593082+00:00", checksum = "771120ac13cf966dc69490428d20c8aeea312921bf39bd18f03c1661cb02d303">
+
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G6KU-2F-Y-TR DC3", footprint = "RELAY-SMD_G6KU-2F-Y.kicad_mod", symbol = "G6KU-2F-Y-TRDC3.kicad_sym", model = "RELAY-SMD_G6KU-2F-Y.STEP">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C6259328", manufacturer = "Omron Electronics", partno = "G6KU-2F-Y-TR DC3">
+    trait has_designator_prefix<prefix = "U">
+    trait has_datasheet<datasheet = "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2312091453_Omron-Electronics-G6KU-2F-Y-TR-DC3_C6259328.pdf">
+
+    # pins
+    pin 1
+    pin 2
+    pin 3
+    pin 4
+    pin 5
+    pin 6
+    pin 7
+    pin 8
+
+module BistableRelayDPDT1A3V from RelayDPDT:
+    package = new Omron_Electronics_G6KU_2F_Y_TR_DC3_package
+    package.8 ~> coil ~> package.1
+
+    # Switch 0
+    package.3 ~> switch_nc[0] ~> package.2
+    package.3 ~> switch_no[0] ~> package.4
+
+    # Switch 1
+    package.6 ~> switch_nc[1] ~> package.7
+    package.6 ~> switch_no[1] ~> package.5
+
+    assert coil.voltage within 3V +/- 10%
+    assert coil.resistance within 91ohm +/- 10%
