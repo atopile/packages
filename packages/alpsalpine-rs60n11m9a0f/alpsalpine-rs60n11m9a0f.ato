@@ -1,53 +1,49 @@
 import ElectricPower
 import ElectricSignal
+import Electrical
 
 from "parts/ALPSALPINE_RS60N11M9A0F/ALPSALPINE_RS60N11M9A0F.ato" import ALPSALPINE_RS60N11M9A0F_package
 
 module AlpsAlpine_RS60N11M9A0F:
-    # --- Package ---
-    package = new ALPSALPINE_RS60N11M9A0F_package
+    """
+    AlpsAlpine RS60N11M9A0F motorized fader with touch sense.
+    """
+    # motor
+    motor_positive = new Electrical
+    motor_positive.required = True
+    motor_negative = new Electrical
+    motor_negative.required = True
 
-    # --- External Interfaces ---
-    motor_drive_p = new ElectricSignal
-    motor_drive_n = new ElectricSignal
-    motor_power = new ElectricPower
-    """
-    Positive and negative drive signals to the DC motor.
-    """
-    motor_drive_p.required = True
-    motor_drive_n.required = True
+    motor_rated_voltage: V
+    assert motor_rated_voltage <= 10V +/- 10%
 
-    potentiometer_power = new ElectricPower
-    """
-    Power supply for the potentiometer.
-    """
-    potentiometer_power.required = True
-    assert potentiometer_power.voltage <= 40V
+    motor_rated_current: A
+    assert motor_rated_current <= 800mA
 
-    potentiometer_sense = new ElectricSignal
+    # potentiometer
+    potentiometer_signal = new ElectricSignal
     """
-    Sense signal from the potentiometer.
+    Signal from the potentiometer.
     """
-    potentiometer_sense.required = True
+    potentiometer_signal.required = True
+    assert potentiometer_signal.reference.voltage <= 10V
 
     touch_sense = new ElectricSignal
     """
-    Touch sense signal from the touch sensor.
+    Touch sense signal (for making the fader knob touch sensitive)
     """
 
     # --- Package Connections ---
+    package = new ALPSALPINE_RS60N11M9A0F_package
 
     # Motor
-    motor_drive_p.line ~ package.A
-    motor_drive_n.line ~ package.B
-    motor_power ~ motor_drive_p.reference
-    motor_power ~ motor_drive_n.reference
+    motor_positive ~ package.A
+    motor_negative ~ package.B
 
     # Potentiometer
-    potentiometer_power.hv ~ package.3
-    potentiometer_sense.line ~ package.2
-    potentiometer_power.lv ~ package.1
-    potentiometer_sense.reference ~ potentiometer_power
+    potentiometer_signal.reference.hv ~ package.3
+    potentiometer_signal.line ~ package.2
+    potentiometer_signal.reference.lv ~ package.1
 
     # Touch Sense
     touch_sense.line ~ package.T
