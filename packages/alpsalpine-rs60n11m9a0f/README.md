@@ -5,9 +5,12 @@ The AlpsAlpine RS60N11M9A0F is a motorized fader that is used to control the vol
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
+import has_part_removed
 
 from "atopile/alpsalpine-rs60n11m9a0f/alpsalpine-rs60n11m9a0f.ato" import AlpsAlpine_RS60N11M9A0F
 
@@ -21,6 +24,8 @@ module FakeMotorDriver:
     power_logic = new ElectricPower
 
     max_motor_current: A
+
+    trait has_part_removed
 
 module Usage:
     """
