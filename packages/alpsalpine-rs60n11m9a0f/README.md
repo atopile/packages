@@ -1,3 +1,10 @@
+# AlpsAlpine RS60N11M9A0F Motorized Fader
+
+The AlpsAlpine RS60N11M9A0F is a motorized fader that is used to control the volume of an audio signal.
+
+## Usage
+
+```ato
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("MODULE_TEMPLATING")
 
@@ -92,3 +99,13 @@ module Usage:
     pot_sense.line.suggested_net_name = "POT_SENSE"
     current_sense.line.suggested_net_name = "CURRENT_SENSE"
     touch_sense.line.suggested_net_name = "TOUCH_SENSE"
+
+```
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
