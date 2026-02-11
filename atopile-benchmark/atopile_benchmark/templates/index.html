@@ -652,46 +652,6 @@
         }
 
         /* Chart toggles */
-        .benchmark-toggles {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .toggle-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: var(--gray-100);
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            user-select: none;
-        }
-
-        .toggle-chip:hover {
-            background: var(--gray-200);
-        }
-
-        .toggle-chip.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .toggle-chip input {
-            display: none;
-        }
-
-        .toggle-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
         /* Error modal */
         .modal-overlay {
             position: fixed;
@@ -1428,7 +1388,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="benchmark-toggles" id="benchmarkToggles"></div>
                 <div id="chart" style="height: 450px;"></div>
             </div>
         </div>
@@ -1488,8 +1447,7 @@
             chart: {
                 yScale: 'linear',
                 normalize: false,
-                xMode: 'discrete',
-                enabledPackages: new Set()  // Track enabled packages for chart (not per build command)
+                xMode: 'discrete'
             },
             // Filter and sort state
             filter: {
@@ -1776,7 +1734,6 @@
             updateSummaryCards();
             updateStatsTable();
             updateTable();
-            updateBenchmarkToggles();
             updateChart();
             updateLastUpdated();
             updateStopButtonVisibility();
@@ -2748,48 +2705,6 @@
             }
         }
 
-        function updateBenchmarkToggles() {
-            const container = document.getElementById('benchmarkToggles');
-            container.innerHTML = '';
-
-            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-
-            // Initialize enabled packages (all enabled by default)
-            if (state.chart.enabledPackages.size === 0) {
-                packages.forEach(pkg => state.chart.enabledPackages.add(pkg.name));
-            }
-
-            packages.forEach((pkg, idx) => {
-                const chip = document.createElement('label');
-                chip.className = `toggle-chip${state.chart.enabledPackages.has(pkg.name) ? ' active' : ''}`;
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = state.chart.enabledPackages.has(pkg.name);
-                checkbox.onchange = () => togglePackage(pkg.name, chip);
-
-                const dot = document.createElement('span');
-                dot.className = 'toggle-dot';
-                dot.style.background = COLORS[idx % COLORS.length];
-
-                chip.appendChild(checkbox);
-                chip.appendChild(dot);
-                chip.appendChild(document.createTextNode(pkg.name));
-                container.appendChild(chip);
-            });
-        }
-
-        function togglePackage(name, chip) {
-            if (state.chart.enabledPackages.has(name)) {
-                state.chart.enabledPackages.delete(name);
-                chip.classList.remove('active');
-            } else {
-                state.chart.enabledPackages.add(name);
-                chip.classList.add('active');
-            }
-            updateChart();
-        }
-
         function updateChart() {
             const versions = state.config.atopile_versions || [];
             if (versions.length === 0) {
@@ -2817,11 +2732,6 @@
             // Track package index for consistent coloring
             let colorIdx = 0;
             packages.forEach((pkg) => {
-                // Skip if package is not enabled for chart
-                if (!state.chart.enabledPackages.has(pkg.name)) {
-                    return;
-                }
-
                 const pkgColorIdx = colorIdx++;
 
                 commands.forEach(cmd => {
@@ -3418,7 +3328,6 @@
                     }
                     saveBuildCommandsToStorage();
                     updateTable();
-                    updateBenchmarkToggles();
                 };
 
                 container.appendChild(btn);
