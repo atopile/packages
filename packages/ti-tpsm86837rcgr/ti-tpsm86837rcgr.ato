@@ -1,0 +1,317 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import Resistor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import Electrical
+import ResistorVoltageDivider
+import has_single_electric_reference_shared
+import can_bridge_by_name
+import Regulator
+
+from "parts/TEXAS_INSTRUMENTS_TPSM86837RCGR/TEXAS_INSTRUMENTS_TPSM86837RCGR.ato" import TEXAS_INSTRUMENTS_TPSM86837RCGR_package
+
+from "atopile/netties/netties.ato" import NetTie_2_SMD_Pad0_5mm
+from "atopile/testpoints/testpoints.ato" import TestPoint_2_SMD_Pad0_5mm
+
+module TPSM86837RCGR from Regulator:
+    """
+    Power Management Modules 4.5V to 28V input voltage, 8A ECO mode,
+    synchronous buck module with QFN package
+    """
+
+    # External interfaces
+    frequency_mode = new Electrical  # pin: 2
+    enable = new ElectricLogic  # pin: 3
+    feedback = new ElectricSignal  # pin: 4
+    power_analog = new ElectricPower  # pin: 5
+    power_good = new ElectricLogic  # pin: 6
+    soft_start = new Electrical  # pin: 7
+    bootstrap = new Electrical  # pin: 12 Do Not Connect
+    switching_node = new Electrical
+    """
+    Do not connect, only for better thermal dissipation and reduced parasitic impedance.
+    """
+
+    # Parameters
+    assert power_in.voltage within 4.5V to 28V
+    assert power_out.voltage within 0.6V to 5.5V
+
+    switching_frequency: kHz
+    assert switching_frequency within 800kHz to 1200kHz
+
+    soft_start_time: ms
+    assert soft_start_time within 0ms to 1000ms
+
+    under_voltage_lockout: V
+
+    assert feedback.reference.max_current within 60uA +/- 10%
+
+    # TODO: no support for high/low/hysteresis/min/max voltage for ElectricLogic
+    assert enable.reference.voltage within 0.5V to 5.5V
+
+    # Package connections
+    package = new TEXAS_INSTRUMENTS_TPSM86837RCGR_package
+    package.VOUT ~ power_out.hv
+    package.MODE ~ frequency_mode
+    package.EN ~ enable.line
+    package.FB ~ feedback.line
+    package.AGND ~ power_analog.lv
+    package.PG ~ power_good.line
+    package.SS ~ soft_start
+    package.VIN ~ power_in.hv
+    package.SW ~ switching_node
+    package.BOOT ~ bootstrap
+    package.PGND ~ power_in.lv
+
+module ResistorControlLoopMeasurement:
+    """Resistor to in-circuit measure frequency response of the control loop"""
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    resistor = new Resistor
+    testpoint = new TestPoint_2_SMD_Pad0_5mm[2]
+
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+
+    power_in.hv ~> testpoint[0] ~> resistor ~> testpoint[1] ~> power_out.hv
+
+    assert resistor.resistance within 49.9ohm +/- 1%
+
+    assert power_in.voltage within power_out.voltage + (power_out.max_current * resistor.resistance)
+    assert power_out.voltage within power_in.voltage - (power_out.max_current * resistor.resistance)
+
+    assert power_out.max_current within 1mA +/- 1%
+
+module OutputVoltageFeedback:
+    """
+    Feedback resistor divider to measure the output voltage with filtering and
+    control loop measurement
+    """
+    feedback = new ElectricSignal
+    output_power_rail = new ElectricPower
+
+    resistor_voltage_divider = new ResistorVoltageDivider
+    resistor_control_loop_measurement = new ResistorControlLoopMeasurement
+    load_transient_filter_capacitor = new Capacitor
+    """capacitor to improve the load transient response or improve the loop-phase margin"""
+
+    nettie = new NetTie_2_SMD_Pad0_5mm
+
+    output_power_rail ~> nettie ~> resistor_control_loop_measurement ~> resistor_voltage_divider.ref_in
+
+    resistor_voltage_divider.ref_out.hv ~ feedback.line
+    resistor_voltage_divider.ref_out.lv ~ feedback.reference.lv
+    assert resistor_voltage_divider.ref_out.voltage is feedback.reference.voltage
+
+    resistor_voltage_divider.ref_in.hv ~> load_transient_filter_capacitor ~> feedback.line
+
+    output_voltage: V
+    # assert output_voltage is (0.6V * (1 + resistor_voltage_divider.ratio))
+
+    assert resistor_voltage_divider.chain.resistors[0].resistance within 0ohm to 82 kohm
+    resistor_voltage_divider.chain.resistors[0].package = "R0402"
+    assert resistor_voltage_divider.chain.resistors[1].resistance within 10kohm +/- 1%
+    resistor_voltage_divider.chain.resistors[1].package = "R0402"
+    assert load_transient_filter_capacitor.capacitance within 47pF +/- 10%
+    load_transient_filter_capacitor.package = "R0402"
+
+module UnderVoltageLockout:
+    """
+    Under voltage lockout to prevent the module from operating below a set minimum
+    input voltage
+    """
+    power_in = new ElectricPower
+    power_in.voltage.default = 12V to 28V
+    output = new ElectricSignal
+    enable = new ElectricLogic
+
+    resistors = new Resistor[2]
+    """Resistors for creating the external voltage divider portion of the under voltage lockout"""
+    for resistor in resistors:
+        resistor.package = "0402"
+    over_voltage_protection_diode = new Diode
+
+    under_voltage_lockout_voltage: V
+    under_voltage_lockout_voltage.default = 15V
+    """Below this voltage, the converter will disable. Above this voltage + hysteresis, the converter will enable"""
+    assert under_voltage_lockout_voltage <= power_in.voltage
+    start_hysteresis: mV
+    """Hysteresis voltage for the start of the converter"""
+    assert start_hysteresis >= 500mV
+    start_hysteresis.default = 550mV
+
+    trait can_bridge_by_name<input_name = "enable", output_name = "output">
+
+    power_in.hv ~> resistors[0] ~> resistors[1] ~> power_in.lv
+    power_in.hv ~> resistors[0] ~> output.line
+    power_in.lv ~ output.reference.lv
+    power_in.lv ~ enable.reference.lv
+
+    # TODO: hack, should just be able to connect to each other
+    output.line ~ enable.line
+    output.reference ~ enable.reference
+
+    # a zener diode is used here to protect the enable pin voltages higher than
+    # 5.5V
+    # over_voltage_protection_diode.lcsc_id = "C435914"
+    over_voltage_protection_diode.manufacturer = "Diodes Incorporated"
+    over_voltage_protection_diode.mpn = "MMSZ5231BS-7-F"
+
+    power_in.lv ~> over_voltage_protection_diode ~> enable.line
+
+    # from section 6.3.4 from the datasheet
+    # VIN rising ──────────────────►
+    # 0V .... VSTOP ... VSTART .... 28V
+    # │          │
+    # │          └─ VIN crosses this → converter ENABLES
+    # │
+    # └─ VIN drops below this → converter DISABLES
+    vstart: V
+    assert vstart within under_voltage_lockout_voltage + start_hysteresis
+    vstop: V
+    assert vstop within under_voltage_lockout_voltage
+    pull_up_current: uA
+    assert pull_up_current is 1uA
+    hysteresis_current: uA
+    assert hysteresis_current is 3uA
+    enable_falling_voltage: V
+    assert enable_falling_voltage is 1.07V
+    enable_rising_voltage: V
+    assert enable_rising_voltage is 1.18V
+
+    # pre-compute ratio
+    voltage_ratio = enable_falling_voltage / enable_rising_voltage
+
+    # calculate the top resistor value
+    # r_top_resistance: ohm
+    # r_top_resistance = (
+    # vstart * voltage_ratio - vstop
+    # ) / (
+    # pull_up_current * (1 - voltage_ratio)
+    # + hysteresis_current
+    # )
+
+    # assert resistors[0].resistance within r_top_resistance * (1 +/- 1%)
+    assert resistors[0].resistance within ((
+        vstart * voltage_ratio - vstop
+    ) / (
+        pull_up_current * (1 - voltage_ratio)
+        + hysteresis_current
+    )) * (1 +/- 1%)
+
+    # calculate the bottom resistor value
+    # r_bottom_resistance: ohm
+    # r_bottom_resistance = (r_top_resistance * enable_falling_voltage) / (
+    # vstop
+    # - enable_falling_voltage
+    # + r_top_resistance * (pull_up_current + hysteresis_current)
+    # )
+
+    # assert resistors[1].resistance within r_bottom_resistance * (1 +/- 1%)
+    assert resistors[1].resistance within ((resistors[0].resistance * enable_falling_voltage) / (
+    vstop
+    - enable_falling_voltage
+    + resistors[0].resistance * (pull_up_current + hysteresis_current)
+    )) * (1 +/- 1%)
+
+module TPSM86837RCGR_Driver:
+    """
+    Power Management Modules 4.5V to 28V input voltage, 8A ECO mode,
+    synchronous buck module with QFN package
+    """
+    power_module = new TPSM86837RCGR
+    switching_frequency_resistor = new Resistor
+    switching_frequency_resistor.package = "0402"
+    switching_frequency_resistor.resistance.default = 374kohm +/- 1%  # 1200kHz
+    soft_start_timing_capacitor = new Capacitor
+    soft_start_timing_capacitor.package = "0402"
+    output_voltage_feedback = new OutputVoltageFeedback
+    under_voltage_lockout = new UnderVoltageLockout
+    power_in_decoupling_caps = new Capacitor[2]
+    power_out_decoupling_caps = new Capacitor[3]
+
+    # internal virtual inductor for ripple calculations
+    inductor = new Inductor
+    assert inductor.inductance within 1.5uH +/- 20%
+    # trait inductor.has_part_removed #TODO
+
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+    enable = new ElectricLogic
+    power_good = new ElectricLogic
+
+    input_voltage_lockout_voltage : V
+    soft_start_time: ms
+    soft_start_time.default = 2.2ms +/- 10%
+    switching_frequency: kHz
+    switching_frequency.default = 1200kHz
+
+    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+    trait has_single_electric_reference_shared<ground_only = True>
+
+    power_in ~> power_module ~> power_out
+    power_good ~ power_module.power_good
+
+    under_voltage_lockout.enable ~ enable
+    under_voltage_lockout.power_in ~ power_in
+    under_voltage_lockout.output.line ~ power_module.enable.line
+    under_voltage_lockout.output.reference ~ power_module.enable.reference
+
+    # TODO: set power_good weak ON with 100kohm +/- 10%
+
+    power_module.frequency_mode ~> switching_frequency_resistor ~> power_module.power_analog.lv
+
+    power_module.soft_start ~> soft_start_timing_capacitor ~> power_module.power_analog.lv
+
+    # connect the output voltage feedback resistor-divider
+    output_voltage_feedback.output_power_rail ~ power_module.power_out
+    output_voltage_feedback.feedback ~ power_module.feedback
+    power_module.power_analog ~ power_module.feedback.reference
+
+    assert output_voltage_feedback.resistor_voltage_divider.current is power_module.feedback.reference.max_current
+    assert power_out.voltage is output_voltage_feedback.output_voltage
+    assert power_out.voltage within 5V +/- 1%  # TODO: remove
+
+        # soft start -------------------------
+    # capacitor (Css) between soft start and analog ground
+    # Tss[ms] = Css*VREF/ISS
+    # ISS = 6uA
+    # VREF = 0.6V +/- 1%
+    # 22nF gives 2.2ms
+    soft_start_charging_current: uA
+    assert soft_start_charging_current is 0.6uA  # no range in datasheet
+
+    soft_start_voltage_reference: V
+    assert soft_start_voltage_reference within 0.6V +/- 1%
+
+    assert power_module.soft_start_time is soft_start_time
+    assert power_module.soft_start_time is soft_start_timing_capacitor.capacitance * soft_start_voltage_reference / soft_start_charging_current
+    assert power_module.soft_start_time is (soft_start_charging_current * power_module.soft_start_time) / soft_start_voltage_reference
+
+    # switching frequency ----------------
+    # map switching frequency to config resistor value
+    assert power_module.switching_frequency within switching_frequency
+    # TODO: mapping in ato
+    # self.power_module.switching_frequency.constrain_mapping(
+    # self.switching_frequency_resistor.resistance,
+    # {
+    # 800 * P.kHz: L.Range.from_center_rel(162 * P.kohm, 0.01),
+    # 1200 * P.kHz: L.Range.from_center_rel(374 * P.kohm, 0.01),
+    # },
+    # )
+
+    # use the recommended in and output capacitors from the offical reference design
+    for cap in power_in_decoupling_caps:
+        cap.manufacturer = "Murata Electronics"
+        cap.mpn = "GRM32ER7YA106KA12L"
+    for cap in power_out_decoupling_caps:
+        cap.manufacturer = "Murata Electronics"
+        cap.mpn = "GRM32ER71E226KE15L"
+
+    assert input_voltage_lockout_voltage is under_voltage_lockout.under_voltage_lockout_voltage

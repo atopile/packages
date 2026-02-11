@@ -1,0 +1,17 @@
+import ElectricPower
+
+from "atopile/ti-tpsm86837rcgr/ti-tpsm86837rcgr.ato" import TPSM86837RCGR_Driver
+
+module Usage:
+    """
+    Example usage of the TPSM86837RCGR driver
+    """
+
+    buck_converter = new TPSM86837RCGR_Driver
+
+    power_in = new ElectricPower
+    assert power_in.voltage within 12V +/- 10%
+    power_out = new ElectricPower
+    assert power_out.voltage within 3.3V +/- 10%
+
+    power_in ~> buck_converter ~> power_out

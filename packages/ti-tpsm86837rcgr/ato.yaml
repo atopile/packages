@@ -1,0 +1,40 @@
+requires-atopile: 0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-tpsm86837rcgr.ato:TPSM86837RCGR
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+  uvl:
+    entry: ti-tpsm86837rcgr.ato:UnderVoltageLockout
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/ti-tpsm86837rcgr
+  repository: https://github.com/atopile/packages
+  homepage:
+    https://github.com/atopile/packages/blob/main/packages/ti-tpsm86837rcgr/README.md
+  version: 0.1.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: TI TPSM86837RCGR Power Management Module 4.5V to 28V input voltage,
+    8A ECO mode, synchronous buck module with QFN package
+  license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/netties
+  release: 0.2.0
+- type: registry
+  identifier: atopile/testpoints
+  release: 0.2.0
