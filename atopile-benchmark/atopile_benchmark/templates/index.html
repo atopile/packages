@@ -182,7 +182,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
             background: var(--gray-100);
             color: var(--gray-800);
             line-height: 1.5;
@@ -193,7 +193,7 @@
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 24px 32px;
+            padding: 14px 32px;
             box-shadow: var(--shadow-md);
         }
 
@@ -238,7 +238,7 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 24px 32px;
+            padding: 16px 32px;
         }
 
         /* Cards */
@@ -246,28 +246,28 @@
             background: white;
             border-radius: 12px;
             box-shadow: var(--shadow);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             overflow: hidden;
         }
 
         .card-header {
-            padding: 16px 24px;
+            padding: 12px 20px;
             border-bottom: 1px solid var(--gray-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
 
         .card-header h2 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--gray-800);
         }
 
         .card-body {
-            padding: 24px;
+            padding: 16px 20px;
         }
 
         /* Controls */
@@ -281,11 +281,11 @@
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            font-size: 14px;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 13px;
             font-weight: 500;
-            border-radius: 8px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -379,18 +379,18 @@
         .version-editor {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            align-items: flex-end;
+            gap: 8px;
+            align-items: center;
         }
 
         .version-tag {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 6px;
+            padding: 6px 10px;
             background: var(--primary-bg);
             border: 1px solid var(--primary-light);
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 13px;
             color: var(--gray-800);
         }
@@ -412,6 +412,40 @@
 
         .version-tag .remove-btn:hover {
             color: var(--danger);
+        }
+
+        .version-tag-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .version-sync-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: var(--gray-400);
+            padding-left: 4px;
+        }
+        .version-sync-info .sync-time {
+            white-space: nowrap;
+        }
+        .version-rebuild-btn {
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            padding: 0 2px;
+            font-size: 11px;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+        .version-rebuild-btn:hover {
+            color: var(--primary);
+        }
+        .version-rebuild-btn.rebuilding {
+            color: var(--primary);
+            animation: spin 0.8s linear infinite;
         }
 
         .version-input-group {
@@ -439,6 +473,10 @@
         /* Table */
         .table-container {
             overflow-x: auto;
+            overflow-anchor: none;
+        }
+        #tablesContainer {
+            overflow-anchor: none;
         }
 
         table {
@@ -449,9 +487,14 @@
         }
 
         th, td {
-            padding: 6px 12px;
+            padding: 4px 8px;
             text-align: center;
             border-bottom: 1px solid var(--gray-200);
+            border-left: 1px solid var(--gray-200);
+        }
+
+        th:first-child, td:first-child {
+            border-left: none;
         }
 
         th {
@@ -464,6 +507,19 @@
             position: sticky;
             top: 0;
             z-index: 10;
+        }
+
+        /* Zebra striping */
+        tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row) {
+            background: rgba(0, 0, 0, 0.015);
+        }
+        [data-theme="dark"] tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Tabular nums for time values */
+        .badge-success, .phase-bar-time, .stat-value {
+            font-variant-numeric: tabular-nums;
         }
 
         /* First column (benchmark name) - auto width based on content */
@@ -484,6 +540,7 @@
 
         tbody tr:hover {
             background: var(--gray-50);
+            box-shadow: inset 3px 0 0 var(--primary);
         }
 
         td:first-child {
@@ -494,13 +551,29 @@
             text-overflow: ellipsis;
         }
 
+        /* Package name cell with inline run button */
+        td.package-name-cell {
+            vertical-align: middle;
+            overflow: visible;
+        }
+        .package-name-inner {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .package-name-inner .package-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
         /* Status badges */
         .badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 10px;
-            border-radius: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-size: 12px;
             font-weight: 500;
         }
@@ -508,11 +581,13 @@
         .badge-success {
             background: var(--success-bg);
             color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .badge-danger {
             background: var(--danger-bg);
             color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
             cursor: pointer;
         }
 
@@ -550,9 +625,9 @@
 
         /* Package version display */
         .pkg-version {
-            font-size: 9px;
+            font-size: 10px;
             color: var(--gray-400);
-            font-family: monospace;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
             white-space: nowrap;
         }
 
@@ -590,16 +665,14 @@
         .badge-running {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            width: 100px;
-            max-width: 100px;
-            flex-direction: column;
-            padding: 6px 8px;
-            gap: 2px;
+            padding: 4px 10px;
+            gap: 4px;
             align-items: center;
+            white-space: nowrap;
         }
 
         .badge-running .top-row {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
         }
@@ -610,12 +683,7 @@
         }
 
         .badge-running .phase {
-            font-size: 9px;
-            opacity: 0.95;
-            max-width: 90px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: none;
         }
 
         /* Spinner */
@@ -721,7 +789,7 @@
         }
 
         .error-text {
-            font-family: 'Monaco', 'Menlo', monospace;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
             font-size: 12px;
             background: var(--gray-900);
             color: var(--gray-100);
@@ -735,34 +803,38 @@
         /* Summary cards */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .summary-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 14px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
         }
 
         .summary-card-label {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--gray-500);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .summary-card-value {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--gray-800);
+            font-variant-numeric: tabular-nums;
         }
 
         .summary-card-sub {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--gray-400);
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         /* Connection status */
@@ -807,11 +879,11 @@
         /* Responsive */
         @media (max-width: 768px) {
             .header {
-                padding: 16px;
+                padding: 12px;
             }
 
             .container {
-                padding: 16px;
+                padding: 12px;
             }
 
             .header-stats {
@@ -819,7 +891,7 @@
             }
 
             .card-body {
-                padding: 16px;
+                padding: 12px;
             }
         }
 
@@ -858,9 +930,10 @@
         }
 
         .stats-table td {
-            padding: 6px 12px;
+            padding: 4px 8px;
             text-align: center;
             border-bottom: 1px solid var(--gray-200);
+            border-left: 1px solid var(--gray-200);
             vertical-align: top;
         }
 
@@ -871,6 +944,7 @@
             font-weight: 600;
             color: var(--gray-600);
             background: var(--gray-100);
+            border-left: none;
         }
 
         .stats-table td:not(:first-child) {
@@ -880,7 +954,7 @@
         }
 
         .stats-table .stat-label {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -905,7 +979,7 @@
         }
 
         .stats-table .stat-sub {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--gray-400);
         }
 
@@ -922,7 +996,7 @@
         }
 
         .stats-table .version-meta {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--gray-500);
             line-height: 1.4;
         }
@@ -982,18 +1056,18 @@
             gap: 8px;
         }
         .expand-icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border-radius: 4px;
             background: var(--gray-200);
             color: var(--gray-600);
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             flex-shrink: 0;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
         }
         .package-row:hover .expand-icon {
             background: var(--primary-bg);
@@ -1003,6 +1077,11 @@
             background: var(--primary);
             color: white;
             transform: rotate(90deg);
+        }
+        .expand-icon::before {
+            content: '›';
+            font-size: 14px;
+            line-height: 1;
         }
         .package-name {
             font-weight: 600;
@@ -1032,7 +1111,7 @@
             margin-right: 6px;
         }
         .build-target-name {
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
             font-size: 12px;
         }
         .build-target-count {
@@ -1113,120 +1192,131 @@
         .inline-speed-indicator {
             order: -1;
         }
-        /* Run All column styling */
-        .run-all-header {
-            background: var(--gray-50) !important;
-        }
-        .run-all-cell {
-            background: var(--gray-50);
-        }
+        /* Run button inline with package name */
         .run-all-btn {
-            padding: 4px 8px !important;
-            font-size: 11px !important;
-            background: var(--primary) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 4px !important;
+            width: 20px !important;
+            height: 20px !important;
+            padding: 0 !important;
+            font-size: 8px !important;
+            background: var(--gray-100) !important;
+            color: var(--primary) !important;
+            border: 1.5px solid var(--primary) !important;
+            border-radius: 50% !important;
             cursor: pointer;
-            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            padding-left: 1.5px !important;
+            padding-top: 1px !important;
         }
         .run-all-btn:hover {
-            background: var(--primary-dark) !important;
+            background: var(--primary) !important;
+            color: white !important;
         }
-        .build-target-row .run-all-btn {
-            padding: 2px 6px !important;
-            font-size: 10px !important;
-        }
-        /* Phase detail rows */
+        /* Phase detail rows - individual cells aligned with parent columns */
         .phase-detail-row {
             display: none;
         }
         .phase-detail-row.visible {
             display: table-row;
         }
-        .phase-detail-row td {
-            padding: 0 !important;
+        .phase-detail-row > td {
+            padding: 4px 8px !important;
             border-bottom: 2px solid var(--primary-light) !important;
-        }
-        .phase-detail-inner {
-            padding: 6px 12px;
+            border-left: 1px solid var(--gray-200) !important;
             background: var(--gray-50);
+            vertical-align: top;
         }
-        .phase-detail-table {
-            width: 100%;
-            border-collapse: collapse;
+        .phase-detail-row > td:first-child {
+            border-left: none !important;
+        }
+        .phase-detail-row > td:first-child {
+            text-align: left !important;
+        }
+        .phase-detail-section-header {
             font-size: 11px;
-            table-layout: auto;
-        }
-        .phase-detail-table th {
-            position: static;
-            text-align: left;
-            padding: 2px 8px 2px 0;
-            font-size: 10px;
             font-weight: 600;
             color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            background: none;
+            padding-bottom: 4px;
             border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 2px;
             white-space: nowrap;
-        }
-        .phase-detail-table td {
-            padding: 2px 8px 2px 0 !important;
-            text-align: left !important;
-            border-bottom: none !important;
-            vertical-align: middle;
-        }
-        .phase-detail-table td:first-child {
-            width: auto !important;
-            min-width: auto !important;
-            font-weight: 500;
-            color: var(--gray-700);
-            white-space: nowrap;
-            font-size: 11px;
-            max-width: 160px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .phase-detail-table .phase-bar-cell {
-            width: 100%;
+        .phase-detail-title {
+            font-size: 11px;
         }
-        .phase-bar-wrapper {
+        .phase-detail-target {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--primary);
+            text-transform: none;
+            letter-spacing: 0;
+            background: var(--primary-bg);
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+        }
+        .phase-name-item {
+            height: 18px;
+            line-height: 18px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--gray-700);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .phase-time-item {
+            height: 18px;
+            line-height: 18px;
             display: flex;
             align-items: center;
             gap: 4px;
         }
+        .phase-detail-version-cell {
+            text-align: left !important;
+        }
+        .phase-detail-names-cell {
+            text-align: left !important;
+        }
         .phase-bar {
-            height: 10px;
+            height: 8px;
             border-radius: 2px;
             background: var(--primary);
             min-width: 1px;
+            flex-shrink: 1;
             transition: width 0.2s ease;
         }
         .phase-bar-time {
-            font-size: 10px;
+            font-size: 12px;
             color: var(--gray-600);
             white-space: nowrap;
-            font-family: 'SF Mono', 'Monaco', monospace;
-            min-width: 36px;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            min-width: 40px;
+            flex-shrink: 0;
         }
         .phase-toggle {
-            width: 16px;
-            height: 16px;
+            width: 22px;
+            height: 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border: none;
             background: var(--gray-200);
             color: var(--gray-500);
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 8px;
+            font-size: 11px;
             flex-shrink: 0;
             padding: 0;
             line-height: 1;
             transition: all 0.15s ease;
-            margin-left: 6px;
             vertical-align: middle;
         }
         .phase-toggle:hover {
@@ -1239,14 +1329,14 @@
         }
         .phase-no-data {
             color: var(--gray-400);
-            font-size: 10px;
+            font-size: 11px;
             font-style: italic;
             padding: 4px 0;
         }
-        [data-theme="dark"] .phase-detail-inner {
+        [data-theme="dark"] .phase-detail-row > td {
             background: #1e2130;
         }
-        [data-theme="dark"] .phase-detail-table th {
+        [data-theme="dark"] .phase-detail-section-header {
             border-bottom-color: #3a3d4a;
         }
         [data-theme="dark"] .phase-toggle {
@@ -1294,7 +1384,7 @@
         .exception-type {
             font-weight: 600;
             color: var(--gray-800);
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
             font-size: 12px;
             word-break: break-all;
         }
@@ -1306,24 +1396,25 @@
 
         /* Analysis summary stats */
         .analysis-summary {
-            display: flex;
-            gap: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
             margin-bottom: 16px;
-            flex-wrap: wrap;
         }
         .analysis-stat {
             background: var(--gray-50);
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             text-align: center;
+            border: 1px solid var(--gray-200);
         }
         .analysis-stat-value {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--gray-800);
         }
         .analysis-stat-label {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -1340,9 +1431,459 @@
             color: #e5e7eb;
             border-color: #3a3d4a;
         }
+
+        /* Collapsible card sections */
+        .card-header.collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        .card-header.collapsible:hover {
+            background: var(--gray-50);
+        }
+        [data-theme="dark"] .card-header.collapsible:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        .collapse-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            color: var(--gray-400);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+        .card-header.collapsible.collapsed .collapse-toggle {
+            transform: rotate(-90deg);
+        }
+        .card-body.collapsible-body {
+            overflow: hidden;
+            transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+            max-height: 2000px;
+            opacity: 1;
+        }
+        .card-body.collapsible-body.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+        .collapse-summary {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        /* Package Health section */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .health-stat {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+        }
+        .health-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gray-800);
+            font-variant-numeric: tabular-nums;
+        }
+        .health-stat-value.good { color: var(--success); }
+        .health-stat-value.bad { color: var(--danger); }
+        .health-stat-value.warn { color: var(--warning); }
+        .health-stat-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 2px;
+        }
+        .health-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .health-columns { grid-template-columns: 1fr; }
+        }
+        .health-column-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .health-error-group {
+            margin-bottom: 10px;
+        }
+        .health-error-type {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-700);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .health-error-count {
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--danger-bg);
+            color: var(--danger);
+            border-radius: 10px;
+            padding: 1px 7px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .health-error-packages {
+            font-size: 11px;
+            color: var(--gray-500);
+            padding-left: 4px;
+            line-height: 1.5;
+        }
+        .broken-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .broken-tile {
+            cursor: pointer;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 8px 10px;
+            transition: border-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .broken-tile:hover {
+            border-color: var(--gray-400);
+        }
+        .broken-tile-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .broken-tile-name {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--gray-800);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .broken-tile-summary {
+            font-size: 11px;
+            color: var(--danger);
+            margin-top: 2px;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .broken-tile-pr {
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--primary);
+            background: white;
+            border: 1px solid var(--primary-light);
+            border-radius: 4px;
+            padding: 3px 8px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s, color 0.15s;
+        }
+        .broken-tile-pr:hover {
+            background: var(--primary);
+            color: white;
+        }
+        /* Log modal overlay */
+        .log-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .log-modal-overlay.visible {
+            display: flex;
+        }
+        .log-modal {
+            background: white;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .log-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            flex-shrink: 0;
+        }
+        .log-modal-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--gray-800);
+        }
+        .log-modal-error {
+            font-size: 12px;
+            color: var(--danger);
+            margin-top: 2px;
+        }
+        .log-modal-close {
+            background: none;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 4px 10px;
+            font-size: 13px;
+            color: var(--gray-500);
+            flex-shrink: 0;
+        }
+        .log-modal-close:hover {
+            background: var(--gray-50);
+            color: var(--gray-700);
+        }
+        .log-modal-body {
+            overflow-y: auto;
+            padding: 16px 20px;
+            flex: 1;
+            min-height: 0;
+        }
+        .log-modal-body pre {
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--gray-700);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            background: var(--gray-50);
+            border-radius: 6px;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-100);
+        }
+        .health-step-table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .health-step-table td {
+            padding: 3px 4px;
+            border-bottom: 1px solid var(--gray-100);
+            border-left: none;
+        }
+        .health-step-table td:first-child {
+            color: var(--gray-600);
+            font-weight: 500;
+            text-align: left;
+            white-space: nowrap;
+            border-left: none;
+        }
+        .health-step-table td:nth-child(2) {
+            text-align: right;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: var(--gray-800);
+            white-space: nowrap;
+            padding: 3px 6px 3px 8px;
+        }
+        .health-step-table td:nth-child(3) {
+        }
+        .health-step-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--primary);
+            min-width: 6px;
+        }
+
+        /* Version analysis step comparison table */
+        .analysis-step-table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .analysis-step-table td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
+        /* Name column - auto width */
+        .analysis-step-table td:nth-child(1) {
+            color: var(--gray-600);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        /* Label column - shrink-wrap */
+        .analysis-step-table td:nth-child(2) {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: right;
+            white-space: nowrap;
+            padding: 2px 2px 2px 6px;
+        }
+        /* Time column - shrink-wrap */
+        .analysis-step-table td:nth-child(3) {
+            text-align: right;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            padding: 2px 6px 2px 2px;
+        }
+        /* Bar column - fills remaining space */
+        .analysis-step-table td:nth-child(4) {
+        }
+        /* Change column - shrink-wrap */
+        .analysis-step-table td:nth-child(5) {
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            text-align: right;
+            padding: 2px 4px 2px 6px;
+        }
+        .analysis-step-table .row-selected td:nth-child(2) { color: var(--primary); }
+        .analysis-step-table .row-selected td:nth-child(3) { color: var(--gray-800); }
+        .analysis-step-table .row-baseline td:nth-child(1) { color: var(--gray-400); font-size: 10px; }
+        .analysis-step-table .row-baseline td:nth-child(2) { color: var(--gray-400); }
+        .analysis-step-table .row-baseline td:nth-child(3) { color: var(--gray-400); font-weight: 500; }
+        .analysis-step-table .row-selected td { border-bottom: none; }
+        .analysis-step-table .row-baseline td { border-bottom: 1px solid var(--gray-100); padding-top: 0; }
+        .analysis-step-table .row-single td { border-bottom: 1px solid var(--gray-100); }
+        .analysis-step-bar {
+            height: 6px;
+            border-radius: 3px;
+            min-width: 6px;
+        }
+        .analysis-step-bar.selected { background: var(--primary); }
+        .analysis-step-bar.baseline { background: var(--gray-300); }
+        .change-faster { color: var(--success); }
+        .change-slower { color: var(--danger); }
+        .change-same { color: var(--gray-400); }
+        [data-theme="dark"] .health-stat {
+            background: #1e2130;
+        }
+
+        /* Drag-and-drop version reordering */
+        .version-tag {
+            cursor: grab;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .version-tag:active {
+            cursor: grabbing;
+        }
+        .version-tag.dragging {
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+        .version-tag.drag-over {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+        }
+        .drag-handle {
+            color: var(--gray-400);
+            font-size: 14px;
+            line-height: 1;
+            cursor: grab;
+            padding-right: 2px;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .baseline-label {
+            display: inline-flex;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary);
+            background: var(--primary-bg);
+            border: 1px solid var(--primary-light);
+            border-radius: 3px;
+            padding: 1px 4px;
+            margin-left: -2px;
+        }
+
+        /* Run button UX improvements */
+        .run-all-btn {
+            transition: all 0.15s ease !important;
+        }
+        .run-all-btn:hover {
+            transform: scale(1.15) !important;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+        }
+        .btn-primary.has-pending {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        /* Progress indicator in header */
+        .build-progress {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.9);
+        }
+        .build-progress.active {
+            display: flex;
+        }
+        .build-progress-bar {
+            width: 60px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .build-progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
+    <!-- Log modal -->
+    <div class="log-modal-overlay" id="logModal" onclick="if(event.target===this)closeLogModal()">
+        <div class="log-modal">
+            <div class="log-modal-header">
+                <div>
+                    <div class="log-modal-title" id="logModalTitle"></div>
+                    <div class="log-modal-error" id="logModalError"></div>
+                </div>
+                <button class="log-modal-close" onclick="closeLogModal()">Close</button>
+            </div>
+            <div class="log-modal-body">
+                <pre id="logModalContent"></pre>
+            </div>
+        </div>
+    </div>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
@@ -1372,6 +1913,12 @@
                     <span class="header-stat-value" id="totalResults">-</span>
                     <span class="header-stat-label">Results</span>
                 </div>
+                <div class="build-progress" id="buildProgress">
+                    <div class="build-progress-bar">
+                        <div class="build-progress-fill" id="buildProgressFill" style="width: 0%"></div>
+                    </div>
+                    <span id="buildProgressText">0/0</span>
+                </div>
                 <div class="connection-status">
                     <span class="connection-dot" id="connectionDot"></span>
                     <span id="connectionText">Connecting...</span>
@@ -1381,17 +1928,21 @@
     </header>
 
     <main class="container">
-        <!-- Version Configuration -->
-        <div class="card">
-            <div class="card-header">
-                <h2>atopile Versions</h2>
+        <!-- Version Configuration (collapsed by default) -->
+        <div class="card" id="versionConfigCard">
+            <div class="card-header collapsible collapsed" onclick="toggleCollapsible('versionConfig')">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="collapse-toggle" id="versionConfigToggle">&#9660;</span>
+                    <h2>atopile Versions</h2>
+                    <span class="collapse-summary" id="versionConfigSummary"></span>
+                </div>
                 <span style="font-size: 12px; color: var(--gray-500);">Configure which versions to benchmark</span>
             </div>
-            <div class="card-body">
+            <div class="card-body collapsible-body collapsed" id="versionConfigBody">
                 <div class="version-editor" id="versionEditor">
                     <!-- Version tags will be inserted here -->
                 </div>
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-200);">
                     <div class="version-input-group">
                         <select id="newVersionType">
                             <option value="release">Release</option>
@@ -1400,9 +1951,9 @@
                             <option value="local">Local</option>
                         </select>
                         <input type="text" id="newVersionValue" placeholder="e.g., 0.12.4, main, ~/path/to/repo">
-                        <button class="btn btn-primary btn-sm" onclick="addVersion()" id="addVersionBtn">Add Version</button>
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addVersion()" id="addVersionBtn">Add Version</button>
                     </div>
-                    <div style="font-size: 11px; color: var(--gray-500); margin-top: 6px;">
+                    <div style="font-size: 11px; color: var(--gray-500); margin-top: 4px;">
                         Date is auto-detected from git commit history
                     </div>
                 </div>
@@ -1433,14 +1984,34 @@
             </div>
         </div>
 
-        <!-- Version Analysis -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Version Analysis</h2>
-                <div style="display: flex; align-items: center; gap: 12px;">
+        <!-- Package Health -->
+        <div class="card" id="packageHealthCard">
+            <div class="card-header collapsible" onclick="toggleCollapsible('packageHealth')">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="collapse-toggle" id="packageHealthToggle">&#9660;</span>
+                    <h2>Package Health</h2>
+                    <span class="collapse-summary" id="packageHealthSummary"></span>
+                </div>
+            </div>
+            <div class="card-body collapsible-body" id="packageHealthBody">
+                <div id="packageHealthContent">
+                    <div style="color: var(--gray-400); padding: 16px; text-align: center;">Loading health data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Version Analysis (collapsed by default) -->
+        <div class="card" id="versionAnalysisCard">
+            <div class="card-header collapsible collapsed" onclick="toggleCollapsible('versionAnalysis')">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="collapse-toggle" id="versionAnalysisToggle">&#9660;</span>
+                    <h2>Version Analysis</h2>
+                    <span class="collapse-summary" id="versionAnalysisSummary"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;" onclick="event.stopPropagation();">
                     <div class="control-group">
                         <span class="control-label">Version</span>
-                        <select id="analysisVersionSelect" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 13px; min-width: 160px;">
+                        <select id="analysisVersionSelect" style="padding: 5px 8px; border-radius: 6px; border: 1px solid var(--gray-300); font-size: 12px; min-width: 150px;">
                             <!-- Populated by JS -->
                         </select>
                     </div>
@@ -1453,7 +2024,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body collapsible-body collapsed" id="versionAnalysisBody">
                 <div id="analysisContent" style="min-height: 200px;">
                     <div class="loading">
                         <span style="color: var(--gray-400);">Select a version to view analysis</span>
@@ -1462,7 +2033,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 0;">
                     <div>
                         <h3 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;">Average Build Step Duration</h3>
-                        <div id="phaseChart" style="height: 400px;"></div>
+                        <div id="phaseChart"></div>
                     </div>
                     <div>
                         <h3 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;">Build Errors by Type</h3>
@@ -1474,54 +2045,51 @@
             </div>
         </div>
 
-        <!-- Controls -->
+        <!-- Controls (slim toolbar) -->
         <div class="card">
-            <div class="card-header">
-                <h2>Controls</h2>
-            </div>
-            <div class="card-body">
-                <div class="controls">
+            <div class="card-body" style="padding: 10px 20px;">
+                <div class="controls" style="flex-wrap: wrap;">
                     <button class="btn btn-primary" id="runAllBtn" onclick="runAllBenchmarks()">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polygon points="5 3 19 12 5 21 5 3"></polygon>
                         </svg>
                         Run Missing
                     </button>
                     <button class="btn btn-danger" id="stopBtn" onclick="stopAllBenchmarks()" style="display: none;">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <rect x="6" y="6" width="12" height="12" rx="2"></rect>
                         </svg>
                         Stop All
                     </button>
                     <button class="btn btn-secondary" id="rerunAllBtn" onclick="rerunAllBenchmarks()">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                         </svg>
                         Rerun All
                     </button>
                     <button class="btn btn-secondary" onclick="refreshData()">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                         </svg>
                         Refresh
                     </button>
                     <button class="btn btn-secondary" onclick="reloadConfig()">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="3"></circle>
                             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                         </svg>
-                        Reload Config
+                        Config
                     </button>
                     <button class="btn btn-secondary" onclick="showCacheModal()" title="Manage cache and free disk space">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                         </svg>
                         <span id="cacheSizeLabel">Cache</span>
                     </button>
-                    <div class="parallelism-control" style="display: flex; align-items: center; gap: 8px; margin-left: 16px;">
-                        <label for="maxParallel" style="font-size: 13px; color: var(--gray-600);">Max Parallel:</label>
-                        <select id="maxParallel" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 13px;">
-                            <option value="1">1 (Sequential)</option>
+                    <div style="display: flex; align-items: center; gap: 6px; margin-left: 8px; border-left: 1px solid var(--gray-200); padding-left: 12px;">
+                        <label for="maxParallel" style="font-size: 12px; color: var(--gray-500);">Parallel:</label>
+                        <select id="maxParallel" style="padding: 3px 6px; border-radius: 4px; border: 1px solid var(--gray-300); font-size: 12px;">
+                            <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="4" selected>4</option>
                             <option value="8">8</option>
@@ -1531,12 +2099,11 @@
                             <option value="128">128</option>
                         </select>
                     </div>
-                </div>
-                <!-- Build Command Checkboxes -->
-                <div class="build-commands-control" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
-                    <label style="font-size: 13px; color: var(--gray-600); margin-right: 12px;">Build Commands:</label>
-                    <div id="buildCommandCheckboxes" style="display: inline-flex; gap: 16px; flex-wrap: wrap;">
-                        <!-- Populated by JS -->
+                    <div style="display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--gray-200); padding-left: 12px;">
+                        <label style="font-size: 12px; color: var(--gray-500);">Commands:</label>
+                        <div id="buildCommandCheckboxes" style="display: inline-flex; gap: 4px; flex-wrap: wrap;">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1872,6 +2439,15 @@
                     refreshData();
                     updateStopButtonVisibility();
                     break;
+                case 'env_rebuilt':
+                    // Refresh sync info after rebuild completes
+                    fetchEnvStatus();
+                    // Stop rebuild spinner
+                    document.querySelectorAll('.version-rebuild-btn.rebuilding').forEach(btn => {
+                        btn.classList.remove('rebuilding');
+                        btn.title = 'Rebuild environment';
+                    });
+                    break;
             }
         }
 
@@ -1976,10 +2552,17 @@
         // ==================== UI Updates ====================
 
         function updateUI() {
+            // Save scroll before any DOM mutations that could shift layout
+            const savedScroll = window.scrollY;
+
             updateHeaderStats();
             updateVersionEditor();
             updateSummaryCards();
             updateStatsTable();
+
+            // Restore scroll after above-the-fold mutations, before table rebuild
+            window.scrollTo(0, savedScroll);
+
             updateTable();
             updateChart();
             updateLastUpdated();
@@ -2002,16 +2585,54 @@
 
             const versions = state.config.atopile_versions || [];
 
-            versions.forEach((version) => {
+            // Update collapsed summary
+            const summary = document.getElementById('versionConfigSummary');
+            if (summary) {
+                summary.textContent = versions.length > 0 ? `${versions.length} version${versions.length !== 1 ? 's' : ''} configured` : '';
+            }
+
+            versions.forEach((version, idx) => {
                 const tag = document.createElement('div');
                 tag.className = 'version-tag';
+                tag.draggable = true;
+                tag.dataset.idx = idx;
+
+                // Drag-and-drop handlers
+                tag.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', idx);
+                    tag.classList.add('dragging');
+                };
+                tag.ondragend = () => {
+                    tag.classList.remove('dragging');
+                    container.querySelectorAll('.version-tag').forEach(t => t.classList.remove('drag-over'));
+                };
+                tag.ondragover = (e) => {
+                    e.preventDefault();
+                    tag.classList.add('drag-over');
+                };
+                tag.ondragleave = () => {
+                    tag.classList.remove('drag-over');
+                };
+                tag.ondrop = (e) => {
+                    e.preventDefault();
+                    tag.classList.remove('drag-over');
+                    const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIdx = parseInt(tag.dataset.idx);
+                    if (fromIdx !== toIdx) {
+                        reorderVersions(fromIdx, toIdx);
+                    }
+                };
+
+                const dragHandle = document.createElement('span');
+                dragHandle.className = 'drag-handle';
+                dragHandle.textContent = '\u2807'; // vertical dots
+                dragHandle.title = 'Drag to reorder';
 
                 const typeSpan = document.createElement('span');
                 typeSpan.className = 'type';
                 typeSpan.textContent = version.type;
 
                 const valueSpan = document.createElement('span');
-                // Truncate long paths for display
                 let displayValue = version.version;
                 if (version.type === 'commit' && displayValue.length > 10) {
                     displayValue = displayValue.substring(0, 7);
@@ -2019,27 +2640,134 @@
                     displayValue = '...' + displayValue.slice(-27);
                 }
                 valueSpan.textContent = displayValue;
-                valueSpan.title = `${version.version} (${version.date || 'no date'})`; // Show full path and date on hover
+                valueSpan.title = `${version.version} (${version.date || 'no date'})`;
 
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
                 removeBtn.innerHTML = '&times;';
                 removeBtn.title = 'Remove version';
-                // Store type and version in data attributes for the async handler
                 removeBtn.dataset.type = version.type;
                 removeBtn.dataset.version = version.version;
-                removeBtn.onclick = function() {
+                removeBtn.onclick = function(e) {
+                    e.stopPropagation();
                     removeVersion(this.dataset.type, this.dataset.version);
                 };
 
+                tag.appendChild(dragHandle);
+                // Baseline label inside tag for first version
+                if (idx === 0) {
+                    const baselineSpan = document.createElement('span');
+                    baselineSpan.className = 'baseline-label';
+                    baselineSpan.textContent = 'BASE';
+                    tag.appendChild(baselineSpan);
+                }
                 tag.appendChild(typeSpan);
                 tag.appendChild(valueSpan);
                 tag.appendChild(removeBtn);
-                container.appendChild(tag);
+
+                // Wrap tag + sync info
+                const wrapper = document.createElement('div');
+                wrapper.className = 'version-tag-wrapper';
+                wrapper.appendChild(tag);
+
+                // Sync info line
+                const syncInfo = document.createElement('div');
+                syncInfo.className = 'version-sync-info';
+                syncInfo.id = `sync-info-${version.type}-${version.version.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+                const syncTimeSpan = document.createElement('span');
+                syncTimeSpan.className = 'sync-time';
+                syncTimeSpan.textContent = '';
+                syncInfo.appendChild(syncTimeSpan);
+
+                const rebuildBtn = document.createElement('button');
+                rebuildBtn.className = 'version-rebuild-btn';
+                rebuildBtn.innerHTML = '&#x21bb;'; // ↻ refresh symbol
+                rebuildBtn.title = 'Rebuild environment';
+                rebuildBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    rebuildVersionEnv(version.type, version.version, rebuildBtn);
+                };
+                syncInfo.appendChild(rebuildBtn);
+
+                wrapper.appendChild(syncInfo);
+                container.appendChild(wrapper);
             });
 
             if (versions.length === 0) {
                 container.innerHTML = '<span style="color: var(--gray-400); font-size: 13px;">No versions configured. Add a version below.</span>';
+            }
+
+            // Fetch env status to populate sync times
+            fetchEnvStatus();
+        }
+
+        async function reorderVersions(fromIdx, toIdx) {
+            const versions = [...(state.config.atopile_versions || [])];
+            const [moved] = versions.splice(fromIdx, 1);
+            versions.splice(toIdx, 0, moved);
+
+            // Update local state immediately
+            state.config.atopile_versions = versions;
+            updateUI();
+
+            // Persist to server
+            try {
+                await fetch('/api/versions/reorder', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ versions })
+                });
+            } catch (error) {
+                console.error('Failed to save version order:', error);
+            }
+        }
+
+        function formatRelativeTime(unixTimestamp) {
+            const now = Date.now() / 1000;
+            const diff = now - unixTimestamp;
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+            return new Date(unixTimestamp * 1000).toLocaleDateString();
+        }
+
+        async function fetchEnvStatus() {
+            try {
+                const resp = await fetch('/api/versions/env-status');
+                if (!resp.ok) return;
+                const statuses = await resp.json();
+                statuses.forEach(s => {
+                    const safeId = `sync-info-${s.type}-${s.version.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                    const el = document.getElementById(safeId);
+                    if (!el) return;
+                    const timeSpan = el.querySelector('.sync-time');
+                    if (timeSpan) {
+                        if (s.installed && s.sync_time) {
+                            timeSpan.textContent = 'Synced ' + formatRelativeTime(s.sync_time);
+                        } else {
+                            timeSpan.textContent = 'Not installed';
+                        }
+                    }
+                });
+            } catch (e) {
+                // Silently fail
+            }
+        }
+
+        async function rebuildVersionEnv(type, version, btn) {
+            btn.classList.add('rebuilding');
+            btn.title = 'Rebuilding...';
+            const syncSpan = btn.parentElement.querySelector('.sync-time');
+            if (syncSpan) syncSpan.textContent = 'Rebuilding...';
+            try {
+                await fetch(`/api/versions/${encodeURIComponent(type)}/${encodeURIComponent(version)}/rebuild-env`, {
+                    method: 'POST',
+                });
+            } catch (e) {
+                btn.classList.remove('rebuilding');
+                if (syncSpan) syncSpan.textContent = 'Rebuild failed';
             }
         }
 
@@ -2155,12 +2883,8 @@
 
             if (versions.length === 0) return;
 
-            // Sort versions by date (oldest first = newest on right)
-            const sortedVersions = [...versions].sort((a, b) => {
-                const dateA = new Date(a.date || '1970-01-01');
-                const dateB = new Date(b.date || '1970-01-01');
-                return dateA - dateB;
-            });
+            // Use config order directly (first version = baseline)
+            const sortedVersions = versions;
 
             // Build all benchmark names (filtered by enabled build commands)
             // Use 3-part names (package:command:target) to match resultsMatrix keys
@@ -2284,10 +3008,10 @@
                     metaHtml += `<br>${version.date}`;
                 }
                 if (version.type === 'commit') {
-                    metaHtml += `<br><code style="font-size: 9px;">${version.version.substring(0, 10)}</code>`;
+                    metaHtml += `<br><code style="font-size: 10px;">${version.version.substring(0, 10)}</code>`;
                 }
                 if (version.type === 'local') {
-                    metaHtml += `<br><span style="font-size: 9px; word-break: break-all;">${version.version}</span>`;
+                    metaHtml += `<br><span style="font-size: 10px; word-break: break-all;">${version.version}</span>`;
                 }
 
                 td.innerHTML = `<div class="version-name">${displayName}</div><div class="version-meta">${metaHtml}</div>`;
@@ -2412,8 +3136,13 @@
             // Use saved scroll positions from first call in the burst
             const scrollPositions = updateTableScrollPositions?.tables || {};
             const mainScrollTop = updateTableScrollPositions?.main || 0;
-            const windowScrollY = updateTableScrollPositions?.window || 0;
+            // Re-read window scroll right before rebuild (most accurate)
+            const windowScrollY = window.scrollY;
             updateTableScrollPositions = null; // Reset for next burst
+
+            // Lock container height to prevent layout shift during rebuild
+            const prevHeight = container.offsetHeight;
+            container.style.minHeight = prevHeight + 'px';
 
             container.innerHTML = '';
 
@@ -2423,17 +3152,13 @@
 
             if (versions.length === 0) return;
 
-            // Sort versions by date (oldest first = newest on right)
-            const sortedVersions = [...versions].sort((a, b) => {
-                const dateA = new Date(a.date || '1970-01-01');
-                const dateB = new Date(b.date || '1970-01-01');
-                return dateA - dateB;
-            });
+            // Use config order directly (first version = baseline)
+            const sortedVersions = versions;
 
             // Update sort column dropdown with version options
             updateSortColumnOptions(sortedVersions);
 
-            // Baseline version for speed comparisons (oldest = first)
+            // Baseline version for speed comparisons (first in config = baseline)
             const baselineVersionId = `${sortedVersions[0].type}:${sortedVersions[0].version}`;
 
             // Helper to get speed comparison for a result vs baseline
@@ -2543,9 +3268,9 @@
                     } else {
                         const badge = document.createElement('span');
                         badge.className = 'badge badge-danger';
-                        badge.textContent = 'Failed';
+                        badge.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Failed';
                         badge.style.cursor = 'pointer';
-                        badge.onclick = (e) => { e.stopPropagation(); showError(escapeHtml(result.error_message || 'Build failed')); };
+                        badge.onclick = (e) => { e.stopPropagation(); showError(result.error_message || 'Build failed', benchmarkName); };
                         cell.appendChild(badge);
                     }
 
@@ -2656,14 +3381,6 @@
                 nameTh.textContent = 'Package';
                 headerRow.appendChild(nameTh);
 
-                // Run All column
-                const runAllTh = document.createElement('th');
-                runAllTh.className = 'run-all-header';
-                runAllTh.style.width = '60px';
-                runAllTh.style.textAlign = 'center';
-                runAllTh.innerHTML = '<span style="font-size: 11px; color: var(--gray-500);">Run</span>';
-                headerRow.appendChild(runAllTh);
-
                 // Version columns
                 sortedVersions.forEach(version => {
                     const th = document.createElement('th');
@@ -2715,38 +3432,22 @@
                         tr.onclick = () => togglePackageExpand(pkgName);
                     }
 
-                    // Package name cell with expand icon
+                    // Package name cell with expand icon and inline run button
                     const nameTd = document.createElement('td');
-                    if (hasMultipleTargets) {
-                        nameTd.innerHTML = `
-                            <span class="expand-icon">${isExpanded ? '−' : '+'}</span>
-                            <span class="package-name">${pkgName}</span>
-                            <span class="package-count">(${targets.length} targets)</span>
-                        `;
-                    } else if (isExample) {
-                        // Display examples with a special icon
-                        const displayName = pkgName.replace('examples/', '');
-                        nameTd.innerHTML = `<span class="example-icon">📦</span><span class="package-name example-name">${displayName}</span><span class="example-badge">example</span>`;
-                    } else {
-                        nameTd.innerHTML = `<span class="package-name">${pkgName}</span>`;
-                    }
-                    tr.appendChild(nameTd);
+                    nameTd.className = 'package-name-cell';
+                    const nameInner = document.createElement('div');
+                    nameInner.className = 'package-name-inner';
 
-                    // Run All cell
-                    const runAllTd = document.createElement('td');
-                    runAllTd.className = 'run-all-cell';
-                    runAllTd.style.textAlign = 'center';
+                    // Run button (inline, left of name)
                     const runAllBtn = document.createElement('button');
                     runAllBtn.className = 'btn btn-small run-all-btn';
                     runAllBtn.innerHTML = '▶';
                     runAllBtn.title = `Run all versions for ${pkgName}`;
                     runAllBtn.onclick = (e) => {
                         e.stopPropagation();
-                        // Run all targets for all versions
                         if (hasMultipleTargets) {
                             runAllTargetsForPackage(pkgName, cmd.name, targets);
                         } else if (isExample) {
-                            // Examples use "examples/<name>:default" format
                             const benchmarkName = `${pkgName}:default`;
                             runAllVersionsForBenchmark(benchmarkName);
                         } else {
@@ -2756,8 +3457,44 @@
                             runAllVersionsForBenchmark(benchmarkName);
                         }
                     };
-                    runAllTd.appendChild(runAllBtn);
-                    tr.appendChild(runAllTd);
+                    if (hasMultipleTargets) {
+                        const expandIcon = document.createElement('span');
+                        expandIcon.className = 'expand-icon';
+                        // CSS ::before handles the chevron icon
+                        nameInner.appendChild(expandIcon);
+                        nameInner.appendChild(runAllBtn);
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'package-name';
+                        nameSpan.textContent = pkgName;
+                        nameInner.appendChild(nameSpan);
+                        const countSpan = document.createElement('span');
+                        countSpan.className = 'package-count';
+                        countSpan.textContent = `(${targets.length} targets)`;
+                        nameInner.appendChild(countSpan);
+                    } else if (isExample) {
+                        nameInner.appendChild(runAllBtn);
+                        const displayName = pkgName.replace('examples/', '');
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'example-icon';
+                        iconSpan.textContent = '📦';
+                        nameInner.appendChild(iconSpan);
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'package-name example-name';
+                        nameSpan.textContent = displayName;
+                        nameInner.appendChild(nameSpan);
+                        const badgeSpan = document.createElement('span');
+                        badgeSpan.className = 'example-badge';
+                        badgeSpan.textContent = 'example';
+                        nameInner.appendChild(badgeSpan);
+                    } else {
+                        nameInner.appendChild(runAllBtn);
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'package-name';
+                        nameSpan.textContent = pkgName;
+                        nameInner.appendChild(nameSpan);
+                    }
+                    nameTd.appendChild(nameInner);
+                    tr.appendChild(nameTd);
 
                     // For collapsed rows with multiple targets, show aggregate results
                     if (hasMultipleTargets && !isExpanded) {
@@ -2816,7 +3553,7 @@
                             benchmarkName = `${pkgName}:${cmd.name}`;
                         }
 
-                        // Add phase toggle to name cell
+                        // Add phase toggle left of name (insert before the name span)
                         const phaseBtn = document.createElement('button');
                         phaseBtn.className = 'phase-toggle' + (state.expandedPhaseRows.has(benchmarkName) ? ' active' : '');
                         phaseBtn.innerHTML = '▾';
@@ -2826,7 +3563,13 @@
                             e.stopPropagation();
                             togglePhaseDetail(this.dataset.benchmark);
                         };
-                        nameTd.appendChild(phaseBtn);
+                        // Insert before the run button (toggle goes leftmost)
+                        const runBtn = nameInner.querySelector('.run-all-btn');
+                        if (runBtn) {
+                            nameInner.insertBefore(phaseBtn, runBtn);
+                        } else {
+                            nameInner.appendChild(phaseBtn);
+                        }
 
                         sortedVersions.forEach((version, vIdx) => {
                             const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
@@ -2855,7 +3598,7 @@
                             phaseBenchmark = `${pkgName}:${cmd.name}`;
                         }
                         if (state.expandedPhaseRows.has(phaseBenchmark)) {
-                            const colCount = 2 + sortedVersions.length; // name + run + versions
+                            const colCount = 1 + sortedVersions.length; // name + versions
                             tbody.appendChild(createPhaseDetailRow(phaseBenchmark, sortedVersions, colCount));
                         }
                     }
@@ -2867,8 +3610,13 @@
                             const targetTr = document.createElement('tr');
                             targetTr.className = 'build-target-row visible';
 
-                            // Target name cell with phase toggle
+                            // Target name cell with run button and phase toggle
                             const targetNameTd = document.createElement('td');
+                            targetNameTd.className = 'package-name-cell';
+                            const targetNameInner = document.createElement('div');
+                            targetNameInner.className = 'package-name-inner';
+
+                            // Phase toggle (leftmost)
                             const targetPhaseBtn = document.createElement('button');
                             targetPhaseBtn.className = 'phase-toggle' + (state.expandedPhaseRows.has(benchmarkName) ? ' active' : '');
                             targetPhaseBtn.innerHTML = '▾';
@@ -2878,14 +3626,9 @@
                                 e.stopPropagation();
                                 togglePhaseDetail(this.dataset.benchmark);
                             };
-                            targetNameTd.innerHTML = `<span class="build-target-name">${target}</span>`;
-                            targetNameTd.appendChild(targetPhaseBtn);
-                            targetTr.appendChild(targetNameTd);
+                            targetNameInner.appendChild(targetPhaseBtn);
 
-                            // Run All cell for this target
-                            const targetRunAllTd = document.createElement('td');
-                            targetRunAllTd.className = 'run-all-cell';
-                            targetRunAllTd.style.textAlign = 'center';
+                            // Run button for target
                             const targetRunAllBtn = document.createElement('button');
                             targetRunAllBtn.className = 'btn btn-small run-all-btn';
                             targetRunAllBtn.innerHTML = '▶';
@@ -2894,8 +3637,14 @@
                                 e.stopPropagation();
                                 runAllVersionsForBenchmark(benchmarkName);
                             };
-                            targetRunAllTd.appendChild(targetRunAllBtn);
-                            targetTr.appendChild(targetRunAllTd);
+                            targetNameInner.appendChild(targetRunAllBtn);
+
+                            const targetNameSpan = document.createElement('span');
+                            targetNameSpan.className = 'build-target-name';
+                            targetNameSpan.textContent = target;
+                            targetNameInner.appendChild(targetNameSpan);
+                            targetNameTd.appendChild(targetNameInner);
+                            targetTr.appendChild(targetNameTd);
 
                             // Version cells for this target
                             sortedVersions.forEach((version, vIdx) => {
@@ -2908,7 +3657,7 @@
 
                             // Phase detail row for this target
                             if (state.expandedPhaseRows.has(benchmarkName)) {
-                                const colCount = 2 + sortedVersions.length;
+                                const colCount = 1 + sortedVersions.length;
                                 tbody.appendChild(createPhaseDetailRow(benchmarkName, sortedVersions, colCount));
                             }
                         });
@@ -2925,14 +3674,19 @@
             document.getElementById('filteredCount').textContent =
                 filteredPackages === totalPackages ? '' : `Showing ${filteredPackages} of ${totalPackages} packages`;
 
-            // Restore scroll positions after rebuilding
+            // Restore scroll positions synchronously after rebuild
+            container.querySelectorAll('.table-container').forEach((tc, idx) => {
+                if (scrollPositions[idx] !== undefined) {
+                    tc.scrollTop = scrollPositions[idx];
+                }
+            });
+            container.scrollTop = mainScrollTop;
+            window.scrollTo(0, windowScrollY);
+
+            // Release height lock after scroll is restored
             requestAnimationFrame(() => {
-                container.querySelectorAll('.table-container').forEach((tc, idx) => {
-                    if (scrollPositions[idx] !== undefined) {
-                        tc.scrollTop = scrollPositions[idx];
-                    }
-                });
-                container.scrollTop = mainScrollTop;
+                container.style.minHeight = '';
+                // Final scroll correction in case rAF shifted it
                 window.scrollTo(0, windowScrollY);
             });
         }
@@ -3003,16 +3757,8 @@
                 return;
             }
 
-            // Always sort versions by date (oldest first = newest on right)
-            // Both display modes use chronological order, only the x-axis spacing differs
-            const sortedVersions = [...versions].sort((a, b) => {
-                const dateA = new Date(a.date || '1970-01-01');
-                const dateB = new Date(b.date || '1970-01-01');
-                return dateA - dateB;
-            });
-
-            // Always use sorted versions - chronological order for both modes
-            const displayVersions = sortedVersions;
+            // Use config order directly (first version = baseline)
+            const displayVersions = versions;
 
             const traces = [];
 
@@ -3106,8 +3852,8 @@
                             name: benchmarkLabel,
                             text: hoverText,
                             hoverinfo: 'text',
-                            line: { color: COLORS[pkgColorIdx % COLORS.length], width: 2 },
-                            marker: { size: 8 }
+                            line: { color: 'rgba(160,170,180,0.35)', width: 1.5 },
+                            marker: { size: 4, color: 'rgba(160,170,180,0.5)' }
                         });
                     }
                 });
@@ -3127,31 +3873,26 @@
             const gridColor = isDark ? '#2a2d3a' : '#e5e7eb';
 
             const layout = {
-                showlegend: true,
-                legend: {
-                    orientation: 'h',
-                    y: -0.25,
-                    x: 0.5,
-                    xanchor: 'center',
-                    font: { size: 11, color: textColor }
-                },
-                margin: { t: 30, b: 120, l: 60, r: 20 },
+                showlegend: false,
+                margin: { t: 20, b: 80, l: 60, r: 20 },
                 xaxis: {
-                    title: { text: state.chart.xMode === 'chronological' ? 'Date' : 'Version', font: { color: textColor } },
+                    title: { text: state.chart.xMode === 'chronological' ? 'Date' : 'Version', font: { color: textColor, size: 12 } },
                     type: state.chart.xMode === 'chronological' ? 'date' : 'category',
                     tickmode: state.chart.xMode === 'discrete' ? 'array' : 'auto',
                     tickvals: state.chart.xMode === 'discrete' ? displayVersions.map((_, i) => i) : undefined,
                     ticktext: state.chart.xMode === 'discrete' ? tickLabels : undefined,
                     tickangle: -45,
                     tickfont: { size: 11, color: textColor },
-                    gridcolor: gridColor
+                    gridcolor: gridColor,
+                    zeroline: false
                 },
                 yaxis: {
-                    title: { text: state.chart.normalize ? 'Normalized Time (%)' : 'Build Time (seconds)', font: { color: textColor } },
+                    title: { text: state.chart.normalize ? 'Normalized Time (%)' : 'Build Time (seconds)', font: { color: textColor, size: 12 } },
                     type: state.chart.yScale,
                     rangemode: 'tozero',
                     tickfont: { color: textColor },
-                    gridcolor: gridColor
+                    gridcolor: gridColor,
+                    zeroline: false
                 },
                 hovermode: 'closest',
                 paper_bgcolor: 'rgba(0,0,0,0)',
@@ -3160,11 +3901,46 @@
 
             const config = {
                 responsive: true,
-                displayModeBar: true,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                displayModeBar: false
             };
 
             Plotly.newPlot('chart', traces, layout, config);
+
+            // Highlight hovered trace
+            const chartEl = document.getElementById('chart');
+            chartEl.on('plotly_hover', function(data) {
+                const traceIdx = data.points[0].curveNumber;
+                const update = {};
+                traces.forEach((_, i) => {
+                    update[`line.color[${i}]`] = i === traceIdx ? 'var(--primary)' : 'rgba(160,170,180,0.15)';
+                    update[`line.width[${i}]`] = i === traceIdx ? 2.5 : 1;
+                    update[`marker.color[${i}]`] = i === traceIdx ? 'var(--primary)' : 'rgba(160,170,180,0.15)';
+                    update[`marker.size[${i}]`] = i === traceIdx ? 6 : 3;
+                });
+                // Use restyle for per-trace updates
+                const colors = traces.map((_, i) => i === traceIdx ? '#f97316' : 'rgba(160,170,180,0.15)');
+                const widths = traces.map((_, i) => i === traceIdx ? 2.5 : 1);
+                const mColors = traces.map((_, i) => i === traceIdx ? '#f97316' : 'rgba(160,170,180,0.15)');
+                const mSizes = traces.map((_, i) => i === traceIdx ? 6 : 3);
+                Plotly.restyle('chart', {
+                    'line.color': colors,
+                    'line.width': widths,
+                    'marker.color': mColors,
+                    'marker.size': mSizes,
+                });
+            });
+            chartEl.on('plotly_unhover', function() {
+                const colors = traces.map(() => 'rgba(160,170,180,0.35)');
+                const widths = traces.map(() => 1.5);
+                const mColors = traces.map(() => 'rgba(160,170,180,0.5)');
+                const mSizes = traces.map(() => 4);
+                Plotly.restyle('chart', {
+                    'line.color': colors,
+                    'line.width': widths,
+                    'marker.color': mColors,
+                    'marker.size': mSizes,
+                });
+            });
         }
 
         function updateLastUpdated() {
@@ -3440,8 +4216,10 @@
 
         // ==================== Error Modal ====================
 
-        function showError(message) {
+        function showError(message, title) {
             document.getElementById('errorText').textContent = message;
+            const titleEl = document.querySelector('#errorModal .modal-header h3');
+            if (titleEl) titleEl.textContent = title ? `Build Error: ${title}` : 'Build Error';
             document.getElementById('errorModal').classList.add('active');
         }
 
@@ -3451,6 +4229,101 @@
         }
 
         // ==================== Utilities ====================
+
+        // Fetch latest PR for each broken package from GitHub
+        const _prCache = {}; // packageName -> { number, title, url, state } or null
+        let _prFetchPromise = null;
+        function fetchPackagePRs() {
+            if (_prFetchPromise) return _prFetchPromise;
+            _prFetchPromise = fetch('https://api.github.com/repos/atopile/packages/pulls?state=open&sort=updated&direction=desc&per_page=100')
+                .then(r => r.ok ? r.json() : [])
+                .then(prs => {
+                    // Match PRs to packages by checking if title starts with package name
+                    prs.forEach(pr => {
+                        if (pr.state !== 'open') return; // only open PRs
+                        const title = pr.title || '';
+                        const logs = window._brokenPackageLogs || [];
+                        logs.forEach(fp => {
+                            const name = fp.name;
+                            if (!_prCache[name] && (title.toLowerCase().includes(name.toLowerCase()))) {
+                                _prCache[name] = {
+                                    number: pr.number,
+                                    title: pr.title,
+                                    url: pr.html_url,
+                                    state: pr.state
+                                };
+                            }
+                        });
+                    });
+                    // Also try search API for packages not found in recent 100 PRs
+                    const missing = (window._brokenPackageLogs || [])
+                        .filter(fp => !_prCache[fp.name])
+                        .map(fp => fp.name);
+                    if (missing.length > 0) {
+                        const q = missing.map(n => `"${n}"`).join('+OR+');
+                        return fetch(`https://api.github.com/search/issues?q=repo:atopile/packages+is:pr+is:open+${q}&sort=updated&order=desc&per_page=20`)
+                            .then(r => r.ok ? r.json() : { items: [] })
+                            .then(data => {
+                                (data.items || []).forEach(pr => {
+                                    if (pr.state !== 'open') return;
+                                    const title = pr.title || '';
+                                    missing.forEach(name => {
+                                        if (!_prCache[name] && title.toLowerCase().includes(name.toLowerCase())) {
+                                            _prCache[name] = {
+                                                number: pr.number,
+                                                title: pr.title,
+                                                url: pr.html_url,
+                                                state: pr.state
+                                            };
+                                        }
+                                    });
+                                });
+                            });
+                    }
+                })
+                .then(() => {
+                    // Update tiles with PR buttons
+                    updateBrokenTilePRButtons();
+                })
+                .catch(() => {}); // silently fail if GitHub API unavailable
+            return _prFetchPromise;
+        }
+
+        function updateBrokenTilePRButtons() {
+            document.querySelectorAll('.broken-tile').forEach(tile => {
+                const nameEl = tile.querySelector('.broken-tile-name');
+                if (!nameEl) return;
+                const name = nameEl.textContent.trim();
+                const pr = _prCache[name];
+                if (pr && !tile.querySelector('.broken-tile-pr')) {
+                    const btn = document.createElement('a');
+                    btn.className = 'broken-tile-pr';
+                    btn.href = pr.url;
+                    btn.target = '_blank';
+                    btn.rel = 'noopener';
+                    btn.textContent = `PR-${pr.number}`;
+                    btn.onclick = (e) => e.stopPropagation(); // don't open log modal
+                    tile.appendChild(btn);
+                }
+            });
+        }
+
+        function openLogModal(idx) {
+            const fp = window._brokenPackageLogs[idx];
+            if (!fp) return;
+            document.getElementById('logModalTitle').textContent = fp.name;
+            document.getElementById('logModalError').textContent = fp.error;
+            document.getElementById('logModalContent').textContent = fp.fullError;
+            document.getElementById('logModal').classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLogModal() {
+            document.getElementById('logModal').classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeLogModal();
+        });
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -3462,6 +4335,124 @@
                 .replace(/'/g, '&#039;')
                 .replace(/`/g, '&#96;')
                 .replace(/\\/g, '\\\\');
+        }
+
+        // ==================== Collapsible Sections ====================
+
+        function toggleCollapsible(sectionId) {
+            const header = document.querySelector(`#${sectionId}Card .card-header.collapsible`);
+            const body = document.getElementById(`${sectionId}Body`);
+            if (!header || !body) return;
+
+            const isCollapsed = header.classList.contains('collapsed');
+            header.classList.toggle('collapsed', !isCollapsed);
+            body.classList.toggle('collapsed', !isCollapsed);
+
+            // Save state to localStorage
+            localStorage.setItem(`collapsed_${sectionId}`, !isCollapsed ? 'true' : 'false');
+        }
+
+        // Restore collapsed state from localStorage
+        function restoreCollapsibleStates() {
+            // Sections that default to collapsed
+            ['versionConfig', 'versionAnalysis'].forEach(sectionId => {
+                const savedState = localStorage.getItem(`collapsed_${sectionId}`);
+                const shouldCollapse = savedState === null ? true : savedState === 'true';
+
+                const header = document.querySelector(`#${sectionId}Card .card-header.collapsible`);
+                const body = document.getElementById(`${sectionId}Body`);
+                if (header && body) {
+                    header.classList.toggle('collapsed', shouldCollapse);
+                    body.classList.toggle('collapsed', shouldCollapse);
+                }
+            });
+            // Sections that default to expanded
+            ['packageHealth'].forEach(sectionId => {
+                const savedState = localStorage.getItem(`collapsed_${sectionId}`);
+                const shouldCollapse = savedState === 'true';
+
+                const header = document.querySelector(`#${sectionId}Card .card-header.collapsible`);
+                const body = document.getElementById(`${sectionId}Body`);
+                if (header && body) {
+                    header.classList.toggle('collapsed', shouldCollapse);
+                    body.classList.toggle('collapsed', shouldCollapse);
+                }
+            });
+        }
+        restoreCollapsibleStates();
+
+        // ==================== Build Progress Indicator ====================
+
+        function updateBuildProgress() {
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+            const running = Object.keys(state.runningBenchmarks).length;
+
+            const progressEl = document.getElementById('buildProgress');
+            const fillEl = document.getElementById('buildProgressFill');
+            const textEl = document.getElementById('buildProgressText');
+
+            if (running > 0) {
+                // Count total expected and completed
+                let total = 0;
+                let completed = 0;
+                packages.forEach(pkg => {
+                    commands.forEach(cmd => {
+                        if (state.enabledBuildCommands.has(cmd.name)) {
+                            versions.forEach(v => {
+                                total++;
+                                const vId = `${v.type}:${v.version}`;
+                                const bn = `${pkg.name}:${cmd.name}`;
+                                if (state.resultsMatrix[bn]?.[vId]) completed++;
+                            });
+                        }
+                    });
+                });
+
+                progressEl.classList.add('active');
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                fillEl.style.width = `${pct}%`;
+                textEl.textContent = `${completed}/${total}`;
+            } else {
+                progressEl.classList.remove('active');
+            }
+
+            // Pulse the run button when there are pending builds
+            const runBtn = document.getElementById('runAllBtn');
+            const hasPending = Object.keys(state.resultsMatrix).length === 0 ||
+                packages.some(pkg => commands.some(cmd =>
+                    state.enabledBuildCommands.has(cmd.name) &&
+                    versions.some(v => !state.resultsMatrix[`${pkg.name}:${cmd.name}`]?.[`${v.type}:${v.version}`])
+                ));
+            runBtn.classList.toggle('has-pending', hasPending && running === 0);
+        }
+
+        // Update version analysis summary when collapsed
+        function updateAnalysisSummary() {
+            const summary = document.getElementById('versionAnalysisSummary');
+            if (!summary) return;
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            const commands = state.config.build_commands || [];
+
+            let totalBuilds = 0, succeeded = 0, failed = 0;
+            versions.forEach(v => {
+                const vId = `${v.type}:${v.version}`;
+                packages.forEach(pkg => {
+                    commands.forEach(cmd => {
+                        if (state.enabledBuildCommands.has(cmd.name)) {
+                            const result = state.resultsMatrix[`${pkg.name}:${cmd.name}`]?.[vId];
+                            if (result) {
+                                totalBuilds++;
+                                if (result.status === 'success') succeeded++;
+                                else if (result.status === 'failure') failed++;
+                            }
+                        }
+                    });
+                });
+            });
+            summary.textContent = totalBuilds > 0 ? `${totalBuilds} builds, ${succeeded} passed, ${failed} failed` : '';
         }
 
         // ==================== Polling for Running Benchmarks ====================
@@ -3625,12 +4616,213 @@
             });
         }
 
-        // Override updateUI to also update build command checkboxes and version analysis
+        // Override updateUI to also update build command checkboxes, version analysis, progress
+        // ==================== Package Health ====================
+
+        function updatePackageHealth() {
+            const container = document.getElementById('packageHealthContent');
+            const summaryEl = document.getElementById('packageHealthSummary');
+            const versions = state.config.atopile_versions || [];
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+
+            if (versions.length === 0 || packages.length === 0) {
+                container.innerHTML = '<div style="color: var(--gray-400); padding: 16px; text-align: center;">No data available</div>';
+                if (summaryEl) summaryEl.textContent = '';
+                return;
+            }
+
+            // Latest atopile version = last in config order
+            const latestVersion = versions[versions.length - 1];
+            const latestVersionId = `${latestVersion.type}:${latestVersion.version}`;
+            const latestLabel = latestVersion.type === 'commit'
+                ? latestVersion.version.substring(0, 7)
+                : latestVersion.version;
+
+            // Collect results for each package's default build with latest version
+            let successCount = 0;
+            let failCount = 0;
+            let stubCount = 0;
+            let pendingCount = 0;
+            const failedPackages = [];
+            const allPhases = {};  // phaseName -> { sum, count }
+            const errorGroups = {}; // errorText -> [packageNames]
+
+            packages.forEach(pkg => {
+                // Use default command with target expansion
+                const targets = getPackageTargets(pkg.name);
+                const benchmarkName = targets.length > 0
+                    ? `${pkg.name}:default:${targets[0]}`
+                    : `${pkg.name}:default`;
+
+                const result = state.resultsMatrix[benchmarkName]?.[latestVersionId];
+
+                if (!result) {
+                    pendingCount++;
+                    return;
+                }
+
+                if (result.status === 'success') {
+                    successCount++;
+                    // Collect phase times
+                    if (result.phases) {
+                        result.phases.forEach(p => {
+                            if (!allPhases[p.name]) allPhases[p.name] = { sum: 0, count: 0 };
+                            allPhases[p.name].sum += p.duration;
+                            allPhases[p.name].count++;
+                        });
+                    }
+                } else if (result.status === 'stub' || result.status === 'incompatible') {
+                    stubCount++;
+                } else {
+                    failCount++;
+                    // Extract error description
+                    const errorMsg = (result.error_message || 'Unknown error');
+                    const errorLines = errorMsg.split('\n')
+                        .map(l => l.replace(/[│┌┐└┘─┬┴┤├╭╮╰╯]/g, '').trim())
+                        .filter(l => l.startsWith('•'));
+                    const shortError = errorLines.length > 0
+                        ? errorLines[0].replace(/^•\s*/, '')
+                        : 'Build failed';
+
+                    failedPackages.push({ name: pkg.name, error: shortError, fullError: errorMsg });
+
+                    // Group by error type
+                    if (!errorGroups[shortError]) errorGroups[shortError] = [];
+                    errorGroups[shortError].push(pkg.name);
+                }
+            });
+
+            // Compute avg phase times
+            const avgPhases = Object.entries(allPhases)
+                .map(([name, data]) => ({ name, avg: data.sum / data.count }))
+                .sort((a, b) => b.avg - a.avg);
+            const maxPhaseAvg = avgPhases.length > 0 ? avgPhases[0].avg : 1;
+
+            // Sort error groups by count desc
+            const sortedErrors = Object.entries(errorGroups)
+                .map(([error, pkgs]) => ({ error, packages: pkgs }))
+                .sort((a, b) => b.packages.length - a.packages.length);
+
+            const totalRan = successCount + failCount;
+            const healthPct = totalRan > 0 ? Math.round((successCount / totalRan) * 100) : 0;
+
+            // Update collapsed summary
+            if (summaryEl) {
+                const healthClass = healthPct >= 90 ? 'good' : healthPct >= 70 ? 'warn' : 'bad';
+                summaryEl.innerHTML = `<span style="color: var(--${healthClass === 'good' ? 'success' : healthClass === 'bad' ? 'danger' : 'warning'})">${healthPct}% healthy</span> &middot; ${successCount}/${totalRan} building with ${latestLabel}${failCount > 0 ? ` &middot; <span style="color:var(--danger)">${failCount} broken</span>` : ''}`;
+            }
+
+            // Build HTML
+            let html = '';
+
+            // Stat cards row
+            const healthClass = healthPct >= 90 ? 'good' : healthPct >= 70 ? 'warn' : 'bad';
+            html += '<div class="health-grid">';
+            html += `<div class="health-stat">
+                <div class="health-stat-value ${healthClass}">${healthPct}%</div>
+                <div class="health-stat-label">Health</div>
+            </div>`;
+            html += `<div class="health-stat">
+                <div class="health-stat-value good">${successCount}</div>
+                <div class="health-stat-label">Building</div>
+            </div>`;
+            html += `<div class="health-stat">
+                <div class="health-stat-value ${failCount > 0 ? 'bad' : ''}">${failCount}</div>
+                <div class="health-stat-label">Broken</div>
+            </div>`;
+            html += `<div class="health-stat">
+                <div class="health-stat-value">${stubCount}</div>
+                <div class="health-stat-label">N/A</div>
+            </div>`;
+            html += `<div class="health-stat">
+                <div class="health-stat-value">${pendingCount}</div>
+                <div class="health-stat-label">Pending</div>
+            </div>`;
+            html += '</div>';
+
+            html += `<div style="font-size: 11px; color: var(--gray-500); margin-bottom: 12px;">
+                Health measured against <strong>${latestVersion.type}:${latestLabel}</strong> using default build command
+            </div>`;
+
+            html += '<div class="health-columns">';
+
+            // Left column: Avg build step times
+            html += '<div>';
+            html += '<div class="health-column-title">Average Build Step Duration</div>';
+            if (avgPhases.length > 0) {
+                html += '<table class="health-step-table">';
+                html += '<colgroup><col style="width:40%"><col style="width:7%"><col style="width:53%"></colgroup>';
+                avgPhases.forEach(p => {
+                    const pct = Math.max((p.avg / maxPhaseAvg) * 100, 2);
+                    html += `<tr>
+                        <td>${p.name}</td>
+                        <td>${p.avg.toFixed(2)}s</td>
+                        <td><div class="health-step-bar" style="width: ${pct}%"></div></td>
+                    </tr>`;
+                });
+                html += '</table>';
+            } else {
+                html += '<div style="color: var(--gray-400); font-size: 12px; padding: 8px 0;">No build step data</div>';
+            }
+            html += '</div>';
+
+            // Right column: Error groups + broken packages
+            html += '<div>';
+            if (sortedErrors.length > 0) {
+                html += '<div class="health-column-title">Errors by Type</div>';
+                sortedErrors.forEach(group => {
+                    html += `<div class="health-error-group">
+                        <div class="health-error-type">
+                            <span class="health-error-count">${group.packages.length}</span>
+                            ${escapeHtml(group.error)}
+                        </div>
+                        <div class="health-error-packages">${group.packages.map(p => escapeHtml(p)).join(', ')}</div>
+                    </div>`;
+                });
+            }
+
+            if (failedPackages.length > 0) {
+                html += '<div class="health-column-title" style="margin-top: 12px;">Broken Packages</div>';
+                html += '<div class="broken-grid">';
+                // Store log data globally so modal can access it
+                window._brokenPackageLogs = failedPackages;
+                failedPackages.forEach((fp, idx) => {
+                    html += `<div class="broken-tile" onclick="openLogModal(${idx})">
+                        <div class="broken-tile-content">
+                            <div class="broken-tile-name">${escapeHtml(fp.name)}</div>
+                            <div class="broken-tile-summary">${escapeHtml(fp.error)}</div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            if (sortedErrors.length === 0 && failedPackages.length === 0) {
+                html += '<div style="color: var(--success); font-size: 13px; padding: 16px 0; text-align: center; font-weight: 600;">All packages building successfully!</div>';
+            }
+            html += '</div>';
+
+            html += '</div>'; // close health-columns
+
+            container.innerHTML = html;
+            // Fetch PR data and add buttons to tiles
+            if (failedPackages.length > 0) {
+                // Re-apply cached PR buttons immediately, fetch if not yet done
+                if (Object.keys(_prCache).length > 0) {
+                    updateBrokenTilePRButtons();
+                }
+                fetchPackagePRs();
+            }
+        }
+
         const originalUpdateUI = updateUI;
         updateUI = function() {
             originalUpdateUI();
             updateBuildCommandCheckboxes();
             updateAnalysisVersionSelect();
+            updateBuildProgress();
+            updateAnalysisSummary();
+            updatePackageHealth();
             // Auto-refresh analysis if a version is already selected
             if (document.getElementById('analysisVersionSelect').value) {
                 loadVersionAnalysis();
@@ -3652,11 +4844,10 @@
             const detailTr = document.createElement('tr');
             detailTr.className = 'phase-detail-row visible';
 
-            const td = document.createElement('td');
-            td.colSpan = colCount;
-
-            const inner = document.createElement('div');
-            inner.className = 'phase-detail-inner';
+            // Parse benchmark name to extract target info
+            const bnParts = benchmarkName.split(':');
+            // Format: pkgName:cmdName or pkgName:cmdName:target
+            const targetLabel = bnParts.length >= 3 ? bnParts[bnParts.length - 1] : (bnParts.length >= 2 ? bnParts[1] : '');
 
             // Collect all phase names across all versions for this benchmark
             const allPhaseNames = [];
@@ -3675,8 +4866,10 @@
             });
 
             if (allPhaseNames.length === 0) {
-                inner.innerHTML = '<div class="phase-no-data">No build step data available</div>';
-                td.appendChild(inner);
+                const td = document.createElement('td');
+                td.colSpan = colCount;
+                td.style.padding = '8px 12px';
+                td.innerHTML = '<div class="phase-no-data">No build step data available</div>';
                 detailTr.appendChild(td);
                 return detailTr;
             }
@@ -3694,70 +4887,45 @@
             });
             if (maxDuration === 0) maxDuration = 1;
 
-            // Build compact table: rows = phases, columns = versions
-            const table = document.createElement('table');
-            table.className = 'phase-detail-table';
+            // First cell: phase names with target label (aligned with Package column)
+            const nameTd = document.createElement('td');
+            nameTd.className = 'phase-detail-names-cell';
+            let nameHtml = '<div class="phase-detail-section-header">';
+            nameHtml += '<span class="phase-detail-title">Steps</span>';
+            if (targetLabel) {
+                nameHtml += `<span class="phase-detail-target">${targetLabel}</span>`;
+            }
+            nameHtml += '</div>';
+            allPhaseNames.forEach(name => {
+                nameHtml += `<div class="phase-name-item" title="${name}">${name}</div>`;
+            });
+            nameTd.innerHTML = nameHtml;
+            detailTr.appendChild(nameTd);
 
-            // Header
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            const stepTh = document.createElement('th');
-            stepTh.textContent = 'Build Step';
-            headerRow.appendChild(stepTh);
-
+            // Version columns - each cell shows phase times stacked vertically
             sortedVersions.forEach(version => {
-                const th = document.createElement('th');
-                th.style.textAlign = 'left';
-                let label = version.version;
-                if (version.type === 'local') {
-                    const parts = version.version.split('/');
-                    label = parts[parts.length - 1] || 'local';
-                } else if (version.type === 'commit') {
-                    label = version.version.substring(0, 7);
-                }
-                th.textContent = label;
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
+                const versionId = `${version.type}:${version.version}`;
+                const result = state.resultsMatrix[benchmarkName]?.[versionId];
+                const td = document.createElement('td');
+                td.className = 'phase-detail-version-cell';
 
-            // Body
-            const tbody = document.createElement('tbody');
-            allPhaseNames.forEach(phaseName => {
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = phaseName;
-                nameCell.title = phaseName;
-                row.appendChild(nameCell);
-
-                sortedVersions.forEach(version => {
-                    const versionId = `${version.type}:${version.version}`;
-                    const result = state.resultsMatrix[benchmarkName]?.[versionId];
+                let html = '<div class="phase-detail-section-header">&nbsp;</div>';
+                allPhaseNames.forEach(phaseName => {
                     const phase = result?.phases?.find(p => p.name === phaseName);
-                    const cellTd = document.createElement('td');
-                    cellTd.className = 'phase-bar-cell';
-
                     if (phase) {
-                        const pct = Math.max((phase.duration / maxDuration) * 100, 1);
-                        cellTd.innerHTML = `
-                            <div class="phase-bar-wrapper">
-                                <span class="phase-bar-time">${phase.duration.toFixed(2)}s</span>
-                                <div class="phase-bar" style="width: ${pct}%;"></div>
-                            </div>
-                        `;
+                        const pct = Math.max((phase.duration / maxDuration) * 100, 2);
+                        html += `<div class="phase-time-item">
+                            <span class="phase-bar-time">${phase.duration.toFixed(1)}s</span>
+                            <div class="phase-bar" style="width: ${pct}%"></div>
+                        </div>`;
                     } else {
-                        cellTd.innerHTML = '<span class="phase-bar-time" style="color:var(--gray-300);">—</span>';
+                        html += `<div class="phase-time-item"><span class="phase-bar-time" style="color:var(--gray-300);">—</span></div>`;
                     }
-                    row.appendChild(cellTd);
                 });
-
-                tbody.appendChild(row);
+                td.innerHTML = html;
+                detailTr.appendChild(td);
             });
-            table.appendChild(tbody);
-            inner.appendChild(table);
-            td.appendChild(inner);
-            detailTr.appendChild(td);
+
             return detailTr;
         }
 
@@ -3779,11 +4947,8 @@
             const versions = state.config.atopile_versions || [];
 
             select.innerHTML = '<option value="">-- Select version --</option>';
-            const sortedVersions = [...versions].sort((a, b) => {
-                const dateA = new Date(a.date || '1970-01-01');
-                const dateB = new Date(b.date || '1970-01-01');
-                return dateA - dateB;
-            });
+            // Use config order directly
+            const sortedVersions = versions;
 
             sortedVersions.forEach(v => {
                 const opt = document.createElement('option');
@@ -3811,6 +4976,8 @@
             }
         }
 
+        let analysisBaselineData = null; // cached baseline analysis response
+
         async function loadVersionAnalysis() {
             const select = document.getElementById('analysisVersionSelect');
             const versionId = select.value;
@@ -3826,23 +4993,36 @@
             const [vType, ...vParts] = versionId.split(':');
             const vValue = vParts.join(':');
 
-            // Determine baseline (first version by date)
+            // Determine baseline (first version in config order)
             const versions = state.config.atopile_versions || [];
-            const sortedVersions = [...versions].sort((a, b) => {
-                const dateA = new Date(a.date || '1970-01-01');
-                const dateB = new Date(b.date || '1970-01-01');
-                return dateA - dateB;
-            });
+            const baseline = versions.length > 0 ? versions[0] : null;
+            const baselineVersionId = baseline ? `${baseline.type}:${baseline.version}` : null;
+            const isBaseline = versionId === baselineVersionId;
 
+            // Always pass baseline parameter for normalized data
             let url = `/api/results/version-analysis/${encodeURIComponent(vType)}/${encodeURIComponent(vValue)}`;
-            if (analysisMode === 'normalized' && sortedVersions.length > 0) {
-                const baseline = sortedVersions[0];
+            if (baseline) {
                 url += `?baseline_type=${encodeURIComponent(baseline.type)}&baseline_value=${encodeURIComponent(baseline.version)}`;
             }
 
             try {
-                const res = await fetch(url);
-                analysisData = await res.json();
+                // Fetch selected version data, and baseline data in parallel (if not already the baseline)
+                const fetches = [fetch(url).then(r => r.json())];
+                if (!isBaseline && baseline) {
+                    const baselineUrl = `/api/results/version-analysis/${encodeURIComponent(baseline.type)}/${encodeURIComponent(baseline.version)}`;
+                    fetches.push(fetch(baselineUrl).then(r => r.json()));
+                }
+                const results = await Promise.all(fetches);
+                analysisData = results[0];
+                analysisBaselineData = results[1] || null;
+
+                // Compute overall speed comparison from client-side data
+                const speedStats = computeOverallSpeedComparison(versionId, baselineVersionId);
+                analysisData._speedStats = speedStats;
+                analysisData._isBaseline = isBaseline;
+                analysisData._baselineLabel = baseline ? (baseline.type === 'commit' ? baseline.version.substring(0, 7) : baseline.version) : '';
+                analysisData._selectedLabel = vType === 'commit' ? vValue.substring(0, 7) : vValue;
+
                 renderVersionAnalysis(analysisData);
             } catch (error) {
                 console.error('Failed to load version analysis:', error);
@@ -3851,9 +5031,80 @@
             }
         }
 
+        function computeOverallSpeedComparison(versionId, baselineVersionId) {
+            if (!baselineVersionId || versionId === baselineVersionId) return null;
+
+            const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+            let totalSelectedTime = 0, totalBaselineTime = 0, commonCount = 0;
+
+            packages.forEach(pkg => {
+                const targets = getPackageTargets(pkg.name);
+                const benchmarkName = targets.length > 0
+                    ? `${pkg.name}:default:${targets[0]}`
+                    : `${pkg.name}:default`;
+
+                const selectedResult = state.resultsMatrix[benchmarkName]?.[versionId];
+                const baselineResult = state.resultsMatrix[benchmarkName]?.[baselineVersionId];
+
+                if (selectedResult?.status === 'success' && selectedResult?.total_time &&
+                    baselineResult?.status === 'success' && baselineResult?.total_time) {
+                    totalSelectedTime += selectedResult.total_time;
+                    totalBaselineTime += baselineResult.total_time;
+                    commonCount++;
+                }
+            });
+
+            if (commonCount === 0) return null;
+
+            const avgSelected = totalSelectedTime / commonCount;
+            const avgBaseline = totalBaselineTime / commonCount;
+            const pctChange = ((avgSelected - avgBaseline) / avgBaseline) * 100;
+            const totalPctChange = ((totalSelectedTime - totalBaselineTime) / totalBaselineTime) * 100;
+
+            return {
+                avgSelected,
+                avgBaseline,
+                pctChange,
+                totalSelected: totalSelectedTime,
+                totalBaseline: totalBaselineTime,
+                totalPctChange,
+                commonCount,
+            };
+        }
+
         function renderVersionAnalysis(data) {
-            // Summary stats
             const summaryDiv = document.getElementById('analysisContent');
+            const speed = data._speedStats;
+
+            let speedHtml = '';
+            if (speed && !data._isBaseline) {
+                const pctClass = speed.pctChange <= -5 ? 'color: var(--success)' :
+                                 speed.pctChange >= 5 ? 'color: var(--danger)' : 'color: var(--gray-600)';
+                const pctSign = speed.pctChange > 0 ? '+' : '';
+                const totalPctSign = speed.totalPctChange > 0 ? '+' : '';
+                const totalPctClass = speed.totalPctChange <= -5 ? 'color: var(--success)' :
+                                      speed.totalPctChange >= 5 ? 'color: var(--danger)' : 'color: var(--gray-600)';
+
+                speedHtml = `
+                    <div class="analysis-stat">
+                        <div class="analysis-stat-value" style="${pctClass}">${pctSign}${speed.pctChange.toFixed(1)}%</div>
+                        <div class="analysis-stat-label">Avg Speed vs ${escapeHtml(data._baselineLabel)}</div>
+                    </div>
+                    <div class="analysis-stat">
+                        <div class="analysis-stat-value">${speed.avgSelected.toFixed(2)}s</div>
+                        <div class="analysis-stat-label">Avg Build Time</div>
+                    </div>
+                    <div class="analysis-stat">
+                        <div class="analysis-stat-value" style="color: var(--gray-500)">${speed.avgBaseline.toFixed(2)}s</div>
+                        <div class="analysis-stat-label">Baseline Avg</div>
+                    </div>
+                    <div class="analysis-stat">
+                        <div class="analysis-stat-value" style="${totalPctClass}">${totalPctSign}${speed.totalPctChange.toFixed(1)}%</div>
+                        <div class="analysis-stat-label">Total Time (${speed.commonCount} pkgs)</div>
+                    </div>
+                `;
+            }
+
             summaryDiv.innerHTML = `
                 <div class="analysis-summary">
                     <div class="analysis-stat">
@@ -3868,10 +5119,7 @@
                         <div class="analysis-stat-value" style="color: var(--danger);">${data.failed_builds}</div>
                         <div class="analysis-stat-label">Failed</div>
                     </div>
-                    <div class="analysis-stat">
-                        <div class="analysis-stat-value">${data.phase_averages.length}</div>
-                        <div class="analysis-stat-label">Build Steps</div>
-                    </div>
+                    ${speedHtml}
                     <div class="analysis-stat">
                         <div class="analysis-stat-value">${data.exceptions.length}</div>
                         <div class="analysis-stat-label">Error Types</div>
@@ -3879,7 +5127,7 @@
                 </div>
             `;
 
-            // Phase bar chart
+            // Phase bar chart with baseline comparison
             renderPhaseChart(data);
 
             // Exception list
@@ -3887,84 +5135,87 @@
         }
 
         function renderPhaseChart(data) {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const textColor = isDark ? '#9ca3af' : '#4b5563';
-            const gridColor = isDark ? '#2a2d3a' : '#e5e7eb';
+            const isBaseline = data._isBaseline;
+            const container = document.getElementById('phaseChart');
 
-            let phases, yValues, yTitle, hoverTexts;
+            // Build a map of baseline phase averages for comparison
+            const baselinePhaseMap = {};
+            if (analysisBaselineData && analysisBaselineData.phase_averages) {
+                analysisBaselineData.phase_averages.forEach(p => {
+                    baselinePhaseMap[p.name] = p.avg_duration;
+                });
+            }
+            const hasBaseline = !isBaseline && Object.keys(baselinePhaseMap).length > 0;
 
-            if (analysisMode === 'normalized' && data.normalized_phase_averages && data.normalized_phase_averages.length > 0) {
-                // Normalized mode
-                phases = data.normalized_phase_averages.map(p => p.name);
-                yValues = data.normalized_phase_averages.map(p => p.normalized_duration);
-                yTitle = 'Normalized Duration (% of baseline)';
-                hoverTexts = data.normalized_phase_averages.map(p =>
-                    `<b>${p.name}</b><br>` +
-                    `Avg: ${p.avg_duration.toFixed(3)}s<br>` +
-                    `Baseline: ${p.baseline_avg_duration.toFixed(3)}s<br>` +
-                    `Normalized: ${p.normalized_duration !== null ? p.normalized_duration.toFixed(1) + '%' : 'N/A'}<br>` +
-                    `Samples: ${p.count}`
-                );
-            } else {
-                // Absolute mode
-                phases = data.phase_averages.map(p => p.name);
-                yValues = data.phase_averages.map(p => p.avg_duration);
-                yTitle = 'Average Duration (seconds)';
-                hoverTexts = data.phase_averages.map(p =>
-                    `<b>${p.name}</b><br>` +
-                    `Avg: ${p.avg_duration.toFixed(3)}s<br>` +
-                    `Samples: ${p.count}`
-                );
+            const phases = data.phase_averages.map(p => p.name);
+            const values = data.phase_averages.map(p => p.avg_duration);
+            const baselineValues = phases.map(name => baselinePhaseMap[name] || 0);
+
+            // Filter out steps where both values are essentially zero
+            const minThreshold = 0.02;
+            const filteredIndices = phases.map((_, i) => i).filter(i =>
+                values[i] > minThreshold || baselineValues[i] > minThreshold
+            );
+
+            if (filteredIndices.length === 0) {
+                container.innerHTML = '<div style="color: var(--gray-400); font-size: 12px; padding: 16px 0; text-align: center;">No build step data</div>';
+                return;
             }
 
-            // Reverse so longest bar is at top (horizontal bar chart)
-            phases = phases.reverse();
-            yValues = yValues.reverse();
-            hoverTexts = hoverTexts.reverse();
+            const fPhases = filteredIndices.map(i => phases[i]);
+            const fValues = filteredIndices.map(i => values[i]);
+            const fBaseline = filteredIndices.map(i => baselineValues[i]);
 
-            // Color bars: for normalized, green < 100%, red > 100%; for absolute, gradient by duration
-            const colors = analysisMode === 'normalized' && data.normalized_phase_averages
-                ? yValues.map(v => v !== null ? (v <= 100 ? '#10b981' : v <= 120 ? '#f59e0b' : '#ef4444') : '#9ca3af')
-                : yValues.map(() => '#f97316');
+            // Find the max value for bar scaling
+            const allVals = [...fValues, ...(hasBaseline ? fBaseline : [])];
+            const maxVal = Math.max(...allVals, 0.01);
 
-            const traces = [{
-                type: 'bar',
-                orientation: 'h',
-                y: phases,
-                x: yValues,
-                text: hoverTexts,
-                hoverinfo: 'text',
-                marker: { color: colors, cornerradius: 4 },
-            }];
+            const selectedLabel = data._selectedLabel || 'Selected';
+            const baselineLabel = data._baselineLabel || 'Baseline';
 
-            const layout = {
-                margin: { t: 10, b: 40, l: 180, r: 20 },
-                xaxis: {
-                    title: { text: yTitle, font: { color: textColor, size: 12 } },
-                    tickfont: { color: textColor },
-                    gridcolor: gridColor,
-                },
-                yaxis: {
-                    tickfont: { color: textColor, size: 11 },
-                    automargin: true,
-                },
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                showlegend: false,
-                bargap: 0.15,
-            };
+            let html = '<table class="analysis-step-table">';
+            html += '<colgroup><col style="width:27%"><col style="width:6%"><col style="width:7%"><col style="width:53%"><col style="width:7%"></colgroup>';
 
-            // Add 100% reference line in normalized mode
-            if (analysisMode === 'normalized') {
-                layout.shapes = [{
-                    type: 'line',
-                    x0: 100, x1: 100,
-                    y0: -0.5, y1: phases.length - 0.5,
-                    line: { color: textColor, width: 1, dash: 'dash' },
-                }];
-            }
+            fPhases.forEach((name, i) => {
+                const val = fValues[i];
+                const bval = fBaseline[i];
+                const valPct = Math.max((val / maxVal) * 100, 1);
+                const bvalPct = Math.max((bval / maxVal) * 100, 1);
 
-            Plotly.newPlot('phaseChart', traces, layout, { responsive: true, displayModeBar: false });
+                // Compute % change
+                let changeTd = '<td></td>';
+                if (hasBaseline && bval > minThreshold) {
+                    const pct = ((val - bval) / bval) * 100;
+                    const sign = pct > 0 ? '+' : '';
+                    const cls = pct <= -5 ? 'change-faster' : pct >= 5 ? 'change-slower' : 'change-same';
+                    changeTd = `<td class="${cls}">${sign}${pct.toFixed(0)}%</td>`;
+                }
+
+                // Selected version row (with step name)
+                const rowClass = hasBaseline ? 'row-selected' : 'row-single';
+                html += `<tr class="${rowClass}">
+                    <td>${escapeHtml(name)}</td>
+                    <td>${hasBaseline ? escapeHtml(selectedLabel) : ''}</td>
+                    <td>${val.toFixed(2)}s</td>
+                    <td><div class="analysis-step-bar selected" style="width: ${valPct}%"></div></td>
+                    ${changeTd}
+                </tr>`;
+
+                // Baseline row
+                if (hasBaseline) {
+                    html += `<tr class="row-baseline">
+                        <td></td>
+                        <td>${escapeHtml(baselineLabel)}</td>
+                        <td>${bval.toFixed(2)}s</td>
+                        <td><div class="analysis-step-bar baseline" style="width: ${bvalPct}%"></div></td>
+                        <td></td>
+                    </tr>`;
+                }
+            });
+
+            html += '</table>';
+            container.innerHTML = html;
+            container.style.minHeight = 'auto';
         }
 
         function renderExceptionList(data) {
@@ -4028,7 +5279,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                                 ${usedVenvs.map(v => `
-                                    <span style="background: var(--success-bg); color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: monospace;">
+                                    <span style="background: var(--success-bg); color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: 'JetBrainsMono Nerd Font', monospace;">
                                         ${v.name}
                                     </span>
                                 `).join('')}
@@ -4045,7 +5296,7 @@
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                                 ${unusedVenvs.map(v => `
-                                    <span style="background: var(--warning-bg); color: var(--warning); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: monospace;">
+                                    <span style="background: var(--warning-bg); color: var(--warning); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-family: 'JetBrainsMono Nerd Font', monospace;">
                                         ${v.name}
                                     </span>
                                 `).join('')}

@@ -3,7 +3,10 @@
 This module provides API routes for managing atopile versions.
 """
 
+import asyncio
 import logging
+import shutil
+import threading
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -104,10 +107,99 @@ def setup_routes(orchestrator: Any) -> APIRouter:
 
         return JSONResponse({"status": "removed"})
 
+    @router.put("/versions/reorder")
+    async def reorder_versions(request: Request):
+        """Reorder the versions list and save to config.
+
+        The first version in the list becomes the baseline for comparisons.
+        """
+        data = await request.json()
+        new_versions = data.get("versions")
+
+        if not new_versions or not isinstance(new_versions, list):
+            raise HTTPException(status_code=400, detail="versions list is required")
+
+        orchestrator.config["atopile_versions"] = new_versions
+
+        # Save to file
+        save_config(orchestrator.config_file, orchestrator.config)
+
+        return JSONResponse({"status": "reordered", "versions": new_versions})
+
     @router.get("/versions/date/{version_type}/{version_value:path}")
     async def get_version_date_route(version_type: str, version_value: str):
         """Get the commit date for a version (useful for preview before adding)."""
         date_str = get_version_date(version_type, version_value)
         return JSONResponse({"date": date_str})
+
+    @router.get("/versions/env-status")
+    async def get_env_status():
+        """Get environment install status and sync time for each configured version."""
+        statuses = []
+        for version_spec in orchestrator.get_versions():
+            venv_path = orchestrator.version_manager._get_venv_path(version_spec)
+            installed = orchestrator.version_manager.is_installed(version_spec)
+            sync_time = None
+            if installed and venv_path.exists():
+                sync_time = venv_path.stat().st_mtime
+            statuses.append({
+                "type": version_spec["type"],
+                "version": version_spec["version"],
+                "installed": installed,
+                "sync_time": sync_time,
+            })
+        return JSONResponse(statuses)
+
+    @router.post("/versions/{version_type}/{version_value:path}/rebuild-env")
+    async def rebuild_env(version_type: str, version_value: str):
+        """Delete and reinstall the environment for a specific version."""
+        version_spec = None
+        for v in orchestrator.get_versions():
+            if v["type"] == version_type and v["version"] == version_value:
+                version_spec = v
+                break
+        if not version_spec:
+            raise HTTPException(status_code=404, detail="Version not found")
+
+        vm = orchestrator.version_manager
+        venv_path = vm._get_venv_path(version_spec)
+        clone_dir = vm.clones_dir / vm._get_venv_name(version_spec)
+
+        # Delete existing venv and clone
+        if venv_path.exists():
+            shutil.rmtree(venv_path)
+        if clone_dir.exists():
+            shutil.rmtree(clone_dir)
+
+        # Reinstall in background thread
+        loop = asyncio.get_event_loop()
+
+        def _rebuild():
+            try:
+                vm.install_version(version_spec)
+                asyncio.run_coroutine_threadsafe(
+                    orchestrator.connection_manager.broadcast({
+                        "type": "env_rebuilt",
+                        "version": version_spec,
+                        "status": "success",
+                    }),
+                    loop,
+                )
+            except Exception as e:
+                logger.error(f"Rebuild failed for {version_spec}: {e}")
+                asyncio.run_coroutine_threadsafe(
+                    orchestrator.connection_manager.broadcast({
+                        "type": "env_rebuilt",
+                        "version": version_spec,
+                        "status": "failed",
+                        "error": str(e),
+                    }),
+                    loop,
+                )
+
+        thread = threading.Thread(target=_rebuild, daemon=True)
+        thread.start()
+
+        return JSONResponse({"status": "rebuilding"})
 
     return router

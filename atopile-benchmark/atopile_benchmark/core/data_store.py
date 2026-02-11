@@ -600,8 +600,8 @@ class DataStore:
 def _extract_exception_type(error_message: str) -> str:
     """Extract the exception type from an error message.
 
-    Tries common Python exception patterns, then falls back to
-    categorizing by known error keywords.
+    Tries atopile CLI bullet-point errors first, then Python exception
+    patterns, then falls back to categorizing by known error keywords.
 
     Args:
         error_message: The raw error message string
@@ -614,10 +614,28 @@ def _extract_exception_type(error_message: str) -> str:
     if not error_message:
         return "Unknown Error"
 
+    # Try atopile CLI bullet-point errors (e.g., "• Offset not resolved")
+    bullet_matches = re.findall(r"[•·]\s*(.+)", error_message)
+    if bullet_matches:
+        # Return the first error bullet, cleaned up
+        msg = bullet_matches[0].strip().rstrip("│").strip()
+        if len(msg) > 100:
+            msg = msg[:97] + "..."
+        return msg
+
+    # Try "Failed to install" pattern
+    install_match = re.search(r"(Failed to install\s+\S+)", error_message)
+    if install_match:
+        return install_match.group(1)
+
     # Try to find Python exception class names (e.g., "ValueError: ...")
-    exc_match = re.search(r"(\w+Error|\w+Exception|\w+Warning)[\s:(\[]", error_message)
+    exc_match = re.search(r"(\w+Error|\w+Exception|\w+Warning):\s*(.{0,80})", error_message)
     if exc_match:
-        return exc_match.group(1)
+        exc_type = exc_match.group(1)
+        detail = exc_match.group(2).strip()
+        if detail:
+            return f"{exc_type}: {detail}"
+        return exc_type
 
     # Try "raise <ExceptionName>" pattern
     raise_match = re.search(r"raise\s+(\w+)", error_message)
@@ -643,8 +661,12 @@ def _extract_exception_type(error_message: str) -> str:
     if "memory" in msg_lower:
         return "MemoryError"
 
-    # Truncate and return first meaningful line
-    first_line = error_message.strip().split("\n")[-1].strip()
-    if len(first_line) > 80:
-        first_line = first_line[:77] + "..."
-    return first_line or "Unknown Error"
+    # Try to find a line with "error" in it
+    for line in error_message.strip().split("\n"):
+        line = line.strip().strip("│").strip()
+        if line and "error" in line.lower() and len(line) > 5 and len(line) < 120:
+            # Skip timestamp-only lines
+            if not re.match(r"^\d{2}:\d{2}:\d{2}", line):
+                return line
+
+    return "Unknown Error"
