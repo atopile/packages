@@ -1,0 +1,682 @@
+"""Benchmark orchestration for coordinating benchmark execution.
+
+This module provides the BenchmarkOrchestrator class that manages
+configuration, benchmark execution, and state tracking.
+"""
+
+import asyncio
+import logging
+import time
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from ..core.benchmark_runner import BenchmarkRunner, BenchmarkResult
+from ..core.data_store import DataStore
+from ..core.version_manager import VersionManager
+from .websocket import ConnectionManager
+
+logger = logging.getLogger(__name__)
+
+
+class BenchmarkOrchestrator:
+    """Orchestrates benchmark execution and state management.
+
+    This class is responsible for:
+    - Loading and managing configuration
+    - Coordinating benchmark runs
+    - Tracking running benchmarks
+    - Broadcasting updates via WebSocket
+    """
+
+    def __init__(
+        self,
+        config_file: Path,
+        data_store: DataStore,
+        version_manager: VersionManager,
+        workspace_dir: Path,
+        connection_manager: ConnectionManager,
+    ):
+        self.config_file = config_file
+        self.data_store = data_store
+        self.version_manager = version_manager
+        self.workspace_dir = workspace_dir
+        self.connection_manager = connection_manager
+
+        self.config = self._load_config()
+        self.runner = BenchmarkRunner(version_manager, workspace_dir)
+
+        # Track running benchmarks: {run_key: {status, start_time, phase, ...}}
+        self.running_benchmarks: dict[str, dict[str, Any]] = {}
+
+        # Cache for discovered build targets: {package_name: [targets]}
+        self._targets_cache: dict[str, list[str]] = {}
+
+        # Cancellation support
+        self._cancel_requested = False
+        self._running_tasks: list[asyncio.Task] = []
+
+    def _load_config(self) -> dict[str, Any]:
+        """Load benchmark configuration from YAML file."""
+        with open(self.config_file, "r") as f:
+            return yaml.safe_load(f)
+
+    def reload_config(self):
+        """Reload configuration from file."""
+        self.config = self._load_config()
+        logger.info("Configuration reloaded")
+
+    def _make_version_id(self, version_spec: dict) -> str:
+        """Create a unique identifier for a version spec."""
+        return f"{version_spec['type']}:{version_spec['version']}"
+
+    def _make_run_key(self, benchmark_name: str, version_spec: dict) -> str:
+        """Create a unique key for a running benchmark."""
+        version_id = self._make_version_id(version_spec)
+        return f"{benchmark_name}@{version_id}"
+
+    def get_enabled_packages(self) -> list[dict]:
+        """Get list of enabled package benchmarks."""
+        return [
+            p
+            for p in self.config.get("package_benchmarks", [])
+            if p.get("enabled", True)
+        ]
+
+    def get_versions(self) -> list[dict]:
+        """Get list of atopile versions to test."""
+        return self.config.get("atopile_versions", [])
+
+    def get_build_commands(self) -> list[dict]:
+        """Get list of build commands to test."""
+        return self.config.get("build_commands", [])
+
+    def get_examples_for_version(self, version_spec: dict) -> list[dict]:
+        """Get example projects available for a specific atopile version.
+
+        Args:
+            version_spec: Version specification dict
+
+        Returns:
+            List of example info dicts with 'name' and 'path' keys
+        """
+        return self.version_manager.get_examples(version_spec)
+
+    def get_all_examples(self) -> dict[str, list[str]]:
+        """Get all available examples across all versions.
+
+        Returns:
+            Dict mapping version_id to list of example names
+        """
+        result = {}
+        for version_spec in self.get_versions():
+            version_id = self._make_version_id(version_spec)
+            examples = self.get_examples_for_version(version_spec)
+            result[version_id] = [ex["name"] for ex in examples]
+        return result
+
+    def get_common_examples(self) -> list[str]:
+        """Get examples that are available in ALL configured versions.
+
+        Returns:
+            List of example names common to all versions
+        """
+        versions = self.get_versions()
+        if not versions:
+            return []
+
+        # Get examples for each version
+        example_sets = []
+        for version_spec in versions:
+            examples = self.get_examples_for_version(version_spec)
+            example_names = {ex["name"] for ex in examples}
+            example_sets.append(example_names)
+
+        # Find intersection
+        if not example_sets:
+            return []
+
+        common = example_sets[0]
+        for example_set in example_sets[1:]:
+            common = common.intersection(example_set)
+
+        return sorted(common)
+
+    def get_all_unique_examples(self) -> list[str]:
+        """Get all unique examples across all configured versions.
+
+        Returns:
+            List of all unique example names (union of all versions)
+        """
+        all_examples = set()
+        for version_spec in self.get_versions():
+            examples = self.get_examples_for_version(version_spec)
+            for ex in examples:
+                all_examples.add(ex["name"])
+
+        return sorted(all_examples)
+
+    def get_package_targets(self, package_name: str, force_refresh: bool = False) -> list[str]:
+        """Get build targets for a package.
+
+        This downloads the package if needed and parses the ato.yaml to get targets.
+        Results are cached for future calls.
+
+        Args:
+            package_name: Package name (e.g., "indicator-leds")
+            force_refresh: If True, re-download and parse even if cached
+
+        Returns:
+            List of build target names
+        """
+        # Look up the package config to get the full package identifier
+        package_config = None
+        for pkg in self.get_enabled_packages():
+            if pkg["name"] == package_name:
+                package_config = pkg
+                break
+
+        if not package_config:
+            logger.warning(f"Package {package_name} not found in config")
+            return ["default"]
+
+        full_package_name = package_config["package"]
+
+        # Check cache
+        if not force_refresh and full_package_name in self._targets_cache:
+            return self._targets_cache[full_package_name]
+
+        # We need to download the package to discover targets.
+        # Use the first available version to download.
+        versions = self.get_versions()
+        if not versions:
+            logger.warning("No versions configured, cannot discover targets")
+            return ["default"]
+
+        version_spec = versions[0]
+
+        # Create a temporary workspace to download the package
+        import shutil
+        import time as time_module
+
+        # Use a unique ID for the workspace
+        workspace_id = f"targets_discover_{package_name}_{int(time_module.time())}"
+
+        try:
+            # Set up workspace to download the package
+            workspace, package_added, _, _ = self.runner._setup_workspace(
+                full_package_name,
+                version_spec,
+                workspace_id,
+            )
+
+            if not package_added:
+                logger.warning(f"Could not download package {full_package_name}")
+                self._targets_cache[full_package_name] = ["default"]
+                return ["default"]
+
+            # Get targets from the workspace
+            targets = self.runner.get_package_build_targets(workspace)
+
+            # Cache the result
+            self._targets_cache[full_package_name] = targets
+            logger.info(f"Discovered {len(targets)} targets for {package_name}: {targets}")
+
+            return targets
+
+        except Exception as e:
+            logger.error(f"Failed to discover targets for {package_name}: {e}")
+            return ["default"]
+
+        finally:
+            # Clean up temp workspace
+            workspace_path = self.workspace_dir / workspace_id
+            if workspace_path.exists():
+                shutil.rmtree(workspace_path, ignore_errors=True)
+
+    def get_all_package_targets(self) -> dict[str, list[str]]:
+        """Get all discovered targets for all packages.
+
+        Returns:
+            Dict mapping package names to their build targets
+        """
+        result = {}
+        for pkg in self.get_enabled_packages():
+            pkg_name = pkg["name"]
+            full_pkg = pkg["package"]
+            if full_pkg in self._targets_cache:
+                result[pkg_name] = self._targets_cache[full_pkg]
+            else:
+                result[pkg_name] = ["default"]
+        return result
+
+    async def _broadcast_update(self, message: dict[str, Any]):
+        """Broadcast an update to all connected clients."""
+        await self.connection_manager.broadcast(message)
+
+    async def run_single_benchmark(
+        self,
+        benchmark_name: str,
+        package_config: dict,
+        version_spec: dict,
+        build_cmd_config: dict,
+        build_target: str | None = None,
+    ) -> BenchmarkResult:
+        """Run a single benchmark and broadcast updates.
+
+        Args:
+            benchmark_name: Unique benchmark identifier (e.g., "package:command:target")
+            package_config: Package configuration from YAML
+            version_spec: atopile version specification
+            build_cmd_config: Build command configuration
+            build_target: Optional specific target to build (e.g., "red").
+
+        Returns:
+            BenchmarkResult with the benchmark outcome
+        """
+        run_key = self._make_run_key(benchmark_name, version_spec)
+        version_id = self._make_version_id(version_spec)
+
+        # Mark benchmark as running
+        self.running_benchmarks[run_key] = {
+            "status": "running",
+            "start_time": time.time(),
+            "phase": "initializing",
+            "benchmark_name": benchmark_name,
+            "version_id": version_id,
+            "build_target": build_target,
+        }
+
+        await self._broadcast_update(
+            {
+                "type": "benchmark_started",
+                "benchmark": benchmark_name,
+                "version": version_spec,
+                "version_id": version_id,
+                "run_key": run_key,
+                "build_target": build_target,
+            }
+        )
+
+        # Create a phase callback that will broadcast updates
+        # We need to use call_soon_threadsafe since the callback runs in executor thread
+        loop = asyncio.get_event_loop()
+
+        def phase_callback(phase_name: str):
+            """Called when build enters a new phase."""
+            # Update the running benchmark's phase
+            if run_key in self.running_benchmarks:
+                self.running_benchmarks[run_key]["phase"] = phase_name
+
+            # Schedule the async broadcast from the executor thread
+            async def broadcast_phase():
+                await self._broadcast_update(
+                    {
+                        "type": "benchmark_progress",
+                        "benchmark": benchmark_name,
+                        "version_id": version_id,
+                        "run_key": run_key,
+                        "phase": phase_name,
+                    }
+                )
+
+            loop.call_soon_threadsafe(lambda: asyncio.create_task(broadcast_phase()))
+
+        # Run benchmark in executor to avoid blocking
+        try:
+            result = await loop.run_in_executor(
+                None,
+                lambda: self.runner.run_benchmark(
+                    benchmark_name,
+                    package_config["package"],
+                    version_spec,
+                    build_cmd_config["command"],
+                    build_target=build_target,
+                    phase_callback=phase_callback,
+                ),
+            )
+        except Exception as e:
+            logger.error(f"Benchmark execution failed: {e}")
+            result = BenchmarkResult(
+                benchmark_name=benchmark_name,
+                version_spec=version_spec,
+                build_command=build_cmd_config["command"],
+                status="failure",
+                error_message=str(e),
+            )
+
+        # Save result
+        self.data_store.add_result(result)
+
+        # Remove from running
+        self.running_benchmarks.pop(run_key, None)
+
+        # Broadcast completion
+        await self._broadcast_update(
+            {
+                "type": "benchmark_completed",
+                "benchmark": benchmark_name,
+                "version": version_spec,
+                "version_id": version_id,
+                "run_key": run_key,
+                "build_target": build_target,
+                "result": {
+                    "status": result.status,
+                    "total_time": result.total_time,
+                    "error_message": result.error_message,
+                    "build_target": result.build_target,
+                    "phases": [
+                        {"name": p.name, "duration": p.duration} for p in result.phases
+                    ],
+                },
+            }
+        )
+
+        return result
+
+    def _has_passing_result(self, benchmark_name: str, version_spec: dict) -> bool:
+        """Check if a benchmark already has a passing result for a version.
+
+        Args:
+            benchmark_name: Name of the benchmark
+            version_spec: Version specification dict
+
+        Returns:
+            True if there's already a successful result for this benchmark/version
+        """
+        matrix = self.data_store.get_results_matrix()
+        version_id = self._make_version_id(version_spec)
+
+        if benchmark_name in matrix:
+            result = matrix[benchmark_name].get(version_id)
+            if result and result.get("status") == "success":
+                return True
+        return False
+
+    async def run_all_benchmarks(
+        self,
+        max_parallel: int = 4,
+        force: bool = False,
+        enabled_commands: list[str] | None = None,
+        include_examples: bool = True,
+    ):
+        """Run all configured benchmarks for all versions.
+
+        Args:
+            max_parallel: Maximum number of versions to build in parallel (0 = unlimited)
+            force: If True, rerun all benchmarks even if they already passed
+            enabled_commands: List of build command names to run. If None, run all.
+            include_examples: If True, also run benchmarks for example projects
+
+        Skips benchmarks that already have a passing result (unless force=True).
+        Benchmarks are run in parallel, with up to max_parallel concurrent version tasks.
+        Versions are installed in parallel first.
+        """
+        # Reset cancellation flag from any previous stop_all call
+        self._cancel_requested = False
+
+        versions = self.get_versions()
+        packages = self.get_enabled_packages()
+        build_commands = self.get_build_commands()
+
+        # Filter build commands if enabled_commands is specified
+        if enabled_commands is not None:
+            build_commands = [
+                cmd for cmd in build_commands if cmd["name"] in enabled_commands
+            ]
+            logger.info(
+                f"Filtering to {len(build_commands)} build commands: {enabled_commands}"
+            )
+
+        # Count how many benchmarks we'll actually run (excluding already passed)
+        skipped = 0
+        to_run = []
+
+        for version_spec in versions:
+            version_id = self._make_version_id(version_spec)
+            for package_config in packages:
+                for build_cmd_config in build_commands:
+                    # "all-targets" command builds all at once, doesn't use per-target benchmarks
+                    uses_targets = build_cmd_config["name"] != "all-targets"
+
+                    if uses_targets:
+                        # Get targets for this package (from cache if available)
+                        targets = self._targets_cache.get(
+                            package_config["package"], ["default"]
+                        )
+
+                        # Create benchmark for each target
+                        for target in targets:
+                            benchmark_name = (
+                                f"{package_config['name']}:{build_cmd_config['name']}:{target}"
+                            )
+                            if not force and self._has_passing_result(
+                                benchmark_name, version_spec
+                            ):
+                                skipped += 1
+                                logger.debug(
+                                    f"Skipping {benchmark_name}@{version_id} (already passed)"
+                                )
+                            else:
+                                to_run.append(
+                                    (
+                                        benchmark_name,
+                                        package_config,
+                                        version_spec,
+                                        build_cmd_config,
+                                        target,  # Include target
+                                    )
+                                )
+                    else:
+                        # "all-targets" - single benchmark for all targets
+                        benchmark_name = (
+                            f"{package_config['name']}:{build_cmd_config['name']}"
+                        )
+                        if not force and self._has_passing_result(
+                            benchmark_name, version_spec
+                        ):
+                            skipped += 1
+                            logger.debug(
+                                f"Skipping {benchmark_name}@{version_id} (already passed)"
+                            )
+                        else:
+                            to_run.append(
+                                (
+                                    benchmark_name,
+                                    package_config,
+                                    version_spec,
+                                    build_cmd_config,
+                                    None,  # No specific target
+                                )
+                            )
+
+        # Add example benchmarks if requested
+        if include_examples:
+            # Default build command for examples
+            example_build_cmd = {"name": "default", "command": "ato build"}
+
+            for version_spec in versions:
+                version_id = self._make_version_id(version_spec)
+
+                # Get examples available for this version
+                examples = self.get_examples_for_version(version_spec)
+
+                for example_info in examples:
+                    example_name = example_info["name"]
+                    benchmark_name = f"examples/{example_name}:default"
+
+                    # Create a pseudo package config for the example
+                    example_config = {
+                        "name": f"examples/{example_name}",
+                        "package": f"examples/{example_name}",
+                    }
+
+                    if not force and self._has_passing_result(benchmark_name, version_spec):
+                        skipped += 1
+                        logger.debug(
+                            f"Skipping {benchmark_name}@{version_id} (already passed)"
+                        )
+                    else:
+                        to_run.append(
+                            (
+                                benchmark_name,
+                                example_config,
+                                version_spec,
+                                example_build_cmd,
+                                None,  # No specific target for examples
+                            )
+                        )
+
+            logger.info(f"Included {len([t for t in to_run if t[0].startswith('examples/')])} example benchmarks")
+
+        mode = "force rerun" if force else "run"
+        parallel_str = (
+            f"max {max_parallel} parallel" if max_parallel > 0 else "unlimited parallel"
+        )
+        logger.info(
+            f"Will {mode} {len(to_run)} benchmarks across {len(versions)} versions "
+            f"({parallel_str}, skipping {skipped} already passed)"
+        )
+
+        if not to_run:
+            logger.info("All benchmarks already passed, nothing to run")
+            await self._broadcast_update({"type": "all_benchmarks_completed"})
+            return
+
+        # Install all versions first (in parallel)
+        install_tasks = []
+        for version_spec in versions:
+            if not self.version_manager.is_installed(version_spec):
+                logger.info(
+                    f"Queueing installation of {self._make_version_id(version_spec)}"
+                )
+                install_tasks.append(
+                    asyncio.get_event_loop().run_in_executor(
+                        None,
+                        self.version_manager.install_version,
+                        version_spec,
+                    )
+                )
+
+        if install_tasks:
+            logger.info(f"Installing {len(install_tasks)} versions...")
+            results = await asyncio.gather(*install_tasks, return_exceptions=True)
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Version installation failed: {result}")
+
+        # Group benchmarks by version for parallel execution
+        benchmarks_by_version: dict[str, list] = {}
+        for benchmark_name, package_config, version_spec, build_cmd_config, build_target in to_run:
+            version_id = self._make_version_id(version_spec)
+            if version_id not in benchmarks_by_version:
+                benchmarks_by_version[version_id] = []
+            benchmarks_by_version[version_id].append(
+                (benchmark_name, package_config, version_spec, build_cmd_config, build_target)
+            )
+
+        # Run benchmarks in parallel (one task per version)
+        async def run_version_benchmarks(version_id: str, benchmarks: list):
+            """Run all benchmarks for a single version sequentially."""
+            for (
+                benchmark_name,
+                package_config,
+                version_spec,
+                build_cmd_config,
+                build_target,
+            ) in benchmarks:
+                # Check for cancellation before each benchmark
+                if self._cancel_requested:
+                    logger.info(
+                        f"Skipping {benchmark_name}@{version_id} due to cancellation"
+                    )
+                    return
+                try:
+                    await self.run_single_benchmark(
+                        benchmark_name,
+                        package_config,
+                        version_spec,
+                        build_cmd_config,
+                        build_target=build_target,
+                    )
+                except asyncio.CancelledError:
+                    logger.info(f"Benchmark {benchmark_name}@{version_id} cancelled")
+                    return
+                except Exception as e:
+                    logger.error(f"Benchmark {benchmark_name}@{version_id} failed: {e}")
+
+        # Use semaphore to limit parallelism if max_parallel > 0
+        if max_parallel > 0:
+            semaphore = asyncio.Semaphore(max_parallel)
+
+            async def run_with_semaphore(version_id: str, benchmarks: list):
+                async with semaphore:
+                    await run_version_benchmarks(version_id, benchmarks)
+
+            version_tasks = [
+                run_with_semaphore(vid, benchmarks)
+                for vid, benchmarks in benchmarks_by_version.items()
+            ]
+        else:
+            # Unlimited parallelism
+            version_tasks = [
+                run_version_benchmarks(vid, benchmarks)
+                for vid, benchmarks in benchmarks_by_version.items()
+            ]
+
+        # Store tasks for cancellation
+        self._running_tasks = [asyncio.create_task(coro) for coro in version_tasks]
+
+        try:
+            await asyncio.gather(*self._running_tasks, return_exceptions=True)
+        except asyncio.CancelledError:
+            logger.info("Benchmark run was cancelled")
+        finally:
+            self._running_tasks = []
+
+        if self._cancel_requested:
+            self._cancel_requested = False
+            await self._broadcast_update({"type": "benchmarks_stopped"})
+            logger.info("Benchmarks stopped by user")
+        else:
+            await self._broadcast_update({"type": "all_benchmarks_completed"})
+            logger.info("All benchmarks completed")
+
+    async def stop_all_benchmarks(self):
+        """Stop all running benchmarks and cancel pending ones."""
+        self._cancel_requested = True
+        logger.info("Stopping all benchmarks...")
+
+        # Cancel all running tasks
+        for task in self._running_tasks:
+            if not task.done():
+                task.cancel()
+
+        # Clear running benchmarks tracking
+        stopped_count = len(self.running_benchmarks)
+        for run_key in list(self.running_benchmarks.keys()):
+            await self._broadcast_update(
+                {
+                    "type": "benchmark_stopped",
+                    "run_key": run_key,
+                }
+            )
+        self.running_benchmarks.clear()
+
+        # Kill any running ato processes
+        try:
+            import subprocess
+
+            subprocess.run(
+                ["pkill", "-f", "ato.*build"], capture_output=True, timeout=5
+            )
+        except Exception as e:
+            logger.debug(f"Failed to kill ato processes: {e}")
+
+        logger.info(f"Stopped {stopped_count} benchmarks")
+        return stopped_count
+
+    def is_running(self) -> bool:
+        """Check if any benchmarks are currently running."""
+        return len(self.running_benchmarks) > 0 or len(self._running_tasks) > 0
