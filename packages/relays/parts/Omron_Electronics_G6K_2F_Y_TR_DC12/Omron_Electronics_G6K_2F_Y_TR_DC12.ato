@@ -4,16 +4,16 @@ import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-from "atopile/relays/relays.ato" import RelayDPDT
+from "atopile/relays/helpers.ato" import RelayDPDT
 
 component Omron_Electronics_G6K_2F_Y_TR_DC12_package:
     # This trait marks this file as auto-generated
     # If you want to manually change it, remove the trait
-    trait is_auto_generated<system="ato_part", source="easyeda:C397192", date="2025-09-05T02:29:35.491674+00:00", checksum="170abcb9048a5b8580b8a92e19e8418f1da89335d43d06cd8d9f377a95e7163a">
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C397192", date = "2025-09-05T02:29:35.491674+00:00", checksum = "170abcb9048a5b8580b8a92e19e8418f1da89335d43d06cd8d9f377a95e7163a">
 
-    trait is_atomic_part<manufacturer="Omron Electronics", partnumber="G6K-2F-Y-TR DC12", footprint="RELAY-SMD_G6K-2F-Y.kicad_mod", symbol="G6K-2F-Y-TR-DC12.kicad_sym", model="SMD-8_L10.0-W6.5-H5.4-LS7.8-P2.2.step">
-    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C397192", manufacturer="Omron Electronics", partno="G6K-2F-Y-TR DC12">
-    trait has_designator_prefix<prefix="K">
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G6K-2F-Y-TR DC12", footprint = "RELAY-SMD_G6K-2F-Y.kicad_mod", symbol = "G6K-2F-Y-TR-DC12.kicad_sym", model = "SMD-8_L10.0-W6.5-H5.4-LS7.8-P2.2.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C397192", manufacturer = "Omron Electronics", partno = "G6K-2F-Y-TR DC12">
+    trait has_designator_prefix<prefix = "K">
 
     # pins
     pin 8
@@ -24,7 +24,6 @@ component Omron_Electronics_G6K_2F_Y_TR_DC12_package:
     pin 3
     pin 2
     pin 1
-
 
 module RelayDPDT1A12V from RelayDPDT:
     package = new Omron_Electronics_G6K_2F_Y_TR_DC12_package
@@ -37,3 +36,6 @@ module RelayDPDT1A12V from RelayDPDT:
     # Switch 1
     package.6 ~> switch_nc[1] ~> package.7
     package.6 ~> switch_no[1] ~> package.5
+
+    assert coil.voltage within 12V +/- 10%
+    assert coil.resistance within 1315ohm +/- 10%
