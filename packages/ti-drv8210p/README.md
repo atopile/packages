@@ -36,6 +36,7 @@ The DRV8210 is a compact, versatile motor driver from Texas Instruments featurin
 ---
 
 # Usage
+
 Below are Atopile usage patterns for common DRV8210 operating modes.
 
 ```ato
@@ -54,7 +55,8 @@ module Usage:
     logic_power ~ driver.logic_power
 
     motor_power = new ElectricPower
-    motor_power.voltage = 11V +/- 5%
+    motor_power.voltage = 10V +/- 5%
+    # assert motor_power.voltage within 10V +/- 5%
     motor_power ~ driver.motor_power
 
     current_sense = new ElectricSignal
