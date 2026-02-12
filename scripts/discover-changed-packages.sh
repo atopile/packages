@@ -13,7 +13,7 @@ find_changed_packages() {
     local changed_files=$(
         git diff \
             --name-only \
-            "$base_ref"..HEAD \
+            "$base_ref"...HEAD \
             -- \
             ':/packages/**' \
             ':(exclude)packages/archive/**' \
