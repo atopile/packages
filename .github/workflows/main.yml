@@ -14,8 +14,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+      - name: Fetch base ref for diff
+        if: github.event_name == 'push'
+        run: git fetch origin ${{ github.event.before }} --depth=1
+
+      - name: Fetch base ref for diff
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1
 
       - name: Discover changed packages
         id: packages
@@ -54,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: atopile/setup-atopile@v2
         # Build against the main branch of atopile by setting the docker-tag
