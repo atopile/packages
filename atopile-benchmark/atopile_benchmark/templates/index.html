@@ -67,7 +67,6 @@
         }
 
         [data-theme="dark"] .card,
-        [data-theme="dark"] .summary-card,
         [data-theme="dark"] .modal {
             background: #1a1d27;
         }
@@ -187,6 +186,9 @@
             color: var(--gray-800);
             line-height: 1.5;
             min-height: 100vh;
+        }
+        button, input, select, textarea, option {
+            font-family: inherit;
         }
 
         /* Header */
@@ -631,6 +633,33 @@
             white-space: nowrap;
         }
 
+        .sync-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 1px 6px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+            margin-left: 6px;
+        }
+        .sync-pill.synced {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .sync-pill.unsynced {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .sync-pill.registry-only {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
         .badge-pending {
             background: var(--gray-100);
             color: var(--gray-400);
@@ -693,7 +722,8 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top-color: white;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
+            will-change: transform;
         }
 
         @keyframes spin {
@@ -801,42 +831,6 @@
         }
 
         /* Summary cards */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .summary-card {
-            background: white;
-            border-radius: 10px;
-            padding: 14px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--gray-200);
-        }
-
-        .summary-card-label {
-            font-size: 11px;
-            color: var(--gray-500);
-            margin-bottom: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .summary-card-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--gray-800);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .summary-card-sub {
-            font-size: 11px;
-            color: var(--gray-400);
-            margin-top: 2px;
-        }
-
         /* Connection status */
         .connection-status {
             display: flex;
@@ -910,7 +904,8 @@
             border: 3px solid var(--gray-200);
             border-top-color: var(--primary);
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
+            will-change: transform;
         }
 
         /* Chart container */
@@ -1354,7 +1349,7 @@
 
         /* Exception list for Version Analysis */
         .exception-list-container {
-            max-height: 400px;
+            max-height: 200px;
             overflow-y: auto;
             border: 1px solid var(--gray-200);
             border-radius: 8px;
@@ -1399,7 +1394,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
         .analysis-stat {
             background: var(--gray-50);
@@ -1460,7 +1455,7 @@
         .card-body.collapsible-body {
             overflow: hidden;
             transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
-            max-height: 2000px;
+            max-height: 3000px;
             opacity: 1;
         }
         .card-body.collapsible-body.collapsed {
@@ -1506,6 +1501,18 @@
             letter-spacing: 0.3px;
             margin-top: 2px;
         }
+        .sync-refresh-btn {
+            display: inline-block;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-left: 3px;
+            vertical-align: middle;
+            transition: color 0.15s;
+        }
+        .sync-refresh-btn:hover { color: var(--gray-700); }
+        .sync-refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .health-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1719,24 +1726,26 @@
         }
 
         /* Version analysis step comparison table */
-        .analysis-step-table {
-            width: 100%;
+        #phaseChart {
+            overflow-x: auto;
+        }
+        .analysis-step-grid {
+            display: grid;
+            grid-template-columns: auto auto auto 1fr auto;
             font-size: 12px;
-            border-collapse: collapse;
-            table-layout: fixed;
+            align-items: center;
         }
-        .analysis-step-table td {
+        .analysis-step-grid > div {
             padding: 2px 4px;
-            vertical-align: middle;
         }
-        /* Name column - auto width */
-        .analysis-step-table td:nth-child(1) {
+        /* Name column */
+        .analysis-step-grid .sg-name {
             color: var(--gray-600);
             font-weight: 500;
             white-space: nowrap;
         }
-        /* Label column - shrink-wrap */
-        .analysis-step-table td:nth-child(2) {
+        /* Label column */
+        .analysis-step-grid .sg-label {
             font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
@@ -1745,33 +1754,94 @@
             white-space: nowrap;
             padding: 2px 2px 2px 6px;
         }
-        /* Time column - shrink-wrap */
-        .analysis-step-table td:nth-child(3) {
+        .analysis-step-grid .sg-label.selected { color: var(--primary); }
+        .analysis-step-grid .sg-label.baseline { color: var(--gray-400); }
+        /* Time column */
+        .analysis-step-grid .sg-time {
             text-align: right;
             font-weight: 600;
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
             padding: 2px 6px 2px 2px;
         }
-        /* Bar column - fills remaining space */
-        .analysis-step-table td:nth-child(4) {
+        .analysis-step-grid .sg-time.selected { color: var(--gray-800); }
+        .analysis-step-grid .sg-time.baseline { color: var(--gray-400); font-weight: 500; }
+        /* Bar column */
+        .analysis-step-grid .sg-bar {
+            min-width: 80px;
         }
-        /* Change column - shrink-wrap */
-        .analysis-step-table td:nth-child(5) {
+        /* Change column */
+        .analysis-step-grid .sg-change {
             font-size: 11px;
             font-weight: 600;
             white-space: nowrap;
             text-align: right;
             padding: 2px 4px 2px 6px;
         }
+        /* Row separators via bottom border on baseline/single rows */
+        .analysis-step-grid .sg-row-base {
+            border-bottom: 1px solid var(--gray-100);
+            padding-top: 0;
+        }
+        .analysis-step-grid .sg-row-single {
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .analysis-step-table {
+            display: grid;
+            grid-template-columns: auto auto auto 1fr auto;
+            font-size: 12px;
+            align-items: center;
+        }
+        .analysis-step-table tbody,
+        .analysis-step-table tr {
+            display: contents;
+        }
+        .analysis-step-table td {
+            padding: 2px 4px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        /* Step name column */
+        .analysis-step-table td:nth-child(1) {
+            white-space: nowrap;
+            color: var(--gray-600);
+            font-weight: 500;
+            padding-right: 8px;
+        }
+        /* Version/branch label column */
+        .analysis-step-table td:nth-child(2) {
+            white-space: nowrap;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: right;
+            padding-right: 8px;
+            border-right: 1px solid var(--gray-200);
+        }
         .analysis-step-table .row-selected td:nth-child(2) { color: var(--primary); }
-        .analysis-step-table .row-selected td:nth-child(3) { color: var(--gray-800); }
-        .analysis-step-table .row-baseline td:nth-child(1) { color: var(--gray-400); font-size: 10px; }
         .analysis-step-table .row-baseline td:nth-child(2) { color: var(--gray-400); }
+        /* Time column */
+        .analysis-step-table td:nth-child(3) {
+            white-space: nowrap;
+            text-align: right;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            padding-right: 4px;
+            padding-left: 8px;
+        }
+        .analysis-step-table .row-selected td:nth-child(3) { color: var(--gray-800); }
         .analysis-step-table .row-baseline td:nth-child(3) { color: var(--gray-400); font-weight: 500; }
-        .analysis-step-table .row-selected td { border-bottom: none; }
-        .analysis-step-table .row-baseline td { border-bottom: 1px solid var(--gray-100); padding-top: 0; }
-        .analysis-step-table .row-single td { border-bottom: 1px solid var(--gray-100); }
+        /* Bar column - takes remaining space */
+        .analysis-step-table td:nth-child(4) {
+            min-width: 0;
+        }
+        /* Change column */
+        .analysis-step-table td:nth-child(5) {
+            white-space: nowrap;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: right;
+        }
         .analysis-step-bar {
             height: 6px;
             border-radius: 3px;
@@ -1803,12 +1873,31 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
         }
+        .version-tag.disabled {
+            opacity: 0.4;
+            filter: grayscale(0.6);
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+        .version-tag.disabled .type {
+            color: var(--gray-500);
+        }
         .drag-handle {
             color: var(--gray-400);
             font-size: 14px;
             line-height: 1;
             cursor: grab;
             padding-right: 2px;
+        }
+        .version-status-icon {
+            color: var(--success);
+            font-size: 14px;
+            line-height: 1;
+            padding-right: 2px;
+        }
+        .version-status-icon.disabled {
+            color: var(--gray-400);
+            font-size: 13px;
         }
         .drag-handle:active {
             cursor: grabbing;
@@ -1960,29 +2049,6 @@
             </div>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="summary-grid" id="summaryGrid">
-            <div class="summary-card">
-                <div class="summary-card-label">Fastest Version</div>
-                <div class="summary-card-value" id="fastestVersion">-</div>
-                <div class="summary-card-sub" id="fastestVersionTime">-</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-card-label">Slowest Version</div>
-                <div class="summary-card-value" id="slowestVersion">-</div>
-                <div class="summary-card-sub" id="slowestVersionTime">-</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-card-label">Success Rate</div>
-                <div class="summary-card-value" id="successRate">-</div>
-                <div class="summary-card-sub" id="successRateSub">-</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-card-label">Running</div>
-                <div class="summary-card-value" id="runningCount">0</div>
-                <div class="summary-card-sub" id="runningSub">benchmarks</div>
-            </div>
-        </div>
 
         <!-- Package Health -->
         <div class="card" id="packageHealthCard">
@@ -2025,30 +2091,61 @@
                 </div>
             </div>
             <div class="card-body collapsible-body collapsed" id="versionAnalysisBody">
-                <div id="analysisContent" style="min-height: 200px;">
+                <div id="analysisContent">
                     <div class="loading">
                         <span style="color: var(--gray-400);">Select a version to view analysis</span>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 0; align-items: stretch;">
                     <div>
                         <h3 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;">Average Build Step Duration</h3>
                         <div id="phaseChart"></div>
                     </div>
-                    <div>
+                    <div style="display: flex; flex-direction: column;">
                         <h3 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px;">Build Errors by Type</h3>
                         <div id="exceptionList" class="exception-list-container">
                             <div style="color: var(--gray-400); padding: 24px; text-align: center;">No data</div>
                         </div>
+                        <!-- Build Time Trends Chart -->
+                        <h3 style="font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; margin-top: 12px;">Build Time Trends</h3>
+                        <div class="chart-options" style="margin-bottom: 4px;">
+                            <div class="control-group">
+                                <span class="control-label">Y-Axis</span>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary btn-sm active" id="yLinearBtn" onclick="setYScale('linear')">Linear</button>
+                                    <button class="btn btn-secondary btn-sm" id="yLogBtn" onclick="setYScale('log')">Log</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <span class="control-label">Values</span>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary btn-sm active" id="yNormBtn" onclick="setNormalize(true)">Normalized</button>
+                                    <button class="btn btn-secondary btn-sm" id="yAbsBtn" onclick="setNormalize(false)">Seconds</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <span class="control-label">X-Axis</span>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary btn-sm active" id="xDiscreteBtn" onclick="setXMode('discrete')">Discrete</button>
+                                    <button class="btn btn-secondary btn-sm" id="xChronoBtn" onclick="setXMode('chronological')">Timeline</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="chart" style="flex: 1; min-height: 200px;"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Controls (slim toolbar) -->
+        <!-- Results Table -->
         <div class="card">
-            <div class="card-body" style="padding: 10px 20px;">
-                <div class="controls" style="flex-wrap: wrap;">
+            <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <h2>Results Matrix</h2>
+                    <span id="tableLastUpdated" style="font-size: 12px; color: var(--gray-500);"></span>
+                </div>
+                <!-- Controls toolbar -->
+                <div class="controls" style="flex-wrap: wrap; width: 100%; padding-bottom: 10px; border-bottom: 1px solid var(--gray-200);">
                     <button class="btn btn-primary" id="runAllBtn" onclick="runAllBenchmarks()">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -2106,16 +2203,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Results Table -->
-        <div class="card">
-            <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                    <h2>Results Matrix</h2>
-                    <span id="tableLastUpdated" style="font-size: 12px; color: var(--gray-500);"></span>
-                </div>
                 <!-- Filter and Sort Controls -->
                 <div class="table-controls" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -2170,38 +2257,6 @@
             </div>
         </div>
 
-        <!-- Chart -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Build Time Trends</h2>
-            </div>
-            <div class="card-body">
-                <div class="chart-options">
-                    <div class="control-group">
-                        <span class="control-label">Y-Axis</span>
-                        <div class="btn-group">
-                            <button class="btn btn-secondary btn-sm active" id="yLinearBtn" onclick="setYScale('linear')">Linear</button>
-                            <button class="btn btn-secondary btn-sm" id="yLogBtn" onclick="setYScale('log')">Log</button>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <span class="control-label">Values</span>
-                        <div class="btn-group">
-                            <button class="btn btn-secondary btn-sm active" id="yAbsBtn" onclick="setNormalize(false)">Seconds</button>
-                            <button class="btn btn-secondary btn-sm" id="yNormBtn" onclick="setNormalize(true)">Normalized</button>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <span class="control-label">X-Axis</span>
-                        <div class="btn-group">
-                            <button class="btn btn-secondary btn-sm active" id="xDiscreteBtn" onclick="setXMode('discrete')">Discrete</button>
-                            <button class="btn btn-secondary btn-sm" id="xChronoBtn" onclick="setXMode('chronological')">Timeline</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="chart" style="height: 450px;"></div>
-            </div>
-        </div>
 
     </main>
 
@@ -2248,6 +2303,13 @@
     </div>
 
     <script>
+        // Global error handler - shows JS errors on the page for debugging
+        window.onerror = function(msg, src, line, col, err) {
+            const el = document.getElementById('connectionText');
+            if (el) el.textContent = 'JS Error (see console)';
+            console.error('Uncaught error:', msg, 'at', src, ':', line, col, err);
+        };
+
         // Application State
         const state = {
             config: {},
@@ -2258,7 +2320,7 @@
             wsConnected: false,
             chart: {
                 yScale: 'linear',
-                normalize: false,
+                normalize: true,
                 xMode: 'discrete'
             },
             // Filter and sort state
@@ -2283,7 +2345,9 @@
             // Examples available per version: {versionId: [exampleName, ...]}
             examples: {},
             // Common examples across all versions
-            commonExamples: []
+            commonExamples: [],
+            // Package sync status: {packageName: {synced, repo_version, registry_version, ...}}
+            syncStatus: {}
         };
 
         // atopile orange color palette for chart lines
@@ -2339,18 +2403,27 @@
                 const running = state.runningBenchmarks[runKey];
 
                 if (running) {
-                    // Update the running spinner content
                     const elapsed = Math.floor((Date.now() / 1000) - running.start_time);
                     const phase = running.phase || 'initializing';
-                    cell.innerHTML = `
-                        <span class="badge badge-running">
-                            <span class="top-row">
-                                <span class="spinner"></span>
-                                <span class="time">${elapsed}s</span>
+
+                    // If the badge already exists, update text only (preserves spinner animation)
+                    const existingTime = cell.querySelector('.badge-running .time');
+                    const existingPhase = cell.querySelector('.badge-running .phase');
+                    if (existingTime && existingPhase) {
+                        existingTime.textContent = elapsed + 's';
+                        existingPhase.textContent = phase;
+                    } else {
+                        // First render: create the badge structure
+                        cell.innerHTML = `
+                            <span class="badge badge-running">
+                                <span class="top-row">
+                                    <span class="spinner"></span>
+                                    <span class="time">${elapsed}s</span>
+                                </span>
+                                <span class="phase">${phase}</span>
                             </span>
-                            <span class="phase">${phase}</span>
-                        </span>
-                    `;
+                        `;
+                    }
                 }
             });
         }
@@ -2487,6 +2560,9 @@
                 state.commonExamples = await commonExamplesRes.json();
 
                 updateUI();
+
+                // Fetch sync status in background (don't block initial render)
+                fetchSyncStatus();
             } catch (error) {
                 console.error('Failed to load data:', error);
             }
@@ -2555,22 +2631,36 @@
             // Save scroll before any DOM mutations that could shift layout
             const savedScroll = window.scrollY;
 
-            updateHeaderStats();
-            updateVersionEditor();
-            updateSummaryCards();
-            updateStatsTable();
+            const coreSteps = [
+                ['updateHeaderStats', updateHeaderStats],
+                ['updateVersionEditor', updateVersionEditor],
+                ['updateSummaryCards', updateSummaryCards],
+                ['updateStatsTable', updateStatsTable],
+            ];
+            for (const [name, fn] of coreSteps) {
+                try { fn(); } catch (e) { console.error(`updateUI: ${name} failed:`, e); }
+            }
 
             // Restore scroll after above-the-fold mutations, before table rebuild
             window.scrollTo(0, savedScroll);
 
-            updateTable();
-            updateChart();
-            updateLastUpdated();
-            updateStopButtonVisibility();
+            const postSteps = [
+                ['updateTable', updateTable],
+                ['updateChart', updateChart],
+                ['updateLastUpdated', updateLastUpdated],
+                ['updateStopButtonVisibility', updateStopButtonVisibility],
+            ];
+            for (const [name, fn] of postSteps) {
+                try { fn(); } catch (e) { console.error(`updateUI: ${name} failed:`, e); }
+            }
+        }
+
+        function getEnabledVersions() {
+            return (state.config.atopile_versions || []).filter(v => v.enabled !== false);
         }
 
         function updateHeaderStats() {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
 
@@ -2593,9 +2683,16 @@
 
             versions.forEach((version, idx) => {
                 const tag = document.createElement('div');
-                tag.className = 'version-tag';
+                tag.className = 'version-tag' + (version.enabled === false ? ' disabled' : '');
                 tag.draggable = true;
                 tag.dataset.idx = idx;
+                tag.title = version.enabled === false ? 'Click to enable' : 'Click to disable';
+
+                // Toggle enabled on click (not on drag)
+                tag.onclick = (e) => {
+                    if (e.target.closest('.remove-btn') || e.target.closest('.version-rebuild-btn')) return;
+                    toggleVersionEnabled(version.type, version.version);
+                };
 
                 // Drag-and-drop handlers
                 tag.ondragstart = (e) => {
@@ -2623,10 +2720,10 @@
                     }
                 };
 
-                const dragHandle = document.createElement('span');
-                dragHandle.className = 'drag-handle';
-                dragHandle.textContent = '\u2807'; // vertical dots
-                dragHandle.title = 'Drag to reorder';
+                const statusIcon = document.createElement('span');
+                statusIcon.className = 'version-status-icon' + (version.enabled === false ? ' disabled' : '');
+                statusIcon.innerHTML = version.enabled === false ? '&#x25CB;' : '&#x2714;'; // ○ or ✔
+                statusIcon.title = version.enabled === false ? 'Disabled – click to enable' : 'Enabled – click to disable';
 
                 const typeSpan = document.createElement('span');
                 typeSpan.className = 'type';
@@ -2653,7 +2750,7 @@
                     removeVersion(this.dataset.type, this.dataset.version);
                 };
 
-                tag.appendChild(dragHandle);
+                tag.appendChild(statusIcon);
                 // Baseline label inside tag for first version
                 if (idx === 0) {
                     const baselineSpan = document.createElement('span');
@@ -2723,6 +2820,30 @@
             }
         }
 
+        async function toggleVersionEnabled(type, version) {
+            const versions = state.config.atopile_versions || [];
+            const v = versions.find(v => v.type === type && v.version === version);
+            if (!v) return;
+
+            const newEnabled = v.enabled === false ? true : false;
+            if (newEnabled) {
+                delete v.enabled;
+            } else {
+                v.enabled = false;
+            }
+            updateUI();
+
+            try {
+                await fetch(`/api/versions/${encodeURIComponent(type)}/${encodeURIComponent(version)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: newEnabled })
+                });
+            } catch (error) {
+                console.error('Failed to toggle version enabled:', error);
+            }
+        }
+
         function formatRelativeTime(unixTimestamp) {
             const now = Date.now() / 1000;
             const diff = now - unixTimestamp;
@@ -2744,13 +2865,41 @@
                     if (!el) return;
                     const timeSpan = el.querySelector('.sync-time');
                     if (timeSpan) {
-                        if (s.installed && s.sync_time) {
-                            timeSpan.textContent = 'Synced ' + formatRelativeTime(s.sync_time);
+                        if (s.installed && s.env_created_at) {
+                            const dt = new Date(s.env_created_at);
+                            const ago = formatRelativeTime(dt.getTime() / 1000);
+                            timeSpan.textContent = 'Built ' + ago;
+                            timeSpan.title = s.env_created_at;
+                        } else if (s.installed && s.sync_time) {
+                            timeSpan.textContent = 'Built ' + formatRelativeTime(s.sync_time);
                         } else {
                             timeSpan.textContent = 'Not installed';
                         }
                     }
                 });
+            } catch (e) {
+                // Silently fail
+            }
+        }
+
+        async function fetchSyncStatus() {
+            try {
+                const resp = await fetch('/api/packages/sync-status');
+                if (!resp.ok) return;
+                state.syncStatus = await resp.json();
+                updateUI();
+            } catch (e) {
+                // Silently fail
+            }
+        }
+
+        async function refreshSyncStatus(btn) {
+            if (btn) btn.classList.add('spinning');
+            try {
+                const resp = await fetch('/api/packages/sync-status/refresh', { method: 'POST' });
+                if (!resp.ok) return;
+                state.syncStatus = await resp.json();
+                updateUI();
             } catch (e) {
                 // Silently fail
             }
@@ -2773,7 +2922,7 @@
 
         function updateSummaryCards() {
             // Use the same filtering logic as updateStatsTable() for consistency
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
 
@@ -2832,34 +2981,6 @@
                 }
             });
 
-            // Calculate fastest/slowest from version averages
-            const versionAvgs = Object.entries(versionStats)
-                .filter(([_, stats]) => stats.avgTime !== undefined)
-                .map(([id, stats]) => ({ id, avg: stats.avgTime }))
-                .sort((a, b) => a.avg - b.avg);
-
-            if (versionAvgs.length > 0) {
-                const fastest = versionAvgs[0];
-                const slowest = versionAvgs[versionAvgs.length - 1];
-
-                document.getElementById('fastestVersion').textContent = getShortVersionName(fastest.id);
-                document.getElementById('fastestVersionTime').textContent = `${fastest.avg.toFixed(2)}s avg`;
-
-                document.getElementById('slowestVersion').textContent = getShortVersionName(slowest.id);
-                document.getElementById('slowestVersionTime').textContent = `${slowest.avg.toFixed(2)}s avg`;
-            }
-
-            // Success rate from most recent results (excludes stub/incompatible like stats table)
-            const totalRun = totalPassed + totalFailed;
-            const rate = totalRun > 0 ? Math.round((totalPassed / totalRun) * 100) : 0;
-
-            document.getElementById('successRate').textContent = `${rate}%`;
-            document.getElementById('successRateSub').textContent = `${totalPassed}/${totalRun} builds`;
-
-            // Running count
-            const running = Object.keys(state.runningBenchmarks).length;
-            document.getElementById('runningCount').textContent = running;
-            document.getElementById('runningSub').textContent = running === 1 ? 'benchmark' : 'benchmarks';
         }
 
         function getShortVersionName(versionId) {
@@ -2877,7 +2998,7 @@
             const tbody = statsTable.querySelector('tbody');
             tbody.innerHTML = '';
 
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
 
@@ -3102,6 +3223,31 @@
 
         // Debounce helper to prevent rapid successive calls
         let updateTableTimeout = null;
+        function createSyncPill(pkgName) {
+            const info = state.syncStatus[pkgName];
+            if (!info) return null;
+            const pill = document.createElement('span');
+            if (info.registry_only) {
+                pill.className = 'sync-pill registry-only';
+                pill.textContent = '\u26a0 registry only';
+                pill.title = info.error || 'Published in registry but not in benchmark config';
+            } else if (info.synced) {
+                pill.className = 'sync-pill synced';
+                const version = info.registry_version || info.repo_version || '';
+                pill.textContent = '\u2194 ' + version;
+                pill.title = 'Registry in sync with repo';
+            } else {
+                pill.className = 'sync-pill unsynced';
+                const version = info.registry_version || info.repo_version || '';
+                pill.textContent = '\ud83d\udd50 ' + version;
+                const details = info.mismatched_files
+                    ? '\n' + info.mismatched_files.join('\n')
+                    : '';
+                pill.title = 'Registry out of sync with repo' + details;
+            }
+            return pill;
+        }
+
         let updateTableScrollPositions = null;
 
         function updateTable() {
@@ -3146,7 +3292,7 @@
 
             container.innerHTML = '';
 
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
 
@@ -3366,8 +3512,6 @@
                 // Create table
                 const tableContainer = document.createElement('div');
                 tableContainer.className = 'table-container';
-                tableContainer.style.maxHeight = '900px';
-                tableContainer.style.overflowY = 'auto';
 
                 const table = document.createElement('table');
                 table.className = 'results-table';
@@ -3467,6 +3611,8 @@
                         nameSpan.className = 'package-name';
                         nameSpan.textContent = pkgName;
                         nameInner.appendChild(nameSpan);
+                        const syncPill1 = createSyncPill(pkgName);
+                        if (syncPill1) nameInner.appendChild(syncPill1);
                         const countSpan = document.createElement('span');
                         countSpan.className = 'package-count';
                         countSpan.textContent = `(${targets.length} targets)`;
@@ -3492,6 +3638,8 @@
                         nameSpan.className = 'package-name';
                         nameSpan.textContent = pkgName;
                         nameInner.appendChild(nameSpan);
+                        const syncPill2 = createSyncPill(pkgName);
+                        if (syncPill2) nameInner.appendChild(syncPill2);
                     }
                     nameTd.appendChild(nameInner);
                     tr.appendChild(nameTd);
@@ -3751,7 +3899,7 @@
         }
 
         function updateChart() {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             if (versions.length === 0) {
                 Plotly.newPlot('chart', [], {});
                 return;
@@ -3759,6 +3907,15 @@
 
             // Use config order directly (first version = baseline)
             const displayVersions = versions;
+
+            // Create short tick labels (needed before traces loop)
+            const tickLabels = displayVersions.map(v => {
+                if (v.type === 'local') {
+                    const parts = v.version.split('/');
+                    return parts[parts.length - 1] || 'local';
+                }
+                return v.version;
+            });
 
             const traces = [];
 
@@ -3824,7 +3981,7 @@
                             if (state.chart.xMode === 'chronological') {
                                 xValues.push(new Date(version.date || '1970-01-01'));
                             } else {
-                                xValues.push(idx);
+                                xValues.push(tickLabels[idx]);
                             }
 
                             let yValue = totalTime;
@@ -3859,15 +4016,6 @@
                 });
             });
 
-            // Create short tick labels
-            const tickLabels = displayVersions.map(v => {
-                if (v.type === 'local') {
-                    const parts = v.version.split('/');
-                    return parts[parts.length - 1] || 'local';
-                }
-                return v.version;
-            });
-
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const textColor = isDark ? '#9ca3af' : '#4b5563';
             const gridColor = isDark ? '#2a2d3a' : '#e5e7eb';
@@ -3878,9 +4026,8 @@
                 xaxis: {
                     title: { text: state.chart.xMode === 'chronological' ? 'Date' : 'Version', font: { color: textColor, size: 12 } },
                     type: state.chart.xMode === 'chronological' ? 'date' : 'category',
-                    tickmode: state.chart.xMode === 'discrete' ? 'array' : 'auto',
-                    tickvals: state.chart.xMode === 'discrete' ? displayVersions.map((_, i) => i) : undefined,
-                    ticktext: state.chart.xMode === 'discrete' ? tickLabels : undefined,
+                    categoryorder: state.chart.xMode === 'discrete' ? 'array' : undefined,
+                    categoryarray: state.chart.xMode === 'discrete' ? tickLabels : undefined,
                     tickangle: -45,
                     tickfont: { size: 11, color: textColor },
                     gridcolor: gridColor,
@@ -3895,6 +4042,7 @@
                     zeroline: false
                 },
                 hovermode: 'closest',
+                font: { family: "'JetBrainsMono Nerd Font', monospace" },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)'
             };
@@ -3941,6 +4089,7 @@
                     'marker.size': mSizes,
                 });
             });
+
         }
 
         function updateLastUpdated() {
@@ -4135,7 +4284,7 @@
         }
 
         async function runSingleBenchmarkByIndex(benchmarkName, versionIdx) {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             if (versionIdx >= versions.length) {
                 console.error('Invalid version index');
                 return;
@@ -4164,7 +4313,7 @@
 
         // Run all versions for a single benchmark (build target)
         async function runAllVersionsForBenchmark(benchmarkName) {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const encodedBenchmark = encodeURIComponent(benchmarkName);
 
             for (let i = 0; i < versions.length; i++) {
@@ -4185,7 +4334,7 @@
 
         // Run all targets for a package across all versions
         async function runAllTargetsForPackage(pkgName, cmdName, targets) {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
 
             for (const target of targets) {
                 const benchmarkName = `${pkgName}:${cmdName}:${target}`;
@@ -4235,17 +4384,20 @@
         let _prFetchPromise = null;
         function fetchPackagePRs() {
             if (_prFetchPromise) return _prFetchPromise;
+            // Collect all package names that need PR lookup
+            const allNames = new Set();
+            (window._brokenPackageLogs || []).forEach(fp => allNames.add(fp.name));
+            (window._stalePackages || []).forEach(sp => allNames.add(sp.name));
+            const nameList = [...allNames];
+
             _prFetchPromise = fetch('https://api.github.com/repos/atopile/packages/pulls?state=open&sort=updated&direction=desc&per_page=100')
                 .then(r => r.ok ? r.json() : [])
                 .then(prs => {
-                    // Match PRs to packages by checking if title starts with package name
                     prs.forEach(pr => {
-                        if (pr.state !== 'open') return; // only open PRs
+                        if (pr.state !== 'open') return;
                         const title = pr.title || '';
-                        const logs = window._brokenPackageLogs || [];
-                        logs.forEach(fp => {
-                            const name = fp.name;
-                            if (!_prCache[name] && (title.toLowerCase().includes(name.toLowerCase()))) {
+                        nameList.forEach(name => {
+                            if (!_prCache[name] && title.toLowerCase().includes(name.toLowerCase())) {
                                 _prCache[name] = {
                                     number: pr.number,
                                     title: pr.title,
@@ -4255,10 +4407,7 @@
                             }
                         });
                     });
-                    // Also try search API for packages not found in recent 100 PRs
-                    const missing = (window._brokenPackageLogs || [])
-                        .filter(fp => !_prCache[fp.name])
-                        .map(fp => fp.name);
+                    const missing = nameList.filter(n => !_prCache[n]);
                     if (missing.length > 0) {
                         const q = missing.map(n => `"${n}"`).join('+OR+');
                         return fetch(`https://api.github.com/search/issues?q=repo:atopile/packages+is:pr+is:open+${q}&sort=updated&order=desc&per_page=20`)
@@ -4282,30 +4431,36 @@
                     }
                 })
                 .then(() => {
-                    // Update tiles with PR buttons
                     updateBrokenTilePRButtons();
+                    updateStaleTilePRButtons();
                 })
-                .catch(() => {}); // silently fail if GitHub API unavailable
+                .catch(() => {});
             return _prFetchPromise;
         }
 
+        function _addPRButtonToTile(tile) {
+            const nameEl = tile.querySelector('.broken-tile-name');
+            if (!nameEl) return;
+            const name = nameEl.textContent.trim();
+            const pr = _prCache[name];
+            if (pr && !tile.querySelector('.broken-tile-pr')) {
+                const btn = document.createElement('a');
+                btn.className = 'broken-tile-pr';
+                btn.href = pr.url;
+                btn.target = '_blank';
+                btn.rel = 'noopener';
+                btn.textContent = `PR-${pr.number}`;
+                btn.onclick = (e) => e.stopPropagation();
+                tile.appendChild(btn);
+            }
+        }
+
         function updateBrokenTilePRButtons() {
-            document.querySelectorAll('.broken-tile').forEach(tile => {
-                const nameEl = tile.querySelector('.broken-tile-name');
-                if (!nameEl) return;
-                const name = nameEl.textContent.trim();
-                const pr = _prCache[name];
-                if (pr && !tile.querySelector('.broken-tile-pr')) {
-                    const btn = document.createElement('a');
-                    btn.className = 'broken-tile-pr';
-                    btn.href = pr.url;
-                    btn.target = '_blank';
-                    btn.rel = 'noopener';
-                    btn.textContent = `PR-${pr.number}`;
-                    btn.onclick = (e) => e.stopPropagation(); // don't open log modal
-                    tile.appendChild(btn);
-                }
-            });
+            document.querySelectorAll('.broken-tile:not(.stale-tile)').forEach(_addPRButtonToTile);
+        }
+
+        function updateStaleTilePRButtons() {
+            document.querySelectorAll('.stale-tile').forEach(_addPRButtonToTile);
         }
 
         function openLogModal(idx) {
@@ -4384,7 +4539,7 @@
         // ==================== Build Progress Indicator ====================
 
         function updateBuildProgress() {
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
             const running = Object.keys(state.runningBenchmarks).length;
@@ -4432,7 +4587,7 @@
         function updateAnalysisSummary() {
             const summary = document.getElementById('versionAnalysisSummary');
             if (!summary) return;
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
             const commands = state.config.build_commands || [];
 
@@ -4622,7 +4777,7 @@
         function updatePackageHealth() {
             const container = document.getElementById('packageHealthContent');
             const summaryEl = document.getElementById('packageHealthSummary');
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
 
             if (versions.length === 0 || packages.length === 0) {
@@ -4738,6 +4893,27 @@
                 <div class="health-stat-value">${pendingCount}</div>
                 <div class="health-stat-label">Pending</div>
             </div>`;
+
+            // Sync status tile
+            const syncRefreshBtn = `<span class="sync-refresh-btn" onclick="event.stopPropagation(); refreshSyncStatus(this)" title="Re-check sync">&#x21bb;</span>`;
+            const syncEntries = Object.entries(state.syncStatus);
+            if (syncEntries.length > 0) {
+                const syncedCount = syncEntries.filter(([_, s]) => s.synced).length;
+                const unsyncedEntries = syncEntries.filter(([_, s]) => !s.synced);
+                const syncTotal = syncEntries.length;
+                const syncClass = unsyncedEntries.length === 0 ? 'good' : 'bad';
+                const unsyncedNames = unsyncedEntries.map(([name, _]) => name).join(', ');
+                html += `<div class="health-stat" ${unsyncedEntries.length > 0 ? `title="${escapeHtml(unsyncedNames)}"` : ''}>
+                    <div class="health-stat-value ${syncClass}">${syncedCount} / ${syncTotal}</div>
+                    <div class="health-stat-label">Synced ${syncRefreshBtn}</div>
+                </div>`;
+            } else {
+                html += `<div class="health-stat">
+                    <div class="health-stat-value">...</div>
+                    <div class="health-stat-label">Synced ${syncRefreshBtn}</div>
+                </div>`;
+            }
+
             html += '</div>';
 
             html += `<div style="font-size: 11px; color: var(--gray-500); margin-bottom: 12px;">
@@ -4766,23 +4942,10 @@
             }
             html += '</div>';
 
-            // Right column: Error groups + broken packages
+            // Right column: Broken packages + error groups
             html += '<div>';
-            if (sortedErrors.length > 0) {
-                html += '<div class="health-column-title">Errors by Type</div>';
-                sortedErrors.forEach(group => {
-                    html += `<div class="health-error-group">
-                        <div class="health-error-type">
-                            <span class="health-error-count">${group.packages.length}</span>
-                            ${escapeHtml(group.error)}
-                        </div>
-                        <div class="health-error-packages">${group.packages.map(p => escapeHtml(p)).join(', ')}</div>
-                    </div>`;
-                });
-            }
-
             if (failedPackages.length > 0) {
-                html += '<div class="health-column-title" style="margin-top: 12px;">Broken Packages</div>';
+                html += '<div class="health-column-title">Broken Packages</div>';
                 html += '<div class="broken-grid">';
                 // Store log data globally so modal can access it
                 window._brokenPackageLogs = failedPackages;
@@ -4797,19 +4960,56 @@
                 html += '</div>';
             }
 
-            if (sortedErrors.length === 0 && failedPackages.length === 0) {
-                html += '<div style="color: var(--success); font-size: 13px; padding: 16px 0; text-align: center; font-weight: 600;">All packages building successfully!</div>';
+            // Stale (out of sync) packages section
+            const staleSyncEntries = Object.entries(state.syncStatus);
+            const stalePackages = staleSyncEntries
+                .filter(([_, s]) => !s.synced && !s.registry_only)
+                .map(([name, s]) => {
+                    let reason = 'Out of sync';
+                    if (s.error) {
+                        reason = s.error;
+                    } else if (s.mismatched_files && s.mismatched_files.length > 0) {
+                        const count = s.mismatched_files.length;
+                        reason = `${count} file${count > 1 ? 's' : ''} differ`;
+                    }
+                    const versionInfo = [];
+                    if (s.repo_version) versionInfo.push(`repo: ${s.repo_version}`);
+                    if (s.registry_version) versionInfo.push(`registry: ${s.registry_version}`);
+                    return { name, reason, versionInfo: versionInfo.join(' / '), mismatched_files: s.mismatched_files || [] };
+                });
+            window._stalePackages = stalePackages;
+
+            if (stalePackages.length > 0) {
+                html += '<div class="health-column-title" style="margin-top: 12px;">Stale Packages</div>';
+                html += '<div class="broken-grid stale-grid" style="max-height: 300px; overflow-y: auto;">';
+                stalePackages.forEach(sp => {
+                    const filesPreview = sp.mismatched_files.length > 0
+                        ? sp.mismatched_files.slice(0, 3).join(', ') + (sp.mismatched_files.length > 3 ? ` +${sp.mismatched_files.length - 3} more` : '')
+                        : '';
+                    html += `<div class="broken-tile stale-tile" title="${escapeHtml(filesPreview)}">
+                        <div class="broken-tile-content">
+                            <div class="broken-tile-name">${escapeHtml(sp.name)}</div>
+                            <div class="broken-tile-summary" style="color: var(--warning);">${escapeHtml(sp.reason)}</div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            if (sortedErrors.length === 0 && failedPackages.length === 0 && stalePackages.length === 0) {
+                html += '<div style="color: var(--success); font-size: 13px; padding: 16px 0; text-align: center; font-weight: 600;">All packages healthy!</div>';
             }
             html += '</div>';
 
             html += '</div>'; // close health-columns
 
             container.innerHTML = html;
-            // Fetch PR data and add buttons to tiles
-            if (failedPackages.length > 0) {
-                // Re-apply cached PR buttons immediately, fetch if not yet done
+            // Fetch PR data and add buttons to broken + stale tiles
+            const needsPRLookup = failedPackages.length > 0 || stalePackages.length > 0;
+            if (needsPRLookup) {
                 if (Object.keys(_prCache).length > 0) {
                     updateBrokenTilePRButtons();
+                    updateStaleTilePRButtons();
                 }
                 fetchPackagePRs();
             }
@@ -4817,15 +5017,28 @@
 
         const originalUpdateUI = updateUI;
         updateUI = function() {
-            originalUpdateUI();
-            updateBuildCommandCheckboxes();
-            updateAnalysisVersionSelect();
-            updateBuildProgress();
-            updateAnalysisSummary();
-            updatePackageHealth();
+            const steps = [
+                ['originalUpdateUI', originalUpdateUI],
+                ['updateBuildCommandCheckboxes', updateBuildCommandCheckboxes],
+                ['updateAnalysisVersionSelect', updateAnalysisVersionSelect],
+                ['updateBuildProgress', updateBuildProgress],
+                ['updateAnalysisSummary', updateAnalysisSummary],
+                ['updatePackageHealth', updatePackageHealth],
+            ];
+            for (const [name, fn] of steps) {
+                try {
+                    fn();
+                } catch (e) {
+                    console.error(`updateUI step "${name}" failed:`, e);
+                }
+            }
             // Auto-refresh analysis if a version is already selected
-            if (document.getElementById('analysisVersionSelect').value) {
-                loadVersionAnalysis();
+            try {
+                if (document.getElementById('analysisVersionSelect').value) {
+                    loadVersionAnalysis();
+                }
+            } catch (e) {
+                console.error('loadVersionAnalysis failed:', e);
             }
         };
 
@@ -4944,7 +5157,7 @@
         function updateAnalysisVersionSelect() {
             const select = document.getElementById('analysisVersionSelect');
             const currentValue = select.value;
-            const versions = state.config.atopile_versions || [];
+            const versions = getEnabledVersions();
 
             select.innerHTML = '<option value="">-- Select version --</option>';
             // Use config order directly
@@ -4993,8 +5206,8 @@
             const [vType, ...vParts] = versionId.split(':');
             const vValue = vParts.join(':');
 
-            // Determine baseline (first version in config order)
-            const versions = state.config.atopile_versions || [];
+            // Determine baseline (first enabled version in config order)
+            const versions = getEnabledVersions();
             const baseline = versions.length > 0 ? versions[0] : null;
             const baselineVersionId = baseline ? `${baseline.type}:${baseline.version}` : null;
             const isBaseline = versionId === baselineVersionId;
@@ -5174,7 +5387,6 @@
             const baselineLabel = data._baselineLabel || 'Baseline';
 
             let html = '<table class="analysis-step-table">';
-            html += '<colgroup><col style="width:27%"><col style="width:6%"><col style="width:7%"><col style="width:53%"><col style="width:7%"></colgroup>';
 
             fPhases.forEach((name, i) => {
                 const val = fValues[i];

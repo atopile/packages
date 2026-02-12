@@ -14,6 +14,7 @@ import yaml
 
 from ..core.benchmark_runner import BenchmarkRunner, BenchmarkResult
 from ..core.data_store import DataStore
+from ..core.sync_checker import SyncChecker
 from ..core.version_manager import VersionManager
 from .websocket import ConnectionManager
 
@@ -46,6 +47,16 @@ class BenchmarkOrchestrator:
 
         self.config = self._load_config()
         self.runner = BenchmarkRunner(version_manager, workspace_dir)
+
+        # Sync checker for comparing registry vs repo packages
+        # config_file is at <repo>/atopile-benchmark/config/benchmarks.yaml
+        # so repo root is 3 levels up
+        packages_repo_path = config_file.parent.parent.parent
+        self.sync_checker = SyncChecker(
+            packages_repo_path=packages_repo_path,
+            cache_dir=workspace_dir.parent,
+            version_manager=version_manager,
+        )
 
         # Track running benchmarks: {run_key: {status, start_time, phase, ...}}
         self.running_benchmarks: dict[str, dict[str, Any]] = {}
@@ -547,6 +558,7 @@ class BenchmarkOrchestrator:
 
         # Install all versions first (in parallel)
         install_tasks = []
+        install_version_specs = []
         for version_spec in versions:
             if not self.version_manager.is_installed(version_spec):
                 logger.info(
@@ -559,13 +571,22 @@ class BenchmarkOrchestrator:
                         version_spec,
                     )
                 )
+                install_version_specs.append(version_spec)
 
         if install_tasks:
             logger.info(f"Installing {len(install_tasks)} versions...")
-            results = await asyncio.gather(*install_tasks, return_exceptions=True)
-            for i, result in enumerate(results):
+            install_results = await asyncio.gather(*install_tasks, return_exceptions=True)
+            from datetime import datetime
+            from ..utils.config import save_config
+            for i, result in enumerate(install_results):
                 if isinstance(result, Exception):
                     logger.error(f"Version installation failed: {result}")
+                else:
+                    # Persist env_created_at for successfully installed versions
+                    install_version_specs[i]["env_created_at"] = (
+                        datetime.now().isoformat(timespec="seconds")
+                    )
+            save_config(self.config_file, self.config)
 
         # Run individual benchmarks in parallel, controlled by semaphore.
         # Each benchmark gets its own task so that e.g. 16 different packages

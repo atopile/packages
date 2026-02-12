@@ -208,7 +208,7 @@ builds:
             logger.info(f"Downloading package {package_name} using {target_ato_cmd}")
             result = subprocess.run(
                 [
-                    target_ato_cmd,
+                    *target_ato_cmd,
                     "--non-interactive",
                     "add",
                     "--upgrade",
@@ -489,18 +489,16 @@ module App:
                 elif pkg_version:
                     logger.info(f"Building package {package_name} version {pkg_version}")
 
-            # Get ato command
+            # Get ato command (list, e.g. [python, "-m", "atopile"])
             ato_cmd = self.version_manager.get_ato_command(version_spec)
 
             # Parse and construct the build command
-            cmd_parts = build_command.split()
-            if cmd_parts[0] == "ato":
-                cmd_parts[0] = ato_cmd
+            raw_parts = build_command.split()
+            if raw_parts[0] == "ato":
+                # Replace "ato" with the full command list
+                cmd_parts = [*ato_cmd, "--non-interactive", *raw_parts[1:]]
             else:
-                cmd_parts.insert(0, ato_cmd)
-
-            # Add --non-interactive flag after ato command
-            cmd_parts.insert(1, "--non-interactive")
+                cmd_parts = [*ato_cmd, "--non-interactive", *raw_parts]
 
             # Add build target if specified
             # Skip adding -t flag when target is "default" (our placeholder) since

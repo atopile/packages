@@ -593,28 +593,32 @@ class VersionManager:
                         logger.warning(f"Failed to cleanup after error: {cleanup_err}")
                 raise
 
-    def get_ato_command(self, version_spec: dict[str, Any]) -> str:
-        """Get the path to the ato command for a specific version.
+    def get_ato_command(self, version_spec: dict[str, Any]) -> list[str]:
+        """Get the command to invoke ato for a specific version.
+
+        Uses ``python -m atopile`` instead of the ``ato`` console-script so
+        the command keeps working even when the venv has been relocated
+        (the console-script shebang bakes in an absolute path).
 
         Args:
             version_spec: Dictionary with version information
 
         Returns:
-            Absolute path to the ato executable
+            Command list, e.g. ["/path/to/python", "-m", "atopile"]
 
         Raises:
             RuntimeError: If version is not installed
         """
-        venv_path = self._get_venv_path(version_spec)
-        ato_path = self._get_ato_path(venv_path)
-
-        if not ato_path.exists():
+        if not self.is_installed(version_spec):
             raise RuntimeError(
                 f"atopile not installed for {version_spec['type']}:{version_spec['version']}. "
                 f"Run install_version() first."
             )
 
-        return str(ato_path.absolute())
+        venv_path = self._get_venv_path(version_spec)
+        python_path = self._get_python_path(venv_path)
+
+        return [str(python_path.absolute()), "-m", "atopile"]
 
     def get_version_info(self, version_spec: dict[str, Any]) -> dict[str, Any] | None:
         """Get information about an installed version.

@@ -107,6 +107,33 @@ def setup_routes(orchestrator: Any) -> APIRouter:
 
         return JSONResponse({"status": "removed"})
 
+    @router.patch("/versions/{version_type}/{version_value:path}")
+    async def toggle_version(version_type: str, version_value: str, request: Request):
+        """Toggle the enabled state of a version and save to file."""
+        data = await request.json()
+        enabled = data.get("enabled")
+
+        if enabled is None:
+            raise HTTPException(status_code=400, detail="enabled field is required")
+
+        versions = orchestrator.config.get("atopile_versions", [])
+        found = False
+        for v in versions:
+            if v["type"] == version_type and v["version"] == version_value:
+                if enabled:
+                    v.pop("enabled", None)  # Remove field when enabled (default)
+                else:
+                    v["enabled"] = False
+                found = True
+                break
+
+        if not found:
+            raise HTTPException(status_code=404, detail="Version not found")
+
+        save_config(orchestrator.config_file, orchestrator.config)
+
+        return JSONResponse({"status": "updated", "enabled": enabled})
+
     @router.put("/versions/reorder")
     async def reorder_versions(request: Request):
         """Reorder the versions list and save to config.
@@ -147,6 +174,7 @@ def setup_routes(orchestrator: Any) -> APIRouter:
                 "version": version_spec["version"],
                 "installed": installed,
                 "sync_time": sync_time,
+                "env_created_at": version_spec.get("env_created_at"),
             })
         return JSONResponse(statuses)
 
@@ -177,6 +205,10 @@ def setup_routes(orchestrator: Any) -> APIRouter:
         def _rebuild():
             try:
                 vm.install_version(version_spec)
+                # Persist env_created_at
+                from datetime import datetime
+                version_spec["env_created_at"] = datetime.now().isoformat(timespec="seconds")
+                save_config(orchestrator.config_file, orchestrator.config)
                 asyncio.run_coroutine_threadsafe(
                     orchestrator.connection_manager.broadcast({
                         "type": "env_rebuilt",

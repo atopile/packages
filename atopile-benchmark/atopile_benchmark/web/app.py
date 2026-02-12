@@ -17,7 +17,7 @@ from ..core.data_store import DataStore
 from ..core.version_manager import VersionManager
 from .orchestrator import BenchmarkOrchestrator
 from .websocket import ConnectionManager
-from .routes import benchmarks, results, config, versions, cache
+from .routes import benchmarks, results, config, versions, cache, packages
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +101,7 @@ def create_app(
     app.include_router(config.setup_routes(orchestrator))
     app.include_router(versions.setup_routes(orchestrator))
     app.include_router(cache.setup_routes(orchestrator, workspace_dir))
+    app.include_router(packages.setup_routes(orchestrator))
 
     # Store orchestrator on app state for access from other parts if needed
     app.state.orchestrator = orchestrator

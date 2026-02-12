@@ -6,4 +6,5 @@ Each module handles a specific domain:
 - config: Configuration management
 - cache: Cache management and cleanup
 - versions: Version management
+- packages: Package sync status
 """
