@@ -1,21 +1,38 @@
-#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
 
 import ElectricPower
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
     Minimal usage example for `indicator-leds`.
-    Demonstrates direct power connection and bridge usage.
+    Demonstrates 3 connection options and 2 active states.
     """
 
-    red_led = new LEDIndicatorRed
-    green_led = new LEDIndicatorGreen
+    red_led_active_high = new LEDIndicatorRed<active_low=False> # by default, active high, so template is optional
+    green_led_active_high = new LEDIndicatorGreen
+    blue_led_active_high = new LEDIndicatorBlue
+    red_led_active_low = new LEDIndicatorRed<active_low=True>
+    green_led_active_low = new LEDIndicatorGreen<active_low=True>
+    blue_led_active_low = new LEDIndicatorBlue<active_low=True>
 
-    # Direct power connection
+    # Connect to power (active high or low does not matter, always on when power is on)
     power = new ElectricPower
-    power.voltage = 5V
-    power ~ red_led.power
-    power ~ green_led.power
+    power.voltage = 5V +/- 5%
+    power ~ red_led_active_high.power
+    power ~ red_led_active_low.power
+
+    # Connect to logic signal
+    logic = new ElectricLogic
+    logic.reference ~ power
+    logic ~ green_led_active_high.logic
+    logic ~ blue_led_active_low.logic
+
+    # Connect to analog signal
+    analog_signal = new ElectricSignal
+    analog_signal.reference ~ power
+    analog_signal ~ green_led_active_low.analog_signal
+    analog_signal ~ blue_led_active_high.analog_signal
