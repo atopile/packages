@@ -513,7 +513,39 @@ class BenchmarkOrchestrator:
                 f"Filtering to {len(build_commands)} build commands: {enabled_commands}"
             )
 
-        # Discover build targets for all packages before building run list
+        # Install all versions first (in parallel)
+        install_tasks = []
+        install_version_specs = []
+        for version_spec in versions:
+            if not self.version_manager.is_installed(version_spec):
+                logger.info(
+                    f"Queueing installation of {self._make_version_id(version_spec)}"
+                )
+                install_tasks.append(
+                    asyncio.get_event_loop().run_in_executor(
+                        None,
+                        self.version_manager.install_version,
+                        version_spec,
+                    )
+                )
+                install_version_specs.append(version_spec)
+
+        if install_tasks:
+            logger.info(f"Installing {len(install_tasks)} versions...")
+            install_results = await asyncio.gather(*install_tasks, return_exceptions=True)
+            from datetime import datetime
+            from ..utils.config import save_config
+            for i, result in enumerate(install_results):
+                if isinstance(result, Exception):
+                    logger.error(f"Version installation failed: {result}")
+                else:
+                    # Persist env_created_at for successfully installed versions
+                    install_version_specs[i]["env_created_at"] = (
+                        datetime.now().isoformat(timespec="seconds")
+                    )
+            save_config(self.config_file, self.config)
+
+        # Discover build targets for all packages (after versions are installed)
         for package_config in packages:
             full_pkg = package_config["package"]
             if full_pkg not in self._targets_cache:
@@ -611,38 +643,6 @@ class BenchmarkOrchestrator:
             logger.info("All benchmarks already passed, nothing to run")
             await self._broadcast_update({"type": "all_benchmarks_completed"})
             return
-
-        # Install all versions first (in parallel)
-        install_tasks = []
-        install_version_specs = []
-        for version_spec in versions:
-            if not self.version_manager.is_installed(version_spec):
-                logger.info(
-                    f"Queueing installation of {self._make_version_id(version_spec)}"
-                )
-                install_tasks.append(
-                    asyncio.get_event_loop().run_in_executor(
-                        None,
-                        self.version_manager.install_version,
-                        version_spec,
-                    )
-                )
-                install_version_specs.append(version_spec)
-
-        if install_tasks:
-            logger.info(f"Installing {len(install_tasks)} versions...")
-            install_results = await asyncio.gather(*install_tasks, return_exceptions=True)
-            from datetime import datetime
-            from ..utils.config import save_config
-            for i, result in enumerate(install_results):
-                if isinstance(result, Exception):
-                    logger.error(f"Version installation failed: {result}")
-                else:
-                    # Persist env_created_at for successfully installed versions
-                    install_version_specs[i]["env_created_at"] = (
-                        datetime.now().isoformat(timespec="seconds")
-                    )
-            save_config(self.config_file, self.config)
 
         # Run individual benchmarks in parallel, controlled by semaphore.
         # Each benchmark gets its own task so that e.g. 16 different packages
