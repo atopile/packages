@@ -219,13 +219,6 @@ class TestLEDIndicator:
             .is_connected_to(led_indicator.resistor.get().unnamed[0].get())
         ), "cathode should be connected to resistor.unnamed[0]"
 
-        # power ~ logic.reference
-        assert (
-            led_indicator.power.get()
-            ._is_interface.get()
-            .is_connected_to(led_indicator.logic.get().reference.get())
-        ), "power should be connected to logic.reference"
-
         # logic.line ~ analog_signal.line
         assert (
             led_indicator.logic.get()
@@ -233,6 +226,25 @@ class TestLEDIndicator:
             ._is_interface.get()
             .is_connected_to(led_indicator.analog_signal.get().line.get())
         ), "logic.line should be connected to analog_signal.line"
+
+        # Verify factory connections (common to both active_low and active_high)
+        # power.hv ~ led.diode.anode
+        assert (
+            led_indicator.power.get()
+            .hv.get()
+            ._is_interface.get()
+            .is_connected_to(
+                led_indicator.led.get().diode.get().anode.get()
+            )
+        ), "power.hv should be connected to led.diode.anode"
+
+        # power.lv ~ resistor.unnamed[1]
+        assert (
+            led_indicator.power.get()
+            .lv.get()
+            ._is_interface.get()
+            .is_connected_to(led_indicator.resistor.get().unnamed[1].get())
+        ), "power.lv should be connected to resistor.unnamed[1]"
 
         # Verify factory connections (depend on active_low)
         if active_low:
