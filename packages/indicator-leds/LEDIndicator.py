@@ -68,40 +68,27 @@ class LEDIndicator(fabll.Node):
     ]
 
     _connections = [
-        # power.hv ~> led ~> resistor ~> power.lv
-        # fabll.is_interface.MakeConnectionEdge(
-        #     [power, F.ElectricPower.hv],
-        #     [led, F.LED.diode, F.Diode.anode],
-        # ),
+        # connection between led and resistor is always the same
+        # led.diode.cathode ~> resistor.unnamed[0]
         fabll.is_interface.MakeConnectionEdge(
             [led, F.LED.diode, F.Diode.cathode],
             [resistor, F.Resistor.unnamed[0]],
         ),
-        # fabll.is_interface.MakeConnectionEdge(
-        #     [resistor, F.Resistor.unnamed[1]],
-        #     [power, F.ElectricPower.lv],
-        # ),
         # logic.line ~ analog_signal.line
         fabll.is_interface.MakeConnectionEdge(
             [logic, F.ElectricLogic.line],
             [analog_signal, F.ElectricSignal.line],
         ),
-        # power ~ logic/analog_signal.reference
-        fabll.is_interface.MakeConnectionEdge(
-            [power],
-            [logic, F.ElectricLogic.reference],
-            [analog_signal, F.ElectricSignal.reference],
-        ),
     ]
 
-    # _aliases = [
-    #     F.Expressions.Is.MakeChild(
-    #         [power, F.ElectricPower.voltage],
-    #         [logic, F.ElectricLogic.reference, F.ElectricPower.voltage],
-    #         [analog_signal, F.ElectricSignal.reference, F.ElectricPower.voltage],
-    #         assert_=True,
-    #     ),
-    # ]
+    _aliases = [
+        F.Expressions.Is.MakeChild(
+            [power, F.ElectricPower.voltage],
+            [logic, F.ElectricLogic.reference, F.ElectricPower.voltage],
+            [analog_signal, F.ElectricSignal.reference, F.ElectricPower.voltage],
+            # assert_=True,
+        ),
+    ]
 
     @classmethod
     def MakeChild(cls, active_low: bool = False) -> fabll._ChildField[Self]:
@@ -113,6 +100,11 @@ class LEDIndicator(fabll.Node):
         """
         ConcreteLEDIndicator = cls.factory(active_low)
         out = fabll._ChildField(ConcreteLEDIndicator)
+        out.add_dependant(
+            F.Literals.Booleans.MakeChild_SetSuperset(
+                [out, ConcreteLEDIndicator.active_low], active_low
+            )
+        )
         return out
 
     @classmethod
@@ -125,11 +117,10 @@ class LEDIndicator(fabll.Node):
             cls, name=f"LEDIndicator<active_low={active_low}>"
         )
 
-        # TODO: set active_low parameter
-
         if active_low:
             # active low
-            # logic/analog_signal.reference.hv ~> led ~> resistor ~> logic/analog_signal.line
+            # logic/analog_signal.reference.hv ~> led.anode
+            # resistor.unnamed[1] ~> logic/analog_signal.line
             factory_connections = [
                 fabll.is_interface.MakeConnectionEdge(
                     [
@@ -146,10 +137,21 @@ class LEDIndicator(fabll.Node):
                         F.ElectricLogic.line,
                     ],
                 ),
+                # power.hv ~> led.anode
+                fabll.is_interface.MakeConnectionEdge(
+                    [ConcreteLEDIndicator.power, F.ElectricPower.hv],
+                    [ConcreteLEDIndicator.led, F.LED.diode, F.Diode.anode],
+                ),
+                # power.lv ~ resistor.unnamed[1]
+                fabll.is_interface.MakeConnectionEdge(
+                    [ConcreteLEDIndicator.power, F.ElectricPower.lv],
+                    [ConcreteLEDIndicator.resistor, F.Resistor.unnamed[1]],
+                ),
             ]
         else:
             # active high
-            # logic/analog_signal.line ~> led ~> resistor ~> logic/analog_signal.reference.lv
+            # logic/analog_signal.line ~> led.anode
+            # resistor.unnamed[1] ~> logic/analog_signal.reference.lv
             factory_connections = [
                 fabll.is_interface.MakeConnectionEdge(
                     [
@@ -166,12 +168,21 @@ class LEDIndicator(fabll.Node):
                         F.ElectricPower.lv,
                     ],
                 ),
+                # power.hv ~> led.anode
+                fabll.is_interface.MakeConnectionEdge(
+                    [ConcreteLEDIndicator.power, F.ElectricPower.hv],
+                    [ConcreteLEDIndicator.led, F.LED.diode, F.Diode.anode],
+                ),
+                # power.lv ~ resistor.unnamed[1]
+                fabll.is_interface.MakeConnectionEdge(
+                    [ConcreteLEDIndicator.power, F.ElectricPower.lv],
+                    [ConcreteLEDIndicator.resistor, F.Resistor.unnamed[1]],
+                ),
             ]
 
-        # Add edge as a class field so it gets processed
-        ConcreteLEDIndicator._handle_cls_attr(
-            "_factory_connections", factory_connections
-        )
+        # Add each edge individually so it gets processed
+        for i, conn in enumerate(factory_connections):
+            ConcreteLEDIndicator._handle_cls_attr(f"_factory_connection_{i}", conn)
 
         return ConcreteLEDIndicator
 
@@ -198,33 +209,67 @@ class TestLEDIndicator:
         app = _App.bind_typegraph(tg=tg).create_instance(g=g)
         led_indicator = app.led_indicator.get()
 
-        # Check if the logic line is connected to the led.diode.anode if active_low is False
-        # or the resistor.unnamed[1] to the logic.line if active_low is True
+        # Verify class-level connections (always present)
+        # led.diode.cathode ~ resistor.unnamed[0]
+        assert (
+            led_indicator.led.get()
+            .diode.get()
+            .cathode.get()
+            ._is_interface.get()
+            .is_connected_to(led_indicator.resistor.get().unnamed[0].get())
+        ), "cathode should be connected to resistor.unnamed[0]"
+
+        # power ~ logic.reference
+        assert (
+            led_indicator.power.get()
+            ._is_interface.get()
+            .is_connected_to(led_indicator.logic.get().reference.get())
+        ), "power should be connected to logic.reference"
+
+        # logic.line ~ analog_signal.line
+        assert (
+            led_indicator.logic.get()
+            .line.get()
+            ._is_interface.get()
+            .is_connected_to(led_indicator.analog_signal.get().line.get())
+        ), "logic.line should be connected to analog_signal.line"
+
+        # Verify factory connections (depend on active_low)
         if active_low:
+            # logic.reference.hv ~ led.diode.anode
             assert (
                 led_indicator.led.get()
                 .diode.get()
                 .anode.get()
                 ._is_interface.get()
-                .is_connected_to(
-                    led_indicator.logic.get()
-                    .line.get()
-                    ._is_interface.get()
-                    .get_connected()[0]
-                    .get()
-                )
-            )
-        else:
+                .is_connected_to(led_indicator.logic.get().reference.get().hv.get())
+            ), "anode should be connected to logic.reference.hv (active low)"
+
+            # resistor.unnamed[1] ~ logic.line
             assert (
                 led_indicator.resistor.get()
                 .unnamed[1]
                 .get()
                 ._is_interface.get()
-                .is_connected_to(
-                    led_indicator.logic.get()
-                    .line.get()
-                    ._is_interface.get()
-                    .get_connected()[0]
-                    .get()
-                )
+                .is_connected_to(led_indicator.logic.get().line.get())
+            ), "resistor.unnamed[1] should be connected to logic.line (active low)"
+        else:
+            # logic.line ~ led.diode.anode
+            assert (
+                led_indicator.led.get()
+                .diode.get()
+                .anode.get()
+                ._is_interface.get()
+                .is_connected_to(led_indicator.logic.get().line.get())
+            ), "anode should be connected to logic.line (active high)"
+
+            # resistor.unnamed[1] ~ logic.reference.lv
+            assert (
+                led_indicator.resistor.get()
+                .unnamed[1]
+                .get()
+                ._is_interface.get()
+                .is_connected_to(led_indicator.logic.get().reference.get().lv.get())
+            ), (
+                "resistor.unnamed[1] should be connected to logic.reference.lv (active high)"
             )

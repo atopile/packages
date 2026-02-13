@@ -25,13 +25,13 @@ module Usage:
     power ~ red_led_active_high.power
     power ~ red_led_active_low.power
 
-    # Connect to logic signal
+    # Or connect to logic signal
     logic = new ElectricLogic
     logic.reference ~ power
     logic ~ green_led_active_high.logic
     logic ~ blue_led_active_low.logic
 
-    # Connect to analog signal
+    # Or connect to analog signal
     analog_signal = new ElectricSignal
     analog_signal.reference ~ power
     analog_signal ~ green_led_active_low.analog_signal
