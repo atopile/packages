@@ -79,6 +79,11 @@ class LEDIndicator(fabll.Node):
             [logic, F.ElectricLogic.line],
             [analog_signal, F.ElectricSignal.line],
         ),
+        # logic.reference ~ analog_signal.reference
+        fabll.is_interface.MakeConnectionEdge(
+            [logic, F.ElectricLogic.reference],
+            [analog_signal, F.ElectricSignal.reference],
+        ),
     ]
 
     _aliases = [
@@ -233,9 +238,7 @@ class TestLEDIndicator:
             led_indicator.power.get()
             .hv.get()
             ._is_interface.get()
-            .is_connected_to(
-                led_indicator.led.get().diode.get().anode.get()
-            )
+            .is_connected_to(led_indicator.led.get().diode.get().anode.get())
         ), "power.hv should be connected to led.diode.anode"
 
         # power.lv ~ resistor.unnamed[1]
