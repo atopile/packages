@@ -4,25 +4,27 @@ A collection of commonly used relay parts and ready-to-use logic-level relay mod
 
 ### Selector table
 
-| Series            | Type   | Contacts | Rating | Coil | Build target/module        |
-| ----------------- | ------ | -------- | ------ | ---- | -------------------------- |
-| HK4100F           | Power  | SPDT     | 3 A    | 5 V  | `LogicLevelRelaySPDT3A5V`  |
-| HK4100F           | Power  | SPDT     | 3 A    | 12 V | `LogicLevelRelaySPDT3A12V` |
-| HK4100F           | Power  | SPDT     | 3 A    | 24 V | `LogicLevelRelaySPDT3A24V` |
-| Omron G2R-2       | Power  | DPDT     | 5 A    | 5 V  | `LogicLevelRelayDPDT5A5V`  |
-| Omron G2R-2       | Power  | DPDT     | 5 A    | 12 V | `LogicLevelRelayDPDT5A12V` |
-| Omron G2R-2       | Power  | DPDT     | 5 A    | 24 V | `LogicLevelRelayDPDT5A24V` |
-| HF115F            | Power  | DPDT     | 8 A    | 5 V  | `LogicLevelRelayDPDT8A5V`  |
-| HF115F            | Power  | DPDT     | 8 A    | 12 V | `LogicLevelRelayDPDT8A12V` |
-| HF115F            | Power  | DPDT     | 8 A    | 24 V | `LogicLevelRelayDPDT8A24V` |
-| Omron G5V-1       | Signal | SPDT     | 1 A    | 3 V  | `LogicLevelRelaySPDT1A3V`  |
-| Omron G5V-1       | Signal | SPDT     | 1 A    | 5 V  | `LogicLevelRelaySPDT1A5V`  |
-| Omron G5V-1       | Signal | SPDT     | 1 A    | 12 V | `LogicLevelRelaySPDT1A12V` |
-| Omron G5V-1       | Signal | SPDT     | 1 A    | 24 V | `LogicLevelRelaySPDT1A24V` |
-| Omron G6K-2F-Y-TR | Signal | DPDT     | 1 A    | 3 V  | `LogicLevelRelayDPDT1A3V`  |
-| Omron G6K-2F-Y-TR | Signal | DPDT     | 1 A    | 5 V  | `LogicLevelRelayDPDT1A5V`  |
-| Omron G6K-2F-Y-TR | Signal | DPDT     | 1 A    | 12 V | `LogicLevelRelayDPDT1A12V` |
-| Omron G6K-2F-Y-TR | Signal | DPDT     | 1 A    | 24 V | `LogicLevelRelayDPDT1A24V` |
+| Series             | Type     | Contacts | Rating | Coil | Build target/module        |
+| ------------------ | -------- | -------- | ------ | ---- | -------------------------- |
+| HK4100F            | Power    | SPDT     | 3 A    | 5 V  | `LogicLevelRelaySPDT3A5V`  |
+| HK4100F            | Power    | SPDT     | 3 A    | 12 V | `LogicLevelRelaySPDT3A12V` |
+| HK4100F            | Power    | SPDT     | 3 A    | 24 V | `LogicLevelRelaySPDT3A24V` |
+| Omron G2R-2        | Power    | DPDT     | 5 A    | 5 V  | `LogicLevelRelayDPDT5A5V`  |
+| Omron G2R-2        | Power    | DPDT     | 5 A    | 12 V | `LogicLevelRelayDPDT5A12V` |
+| Omron G2R-2        | Power    | DPDT     | 5 A    | 24 V | `LogicLevelRelayDPDT5A24V` |
+| HF115F             | Power    | DPDT     | 8 A    | 5 V  | `LogicLevelRelayDPDT8A5V`  |
+| HF115F             | Power    | DPDT     | 8 A    | 12 V | `LogicLevelRelayDPDT8A12V` |
+| HF115F             | Power    | DPDT     | 8 A    | 24 V | `LogicLevelRelayDPDT8A24V` |
+| Omron G5V-1        | Signal   | SPDT     | 1 A    | 3 V  | `LogicLevelRelaySPDT1A3V`  |
+| Omron G5V-1        | Signal   | SPDT     | 1 A    | 5 V  | `LogicLevelRelaySPDT1A5V`  |
+| Omron G5V-1        | Signal   | SPDT     | 1 A    | 12 V | `LogicLevelRelaySPDT1A12V` |
+| Omron G5V-1        | Signal   | SPDT     | 1 A    | 24 V | `LogicLevelRelaySPDT1A24V` |
+| Omron G6K-2F-Y-TR  | Signal   | DPDT     | 1 A    | 3 V  | `LogicLevelRelayDPDT1A3V`  |
+| Omron G6K-2F-Y-TR  | Signal   | DPDT     | 1 A    | 5 V  | `LogicLevelRelayDPDT1A5V`  |
+| Omron G6K-2F-Y-TR  | Signal   | DPDT     | 1 A    | 12 V | `LogicLevelRelayDPDT1A12V` |
+| Omron G6K-2F-Y-TR  | Signal   | DPDT     | 1 A    | 24 V | `LogicLevelRelayDPDT1A24V` |
+| Omron G6KU-2F-Y-TR | Bistable | DPDT     | 1 A    | 3 V  | `LogicLevelRelayDPDT1A3V`  |
+| Omron G6KU-2F-Y-TR | Bistable | DPDT     | 1 A    | 5 V  | `LogicLevelRelayDPDT1A5V`  |
 
 Each series includes atomic parts and wrappers exposing typed interfaces (`RelaySPDT` / `RelayDPDT`) and logic-level driver modules for simple enable and coil-power control (with an indicator LED).
 
@@ -36,7 +38,9 @@ import ElectricPower
 import ElectricLogic
 import Electrical
 
-from "relays.ato" import LogicLevelRelaySPDT3A12V, LogicLevelRelayDPDT5A5V, LogicLevelRelayDPDT1A3V
+from "atopile/relays/relays.ato" import LogicLevelRelaySPDT3A12V
+from "atopile/relays/relays.ato" import LogicLevelRelayDPDT5A5V
+from "atopile/relays/relays.ato" import LogicLevelRelayDPDT1A3V
 
 
 module Usage:
@@ -92,11 +96,12 @@ module Usage:
     input_logics[0].line ~> relay_DPDT_1A_3V.relay.switch_no[0] ~> output_logic[0].line
     input_logics[1].line ~> relay_DPDT_1A_3V.relay.switch_no[1] ~> output_logic[1].line
 
-    # Power - normally open, switching both vcc and gnd
+    # Power - normally open, switching both hv and lv
     input_power = new ElectricPower
     output_power = new ElectricPower
-    input_power.vcc ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.vcc
-    input_power.gnd ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.gnd
+    input_power.hv ~> relay_DPDT_5A_5V.relay.switch_no[0] ~> output_power.hv
+    input_power.lv ~> relay_DPDT_5A_5V.relay.switch_no[1] ~> output_power.lv
+
 ```
 
 ## Builds
