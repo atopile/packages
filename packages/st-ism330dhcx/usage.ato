@@ -37,7 +37,7 @@ module Usage:
     interrupt2_gpio ~ sensor.interrupt2
 
     # Set I²C address to 0x6A (SA0 pulled low)
-    assert sensor.i2c.address is 0x6A
+    assert sensor.i2c.address within 0x6A
 
     # Optional: Connect external sensor via auxiliary SPI
     # external_magnetometer_cs = new ElectricLogic

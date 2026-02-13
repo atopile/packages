@@ -31,7 +31,7 @@ module Vishay_VCNL4040:
     I²C bus interface (7-bit addr 0x60)
     """
     i2c.required = True
-    assert i2c.address is 0x60
+    assert i2c.address within 0x60
     i2c.has_single_electric_reference.reference ~ power
 
     int_pin = new ElectricLogic

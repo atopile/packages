@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+      FBRK_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
     needs: define-packages
     if: needs.define-packages.outputs.packages != '[]'
     strategy:
@@ -55,12 +56,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Build against a feature branch of atopile for 0.14.x package updates
-      # Uses pre-built Docker image from the branch (built by atopile CI)
-      # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
-      - uses: atopile/setup-atopile@v1.8
+      - uses: atopile/setup-atopile@v2
+        # Build against the main branch of atopile by setting the docker-tag
+        # Uses pre-built Docker image from the branch (built by atopile CI)
+        # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
+        # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
+        # Defaults to ato version in project ato.yaml if not specified
         with:
-          docker-tag: feature-fabll_part2
+          docker-tag: main
 
       - name: Print atopile + KiCad versions
         run: |
@@ -92,17 +95,6 @@ jobs:
           ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
           NONINTERACTIVE: "1"
         run: ato package publish ${{ matrix.package }}
-
-      - name: Print errors and warnings on failure
-        if: failure()
-        run: |
-          pkg="${{ matrix.package }}"
-          echo "::group::Error Logs"
-          find "$pkg/build/logs" -name "*.error.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
-          echo "::endgroup::"
-          echo "::group::Warning Logs"
-          find "$pkg/build/logs" -name "*.warning.log" -size +0 -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
-          echo "::endgroup::"
 
       - name: Print errors and warnings on failure
         if: failure()
