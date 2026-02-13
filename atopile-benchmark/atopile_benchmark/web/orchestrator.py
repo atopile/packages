@@ -5,6 +5,7 @@ configuration, benchmark execution, and state tracking.
 """
 
 import asyncio
+import json
 import logging
 import time
 from pathlib import Path
@@ -61,12 +62,82 @@ class BenchmarkOrchestrator:
         # Track running benchmarks: {run_key: {status, start_time, phase, ...}}
         self.running_benchmarks: dict[str, dict[str, Any]] = {}
 
-        # Cache for discovered build targets: {package_name: [targets]}
+        # Cache for discovered build targets: {full_package_name: [targets]}
         self._targets_cache: dict[str, list[str]] = {}
+        # Store targets cache next to the data file (data/ directory)
+        self._targets_cache_file = self.data_store.data_file.parent / "targets_cache.json"
+
+        # Load persisted targets cache from disk, then supplement from results
+        self._load_targets_cache()
+        self._populate_targets_from_results()
 
         # Cancellation support
         self._cancel_requested = False
         self._running_tasks: list[asyncio.Task] = []
+
+    def _populate_targets_from_results(self):
+        """Pre-populate targets cache by scanning stored benchmark results.
+
+        Parses benchmark names (both 2-part and 3-part format) to discover
+        which build targets have been run for each package.
+        """
+        packages = self.get_enabled_packages()
+        pkg_name_to_full = {pkg["name"]: pkg["package"] for pkg in packages}
+
+        # Collect targets per package from stored results
+        pkg_targets: dict[str, set[str]] = {}
+
+        for result in self.data_store.get_all_results():
+            bn = result.get("benchmark_name", "")
+            parts = bn.split(":")
+            if len(parts) == 2:
+                # Old 2-part format: pkgName:target
+                pkg_name, target = parts
+            elif len(parts) == 3:
+                # New 3-part format: pkgName:buildCmd:target
+                pkg_name, _, target = parts
+            else:
+                continue
+
+            if pkg_name in pkg_name_to_full:
+                if pkg_name not in pkg_targets:
+                    pkg_targets[pkg_name] = set()
+                pkg_targets[pkg_name].add(target)
+
+        # Populate cache using full package names
+        added = 0
+        for pkg_name, targets in pkg_targets.items():
+            full_pkg = pkg_name_to_full[pkg_name]
+            if full_pkg not in self._targets_cache:
+                self._targets_cache[full_pkg] = sorted(targets)
+                added += 1
+                logger.info(
+                    f"Discovered {len(targets)} targets for {pkg_name} from results: {sorted(targets)}"
+                )
+
+        if added > 0:
+            self._save_targets_cache()
+
+    def _load_targets_cache(self):
+        """Load persisted targets cache from disk."""
+        if self._targets_cache_file.exists():
+            try:
+                with open(self._targets_cache_file, "r") as f:
+                    data = json.load(f)
+                self._targets_cache = data
+                logger.info(f"Loaded targets cache with {len(data)} entries from disk")
+            except Exception as e:
+                logger.warning(f"Failed to load targets cache: {e}")
+
+    def _save_targets_cache(self):
+        """Persist the targets cache to disk."""
+        try:
+            self._targets_cache_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._targets_cache_file, "w") as f:
+                json.dump(self._targets_cache, f, indent=2)
+            logger.debug(f"Saved targets cache with {len(self._targets_cache)} entries")
+        except Exception as e:
+            logger.warning(f"Failed to save targets cache: {e}")
 
     def _load_config(self) -> dict[str, Any]:
         """Load benchmark configuration from YAML file."""
@@ -230,8 +301,9 @@ class BenchmarkOrchestrator:
             # Get targets from the workspace
             targets = self.runner.get_package_build_targets(workspace)
 
-            # Cache the result
+            # Cache the result and persist
             self._targets_cache[full_package_name] = targets
+            self._save_targets_cache()
             logger.info(f"Discovered {len(targets)} targets for {package_name}: {targets}")
 
             return targets
@@ -441,6 +513,17 @@ class BenchmarkOrchestrator:
                 f"Filtering to {len(build_commands)} build commands: {enabled_commands}"
             )
 
+        # Discover build targets for all packages before building run list
+        for package_config in packages:
+            full_pkg = package_config["package"]
+            if full_pkg not in self._targets_cache:
+                try:
+                    self.get_package_targets(package_config["name"])
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to discover targets for {package_config['name']}: {e}"
+                    )
+
         # Count how many benchmarks we'll actually run (excluding already passed)
         skipped = 0
         to_run = []
@@ -449,41 +532,14 @@ class BenchmarkOrchestrator:
             version_id = self._make_version_id(version_spec)
             for package_config in packages:
                 for build_cmd_config in build_commands:
-                    # "all-targets" command builds all at once, doesn't use per-target benchmarks
-                    uses_targets = build_cmd_config["name"] != "all-targets"
+                    # Always expand targets for each package
+                    targets = self._targets_cache.get(
+                        package_config["package"], ["default"]
+                    )
 
-                    if uses_targets:
-                        # Get targets for this package (from cache if available)
-                        targets = self._targets_cache.get(
-                            package_config["package"], ["default"]
-                        )
-
-                        # Create benchmark for each target
-                        for target in targets:
-                            benchmark_name = (
-                                f"{package_config['name']}:{build_cmd_config['name']}:{target}"
-                            )
-                            if not force and self._has_passing_result(
-                                benchmark_name, version_spec
-                            ):
-                                skipped += 1
-                                logger.debug(
-                                    f"Skipping {benchmark_name}@{version_id} (already passed)"
-                                )
-                            else:
-                                to_run.append(
-                                    (
-                                        benchmark_name,
-                                        package_config,
-                                        version_spec,
-                                        build_cmd_config,
-                                        target,  # Include target
-                                    )
-                                )
-                    else:
-                        # "all-targets" - single benchmark for all targets
+                    for target in targets:
                         benchmark_name = (
-                            f"{package_config['name']}:{build_cmd_config['name']}"
+                            f"{package_config['name']}:{build_cmd_config['name']}:{target}"
                         )
                         if not force and self._has_passing_result(
                             benchmark_name, version_spec
@@ -499,7 +555,7 @@ class BenchmarkOrchestrator:
                                     package_config,
                                     version_spec,
                                     build_cmd_config,
-                                    None,  # No specific target
+                                    target,
                                 )
                             )
 

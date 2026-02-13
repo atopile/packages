@@ -501,13 +501,12 @@ module App:
                 cmd_parts = [*ato_cmd, "--non-interactive", *raw_parts]
 
             # Add build target if specified
-            # Skip adding -t flag when target is "default" (our placeholder) since
-            # many packages don't have a literal "default" build target - just let
-            # ato build use its own default behavior
+            # The --build / -b flag selects which build from ato.yaml's builds section
+            # (e.g., "default", "usage"). Skip when target is "default" since that's
+            # ato's own default behavior.
             if build_target and build_target != "default":
-                # Check if -t flag is already in command (e.g., "ato build -t all")
-                if "-t" not in cmd_parts and "--target" not in cmd_parts:
-                    cmd_parts.extend(["-t", build_target])
+                if "-b" not in cmd_parts and "--build" not in cmd_parts:
+                    cmd_parts.extend(["-b", build_target])
 
             logger.info(f"Running: {' '.join(cmd_parts)} in {workspace}")
 

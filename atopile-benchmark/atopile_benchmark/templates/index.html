@@ -512,10 +512,10 @@
         }
 
         /* Zebra striping */
-        tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row) {
+        tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row):not(.target-row) {
             background: rgba(0, 0, 0, 0.015);
         }
-        [data-theme="dark"] tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row) {
+        [data-theme="dark"] tbody tr:nth-child(even):not(.phase-detail-row):not(.build-target-row):not(.target-row) {
             background: rgba(255, 255, 255, 0.02);
         }
 
@@ -524,21 +524,13 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* First column (benchmark name) - auto width based on content */
+        /* First column (benchmark name) */
         th:first-child,
         td:first-child {
-            width: 220px;
-            min-width: 220px;
             text-align: left;
         }
 
-        /* Version columns - fixed width to prevent resizing during builds */
-        th:not(:first-child),
-        td:not(:first-child) {
-            width: 130px;
-            min-width: 130px;
-            max-width: 130px;
-        }
+        /* Column widths are controlled by colgroup in both stats-table and results-table */
 
         tbody tr:hover {
             background: var(--gray-50);
@@ -933,19 +925,11 @@
         }
 
         .stats-table td:first-child {
-            width: 220px;
-            min-width: 220px;
             text-align: left;
             font-weight: 600;
             color: var(--gray-600);
             background: var(--gray-100);
             border-left: none;
-        }
-
-        .stats-table td:not(:first-child) {
-            width: 130px;
-            min-width: 130px;
-            max-width: 130px;
         }
 
         .stats-table .stat-label {
@@ -1087,7 +1071,50 @@
             color: var(--gray-400);
             font-weight: normal;
         }
-        /* Child rows (build target rows) */
+        /* Results matrix table */
+        .results-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        /* Target sub-rows (always visible) */
+        .target-row {
+            background: var(--white);
+        }
+        .target-row td {
+            border-top: none;
+            border-bottom: none;
+        }
+        .target-name-cell {
+            font-size: 12px;
+            color: var(--gray-600);
+            padding-left: 4px !important;
+            padding-right: 8px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 1%;
+            text-align: left;
+        }
+        /* Package name cell spanning multiple rows */
+        .package-header-cell {
+            vertical-align: top;
+            padding-top: 8px !important;
+            padding-right: 4px !important;
+            white-space: nowrap;
+            width: 1%;
+            text-align: left;
+            border-bottom: 2px solid var(--gray-300) !important;
+        }
+        /* Last target row in a package group gets a bold bottom border */
+        .target-row-last td {
+            border-bottom: 2px solid var(--gray-300) !important;
+        }
+        /* Ensure the border-left on the build target column is always visible */
+        .target-name-cell {
+            border-left: 1px solid var(--gray-200) !important;
+        }
+        /* Legacy build-target-row kept for compatibility */
         .build-target-row {
             display: none;
             background: var(--gray-50);
@@ -1126,6 +1153,9 @@
             width: 10px;
             height: 10px;
             margin-right: 4px;
+        }
+        .aggregate-cell {
+            font-weight: 600;
         }
         /* Example rows styling */
         .example-row {
@@ -1694,7 +1724,6 @@
             width: 100%;
             font-size: 12px;
             border-collapse: collapse;
-            table-layout: fixed;
         }
         .health-step-table td {
             padding: 3px 4px;
@@ -1799,6 +1828,9 @@
         .analysis-step-table td {
             padding: 2px 4px;
             border-bottom: 1px solid var(--gray-100);
+            max-width: none;
+            min-width: 0;
+            width: auto;
         }
         /* Step name column */
         .analysis-step-table td:nth-child(1) {
@@ -1817,6 +1849,9 @@
             text-align: right;
             padding-right: 8px;
             border-right: 1px solid var(--gray-200);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
         }
         .analysis-step-table .row-selected td:nth-child(2) { color: var(--primary); }
         .analysis-step-table .row-baseline td:nth-child(2) { color: var(--gray-400); }
@@ -1827,7 +1862,7 @@
             font-weight: 600;
             font-variant-numeric: tabular-nums;
             padding-right: 4px;
-            padding-left: 8px;
+            padding-left: 4px;
         }
         .analysis-step-table .row-selected td:nth-child(3) { color: var(--gray-800); }
         .analysis-step-table .row-baseline td:nth-child(3) { color: var(--gray-400); font-weight: 500; }
@@ -2196,12 +2231,6 @@
                             <option value="128">128</option>
                         </select>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6px; border-left: 1px solid var(--gray-200); padding-left: 12px;">
-                        <label style="font-size: 12px; color: var(--gray-500);">Commands:</label>
-                        <div id="buildCommandCheckboxes" style="display: inline-flex; gap: 4px; flex-wrap: wrap;">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
                 </div>
                 <!-- Filter and Sort Controls -->
                 <div class="table-controls" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; width: 100%;">
@@ -2232,12 +2261,6 @@
                     </div>
                     <span id="filteredCount" style="font-size: 12px; color: var(--gray-500);"></span>
                     <div style="margin-left: auto; display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm" onclick="expandAllPackages()" title="Expand all packages">
-                            Expand All
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="collapseAllPackages()" title="Collapse all packages">
-                            Collapse All
-                        </button>
                     </div>
                 </div>
             </div>
@@ -2330,12 +2353,6 @@
                 sortColumn: 'name',
                 sortDirection: 'asc'
             },
-            // Enabled build commands - load from localStorage or default to all enabled
-            enabledBuildCommands: new Set(
-                localStorage.getItem('enabledBuildCommands')
-                    ? JSON.parse(localStorage.getItem('enabledBuildCommands'))
-                    : ['default', 'keep-picked-parts', 'all-targets']
-            ),
             // Package build targets: {packageName: [target1, target2, ...]}
             packageTargets: {},
             // Track expanded packages: {packageName: true/false}
@@ -2552,12 +2569,38 @@
                 ]);
 
                 state.config = await configRes.json();
-                state.resultsMatrix = await matrixRes.json();
+                // Normalize results matrix: convert old 2-part keys (pkg:target) to 3-part (pkg:default:target)
+                const rawMatrix = await matrixRes.json();
+                const normalizedMatrix = {};
+                Object.entries(rawMatrix).forEach(([key, versions]) => {
+                    const parts = key.split(':');
+                    let normalizedKey = key;
+                    if (parts.length === 2) {
+                        // Old 2-part format: pkgName:target -> pkgName:default:target
+                        normalizedKey = `${parts[0]}:default:${parts[1]}`;
+                    }
+                    if (normalizedMatrix[normalizedKey]) {
+                        // Merge version results, keeping most recent
+                        Object.entries(versions).forEach(([vId, result]) => {
+                            const existing = normalizedMatrix[normalizedKey][vId];
+                            if (!existing || (result.timestamp || '') > (existing.timestamp || '')) {
+                                normalizedMatrix[normalizedKey][vId] = result;
+                            }
+                        });
+                    } else {
+                        normalizedMatrix[normalizedKey] = {...versions};
+                    }
+                });
+                state.resultsMatrix = normalizedMatrix;
                 state.allResults = await resultsRes.json();
                 state.runningBenchmarks = await runningRes.json();
                 state.packageTargets = await targetsRes.json();
                 state.examples = await examplesRes.json();
                 state.commonExamples = await commonExamplesRes.json();
+
+                // Default: all packages expanded so build targets are immediately visible
+                const allPkgs = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
+                allPkgs.forEach(pkg => state.expandedPackages.add(pkg.name));
 
                 updateUI();
 
@@ -2593,9 +2636,34 @@
             }
         }
 
-        // Get targets for a package (from cache or return default)
+        // Get build targets for a package (from server cache, results matrix, or default)
         function getPackageTargets(packageName) {
-            return state.packageTargets[packageName] || ['default'];
+            // If server has targets with more than just default, use those
+            if (state.packageTargets[packageName] && state.packageTargets[packageName].length > 1) {
+                return state.packageTargets[packageName];
+            }
+            // Derive from normalized results matrix keys (format: pkgName:cmd:target)
+            const prefix = packageName + ':';
+            const discovered = new Set();
+            Object.keys(state.resultsMatrix).forEach(key => {
+                if (key.startsWith(prefix)) {
+                    const rest = key.substring(prefix.length);
+                    const parts = rest.split(':');
+                    if (parts.length === 2) {
+                        // 3-part format: cmd:target -> extract target
+                        discovered.add(parts[1]);
+                    } else if (parts.length === 1) {
+                        // 2-part residual: just target
+                        discovered.add(parts[0]);
+                    }
+                }
+            });
+            if (discovered.size > 0) {
+                const targets = Array.from(discovered).sort();
+                state.packageTargets[packageName] = targets;
+                return targets;
+            }
+            return ['default'];
         }
 
         // Toggle package expansion
@@ -2662,10 +2730,9 @@
         function updateHeaderStats() {
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
             document.getElementById('totalVersions').textContent = versions.length;
-            document.getElementById('totalBenchmarks').textContent = packages.length * commands.length;
+            document.getElementById('totalBenchmarks').textContent = packages.length;
             document.getElementById('totalResults').textContent = state.allResults.length;
         }
 
@@ -2921,27 +2988,15 @@
         }
 
         function updateSummaryCards() {
-            // Use the same filtering logic as updateStatsTable() for consistency
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
-            // Build benchmark names filtered by enabled build commands (same as stats table)
-            // Use 3-part names (package:command:target) to match resultsMatrix keys
+            // Build benchmark names using 3-part names (package:default:target)
             const benchmarkNames = [];
             packages.forEach(pkg => {
-                commands.forEach(cmd => {
-                    if (state.enabledBuildCommands.has(cmd.name)) {
-                        const usesTargetExpansion = cmd.name !== 'all-targets';
-                        if (usesTargetExpansion) {
-                            const targets = getPackageTargets(pkg.name);
-                            targets.forEach(target => {
-                                benchmarkNames.push(`${pkg.name}:${cmd.name}:${target}`);
-                            });
-                        } else {
-                            benchmarkNames.push(`${pkg.name}:${cmd.name}`);
-                        }
-                    }
+                const targets = getPackageTargets(pkg.name);
+                targets.forEach(target => {
+                    benchmarkNames.push(`${pkg.name}:default:${target}`);
                 });
             });
 
@@ -2993,6 +3048,21 @@
             return version;
         }
 
+        // Shared colgroup factory so stats table and results table columns align
+        function createTableColgroup(numVersions) {
+            const colgroup = document.createElement('colgroup');
+            const col1 = document.createElement('col');
+            col1.style.width = '220px';
+            colgroup.appendChild(col1);
+            const col2 = document.createElement('col');
+            col2.style.width = '250px';
+            colgroup.appendChild(col2);
+            for (let i = 0; i < numVersions; i++) {
+                colgroup.appendChild(document.createElement('col'));
+            }
+            return colgroup;
+        }
+
         function updateStatsTable() {
             const statsTable = document.getElementById('statsTable');
             const tbody = statsTable.querySelector('tbody');
@@ -3000,29 +3070,23 @@
 
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
             if (versions.length === 0) return;
 
             // Use config order directly (first version = baseline)
             const sortedVersions = versions;
 
-            // Build all benchmark names (filtered by enabled build commands)
-            // Use 3-part names (package:command:target) to match resultsMatrix keys
+            // Sync colgroup so columns align with the results table
+            let oldCg = statsTable.querySelector('colgroup');
+            if (oldCg) oldCg.remove();
+            statsTable.insertBefore(createTableColgroup(sortedVersions.length), statsTable.firstChild);
+
+            // Build all benchmark names using 3-part names (package:default:target)
             const benchmarkNames = [];
             packages.forEach(pkg => {
-                commands.forEach(cmd => {
-                    if (state.enabledBuildCommands.has(cmd.name)) {
-                        const usesTargetExpansion = cmd.name !== 'all-targets';
-                        if (usesTargetExpansion) {
-                            const targets = getPackageTargets(pkg.name);
-                            targets.forEach(target => {
-                                benchmarkNames.push(`${pkg.name}:${cmd.name}:${target}`);
-                            });
-                        } else {
-                            benchmarkNames.push(`${pkg.name}:${cmd.name}`);
-                        }
-                    }
+                const targets = getPackageTargets(pkg.name);
+                targets.forEach(target => {
+                    benchmarkNames.push(`${pkg.name}:default:${target}`);
                 });
             });
 
@@ -3108,6 +3172,7 @@
             headerRow.className = 'version-header-row';
 
             const headerLabel = document.createElement('td');
+            headerLabel.colSpan = 2;
             headerLabel.innerHTML = '<span class="stat-label">Version</span>';
             headerRow.appendChild(headerLabel);
 
@@ -3143,6 +3208,7 @@
             // Row 2: Pass rate
             const passRow = document.createElement('tr');
             const passLabel = document.createElement('td');
+            passLabel.colSpan = 2;
             passLabel.innerHTML = '<span class="stat-label">Pass Rate</span>';
             passRow.appendChild(passLabel);
 
@@ -3173,6 +3239,7 @@
             // Row 3: Average time
             const avgTimeRow = document.createElement('tr');
             const avgTimeLabel = document.createElement('td');
+            avgTimeLabel.colSpan = 2;
             avgTimeLabel.innerHTML = '<span class="stat-label">Avg Time</span>';
             avgTimeRow.appendChild(avgTimeLabel);
 
@@ -3196,6 +3263,7 @@
             // Row 4: Normalized time (relative to first/baseline version)
             const normRow = document.createElement('tr');
             const normLabel = document.createElement('td');
+            normLabel.colSpan = 2;
             normLabel.innerHTML = `<span class="stat-label">Normalized</span><div class="stat-sub">vs ${getShortVersionName(baselineVersionId)}</div>`;
             normRow.appendChild(normLabel);
 
@@ -3234,7 +3302,7 @@
             } else if (info.synced) {
                 pill.className = 'sync-pill synced';
                 const version = info.registry_version || info.repo_version || '';
-                pill.textContent = '\u2194 ' + version;
+                pill.textContent = '\u2713 ' + version;
                 pill.title = 'Registry in sync with repo';
             } else {
                 pill.className = 'sync-pill unsynced';
@@ -3294,7 +3362,6 @@
 
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
             if (versions.length === 0) return;
 
@@ -3436,42 +3503,36 @@
                 return td;
             };
 
-            // Get enabled build commands
-            const enabledCommands = commands.filter(cmd => state.enabledBuildCommands.has(cmd.name));
+            // Build package list with examples
+            let pkgList = packages.map(pkg => pkg.name);
 
-            // Update filtered count
-            let totalPackages = 0;
-            let filteredPackages = 0;
-
-            // Create a table for each enabled build command
-            enabledCommands.forEach((cmd, cmdIdx) => {
-                // Get packages for this command, applying filters
-                let pkgList = packages.map(pkg => pkg.name);
-
-                // Add examples for the "default" command only
-                // Examples use the format "examples/<name>" and are only run with "ato build"
-                // Show all unique examples across all versions (not just common ones)
-                if (cmd.name === 'default' && state.examples) {
-                    const allExamples = new Set();
-                    Object.values(state.examples).forEach(exampleList => {
-                        exampleList.forEach(name => allExamples.add(name));
-                    });
-                    if (allExamples.size > 0) {
-                        const exampleNames = Array.from(allExamples).sort().map(name => `examples/${name}`);
-                        pkgList = [...pkgList, ...exampleNames];
-                    }
+            // Add examples (format "examples/<name>")
+            if (state.examples) {
+                const allExamples = new Set();
+                Object.values(state.examples).forEach(exampleList => {
+                    exampleList.forEach(name => allExamples.add(name));
+                });
+                if (allExamples.size > 0) {
+                    const exampleNames = Array.from(allExamples).sort().map(name => `examples/${name}`);
+                    pkgList = [...pkgList, ...exampleNames];
                 }
+            }
 
-                // Apply text filter
-                if (state.filter.text) {
-                    const filterText = state.filter.text.toLowerCase();
-                    pkgList = pkgList.filter(name => name.toLowerCase().includes(filterText));
-                }
+            const totalPackages = pkgList.length;
 
-                // Apply status filter
-                if (state.filter.status !== 'all') {
-                    pkgList = pkgList.filter(pkgName => {
-                        const benchmarkName = `${pkgName}:${cmd.name}`;
+            // Apply text filter
+            if (state.filter.text) {
+                const filterText = state.filter.text.toLowerCase();
+                pkgList = pkgList.filter(name => name.toLowerCase().includes(filterText));
+            }
+
+            // Apply status filter - package matches if any of its targets match
+            if (state.filter.status !== 'all') {
+                pkgList = pkgList.filter(pkgName => {
+                    const isExample = pkgName.startsWith('examples/');
+                    const targets = getPackageTargets(pkgName);
+                    return targets.some(target => {
+                        const benchmarkName = `${pkgName}:default:${target}`;
                         return sortedVersions.some(version => {
                             const versionId = `${version.type}:${version.version}`;
                             const runKey = `${benchmarkName}@${versionId}`;
@@ -3485,338 +3546,199 @@
                             return true;
                         });
                     });
+                });
+            }
+
+            // Sort packages
+            pkgList = sortPackages(pkgList, sortedVersions);
+
+            const filteredPackages = pkgList.length;
+
+            // Create single table
+            const tableWrapper = document.createElement('div');
+            tableWrapper.className = 'command-table-wrapper';
+
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+
+            const table = document.createElement('table');
+            table.className = 'results-table';
+            table.appendChild(createTableColgroup(sortedVersions.length));
+
+            // Table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+
+            const nameTh = document.createElement('th');
+            nameTh.textContent = 'Package';
+            nameTh.style.whiteSpace = 'nowrap';
+            headerRow.appendChild(nameTh);
+
+            const targetTh = document.createElement('th');
+            targetTh.textContent = 'Build Target';
+            targetTh.style.whiteSpace = 'nowrap';
+            headerRow.appendChild(targetTh);
+
+            sortedVersions.forEach(version => {
+                const th = document.createElement('th');
+                th.className = 'version-header';
+                let displayName = version.type + ':';
+                if (version.type === 'local') {
+                    const parts = version.version.split('/');
+                    displayName += parts[parts.length - 1] || 'local';
+                } else if (version.type === 'commit') {
+                    displayName += version.version.substring(0, 7);
+                } else {
+                    displayName += version.version;
                 }
+                th.textContent = displayName;
+                th.title = `${version.type}:${version.version}`;
+                headerRow.appendChild(th);
+            });
 
-                // Sort packages
-                pkgList = sortPackages(pkgList, cmd.name, sortedVersions);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
 
-                totalPackages += packages.length;
-                filteredPackages += pkgList.length;
+            const tbody = document.createElement('tbody');
 
-                // Create table wrapper
-                const tableWrapper = document.createElement('div');
-                tableWrapper.className = 'command-table-wrapper';
-                tableWrapper.style.marginBottom = cmdIdx < enabledCommands.length - 1 ? '32px' : '0';
+            // Helper: get aggregate info for a package across all targets for a version
+            const getPackageAggregate = (pkgName, versionId, targets) => {
+                let totalTime = 0, successCount = 0, failCount = 0, runningCount = 0, pendingCount = 0;
+                targets.forEach(target => {
+                    const bn = `${pkgName}:default:${target}`;
+                    const runKey = `${bn}@${versionId}`;
+                    const result = state.resultsMatrix[bn]?.[versionId];
+                    const running = state.runningBenchmarks[runKey];
+                    if (running) runningCount++;
+                    else if (!result) pendingCount++;
+                    else if (result.status === 'success') { successCount++; totalTime += result.total_time || 0; }
+                    else failCount++;
+                });
+                return { totalTime, successCount, failCount, runningCount, pendingCount, total: targets.length };
+            };
 
-                // Table header with command name
-                const tableHeader = document.createElement('div');
-                tableHeader.className = 'command-table-header';
-                tableHeader.innerHTML = `
-                    <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: var(--gray-700);">
-                        <code style="background: var(--gray-100); padding: 4px 8px; border-radius: 4px; font-size: 14px;">${cmd.command}</code>
-                        <span style="font-weight: 400; color: var(--gray-500); margin-left: 8px;">${cmd.description || ''}</span>
-                    </h3>
-                `;
-                tableWrapper.appendChild(tableHeader);
+            pkgList.forEach(pkgName => {
+                const isExample = pkgName.startsWith('examples/');
+                const targets = getPackageTargets(pkgName);
 
-                // Create table
-                const tableContainer = document.createElement('div');
-                tableContainer.className = 'table-container';
-
-                const table = document.createElement('table');
-                table.className = 'results-table';
-
-                // Table header
-                const thead = document.createElement('thead');
-                const headerRow = document.createElement('tr');
-
-                // Package name column
-                const nameTh = document.createElement('th');
-                nameTh.textContent = 'Package';
-                headerRow.appendChild(nameTh);
-
-                // Version columns
-                sortedVersions.forEach(version => {
-                    const th = document.createElement('th');
-                    th.className = 'version-header';
-                    let displayName = version.type + ':';
-                    if (version.type === 'local') {
-                        const parts = version.version.split('/');
-                        displayName += parts[parts.length - 1] || 'local';
-                    } else if (version.type === 'commit') {
-                        displayName += version.version.substring(0, 7);
-                    } else {
-                        displayName += version.version;
-                    }
-                    th.textContent = displayName;
-                    th.title = `${version.type}:${version.version}`;
-                    headerRow.appendChild(th);
+                // Calculate total rows: 1 per target + 1 per expanded phase detail
+                let totalRows = targets.length;
+                targets.forEach(t => {
+                    if (state.expandedPhaseRows.has(`${pkgName}:default:${t}`)) totalRows++;
                 });
 
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-
-                // Table body
-                const tbody = document.createElement('tbody');
-
-                // Check if this command type uses individual targets or builds all at once
-                // "all-targets" command uses "ato build -t all" - builds all at once
-                const usesTargetExpansion = cmd.name !== 'all-targets';
-
-                pkgList.forEach(pkgName => {
-                    // Check if this is an example (starts with "examples/")
-                    const isExample = pkgName.startsWith('examples/');
-
-                    const targets = isExample ? ['default'] : getPackageTargets(pkgName);
-                    const hasMultipleTargets = !isExample && targets.length > 1 && usesTargetExpansion;
-                    const isExpanded = state.expandedPackages.has(pkgName);
-
-                    // Package row (parent row)
+                // === Flat layout: one row per build target, package name spans all rows ===
+                targets.forEach((target, targetIdx) => {
+                    const benchmarkName = `${pkgName}:default:${target}`;
                     const tr = document.createElement('tr');
-                    tr.className = hasMultipleTargets ? 'package-row' : '';
-                    if (isExample) {
-                        tr.classList.add('example-row');
-                    }
-                    if (hasMultipleTargets && isExpanded) {
-                        tr.classList.add('expanded');
-                    }
+                    tr.className = 'target-row';
+                    if (isExample) tr.classList.add('example-row');
+                    if (targetIdx === targets.length - 1 && !state.expandedPhaseRows.has(benchmarkName)) tr.classList.add('target-row-last');
 
-                    // Make package row clickable for expansion
-                    if (hasMultipleTargets) {
-                        tr.onclick = () => togglePackageExpand(pkgName);
-                    }
+                    // Package name cell (only on first target row, using rowSpan)
+                    if (targetIdx === 0) {
+                        const nameTd = document.createElement('td');
+                        nameTd.className = 'package-name-cell package-header-cell';
+                        nameTd.rowSpan = totalRows;
 
-                    // Package name cell with expand icon and inline run button
-                    const nameTd = document.createElement('td');
-                    nameTd.className = 'package-name-cell';
-                    const nameInner = document.createElement('div');
-                    nameInner.className = 'package-name-inner';
+                        const nameInner = document.createElement('div');
+                        nameInner.className = 'package-name-inner';
 
-                    // Run button (inline, left of name)
-                    const runAllBtn = document.createElement('button');
-                    runAllBtn.className = 'btn btn-small run-all-btn';
-                    runAllBtn.innerHTML = '▶';
-                    runAllBtn.title = `Run all versions for ${pkgName}`;
-                    runAllBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        if (hasMultipleTargets) {
-                            runAllTargetsForPackage(pkgName, cmd.name, targets);
-                        } else if (isExample) {
-                            const benchmarkName = `${pkgName}:default`;
-                            runAllVersionsForBenchmark(benchmarkName);
-                        } else {
-                            const benchmarkName = usesTargetExpansion && targets.length === 1
-                                ? `${pkgName}:${cmd.name}:${targets[0]}`
-                                : `${pkgName}:${cmd.name}`;
-                            runAllVersionsForBenchmark(benchmarkName);
-                        }
-                    };
-                    if (hasMultipleTargets) {
-                        const expandIcon = document.createElement('span');
-                        expandIcon.className = 'expand-icon';
-                        // CSS ::before handles the chevron icon
-                        nameInner.appendChild(expandIcon);
-                        nameInner.appendChild(runAllBtn);
-                        const nameSpan = document.createElement('span');
-                        nameSpan.className = 'package-name';
-                        nameSpan.textContent = pkgName;
-                        nameInner.appendChild(nameSpan);
-                        const syncPill1 = createSyncPill(pkgName);
-                        if (syncPill1) nameInner.appendChild(syncPill1);
-                        const countSpan = document.createElement('span');
-                        countSpan.className = 'package-count';
-                        countSpan.textContent = `(${targets.length} targets)`;
-                        nameInner.appendChild(countSpan);
-                    } else if (isExample) {
-                        nameInner.appendChild(runAllBtn);
-                        const displayName = pkgName.replace('examples/', '');
-                        const iconSpan = document.createElement('span');
-                        iconSpan.className = 'example-icon';
-                        iconSpan.textContent = '📦';
-                        nameInner.appendChild(iconSpan);
-                        const nameSpan = document.createElement('span');
-                        nameSpan.className = 'package-name example-name';
-                        nameSpan.textContent = displayName;
-                        nameInner.appendChild(nameSpan);
-                        const badgeSpan = document.createElement('span');
-                        badgeSpan.className = 'example-badge';
-                        badgeSpan.textContent = 'example';
-                        nameInner.appendChild(badgeSpan);
-                    } else {
-                        nameInner.appendChild(runAllBtn);
-                        const nameSpan = document.createElement('span');
-                        nameSpan.className = 'package-name';
-                        nameSpan.textContent = pkgName;
-                        nameInner.appendChild(nameSpan);
-                        const syncPill2 = createSyncPill(pkgName);
-                        if (syncPill2) nameInner.appendChild(syncPill2);
-                    }
-                    nameTd.appendChild(nameInner);
-                    tr.appendChild(nameTd);
-
-                    // For collapsed rows with multiple targets, show aggregate results
-                    if (hasMultipleTargets && !isExpanded) {
-                        // Show aggregate status (e.g., "3/4 pass")
-                        sortedVersions.forEach((version, vIdx) => {
-                            const versionId = `${version.type}:${version.version}`;
-                            const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
-
-                            let successCount = 0, failCount = 0, runningCount = 0, pendingCount = 0;
-                            targets.forEach(target => {
-                                const benchmarkName = `${pkgName}:${cmd.name}:${target}`;
-                                const runKey = `${benchmarkName}@${versionId}`;
-                                const result = state.resultsMatrix[benchmarkName]?.[versionId];
-                                const isRunning = state.runningBenchmarks[runKey];
-
-                                if (isRunning) runningCount++;
-                                else if (!result) pendingCount++;
-                                else if (result.status === 'success') successCount++;
-                                else failCount++;
-                            });
-
-                            const td = document.createElement('td');
-                            const cell = document.createElement('div');
-                            cell.className = 'result-cell';
-
-                            if (runningCount > 0) {
-                                cell.innerHTML = `<span class="badge badge-running aggregate-badge"><span class="spinner"></span>${runningCount}/${targets.length}</span>`;
-                            } else if (pendingCount === targets.length) {
-                                cell.innerHTML = `<span class="badge badge-pending aggregate-badge">—</span>`;
-                            } else if (failCount > 0) {
-                                cell.innerHTML = `<span class="badge badge-danger aggregate-badge">${successCount}/${targets.length}</span>`;
-                            } else if (successCount === targets.length) {
-                                // All passed - show average time
-                                let totalTime = 0;
-                                targets.forEach(target => {
-                                    const benchmarkName = `${pkgName}:${cmd.name}:${target}`;
-                                    const result = state.resultsMatrix[benchmarkName]?.[versionId];
-                                    if (result?.total_time) totalTime += result.total_time;
-                                });
-                                cell.innerHTML = `<span class="badge badge-success aggregate-badge">${(totalTime).toFixed(1)}s</span>`;
-                            } else {
-                                cell.innerHTML = `<span class="badge badge-warning aggregate-badge">${successCount}/${targets.length}</span>`;
-                            }
-
-                            td.appendChild(cell);
-                            tr.appendChild(td);
-                        });
-                    } else if (!hasMultipleTargets) {
-                        // Single target, examples, or all-targets command - show direct results
-                        let benchmarkName;
-                        if (isExample) {
-                            benchmarkName = `${pkgName}:default`;
-                        } else if (usesTargetExpansion && targets.length === 1) {
-                            benchmarkName = `${pkgName}:${cmd.name}:${targets[0]}`;
-                        } else {
-                            benchmarkName = `${pkgName}:${cmd.name}`;
-                        }
-
-                        // Add phase toggle left of name (insert before the name span)
-                        const phaseBtn = document.createElement('button');
-                        phaseBtn.className = 'phase-toggle' + (state.expandedPhaseRows.has(benchmarkName) ? ' active' : '');
-                        phaseBtn.innerHTML = '▾';
-                        phaseBtn.title = 'Show build steps';
-                        phaseBtn.dataset.benchmark = benchmarkName;
-                        phaseBtn.onclick = function(e) {
+                        // Play button - runs all targets
+                        const runAllBtn = document.createElement('button');
+                        runAllBtn.className = 'btn btn-small run-all-btn';
+                        runAllBtn.innerHTML = '▶';
+                        runAllBtn.title = `Run all builds for ${pkgName}`;
+                        runAllBtn.onclick = (e) => {
                             e.stopPropagation();
-                            togglePhaseDetail(this.dataset.benchmark);
+                            runAllTargetsForPackage(pkgName);
                         };
-                        // Insert before the run button (toggle goes leftmost)
-                        const runBtn = nameInner.querySelector('.run-all-btn');
-                        if (runBtn) {
-                            nameInner.insertBefore(phaseBtn, runBtn);
+                        nameInner.appendChild(runAllBtn);
+
+                        if (isExample) {
+                            const displayName = pkgName.replace('examples/', '');
+                            const iconSpan = document.createElement('span');
+                            iconSpan.className = 'example-icon';
+                            iconSpan.textContent = '📦';
+                            nameInner.appendChild(iconSpan);
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'package-name example-name';
+                            nameSpan.textContent = displayName;
+                            nameInner.appendChild(nameSpan);
+                            const badgeSpan = document.createElement('span');
+                            badgeSpan.className = 'example-badge';
+                            badgeSpan.textContent = 'example';
+                            nameInner.appendChild(badgeSpan);
                         } else {
-                            nameInner.appendChild(phaseBtn);
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'package-name';
+                            nameSpan.textContent = pkgName;
+                            nameInner.appendChild(nameSpan);
+                            const syncPill = createSyncPill(pkgName);
+                            if (syncPill) nameInner.appendChild(syncPill);
                         }
 
-                        sortedVersions.forEach((version, vIdx) => {
-                            const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
-                            const td = createResultCell(benchmarkName, version, versionIdx);
-                            tr.appendChild(td);
-                        });
-                    } else {
-                        // Expanded - add empty cells (targets will have their own rows)
-                        sortedVersions.forEach(() => {
-                            const td = document.createElement('td');
-                            td.style.background = 'var(--gray-100)';
-                            tr.appendChild(td);
-                        });
+                        nameTd.appendChild(nameInner);
+                        tr.appendChild(nameTd);
                     }
+
+                    // Build target name cell
+                    const targetTd = document.createElement('td');
+                    targetTd.className = 'target-name-cell';
+                    const targetInner = document.createElement('div');
+                    targetInner.className = 'package-name-inner';
+
+                    // Phase toggle
+                    const phaseBtn = document.createElement('button');
+                    phaseBtn.className = 'phase-toggle' + (state.expandedPhaseRows.has(benchmarkName) ? ' active' : '');
+                    phaseBtn.innerHTML = '▾';
+                    phaseBtn.title = 'Show build steps';
+                    phaseBtn.dataset.benchmark = benchmarkName;
+                    phaseBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        togglePhaseDetail(this.dataset.benchmark);
+                    };
+                    targetInner.appendChild(phaseBtn);
+
+                    // Run button per target
+                    const targetRunBtn = document.createElement('button');
+                    targetRunBtn.className = 'btn btn-small run-all-btn';
+                    targetRunBtn.innerHTML = '▶';
+                    targetRunBtn.title = `Run all versions for ${target}`;
+                    targetRunBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        runAllVersionsForBenchmark(benchmarkName);
+                    };
+                    targetInner.appendChild(targetRunBtn);
+
+                    const targetNameSpan = document.createElement('span');
+                    targetNameSpan.className = 'build-target-name';
+                    targetNameSpan.textContent = target;
+                    targetInner.appendChild(targetNameSpan);
+                    targetTd.appendChild(targetInner);
+                    tr.appendChild(targetTd);
+
+                    // Version result cells
+                    sortedVersions.forEach((version) => {
+                        const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
+                        const td = createResultCell(benchmarkName, version, versionIdx);
+                        tr.appendChild(td);
+                    });
 
                     tbody.appendChild(tr);
 
-                    // Phase detail row for single-target / non-multi-target rows
-                    if (!hasMultipleTargets) {
-                        let phaseBenchmark;
-                        if (isExample) {
-                            phaseBenchmark = `${pkgName}:default`;
-                        } else if (usesTargetExpansion && targets.length === 1) {
-                            phaseBenchmark = `${pkgName}:${cmd.name}:${targets[0]}`;
-                        } else {
-                            phaseBenchmark = `${pkgName}:${cmd.name}`;
-                        }
-                        if (state.expandedPhaseRows.has(phaseBenchmark)) {
-                            const colCount = 1 + sortedVersions.length; // name + versions
-                            tbody.appendChild(createPhaseDetailRow(phaseBenchmark, sortedVersions, colCount));
-                        }
-                    }
-
-                    // Target rows (children) - only show when expanded
-                    if (hasMultipleTargets && isExpanded) {
-                        targets.forEach((target, targetIdx) => {
-                            const benchmarkName = `${pkgName}:${cmd.name}:${target}`;
-                            const targetTr = document.createElement('tr');
-                            targetTr.className = 'build-target-row visible';
-
-                            // Target name cell with run button and phase toggle
-                            const targetNameTd = document.createElement('td');
-                            targetNameTd.className = 'package-name-cell';
-                            const targetNameInner = document.createElement('div');
-                            targetNameInner.className = 'package-name-inner';
-
-                            // Phase toggle (leftmost)
-                            const targetPhaseBtn = document.createElement('button');
-                            targetPhaseBtn.className = 'phase-toggle' + (state.expandedPhaseRows.has(benchmarkName) ? ' active' : '');
-                            targetPhaseBtn.innerHTML = '▾';
-                            targetPhaseBtn.title = 'Show build steps';
-                            targetPhaseBtn.dataset.benchmark = benchmarkName;
-                            targetPhaseBtn.onclick = function(e) {
-                                e.stopPropagation();
-                                togglePhaseDetail(this.dataset.benchmark);
-                            };
-                            targetNameInner.appendChild(targetPhaseBtn);
-
-                            // Run button for target
-                            const targetRunAllBtn = document.createElement('button');
-                            targetRunAllBtn.className = 'btn btn-small run-all-btn';
-                            targetRunAllBtn.innerHTML = '▶';
-                            targetRunAllBtn.title = `Run all versions for ${pkgName}:${target}`;
-                            targetRunAllBtn.onclick = (e) => {
-                                e.stopPropagation();
-                                runAllVersionsForBenchmark(benchmarkName);
-                            };
-                            targetNameInner.appendChild(targetRunAllBtn);
-
-                            const targetNameSpan = document.createElement('span');
-                            targetNameSpan.className = 'build-target-name';
-                            targetNameSpan.textContent = target;
-                            targetNameInner.appendChild(targetNameSpan);
-                            targetNameTd.appendChild(targetNameInner);
-                            targetTr.appendChild(targetNameTd);
-
-                            // Version cells for this target
-                            sortedVersions.forEach((version, vIdx) => {
-                                const versionIdx = versions.findIndex(v => v.type === version.type && v.version === version.version);
-                                const td = createResultCell(benchmarkName, version, versionIdx);
-                                targetTr.appendChild(td);
-                            });
-
-                            tbody.appendChild(targetTr);
-
-                            // Phase detail row for this target
-                            if (state.expandedPhaseRows.has(benchmarkName)) {
-                                const colCount = 1 + sortedVersions.length;
-                                tbody.appendChild(createPhaseDetailRow(benchmarkName, sortedVersions, colCount));
-                            }
-                        });
+                    // Phase Detail Rows below each build target
+                    if (state.expandedPhaseRows.has(benchmarkName)) {
+                        const colCount = 2 + sortedVersions.length;
+                        tbody.appendChild(createPhaseDetailRow(benchmarkName, sortedVersions, colCount));
                     }
                 });
-
-                table.appendChild(tbody);
-                tableContainer.appendChild(table);
-                tableWrapper.appendChild(tableContainer);
-                container.appendChild(tableWrapper);
             });
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+            tableWrapper.appendChild(tableContainer);
+            container.appendChild(tableWrapper);
 
             // Update filtered count display
             document.getElementById('filteredCount').textContent =
@@ -3839,8 +3761,8 @@
             });
         }
 
-        // Sort packages by name or version results
-        function sortPackages(pkgList, cmdName, sortedVersions) {
+        // Sort packages by name or by aggregate time for a version column
+        function sortPackages(pkgList, sortedVersions) {
             const { sortColumn, sortDirection } = state.filter;
             const multiplier = sortDirection === 'asc' ? 1 : -1;
 
@@ -3849,23 +3771,27 @@
                     return multiplier * a.localeCompare(b);
                 }
 
-                // Sort by version column - try 3-part name first (with target), fall back to 2-part
-                const targetsA = getPackageTargets(a);
-                const targetsB = getPackageTargets(b);
-                const benchmarkA = cmdName !== 'all-targets' && targetsA.length > 0
-                    ? `${a}:${cmdName}:${targetsA[0]}` : `${a}:${cmdName}`;
-                const benchmarkB = cmdName !== 'all-targets' && targetsB.length > 0
-                    ? `${b}:${cmdName}:${targetsB[0]}` : `${b}:${cmdName}`;
-                const resultA = state.resultsMatrix[benchmarkA]?.[sortColumn];
-                const resultB = state.resultsMatrix[benchmarkB]?.[sortColumn];
-
-                const getVal = (result) => {
-                    if (!result) return sortDirection === 'asc' ? Infinity : -Infinity;
-                    if (result.status === 'success') return result.total_time || 0;
-                    return sortDirection === 'asc' ? Infinity - 1 : -Infinity + 1;
+                // Sort by version column using aggregate total time
+                const getAggregateTime = (pkgName) => {
+                    const isExample = pkgName.startsWith('examples/');
+                    const targets = getPackageTargets(pkgName);
+                    let total = 0;
+                    let allSuccess = true;
+                    targets.forEach(target => {
+                        const bn = `${pkgName}:default:${target}`;
+                        const result = state.resultsMatrix[bn]?.[sortColumn];
+                        if (result && result.status === 'success') {
+                            total += result.total_time || 0;
+                        } else {
+                            allSuccess = false;
+                        }
+                    });
+                    if (!allSuccess) return sortDirection === 'asc' ? Infinity - 1 : -Infinity + 1;
+                    if (total === 0) return sortDirection === 'asc' ? Infinity : -Infinity;
+                    return total;
                 };
 
-                return multiplier * (getVal(resultA) - getVal(resultB));
+                return multiplier * (getAggregateTime(a) - getAggregateTime(b));
             });
         }
 
@@ -3921,20 +3847,16 @@
 
             // Get all benchmarks
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
             // Track package index for consistent coloring
             let colorIdx = 0;
             packages.forEach((pkg) => {
                 const pkgColorIdx = colorIdx++;
 
-                commands.forEach(cmd => {
-                    // Build list of benchmark names for this package/command
-                    const usesTargetExpansion = cmd.name !== 'all-targets';
-                    const targets = usesTargetExpansion ? getPackageTargets(pkg.name) : [''];
-                    const benchmarkNamesForCmd = usesTargetExpansion
-                        ? targets.map(t => `${pkg.name}:${cmd.name}:${t}`)
-                        : [`${pkg.name}:${cmd.name}`];
+                {
+                    // Build list of benchmark names for this package
+                    const targets = getPackageTargets(pkg.name);
+                    const benchmarkNamesForCmd = targets.map(t => `${pkg.name}:default:${t}`);
 
                     // Aggregate results across targets for chart display
                     const xValues = [];
@@ -3963,7 +3885,7 @@
                         }
                     }
 
-                    const benchmarkLabel = `${pkg.name}:${cmd.name}`;
+                    const benchmarkLabel = `${pkg.name}:default`;
                     displayVersions.forEach((version, idx) => {
                         const versionId = `${version.type}:${version.version}`;
                         let totalTime = 0;
@@ -4013,7 +3935,7 @@
                             marker: { size: 4, color: 'rgba(160,170,180,0.5)' }
                         });
                     }
-                });
+                }
             });
 
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -4194,10 +4116,9 @@
             btn.innerHTML = '<span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></span> Running...';
 
             const maxParallel = document.getElementById('maxParallel').value;
-            const commands = [...state.enabledBuildCommands].join(',');
 
             try {
-                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}&commands=${encodeURIComponent(commands)}`, { method: 'POST' });
+                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}`, { method: 'POST' });
                 const data = await res.json();
 
                 if (res.status === 409) {
@@ -4220,15 +4141,14 @@
         }
 
         async function rerunAllBenchmarks() {
-            if (!confirm('This will rerun ALL benchmarks for the selected build commands, including ones that already passed. Continue?')) {
+            if (!confirm('This will rerun ALL benchmarks, including ones that already passed. Continue?')) {
                 return;
             }
 
             const maxParallel = document.getElementById('maxParallel').value;
-            const commands = [...state.enabledBuildCommands].join(',');
 
             try {
-                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}&force=true&commands=${encodeURIComponent(commands)}`, { method: 'POST' });
+                const res = await fetch(`/api/run/all?max_parallel=${maxParallel}&force=true`, { method: 'POST' });
                 const data = await res.json();
 
                 if (res.status === 409) {
@@ -4333,11 +4253,12 @@
         }
 
         // Run all targets for a package across all versions
-        async function runAllTargetsForPackage(pkgName, cmdName, targets) {
+        async function runAllTargetsForPackage(pkgName) {
             const versions = getEnabledVersions();
+            const targets = getPackageTargets(pkgName);
 
             for (const target of targets) {
-                const benchmarkName = `${pkgName}:${cmdName}:${target}`;
+                const benchmarkName = `${pkgName}:default:${target}`;
                 const encodedBenchmark = encodeURIComponent(benchmarkName);
                 for (const version of versions) {
                     const versionId = `${version.type}:${version.version}`;
@@ -4541,7 +4462,6 @@
         function updateBuildProgress() {
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
             const running = Object.keys(state.runningBenchmarks).length;
 
             const progressEl = document.getElementById('buildProgress');
@@ -4553,15 +4473,14 @@
                 let total = 0;
                 let completed = 0;
                 packages.forEach(pkg => {
-                    commands.forEach(cmd => {
-                        if (state.enabledBuildCommands.has(cmd.name)) {
-                            versions.forEach(v => {
-                                total++;
-                                const vId = `${v.type}:${v.version}`;
-                                const bn = `${pkg.name}:${cmd.name}`;
-                                if (state.resultsMatrix[bn]?.[vId]) completed++;
-                            });
-                        }
+                    const targets = getPackageTargets(pkg.name);
+                    targets.forEach(target => {
+                        versions.forEach(v => {
+                            total++;
+                            const vId = `${v.type}:${v.version}`;
+                            const bn = `${pkg.name}:default:${target}`;
+                            if (state.resultsMatrix[bn]?.[vId]) completed++;
+                        });
                     });
                 });
 
@@ -4576,10 +4495,12 @@
             // Pulse the run button when there are pending builds
             const runBtn = document.getElementById('runAllBtn');
             const hasPending = Object.keys(state.resultsMatrix).length === 0 ||
-                packages.some(pkg => commands.some(cmd =>
-                    state.enabledBuildCommands.has(cmd.name) &&
-                    versions.some(v => !state.resultsMatrix[`${pkg.name}:${cmd.name}`]?.[`${v.type}:${v.version}`])
-                ));
+                packages.some(pkg => {
+                    const targets = getPackageTargets(pkg.name);
+                    return targets.some(target =>
+                        versions.some(v => !state.resultsMatrix[`${pkg.name}:default:${target}`]?.[`${v.type}:${v.version}`])
+                    );
+                });
             runBtn.classList.toggle('has-pending', hasPending && running === 0);
         }
 
@@ -4589,20 +4510,18 @@
             if (!summary) return;
             const versions = getEnabledVersions();
             const packages = (state.config.package_benchmarks || []).filter(p => p.enabled !== false);
-            const commands = state.config.build_commands || [];
 
             let totalBuilds = 0, succeeded = 0, failed = 0;
             versions.forEach(v => {
                 const vId = `${v.type}:${v.version}`;
                 packages.forEach(pkg => {
-                    commands.forEach(cmd => {
-                        if (state.enabledBuildCommands.has(cmd.name)) {
-                            const result = state.resultsMatrix[`${pkg.name}:${cmd.name}`]?.[vId];
-                            if (result) {
-                                totalBuilds++;
-                                if (result.status === 'success') succeeded++;
-                                else if (result.status === 'failure') failed++;
-                            }
+                    const targets = getPackageTargets(pkg.name);
+                    targets.forEach(target => {
+                        const result = state.resultsMatrix[`${pkg.name}:default:${target}`]?.[vId];
+                        if (result) {
+                            totalBuilds++;
+                            if (result.status === 'success') succeeded++;
+                            else if (result.status === 'failure') failed++;
                         }
                     });
                 });
@@ -4735,43 +4654,7 @@
 
         // ==================== Build Command Checkboxes ====================
 
-        function saveBuildCommandsToStorage() {
-            localStorage.setItem('enabledBuildCommands', JSON.stringify([...state.enabledBuildCommands]));
-        }
-
-        function updateBuildCommandCheckboxes() {
-            const container = document.getElementById('buildCommandCheckboxes');
-            container.innerHTML = '';
-
-            const commands = state.config.build_commands || [];
-            commands.forEach(cmd => {
-                const btn = document.createElement('button');
-                btn.className = `btn btn-sm ${state.enabledBuildCommands.has(cmd.name) ? 'btn-primary' : 'btn-secondary'}`;
-                btn.style.cssText = 'padding: 6px 14px; font-size: 12px;';
-                btn.textContent = cmd.name;
-                btn.title = cmd.description || cmd.command;
-                btn.onclick = () => {
-                    if (state.enabledBuildCommands.has(cmd.name)) {
-                        // Don't allow disabling all commands
-                        if (state.enabledBuildCommands.size <= 1) {
-                            alert('At least one build command must be enabled');
-                            return;
-                        }
-                        state.enabledBuildCommands.delete(cmd.name);
-                        btn.className = 'btn btn-sm btn-secondary';
-                    } else {
-                        state.enabledBuildCommands.add(cmd.name);
-                        btn.className = 'btn btn-sm btn-primary';
-                    }
-                    saveBuildCommandsToStorage();
-                    updateTable();
-                };
-
-                container.appendChild(btn);
-            });
-        }
-
-        // Override updateUI to also update build command checkboxes, version analysis, progress
+        // Override updateUI to also update version analysis, progress
         // ==================== Package Health ====================
 
         function updatePackageHealth() {
@@ -4927,7 +4810,7 @@
             html += '<div class="health-column-title">Average Build Step Duration</div>';
             if (avgPhases.length > 0) {
                 html += '<table class="health-step-table">';
-                html += '<colgroup><col style="width:40%"><col style="width:7%"><col style="width:53%"></colgroup>';
+                html += '<colgroup><col><col><col style="width:100%"></colgroup>';
                 avgPhases.forEach(p => {
                     const pct = Math.max((p.avg / maxPhaseAvg) * 100, 2);
                     html += `<tr>
@@ -4963,10 +4846,12 @@
             // Stale (out of sync) packages section
             const staleSyncEntries = Object.entries(state.syncStatus);
             const stalePackages = staleSyncEntries
-                .filter(([_, s]) => !s.synced && !s.registry_only)
+                .filter(([_, s]) => !s.synced)
                 .map(([name, s]) => {
                     let reason = 'Out of sync';
-                    if (s.error) {
+                    if (s.registry_only) {
+                        reason = s.error || 'Registry only';
+                    } else if (s.error) {
                         reason = s.error;
                     } else if (s.mismatched_files && s.mismatched_files.length > 0) {
                         const count = s.mismatched_files.length;
@@ -4975,7 +4860,7 @@
                     const versionInfo = [];
                     if (s.repo_version) versionInfo.push(`repo: ${s.repo_version}`);
                     if (s.registry_version) versionInfo.push(`registry: ${s.registry_version}`);
-                    return { name, reason, versionInfo: versionInfo.join(' / '), mismatched_files: s.mismatched_files || [] };
+                    return { name, reason, registryOnly: !!s.registry_only, versionInfo: versionInfo.join(' / '), mismatched_files: s.mismatched_files || [] };
                 });
             window._stalePackages = stalePackages;
 
@@ -4986,10 +4871,12 @@
                     const filesPreview = sp.mismatched_files.length > 0
                         ? sp.mismatched_files.slice(0, 3).join(', ') + (sp.mismatched_files.length > 3 ? ` +${sp.mismatched_files.length - 3} more` : '')
                         : '';
-                    html += `<div class="broken-tile stale-tile" title="${escapeHtml(filesPreview)}">
+                    const tileColor = sp.registryOnly ? 'var(--gray-400)' : 'var(--warning)';
+                    const tag = sp.registryOnly ? ' <span style="font-size:9px;opacity:0.7;">[registry only]</span>' : '';
+                    html += `<div class="broken-tile stale-tile" title="${escapeHtml(filesPreview || sp.reason)}">
                         <div class="broken-tile-content">
-                            <div class="broken-tile-name">${escapeHtml(sp.name)}</div>
-                            <div class="broken-tile-summary" style="color: var(--warning);">${escapeHtml(sp.reason)}</div>
+                            <div class="broken-tile-name">${escapeHtml(sp.name)}${tag}</div>
+                            <div class="broken-tile-summary" style="color: ${tileColor};">${escapeHtml(sp.reason)}</div>
                         </div>
                     </div>`;
                 });
@@ -5019,7 +4906,6 @@
         updateUI = function() {
             const steps = [
                 ['originalUpdateUI', originalUpdateUI],
-                ['updateBuildCommandCheckboxes', updateBuildCommandCheckboxes],
                 ['updateAnalysisVersionSelect', updateAnalysisVersionSelect],
                 ['updateBuildProgress', updateBuildProgress],
                 ['updateAnalysisSummary', updateAnalysisSummary],
@@ -5080,7 +4966,7 @@
 
             if (allPhaseNames.length === 0) {
                 const td = document.createElement('td');
-                td.colSpan = colCount;
+                td.colSpan = colCount - 1; // -1 because Package column is covered by rowSpan
                 td.style.padding = '8px 12px';
                 td.innerHTML = '<div class="phase-no-data">No build step data available</div>';
                 detailTr.appendChild(td);
@@ -5100,7 +4986,7 @@
             });
             if (maxDuration === 0) maxDuration = 1;
 
-            // First cell: phase names with target label (aligned with Package column)
+            // First cell: phase names with target label (Build Target column only; Package col is covered by rowSpan)
             const nameTd = document.createElement('td');
             nameTd.className = 'phase-detail-names-cell';
             let nameHtml = '<div class="phase-detail-section-header">';

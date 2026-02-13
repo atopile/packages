@@ -100,7 +100,8 @@ class SyncChecker:
         try:
             with urllib.request.urlopen(REGISTRY_API_URL, timeout=30) as resp:
                 data = json.loads(resp.read())
-            return [p["name"] for p in data if isinstance(p, dict) and "name" in p]
+            packages = data.get("packages", []) if isinstance(data, dict) else data
+            return [p["identifier"] for p in packages if isinstance(p, dict) and "identifier" in p]
         except Exception as e:
             logger.warning(f"Failed to fetch registry packages: {e}")
             return []
