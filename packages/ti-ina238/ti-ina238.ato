@@ -88,7 +88,7 @@ module TI_INA238:
     max_current.default = 1A
 
     # INA238 default full-scale shunt drop (programmable). Use 80 mV typical.
-    shunt_drop = 80mV
+    shunt_drop = 80mV +/- 1%
 
     # External shunt resistor (designer selects value & package)
     shunt = new Resistor
@@ -97,9 +97,7 @@ module TI_INA238:
 
     # Recommended shunt value bounds given desired max current
     target_resistance = shunt_drop / max_current
-    assert shunt.resistance <= target_resistance * 1.02
-    assert shunt.resistance >= target_resistance * 0.98
-    # assert shunt.resistance within target_resistance
+    assert shunt.resistance within target_resistance
 
     # --- High-side bridge so designers can insert the monitor inline ---
     power_in = new ElectricPower
