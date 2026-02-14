@@ -7,15 +7,16 @@ on:
 
 jobs:
   define-packages:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
 
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          clean: false
 
       - name: Discover changed packages
         id: packages
@@ -40,7 +41,7 @@ jobs:
       contents: read
       packages: read
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
       FBRK_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
@@ -52,9 +53,10 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          clean: false
 
       - uses: atopile/setup-atopile@v2
         # Build against the main branch of atopile by setting the docker-tag
@@ -137,7 +139,7 @@ jobs:
           retention-days: 14
 
   verify-matrix:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     needs: [build-verify-publish]
     if: always()
     steps:
