@@ -3,6 +3,7 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("MODULE_TEMPLATING")
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 import I2C
@@ -66,19 +67,18 @@ module TI_INA3221:
     """
     Timing control pin for conversion triggering
     """
-    timing_control.required = True
+    timing_control.required = False
+
 
     # --- Power rail constraints ---
     assert power.voltage within 2.7V to 5.5V
 
     # --- I2C address configuration ---
-    addressor = new Addressor<address_bits = 2>
+    addressor = new Addressor<address_bits=2>
     addressor.base = 0x40
     addressor.address_lines[0].reference ~ power  # A0 pin configuration
     addressor.address_lines[1].reference ~ power  # Future expansion
     assert addressor.address is i2c.address
-    # Default to base address (0x40), can be overridden by user
-    i2c.address.default = 0x40
 
     # --- I2C pull-up resistors ---
     i2c_pullup_scl = new Resistor
@@ -110,7 +110,7 @@ module TI_INA3221:
     # --- Decoupling capacitors ---
     power_cap = new Capacitor
     power_cap.capacitance = 100nF +/- 20%
-    power_cap.max_voltage = 10V to 50V
+    power_cap.max_voltage = 10V
     power_cap.package = "0402"
 
     power.hv ~> power_cap ~> power.lv
@@ -165,7 +165,7 @@ module Channel:
     - Integrated shunt resistor for current measurement
     - Differential sense lines for the INA3221
     """
-    trait can_bridge_by_name<input_name = "power_in", output_name = "power_out">
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
 
     # External power connections
     power_in = new ElectricPower
@@ -183,7 +183,7 @@ module Channel:
     # User-defined maximum current parameter
     max_current: current
     # Default to 1A to provide initial constraint (can be overridden by instantiations)
-    max_current.default = 1A
+    max_current = 1A
 
     # INA3221 full-scale shunt voltage range (±163.8mV)
     shunt_drop = 163.8mV
@@ -214,5 +214,5 @@ module Channel:
     power_in.lv ~ power_out.lv
 
     # Connect sense lines across the shunt for voltage measurement
-    sense.p.line ~ power_in.hv  # Sense positive (high-side)
+    sense.p.line ~ power_in.hv   # Sense positive (high-side)
     sense.n.line ~ power_out.hv  # Sense negative (load-side)
