@@ -43,7 +43,7 @@ module TI_TPS54560 from AdjustableRegulator:
     assert input_voltage >= output_voltage  # Buck converter constraint
 
     # Set feedback reference voltage
-    assert reference_voltage is 0.8V +/- 0.1%
+    assert reference_voltage within 0.8V +/- 0.1%
 
     # Inductor
     inductor.inductance = 5.6uH +/- 30%
@@ -110,6 +110,7 @@ module TI_TPS54560 from AdjustableRegulator:
     package.FB ~ feedback_divider.ref_out.hv
     feedback_divider.chain.resistors[0].package = "R0402"
     feedback_divider.chain.resistors[1].package = "R0402"
+    assert feedback_divider.current within 10uA to 100uA
 
     # Enable
     enable.line ~ package.EN
