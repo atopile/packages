@@ -12,6 +12,7 @@ import Diode
 
 from "atopile/ti-drv135/ti-drv135.ato" import TI_DRV135
 from "parts/TECH_PUBLIC_PESD12VV1BL/TECH_PUBLIC_PESD12VV1BL.ato" import TECH_PUBLIC_PESD12VV1BL_package
+from "requirements.ato" import Requirements
 
 module UsageExample:
 
@@ -59,3 +60,6 @@ module UsageExample:
     line_driver.negative_power.lv ~> clamp_diodes[1] ~> line_driver.output_force.p.line
     line_driver.output_force.n.line ~> clamp_diodes[2] ~> line_driver.positive_power.hv
     line_driver.negative_power.lv ~> clamp_diodes[3] ~> line_driver.output_force.n.line
+
+    # --- Simulation Requirements ---
+    reqs = new Requirements

@@ -1,0 +1,163 @@
+import Requirement
+
+module Requirements:
+    "Simulation requirements for the TI DRV135 balanced audio line driver."
+
+    # ---------------------------------------------------------------
+    # Shared notes
+    #
+    # The SPICE exporter generates two voltage sources on pos_power_hv
+    # (V1 from the driver assert, V2 from the usage constraint).
+    # All requirements therefore remove V2.
+    #
+    # The DRV135 IC is not in the passive netlist, so we inject a
+    # simple behavioral model via extra_spice:
+    # - Vin_sig : AC / step input signal source
+    # - E_pos   : VCVS, positive output = +1 * input (unity gain)
+    # - E_neg   : VCVS, negative output = -1 * input (inverted)
+    # - R_load_p/n : 600 ohm audio load on each output leg
+    # - R_iq    : models ~4.5 mA quiescent current from V1
+    #
+    # Pipe (|) separates extra_spice lines.
+    # ---------------------------------------------------------------
+
+    # ---------------------------------------------------------------
+    # REQ-001  Step response – input to differential output
+    #
+    # 1 V step on input, observe output through 22 uF coupling caps
+    # into 600 ohm load.  Shows high-pass settling behaviour.
+    # ---------------------------------------------------------------
+    req_step = new Requirement
+    req_step.req_name = "REQ-001: Output step response"
+    req_step.net = "audio_out_p_line"
+    req_step.min_val = "1.7"
+    req_step.typical = "2.0"
+    req_step.max_val = "2.1"
+    req_step.capture = "transient"
+    req_step.measurement = "peak_to_peak"
+    req_step.context_nets = "audio_out_n_line"
+    req_step.tran_step = "1e-5"
+    req_step.tran_stop = "0.1"
+    req_step.remove_elements = "V2"
+    req_step.extra_spice = "Vin_sig input_sig 0 DC 0 PULSE(0 1 0.001 1n 1n 0.05 0.1)|E_pos tvs_diode_1 0 input_sig 0 1|E_neg tvs_diode_2 0 input_sig 0 -1|R_load_p audio_out_p_line 0 600|R_load_n audio_out_n_line 0 600|R_iq pos_power_hv 0 2500"
+    req_step.justification = "Step response of output coupling caps (22 uF) into 600 ohm load"
+
+    # ---------------------------------------------------------------
+    # REQ-002  1 kHz sine passthrough
+    #
+    # 1 Vpp sine at 1 kHz, measure peak-to-peak at output.
+    # Should pass through coupling caps with near-unity gain.
+    # ---------------------------------------------------------------
+    req_sine_1k = new Requirement
+    req_sine_1k.req_name = "REQ-002: 1 kHz passthrough"
+    req_sine_1k.net = "audio_out_p_line"
+    req_sine_1k.min_val = "0.9"
+    req_sine_1k.typical = "1.0"
+    req_sine_1k.max_val = "1.1"
+    req_sine_1k.capture = "transient"
+    req_sine_1k.measurement = "peak_to_peak"
+    req_sine_1k.context_nets = "audio_out_n_line, input_sig"
+    req_sine_1k.tran_step = "1e-5"
+    req_sine_1k.tran_stop = "0.01"
+    req_sine_1k.tran_start = "0.005"
+    req_sine_1k.remove_elements = "V2"
+    req_sine_1k.extra_spice = "Vin_sig input_sig 0 DC 0 SIN(0 0.5 1000)|E_pos tvs_diode_1 0 input_sig 0 1|E_neg tvs_diode_2 0 input_sig 0 -1|R_load_p audio_out_p_line 0 600|R_load_n audio_out_n_line 0 600|R_iq pos_power_hv 0 2500"
+    req_sine_1k.justification = "1 kHz mid-band audio tone should pass through coupling caps with near unity gain into 600 ohm load"
+
+    # ---------------------------------------------------------------
+    # REQ-003  Quiescent supply current at nominal voltage
+    #
+    # Steady-state DC, measure supply current at end of simulation.
+    # R_iq = 2500 ohm models ~4.5 mA from 11.25 V supply.
+    # ---------------------------------------------------------------
+    req_supply_current = new Requirement
+    req_supply_current.req_name = "REQ-003: Quiescent supply current"
+    req_supply_current.net = "i(v1)"
+    req_supply_current.min_val = "-0.010"
+    req_supply_current.typical = "-0.0045"
+    req_supply_current.max_val = "0"
+    req_supply_current.capture = "transient"
+    req_supply_current.measurement = "final_value"
+    req_supply_current.context_nets = "pos_power_hv"
+    req_supply_current.tran_step = "0.01"
+    req_supply_current.tran_stop = "1.0"
+    req_supply_current.source_name = "V1"
+    req_supply_current.source_spec = "PWL(0 4.5 1 18)"
+    req_supply_current.remove_elements = "V2"
+    req_supply_current.extra_spice = "R_iq pos_power_hv 0 2500"
+    req_supply_current.justification = "DRV135 quiescent current ~4.5 mA typ (R_iq models IC load)"
+
+    # ---------------------------------------------------------------
+    # REQ-004  Supply current vs voltage sweep (4.5 V to 18 V)
+    #
+    # Ramp V1 from 4.5 V to 18 V over 1 s.  R_iq draws I = V/2500.
+    # At 4.5 V → 1.8 mA, at 18 V → 7.2 mA.
+    # ---------------------------------------------------------------
+    req_power_sweep = new Requirement
+    req_power_sweep.req_name = "REQ-004: Supply current vs voltage sweep"
+    req_power_sweep.net = "i(v1)"
+    req_power_sweep.min_val = "-0.010"
+    req_power_sweep.typical = "-0.0045"
+    req_power_sweep.max_val = "0"
+    req_power_sweep.capture = "transient"
+    req_power_sweep.measurement = "sweep"
+    req_power_sweep.context_nets = "pos_power_hv"
+    req_power_sweep.tran_step = "0.01"
+    req_power_sweep.tran_stop = "1.0"
+    req_power_sweep.source_name = "V1"
+    req_power_sweep.source_spec = "PWL(0 4.5 1 18)"
+    req_power_sweep.remove_elements = "V2"
+    req_power_sweep.extra_spice = "R_iq pos_power_hv 0 2500"
+    req_power_sweep.justification = "Current draw as positive supply ramps from 4.5 V to 18 V (R_iq = 2500 ohm models IC quiescent load)"
+
+    # ---------------------------------------------------------------
+    # REQ-005  HP -3dB cutoff below audible range (AC analysis)
+    #
+    # AC sweep from 0.1 Hz to 100 kHz.  Measures differential output
+    # V(audio_out_p) - V(audio_out_n).  The coupling caps + 600 ohm
+    # load form a high-pass filter.  The -3dB cutoff must be below
+    # 20 Hz so the full audible band passes without attenuation.
+    # Expected fc ~ 1/(2*pi*600*22e-6) ~ 12 Hz.
+    # ---------------------------------------------------------------
+    req_bode = new Requirement
+    req_bode.req_name = "REQ-005: HP -3dB cutoff below audible range"
+    req_bode.net = "audio_out_p_line"
+    req_bode.diff_ref_net = "audio_out_n_line"
+    req_bode.min_val = "0"
+    req_bode.typical = "12"
+    req_bode.max_val = "20"
+    req_bode.capture = "ac"
+    req_bode.measurement = "bandwidth_3db"
+    req_bode.ac_start_freq = "1"
+    req_bode.ac_stop_freq = "25000"
+    req_bode.ac_source_name = "Vac_in"
+    req_bode.context_nets = "input_sig"
+    req_bode.remove_elements = "V2"
+    req_bode.extra_spice = "Vac_in input_sig 0 DC 0 AC 1|E_pos tvs_diode_1 0 input_sig 0 1|E_neg tvs_diode_2 0 input_sig 0 -1|R_load_p audio_out_p_line 0 600|R_load_n audio_out_n_line 0 600|R_iq pos_power_hv 0 2500"
+    req_bode.justification = "High-pass -3dB cutoff of coupling caps into 600 ohm load must be below 20 Hz (audible range starts at 20 Hz)"
+
+    # ---------------------------------------------------------------
+    # REQ-006  Output balance (AC analysis)
+    #
+    # Amplitude ratio |V(out+)| / |V(out-)| across the audio band.
+    # For a perfectly balanced driver the ratio is 0 dB (equal
+    # magnitudes, 180 deg phase offset).  The bode_plot measurement
+    # returns DC gain of the ratio; the plot shows gain & phase vs
+    # frequency so any frequency-dependent imbalance is visible.
+    # DRV135 datasheet specifies 68 dB typical OCMR.
+    # ---------------------------------------------------------------
+    req_balance = new Requirement
+    req_balance.req_name = "REQ-006: Output balance"
+    req_balance.net = "audio_out_p_line"
+    req_balance.ac_ref_net = "audio_out_n_line"
+    req_balance.min_val = "-0.5"
+    req_balance.typical = "0"
+    req_balance.max_val = "0.5"
+    req_balance.capture = "ac"
+    req_balance.measurement = "bode_plot"
+    req_balance.ac_start_freq = "1"
+    req_balance.ac_stop_freq = "25000"
+    req_balance.ac_source_name = "Vac_in"
+    req_balance.remove_elements = "V2"
+    req_balance.extra_spice = "Vac_in input_sig 0 DC 0 AC 1|E_pos tvs_diode_1 0 input_sig 0 1|E_neg tvs_diode_2 0 input_sig 0 -1|R_load_p audio_out_p_line 0 600|R_load_n audio_out_n_line 0 600|R_iq pos_power_hv 0 2500"
+    req_balance.justification = "Output amplitude balance: |V(out+)/V(out-)| should be 0 dB (matched magnitudes) with 180 deg phase offset across audio band. DRV135 OCMR typ 68 dB."
