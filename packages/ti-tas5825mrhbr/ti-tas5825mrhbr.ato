@@ -2,7 +2,7 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
 
-import has_single_electric_reference_shared
+import has_single_electric_reference
 import DifferentialPair
 import ElectricLogic
 import ElectricPower
@@ -12,7 +12,7 @@ import I2C
 import I2S
 import Resistor
 
-# from "tas-addressor.py" import TAS_addressor
+from "tas-addressor.py" import TAS_addressor
 from "parts/Texas_Instruments_TAS5825MRHBR/Texas_Instruments_TAS5825MRHBR.ato" import Texas_Instruments_TAS5825MRHBR_package
 
 module OutputStage:
@@ -66,7 +66,7 @@ module Texas_Instruments_TAS5825MRHBR:
     Datasheet: https://www.lcsc.com/datasheet/lcsc_datasheet_1912202033_Texas-Instruments-TAS5825MRHBR_C471049.pdf
     """
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     # Power
     power_pvdd = new ElectricPower
@@ -195,11 +195,9 @@ module Texas_Instruments_TAS5825MRHBR:
         assert cap.capacitance within 1 uF +/- 20%
 
     # Address resistor
-    # addressor = new TAS_addressor
-    # addressor.base = 0x4C
-    # assert addressor.address is i2c.address
-    # amplifier.ADR ~> addressor.addr_resistor ~> power_dvdd.lv
-    addr_resistor = new Resistor
-    addr_resistor.package = "R0402"
-    addr_resistor.resistance = 4.7kohm +/- 5%
-    amplifier.ADR ~> addr_resistor ~> power_dvdd.lv
+    addressor = new TAS_addressor
+    addressor.base = 0x4C
+    assert addressor.address is i2c.address
+    i2c.address.default = 0x4C
+    addressor.addr_resistor.package = "R0402"
+    amplifier.ADR ~> addressor.addr_resistor ~> power_dvdd.lv
