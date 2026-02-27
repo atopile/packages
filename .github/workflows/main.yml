@@ -7,7 +7,7 @@ on:
 
 jobs:
   define-packages:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
 
     outputs:
       packages: ${{ steps.packages.outputs.packages }}
@@ -41,7 +41,7 @@ jobs:
       contents: read
       packages: read
       id-token: write
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     env:
       GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
       FBRK_LOG_DIR: ${{ github.workspace }}/${{ matrix.package }}/.ato/logs
@@ -139,7 +139,7 @@ jobs:
           retention-days: 14
 
   verify-matrix:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     needs: [build-verify-publish]
     if: always()
     steps:
