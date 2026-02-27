@@ -4,23 +4,247 @@
 
 from "lattice-ecp5.ato" import Lattice_ECP5_driver
 from "atopile/st-stm32h723/st-stm32h723.ato" import ST_STM32H723
-from "atopile/samsung-ddr3/samsung-ddr3.ato" import Samsung_K4B4G1646E_BYMA_driver
-from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901  
+from "samsung-ddr3-driver.ato" import Samsung_K4B4G1646E_BYMA_driver
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
+from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/programming-headers/programming-headers.ato" import TC2050_ARM_Cortex
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorYellow
 
 from "parts/hanxia_HX_PZ2_54_2x8P_TP/hanxia_HX_PZ2_54_2x8P_TP.ato" import hanxia_HX_PZ2_54_2x8P_TP_package
 from "parts/Murata_Electronics_BLM15PX121SN1D/Murata_Electronics_BLM15PX121SN1D.ato" import Murata_Electronics_BLM15PX121SN1D_package
 from "parts/Nichicon_UWX1C470MCL1GB/Nichicon_UWX1C470MCL1GB.ato" import Nichicon_UWX1C470MCL1GB_package
+from "parts/Winbond_Elec_W25Q128JVSIQ/Winbond_Elec_W25Q128JVSIQ.ato" import Winbond_Elec_W25Q128JVSIQ_package
+from "parts/Samtec_PCIE_164_02_F_D_TH/Samtec_PCIE_164_02_F_D_TH.ato" import Samtec_PCIE_164_02_F_D_TH_package
 
 import Electrical
 import ElectricPower
 import ElectricLogic
 import Capacitor
+import Resistor
 
+# ============================================================================
+# SPI Flash driver for FPGA bitstream storage + OTA
+# ============================================================================
+module SPI_Flash_W25Q128:
+    package = new Winbond_Elec_W25Q128JVSIQ_package
+
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 10%
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+
+    # WP# and HOLD# pulled high to disable write protection
+    r_wp = new Resistor
+    r_wp.resistance = 10kohm +/- 5%
+    r_wp.package = "0402"
+    package.IO2 ~ r_wp.unnamed[0]
+    r_wp.unnamed[1] ~ power.hv
+
+    r_hold = new Resistor
+    r_hold.resistance = 10kohm +/- 5%
+    r_hold.package = "0402"
+    package.IO3 ~ r_hold.unnamed[0]
+    r_hold.unnamed[1] ~ power.hv
+
+    # Decoupling
+    cap = new Capacitor
+    cap.package = "0402"
+    cap.capacitance = 100nF +/- 20%
+    cap.max_voltage = 6.3V
+    power.hv ~> cap ~> power.lv
+
+# ============================================================================
+# Probe Connector - PCIe x16 slot repurposed for 100 probe channels
+# ============================================================================
+module ProbeConnector:
+    "PCIe x16 card-edge slot with ~100 signal channels + GND/3V3 interleave"
+    package = new Samtec_PCIE_164_02_F_D_TH_package
+
+    power_ref = new ElectricPower
+
+    # 100 probe channels as ElectricLogic
+    ch = new ElectricLogic[100]
+    for c in ch:
+        c.reference ~ power_ref
+
+    # GND assignment: every 5th pin on each side (A1,A6,A11,...  B1,B6,B11,...)
+    package.A1 ~ power_ref.lv
+    package.A6 ~ power_ref.lv
+    package.A11 ~ power_ref.lv
+    package.A16 ~ power_ref.lv
+    package.A21 ~ power_ref.lv
+    package.A26 ~ power_ref.lv
+    package.A31 ~ power_ref.lv
+    package.A36 ~ power_ref.lv
+    package.A41 ~ power_ref.lv
+    package.A46 ~ power_ref.lv
+    package.A51 ~ power_ref.lv
+    package.A56 ~ power_ref.lv
+    package.A61 ~ power_ref.lv
+    package.A66 ~ power_ref.lv
+    package.A71 ~ power_ref.lv
+    package.A76 ~ power_ref.lv
+    package.A82 ~ power_ref.lv
+
+    package.B1 ~ power_ref.lv
+    package.B6 ~ power_ref.lv
+    package.B11 ~ power_ref.lv
+    package.B16 ~ power_ref.lv
+    package.B21 ~ power_ref.lv
+    package.B26 ~ power_ref.lv
+    package.B31 ~ power_ref.lv
+    package.B36 ~ power_ref.lv
+    package.B41 ~ power_ref.lv
+    package.B46 ~ power_ref.lv
+    package.B51 ~ power_ref.lv
+    package.B56 ~ power_ref.lv
+    package.B61 ~ power_ref.lv
+    package.B66 ~ power_ref.lv
+    package.B71 ~ power_ref.lv
+    package.B76 ~ power_ref.lv
+    package.B82 ~ power_ref.lv
+
+    # 3V3 reference pins
+    package.A81 ~ power_ref.hv
+    package.B81 ~ power_ref.hv
+
+    # Side A signal channels (ch[0]-ch[49])
+    ch[0].line ~ package.A2
+    ch[1].line ~ package.A3
+    ch[2].line ~ package.A4
+    ch[3].line ~ package.A5
+    ch[4].line ~ package.A7
+    ch[5].line ~ package.A8
+    ch[6].line ~ package.A9
+    ch[7].line ~ package.A10
+    ch[8].line ~ package.A12
+    ch[9].line ~ package.A13
+    ch[10].line ~ package.A14
+    ch[11].line ~ package.A15
+    ch[12].line ~ package.A17
+    ch[13].line ~ package.A18
+    ch[14].line ~ package.A19
+    ch[15].line ~ package.A20
+    ch[16].line ~ package.A22
+    ch[17].line ~ package.A23
+    ch[18].line ~ package.A24
+    ch[19].line ~ package.A25
+    ch[20].line ~ package.A27
+    ch[21].line ~ package.A28
+    ch[22].line ~ package.A29
+    ch[23].line ~ package.A30
+    ch[24].line ~ package.A32
+    ch[25].line ~ package.A33
+    ch[26].line ~ package.A34
+    ch[27].line ~ package.A35
+    ch[28].line ~ package.A37
+    ch[29].line ~ package.A38
+    ch[30].line ~ package.A39
+    ch[31].line ~ package.A40
+    ch[32].line ~ package.A42
+    ch[33].line ~ package.A43
+    ch[34].line ~ package.A44
+    ch[35].line ~ package.A45
+    ch[36].line ~ package.A47
+    ch[37].line ~ package.A48
+    ch[38].line ~ package.A49
+    ch[39].line ~ package.A50
+    ch[40].line ~ package.A52
+    ch[41].line ~ package.A53
+    ch[42].line ~ package.A54
+    ch[43].line ~ package.A55
+    ch[44].line ~ package.A57
+    ch[45].line ~ package.A58
+    ch[46].line ~ package.A59
+    ch[47].line ~ package.A60
+    ch[48].line ~ package.A62
+    ch[49].line ~ package.A63
+
+    # Side B signal channels (ch[50]-ch[99])
+    ch[50].line ~ package.B2
+    ch[51].line ~ package.B3
+    ch[52].line ~ package.B4
+    ch[53].line ~ package.B5
+    ch[54].line ~ package.B7
+    ch[55].line ~ package.B8
+    ch[56].line ~ package.B9
+    ch[57].line ~ package.B10
+    ch[58].line ~ package.B12
+    ch[59].line ~ package.B13
+    ch[60].line ~ package.B14
+    ch[61].line ~ package.B15
+    ch[62].line ~ package.B17
+    ch[63].line ~ package.B18
+    ch[64].line ~ package.B19
+    ch[65].line ~ package.B20
+    ch[66].line ~ package.B22
+    ch[67].line ~ package.B23
+    ch[68].line ~ package.B24
+    ch[69].line ~ package.B25
+    ch[70].line ~ package.B27
+    ch[71].line ~ package.B28
+    ch[72].line ~ package.B29
+    ch[73].line ~ package.B30
+    ch[74].line ~ package.B32
+    ch[75].line ~ package.B33
+    ch[76].line ~ package.B34
+    ch[77].line ~ package.B35
+    ch[78].line ~ package.B37
+    ch[79].line ~ package.B38
+    ch[80].line ~ package.B39
+    ch[81].line ~ package.B40
+    ch[82].line ~ package.B42
+    ch[83].line ~ package.B43
+    ch[84].line ~ package.B44
+    ch[85].line ~ package.B45
+    ch[86].line ~ package.B47
+    ch[87].line ~ package.B48
+    ch[88].line ~ package.B49
+    ch[89].line ~ package.B50
+    ch[90].line ~ package.B52
+    ch[91].line ~ package.B53
+    ch[92].line ~ package.B54
+    ch[93].line ~ package.B55
+    ch[94].line ~ package.B57
+    ch[95].line ~ package.B58
+    ch[96].line ~ package.B59
+    ch[97].line ~ package.B60
+    ch[98].line ~ package.B62
+    ch[99].line ~ package.B63
+
+# ============================================================================
+# Main Logic Analyzer Module
+# ============================================================================
 module Logic_Analyzer:
+    # --- Core ICs ---
     mcu = new ST_STM32H723
     ecp5 = new Lattice_ECP5_driver
     ddr = new Samsung_K4B4G1646E_BYMA_driver
-    
+
+    # --- Networking ---
+    phy = new Microchip_LAN8742A
+    rj45 = new RJ45_Horizontal_TH_Magnetics
+
+    # --- Connectors ---
+    usb_connector = new USB2_0TypeCHorizontalConnector
+    probe = new ProbeConnector
+    prog_header = new TC2050_ARM_Cortex
+
+    # --- SPI Flash ---
+    spi_flash = new SPI_Flash_W25Q128
+
+    # --- Status LEDs ---
+    led_power = new LEDIndicatorGreen
+    led_link = new LEDIndicatorYellow
+    led_capture = new LEDIndicatorBlue
+
+    # ========================================================================
+    # Power Rails
+    # ========================================================================
     power_5v0 = new ElectricPower
     power_5v0.voltage = 5.0V +/- 5%
     power_5v0.hv.override_net_name = "5V0"
@@ -45,7 +269,7 @@ module Logic_Analyzer:
     power_1v1.voltage = 1.1V +/- 5%
     power_1v1.hv.override_net_name = "1V1"
 
-    # Power Grounds
+    # Common ground
     gnd = new Electrical
     power_5v0.lv ~ gnd
     power_3v3.lv ~ gnd
@@ -54,7 +278,14 @@ module Logic_Analyzer:
     power_1v35_ddr_int.lv ~ gnd
     power_1v1.lv ~ gnd
 
-    # Voltage Regulators and Conditioning
+    # ========================================================================
+    # USB-C Power Input
+    # ========================================================================
+    usb_connector.usb.usb_if.buspower ~ power_5v0
+
+    # ========================================================================
+    # Voltage Regulators
+    # ========================================================================
     cap_5v0_bulk = new Nichicon_UWX1C470MCL1GB_package
     power_5v0.hv ~ cap_5v0_bulk.1; cap_5v0_bulk.2 ~ power_5v0.lv
 
@@ -65,7 +296,7 @@ module Logic_Analyzer:
     cap_3v3_bulk.capacitance = 22uF +/- 20%
     cap_3v3_bulk.max_voltage = 6.3V
     power_3v3.hv ~> cap_3v3_bulk ~> power_3v3.lv
-    
+
     reg_2v5 = new TI_TLV75901
     power_5v0 ~> reg_2v5 ~> power_2v5
     cap_2v5_bulk = new Capacitor
@@ -88,6 +319,7 @@ module Logic_Analyzer:
     cap_1v35_int_bulk.package = "0603"
     cap_1v35_int_bulk.capacitance = 10uF +/- 20%
     cap_1v35_int_bulk.max_voltage = 6.3V
+    power_1v35_ddr_int.hv ~> cap_1v35_int_bulk ~> power_1v35_ddr_int.lv
 
     reg_1v1 = new TI_TLV75901
     power_3v3 ~> reg_1v1 ~> power_1v1
@@ -97,10 +329,15 @@ module Logic_Analyzer:
     cap_1v1_bulk.max_voltage = 6.3V
     power_1v1.hv ~> cap_1v1_bulk ~> power_1v1.lv
 
-    # MCU Power
+    # ========================================================================
+    # MCU Power + USB
+    # ========================================================================
     mcu.power_3v3 ~ power_3v3
+    usb_connector.usb ~ mcu.usb
 
-    # EPC5 Power
+    # ========================================================================
+    # FPGA Power
+    # ========================================================================
     ecp5.model.power_core ~ power_1v1
     ecp5.power_vccaux ~ power_2v5
 
@@ -108,11 +345,13 @@ module Logic_Analyzer:
     ecp5.model.power_vccio[1] ~ power_3v3
     ecp5.model.power_vccio[2] ~ power_3v3
     ecp5.model.power_vccio[3] ~ power_3v3
-    ecp5.model.power_vccio[6] ~ power_1v35 # DRAM TTL
-    ecp5.model.power_vccio[7] ~ power_1v35 # DRAM TTL
+    ecp5.model.power_vccio[6] ~ power_1v35
+    ecp5.model.power_vccio[7] ~ power_1v35
     ecp5.model.power_vccio[8] ~ power_3v3
 
-    # DDR3 Power
+    # ========================================================================
+    # DDR3 Power + Wiring
+    # ========================================================================
     ddr.model.power_external ~ power_1v35
     ddr.model.power_internal ~ power_1v35_ddr_int
 
@@ -122,8 +361,14 @@ module Logic_Analyzer:
     ddr.model.clock_enable ~ ecp5.model.io_bank_6[28]
     ddr.model.n_column_address_strobe ~ ecp5.model.io_bank_6[20]
     ddr.model.n_row_address_strobe ~ ecp5.model.io_bank_6[30]
+    ddr.model.odt ~ ecp5.model.io_bank_6[26]
+    ddr.model.n_reset ~ ecp5.model.io_bank_6[3]
 
-    # Use bank 6 for address
+    # Clock pair
+    ddr.model.ck ~ ecp5.model.io_bank_6[24]
+    ddr.model.n_ck ~ ecp5.model.io_bank_6[25]
+
+    # Address bus (Bank 6)
     ddr.model.address[0] ~ ecp5.model.io_bank_6[15]
     ddr.model.address[1] ~ ecp5.model.io_bank_6[8]
     ddr.model.address[2] ~ ecp5.model.io_bank_6[11]
@@ -144,7 +389,7 @@ module Logic_Analyzer:
     ddr.model.bank_address[1] ~ ecp5.model.io_bank_6[17]
     ddr.model.bank_address[2] ~ ecp5.model.io_bank_6[19]
 
-    # Use bank 7 for data
+    # Data - upper byte (Bank 7)
     ddr.model.upper.data[0] ~ ecp5.model.io_bank_7[0]
     ddr.model.upper.data[1] ~ ecp5.model.io_bank_7[1]
     ddr.model.upper.data[2] ~ ecp5.model.io_bank_7[2]
@@ -154,6 +399,7 @@ module Logic_Analyzer:
     ddr.model.upper.data[6] ~ ecp5.model.io_bank_7[6]
     ddr.model.upper.data[7] ~ ecp5.model.io_bank_7[7]
 
+    # Data - lower byte (Bank 7)
     ddr.model.lower.data[0] ~ ecp5.model.io_bank_7[8]
     ddr.model.lower.data[1] ~ ecp5.model.io_bank_7[9]
     ddr.model.lower.data[2] ~ ecp5.model.io_bank_7[10]
@@ -163,42 +409,291 @@ module Logic_Analyzer:
     ddr.model.lower.data[6] ~ ecp5.model.io_bank_7[14]
     ddr.model.lower.data[7] ~ ecp5.model.io_bank_7[15]
 
-module IO_Header:
+    # Data strobes (Bank 7)
+    ddr.model.lower.dqs ~ ecp5.model.io_bank_7[16]
+    ddr.model.lower.n_dqs ~ ecp5.model.io_bank_7[17]
+    ddr.model.upper.dqs ~ ecp5.model.io_bank_7[18]
+    ddr.model.upper.n_dqs ~ ecp5.model.io_bank_7[19]
 
-    # --- Package ---
-    package = new hanxia_HX_PZ2_54_2x8P_TP_package
+    # Data masks (Bank 7)
+    ddr.model.lower.dm ~ ecp5.model.io_bank_7[20]
+    ddr.model.upper.dm ~ ecp5.model.io_bank_7[21]
 
-    # --- External interfaces ---
-    io = new ElectricLogic[8]
+    # ========================================================================
+    # Ethernet: LAN8742A PHY + RJ45
+    # ========================================================================
+    phy.power_3v3 ~ power_3v3
+    # Connect RMII signals individually (different interface types between packages)
+    phy.rmii.ref_clk ~ mcu.rmii.ref_clk
+    phy.rmii.txd[0] ~ mcu.rmii.txd[0]
+    phy.rmii.txd[1] ~ mcu.rmii.txd[1]
+    phy.rmii.tx_en ~ mcu.rmii.tx_en
+    phy.rmii.rxd[0] ~ mcu.rmii.rxd[0]
+    phy.rmii.rxd[1] ~ mcu.rmii.rxd[1]
+    phy.rmii.crs_dv ~ mcu.rmii.crs_dv
+    # Connect MDIO signals individually
+    phy.mdio.mdc ~ mcu.mdio.mdc
+    phy.mdio.mdio ~ mcu.mdio.mdio
+    phy.ethernet ~ rj45.ethernet
+    rj45.shield ~ gnd
+    # PHY LEDs are connected automatically via phy.ethernet ~ rj45.ethernet
 
-    power_reference = new ElectricPower
+    # ========================================================================
+    # SPI Flash: ECP5 boot + STM32 OTA writes (shared bus)
+    # ========================================================================
+    spi_flash.power ~ power_3v3
 
-    # --- Connections ---
-    for i in io:
-        i.reference ~ power_reference
-    
-    io[0].line ~ package.2
-    io[1].line ~ package.4
-    io[2].line ~ package.6
-    io[3].line ~ package.8
-    io[4].line ~ package.10
-    io[5].line ~ package.12
-    io[6].line ~ package.14
-    io[7].line ~ package.16
+    # FPGA sysCONFIG → Flash (direct, FPGA is SPI master during boot)
+    # CFG_0 = MISO (flash DO → FPGA), CFG_1 = MOSI (FPGA → flash DI)
+    # CFG_2 = CS (FPGA → flash nCS), CCLK = CLK
+    ecp5.model.cclk.line ~ spi_flash.package.CLK
+    ecp5.model.cfg[0].line ~ spi_flash.package.DO
+    ecp5.model.cfg[1].line ~ spi_flash.package.DI
+    ecp5.model.cfg[2].line ~ spi_flash.package.nCS
 
-    io[0].reference.lv ~ package.1
-    io[1].reference.lv ~ package.3
-    io[2].reference.lv ~ package.5
-    io[3].reference.lv ~ package.7
-    io[4].reference.lv ~ package.9
-    io[5].reference.lv ~ package.11
-    io[6].reference.lv ~ package.13
-    io[7].reference.lv ~ package.15
+    # STM32 SPI[0] → Flash (through series resistors, for OTA bitstream writes)
+    # FPGA tri-states config pins when PROGRAMN is asserted low
+    r_flash_sck = new Resistor
+    r_flash_sck.resistance = 100ohm +/- 5%
+    r_flash_sck.package = "0402"
+    mcu.spi[0].sclk.line ~ r_flash_sck.unnamed[0]
+    r_flash_sck.unnamed[1] ~ spi_flash.package.CLK
 
-module IO_Protection:
+    r_flash_mosi = new Resistor
+    r_flash_mosi.resistance = 100ohm +/- 5%
+    r_flash_mosi.package = "0402"
+    mcu.spi[0].mosi.line ~ r_flash_mosi.unnamed[0]
+    r_flash_mosi.unnamed[1] ~ spi_flash.package.DI
 
-    input = new ElectricLogic
-    output = new ElectricLogic
+    # MISO doesn't need series resistor (read-only from STM32)
+    mcu.spi[0].miso.line ~ spi_flash.package.DO
 
-    # RC Lowpass or just current limiting resistor
-    # TVS
+    # STM32 GPIO for flash CS (active low)
+    r_flash_cs = new Resistor
+    r_flash_cs.resistance = 100ohm +/- 5%
+    r_flash_cs.package = "0402"
+    mcu.gpio_c[13].line ~ r_flash_cs.unnamed[0]
+    r_flash_cs.unnamed[1] ~ spi_flash.package.nCS
+
+    # STM32 controls FPGA PROGRAMN for boot/OTA
+    mcu.gpio_f[0].line ~ ecp5.model.programn.line
+
+    # ========================================================================
+    # FPGA ↔ STM32: FMC 8-bit parallel data bus (Bank 2)
+    # ========================================================================
+    # High-bandwidth path for captured sample readout
+    # FMC_D[0:7] data lines
+    mcu.gpio_d[14].line ~ ecp5.model.io_bank_2[0].line
+    mcu.gpio_d[15].line ~ ecp5.model.io_bank_2[1].line
+    mcu.gpio_d[0].line ~ ecp5.model.io_bank_2[2].line
+    mcu.gpio_d[1].line ~ ecp5.model.io_bank_2[3].line
+    mcu.gpio_e[7].line ~ ecp5.model.io_bank_2[4].line
+    mcu.gpio_e[8].line ~ ecp5.model.io_bank_2[5].line
+    mcu.gpio_e[9].line ~ ecp5.model.io_bank_2[6].line
+    mcu.gpio_e[10].line ~ ecp5.model.io_bank_2[7].line
+
+    # FMC control: NOE (read), NWE (write), NE1 (chip select), FIFO_READY (IRQ)
+    mcu.gpio_d[4].line ~ ecp5.model.io_bank_2[8].line
+    mcu.gpio_d[5].line ~ ecp5.model.io_bank_2[9].line
+    mcu.gpio_d[7].line ~ ecp5.model.io_bank_2[10].line
+    mcu.gpio_e[0].line ~ ecp5.model.io_bank_2[11].line
+
+    # ========================================================================
+    # FPGA ↔ STM32: SPI control bus (Bank 3)
+    # ========================================================================
+    # Low-bandwidth register interface for config, status, arm/disarm
+    mcu.spi[1].sclk.line ~ ecp5.model.io_bank_3[0].line
+    mcu.spi[1].mosi.line ~ ecp5.model.io_bank_3[1].line
+    mcu.spi[1].miso.line ~ ecp5.model.io_bank_3[2].line
+    mcu.gpio_c[9].line ~ ecp5.model.io_bank_3[3].line
+
+    # ========================================================================
+    # Probe Channels → FPGA IO Banks
+    # ========================================================================
+    probe.power_ref ~ power_3v3
+
+    # Bank 0: 24 channels → probe ch[0]-ch[23]
+    probe.ch[0] ~ ecp5.model.io_bank_0[0]
+    probe.ch[1] ~ ecp5.model.io_bank_0[1]
+    probe.ch[2] ~ ecp5.model.io_bank_0[2]
+    probe.ch[3] ~ ecp5.model.io_bank_0[3]
+    probe.ch[4] ~ ecp5.model.io_bank_0[4]
+    probe.ch[5] ~ ecp5.model.io_bank_0[5]
+    probe.ch[6] ~ ecp5.model.io_bank_0[6]
+    probe.ch[7] ~ ecp5.model.io_bank_0[7]
+    probe.ch[8] ~ ecp5.model.io_bank_0[8]
+    probe.ch[9] ~ ecp5.model.io_bank_0[9]
+    probe.ch[10] ~ ecp5.model.io_bank_0[10]
+    probe.ch[11] ~ ecp5.model.io_bank_0[11]
+    probe.ch[12] ~ ecp5.model.io_bank_0[12]
+    probe.ch[13] ~ ecp5.model.io_bank_0[13]
+    probe.ch[14] ~ ecp5.model.io_bank_0[14]
+    probe.ch[15] ~ ecp5.model.io_bank_0[15]
+    probe.ch[16] ~ ecp5.model.io_bank_0[16]
+    probe.ch[17] ~ ecp5.model.io_bank_0[17]
+    probe.ch[18] ~ ecp5.model.io_bank_0[18]
+    probe.ch[19] ~ ecp5.model.io_bank_0[19]
+    probe.ch[20] ~ ecp5.model.io_bank_0[20]
+    probe.ch[21] ~ ecp5.model.io_bank_0[21]
+    probe.ch[22] ~ ecp5.model.io_bank_0[22]
+    probe.ch[23] ~ ecp5.model.io_bank_0[23]
+
+    # Bank 1: 32 channels → probe ch[24]-ch[55]
+    probe.ch[24] ~ ecp5.model.io_bank_1[0]
+    probe.ch[25] ~ ecp5.model.io_bank_1[1]
+    probe.ch[26] ~ ecp5.model.io_bank_1[2]
+    probe.ch[27] ~ ecp5.model.io_bank_1[3]
+    probe.ch[28] ~ ecp5.model.io_bank_1[4]
+    probe.ch[29] ~ ecp5.model.io_bank_1[5]
+    probe.ch[30] ~ ecp5.model.io_bank_1[6]
+    probe.ch[31] ~ ecp5.model.io_bank_1[7]
+    probe.ch[32] ~ ecp5.model.io_bank_1[8]
+    probe.ch[33] ~ ecp5.model.io_bank_1[9]
+    probe.ch[34] ~ ecp5.model.io_bank_1[10]
+    probe.ch[35] ~ ecp5.model.io_bank_1[11]
+    probe.ch[36] ~ ecp5.model.io_bank_1[12]
+    probe.ch[37] ~ ecp5.model.io_bank_1[13]
+    probe.ch[38] ~ ecp5.model.io_bank_1[14]
+    probe.ch[39] ~ ecp5.model.io_bank_1[15]
+    probe.ch[40] ~ ecp5.model.io_bank_1[16]
+    probe.ch[41] ~ ecp5.model.io_bank_1[17]
+    probe.ch[42] ~ ecp5.model.io_bank_1[18]
+    probe.ch[43] ~ ecp5.model.io_bank_1[19]
+    probe.ch[44] ~ ecp5.model.io_bank_1[20]
+    probe.ch[45] ~ ecp5.model.io_bank_1[21]
+    probe.ch[46] ~ ecp5.model.io_bank_1[22]
+    probe.ch[47] ~ ecp5.model.io_bank_1[23]
+    probe.ch[48] ~ ecp5.model.io_bank_1[24]
+    probe.ch[49] ~ ecp5.model.io_bank_1[25]
+    probe.ch[50] ~ ecp5.model.io_bank_1[26]
+    probe.ch[51] ~ ecp5.model.io_bank_1[27]
+    probe.ch[52] ~ ecp5.model.io_bank_1[28]
+    probe.ch[53] ~ ecp5.model.io_bank_1[29]
+    probe.ch[54] ~ ecp5.model.io_bank_1[30]
+    probe.ch[55] ~ ecp5.model.io_bank_1[31]
+
+    # Bank 2 remaining (after FMC uses [0:11]): 16 channels → probe ch[56]-ch[71]
+    probe.ch[56] ~ ecp5.model.io_bank_2[12]
+    probe.ch[57] ~ ecp5.model.io_bank_2[13]
+    probe.ch[58] ~ ecp5.model.io_bank_2[14]
+    probe.ch[59] ~ ecp5.model.io_bank_2[15]
+    probe.ch[60] ~ ecp5.model.io_bank_2[16]
+    probe.ch[61] ~ ecp5.model.io_bank_2[17]
+    probe.ch[62] ~ ecp5.model.io_bank_2[18]
+    probe.ch[63] ~ ecp5.model.io_bank_2[19]
+    probe.ch[64] ~ ecp5.model.io_bank_2[20]
+    probe.ch[65] ~ ecp5.model.io_bank_2[21]
+    probe.ch[66] ~ ecp5.model.io_bank_2[22]
+    probe.ch[67] ~ ecp5.model.io_bank_2[23]
+    probe.ch[68] ~ ecp5.model.io_bank_2[24]
+    probe.ch[69] ~ ecp5.model.io_bank_2[25]
+    probe.ch[70] ~ ecp5.model.io_bank_2[26]
+    probe.ch[71] ~ ecp5.model.io_bank_2[27]
+
+    # Bank 3 remaining (after SPI ctrl uses [0:3]): 24 channels → probe ch[72]-ch[95]
+    probe.ch[72] ~ ecp5.model.io_bank_3[4]
+    probe.ch[73] ~ ecp5.model.io_bank_3[5]
+    probe.ch[74] ~ ecp5.model.io_bank_3[6]
+    probe.ch[75] ~ ecp5.model.io_bank_3[7]
+    probe.ch[76] ~ ecp5.model.io_bank_3[8]
+    probe.ch[77] ~ ecp5.model.io_bank_3[9]
+    probe.ch[78] ~ ecp5.model.io_bank_3[10]
+    probe.ch[79] ~ ecp5.model.io_bank_3[11]
+    probe.ch[80] ~ ecp5.model.io_bank_3[12]
+    probe.ch[81] ~ ecp5.model.io_bank_3[13]
+    probe.ch[82] ~ ecp5.model.io_bank_3[14]
+    probe.ch[83] ~ ecp5.model.io_bank_3[15]
+    probe.ch[84] ~ ecp5.model.io_bank_3[16]
+    probe.ch[85] ~ ecp5.model.io_bank_3[17]
+    probe.ch[86] ~ ecp5.model.io_bank_3[18]
+    probe.ch[87] ~ ecp5.model.io_bank_3[19]
+    probe.ch[88] ~ ecp5.model.io_bank_3[20]
+    probe.ch[89] ~ ecp5.model.io_bank_3[21]
+    probe.ch[90] ~ ecp5.model.io_bank_3[22]
+    probe.ch[91] ~ ecp5.model.io_bank_3[23]
+    probe.ch[92] ~ ecp5.model.io_bank_3[24]
+    probe.ch[93] ~ ecp5.model.io_bank_3[25]
+    probe.ch[94] ~ ecp5.model.io_bank_3[26]
+    probe.ch[95] ~ ecp5.model.io_bank_3[27]
+
+    # Remaining ch[96]-ch[99] from Bank 2 loopback-capable pins
+    probe.ch[96] ~ ecp5.model.io_bank_2[28]
+    probe.ch[97] ~ ecp5.model.io_bank_2[29]
+    probe.ch[98] ~ ecp5.model.io_bank_2[30]
+    probe.ch[99] ~ ecp5.model.io_bank_2[31]
+
+    # ========================================================================
+    # Self-Test Loopback Paths
+    # ========================================================================
+    # FPGA→FPGA loopback: Bank 2 outputs [28:31] → Bank 0 inputs [20:23]
+    # These share probe ch[96:99] (Bank 2 side) and ch[20:23] (Bank 0 side).
+    # FPGA drives pattern on [28:31], captures on [20:23] via probe connector traces.
+
+    # FPGA→STM32 loopback: Bank 3 outputs [28:29] → STM32 GPIO
+    ecp5.model.io_bank_3[28].line ~ mcu.gpio_e[1].line
+    ecp5.model.io_bank_3[29].line ~ mcu.gpio_e[2].line
+
+    # ========================================================================
+    # Programming Header (STM32 SWD)
+    # ========================================================================
+    prog_header.swd ~ mcu.swd
+
+    # ========================================================================
+    # Status LEDs
+    # ========================================================================
+    # Power LED: always on when 3V3 is present
+    led_power.power ~ power_3v3
+
+    # Link LED: driven by STM32 GPIO
+    led_link.power.hv ~ mcu.gpio_g[0].line
+    led_link.power.lv ~ gnd
+
+    # Capture LED: driven by STM32 GPIO
+    led_capture.power.hv ~ mcu.gpio_g[1].line
+    led_capture.power.lv ~ gnd
+
+    # ========================================================================
+    # Self-Test Voltage Dividers (for STM32 ADC monitoring)
+    # ========================================================================
+    # 5V0 rail: 10k/10k divider → PA0 (2.5V at ADC input)
+    r_mon_5v_top = new Resistor
+    r_mon_5v_top.resistance = 10kohm +/- 1%
+    r_mon_5v_top.package = "0402"
+    r_mon_5v_bot = new Resistor
+    r_mon_5v_bot.resistance = 10kohm +/- 1%
+    r_mon_5v_bot.package = "0402"
+    power_5v0.hv ~ r_mon_5v_top.unnamed[0]
+    r_mon_5v_top.unnamed[1] ~ mcu.gpio_a[0].line
+    mcu.gpio_a[0].line ~ r_mon_5v_bot.unnamed[0]
+    r_mon_5v_bot.unnamed[1] ~ gnd
+
+    # 3V3 rail: 10k/10k divider → PA2 (1.65V at ADC input)
+    r_mon_3v3_top = new Resistor
+    r_mon_3v3_top.resistance = 10kohm +/- 1%
+    r_mon_3v3_top.package = "0402"
+    r_mon_3v3_bot = new Resistor
+    r_mon_3v3_bot.resistance = 10kohm +/- 1%
+    r_mon_3v3_bot.package = "0402"
+    power_3v3.hv ~ r_mon_3v3_top.unnamed[0]
+    r_mon_3v3_top.unnamed[1] ~ mcu.gpio_a[2].line
+    mcu.gpio_a[2].line ~ r_mon_3v3_bot.unnamed[0]
+    r_mon_3v3_bot.unnamed[1] ~ gnd
+
+    # 2V5, 1V35, 1V1 are within 3.3V ADC range — direct sense with 100k to ADC
+    r_mon_2v5 = new Resistor
+    r_mon_2v5.resistance = 100kohm +/- 1%
+    r_mon_2v5.package = "0402"
+    power_2v5.hv ~ r_mon_2v5.unnamed[0]
+    r_mon_2v5.unnamed[1] ~ mcu.gpio_a[3].line
+
+    r_mon_1v35 = new Resistor
+    r_mon_1v35.resistance = 100kohm +/- 1%
+    r_mon_1v35.package = "0402"
+    power_1v35.hv ~ r_mon_1v35.unnamed[0]
+    r_mon_1v35.unnamed[1] ~ mcu.gpio_a[4].line
+
+    r_mon_1v1 = new Resistor
+    r_mon_1v1.resistance = 100kohm +/- 1%
+    r_mon_1v1.package = "0402"
+    power_1v1.hv ~ r_mon_1v1.unnamed[0]
+    r_mon_1v1.unnamed[1] ~ mcu.gpio_a[5].line

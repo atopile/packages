@@ -448,7 +448,7 @@ interface ElectricLogic:
     reference = new ElectricPower
 ```
 
-For the rest use the atopile MCP server
+For the rest use the atopile MCP server 
 - `get_library_interfaces` to list interfaces
 - `get_library_modules` to list modules
 - `inspect_library_module_or_interface` to inspect the code
@@ -710,3 +710,5 @@ module App:
 - After making changes, be sure to use 'build_project' to update the PCB
 - Builds will often generate errors/warnings, these should be reviewed and fixed
 - Prioritize pacakges from 'atopile' over other packages
+
+

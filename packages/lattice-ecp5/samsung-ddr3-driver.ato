@@ -1,0 +1,207 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+
+from "parts/Samsung_K4B4G1646E_BYMA/Samsung_K4B4G1646E_BYMA.ato" import Samsung_K4B4G1646E_BYMA_package
+
+module DDR3_DataByte:
+    data = new ElectricLogic[8]
+    dqs = new ElectricLogic
+    n_dqs = new ElectricLogic
+    dm = new ElectricLogic
+
+module Samsung_K4B4G1646E_BYMA_model:
+    package = new Samsung_K4B4G1646E_BYMA_package
+
+    gnd = new Electrical
+    gnd ~ package.VSS
+    gnd ~ package.VSSQ
+
+    # External power (VDDQ) - IO voltage
+    power_external = new ElectricPower
+    assert power_external.voltage within 1.35V +/- 5%
+    power_external.hv ~ package.VDDQ
+    power_external.lv ~ gnd
+
+    # Internal power (VDD) - core voltage
+    power_internal = new ElectricPower
+    assert power_internal.voltage within 1.35V +/- 5%
+    power_internal.hv ~ package.VDD
+    power_internal.lv ~ gnd
+
+    # Address bus
+    address = new ElectricLogic[15]
+    address[0].line ~ package.A0
+    address[1].line ~ package.A1
+    address[2].line ~ package.A2
+    address[3].line ~ package.A3
+    address[4].line ~ package.A4
+    address[5].line ~ package.A5
+    address[6].line ~ package.A6
+    address[7].line ~ package.A7
+    address[8].line ~ package.A8
+    address[9].line ~ package.A9
+    address[10].line ~ package.A10_AP
+    address[11].line ~ package.A11
+    address[12].line ~ package.A12_nBC
+    address[13].line ~ package.A13
+    address[14].line ~ package.A14
+
+    for a in address:
+        a.reference ~ power_external
+
+    # Bank address
+    bank_address = new ElectricLogic[3]
+    bank_address[0].line ~ package.BA0
+    bank_address[1].line ~ package.BA1
+    bank_address[2].line ~ package.BA2
+    for ba in bank_address:
+        ba.reference ~ power_external
+
+    # Control signals
+    n_chip_select = new ElectricLogic
+    n_write_enable = new ElectricLogic
+    clock_enable = new ElectricLogic
+    n_column_address_strobe = new ElectricLogic
+    n_row_address_strobe = new ElectricLogic
+    odt = new ElectricLogic
+    n_reset = new ElectricLogic
+
+    n_chip_select.line ~ package.nCS
+    n_write_enable.line ~ package.nWE
+    clock_enable.line ~ package.CKE
+    n_column_address_strobe.line ~ package.nCAS
+    n_row_address_strobe.line ~ package.nRAS
+    odt.line ~ package.ODT
+    n_reset.line ~ package.nRESET
+
+    n_chip_select.reference ~ power_external
+    n_write_enable.reference ~ power_external
+    clock_enable.reference ~ power_external
+    n_column_address_strobe.reference ~ power_external
+    n_row_address_strobe.reference ~ power_external
+    odt.reference ~ power_external
+    n_reset.reference ~ power_external
+
+    # Clock pair
+    ck = new ElectricLogic
+    n_ck = new ElectricLogic
+    ck.line ~ package.CK
+    n_ck.line ~ package.nCK
+    ck.reference ~ power_external
+    n_ck.reference ~ power_external
+
+    # Data - lower byte
+    lower = new DDR3_DataByte
+    lower.data[0].line ~ package.DQL0
+    lower.data[1].line ~ package.DQL1
+    lower.data[2].line ~ package.DQL2
+    lower.data[3].line ~ package.DQL3
+    lower.data[4].line ~ package.DQL4
+    lower.data[5].line ~ package.DQL5
+    lower.data[6].line ~ package.DQL6
+    lower.data[7].line ~ package.DQL7
+    lower.dqs.line ~ package.DQSL
+    lower.n_dqs.line ~ package.nDQSL
+    lower.dm.line ~ package.DML
+    for d in lower.data:
+        d.reference ~ power_external
+    lower.dqs.reference ~ power_external
+    lower.n_dqs.reference ~ power_external
+    lower.dm.reference ~ power_external
+
+    # Data - upper byte
+    upper = new DDR3_DataByte
+    upper.data[0].line ~ package.DQU0
+    upper.data[1].line ~ package.DQU1
+    upper.data[2].line ~ package.DQU2
+    upper.data[3].line ~ package.DQU3
+    upper.data[4].line ~ package.DQU4
+    upper.data[5].line ~ package.DQU5
+    upper.data[6].line ~ package.DQU6
+    upper.data[7].line ~ package.DQU7
+    upper.dqs.line ~ package.DQSU
+    upper.n_dqs.line ~ package.nDQSU
+    upper.dm.line ~ package.DMU
+    for d in upper.data:
+        d.reference ~ power_external
+    upper.dqs.reference ~ power_external
+    upper.n_dqs.reference ~ power_external
+    upper.dm.reference ~ power_external
+
+    # Reference voltages
+    vrefca = new Electrical
+    vrefdq = new Electrical
+    vrefca ~ package.VREFCA
+    vrefdq ~ package.VREFDQ
+
+    # ZQ calibration
+    zq = new Electrical
+    zq ~ package.ZQ
+
+module Samsung_K4B4G1646E_BYMA_driver:
+    model = new Samsung_K4B4G1646E_BYMA_model
+
+    # Decoupling caps - VDD
+    caps_vdd = new Capacitor[3]
+    for cap in caps_vdd:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_internal.hv ~> cap ~> model.power_internal.lv
+
+    # Decoupling caps - VDDQ
+    caps_vddq = new Capacitor[3]
+    for cap in caps_vddq:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_external.hv ~> cap ~> model.power_external.lv
+
+    # VREFCA voltage divider (VDD/2)
+    r_vrefca_top = new Resistor
+    r_vrefca_top.resistance = 10kohm +/- 1%
+    r_vrefca_top.package = "0402"
+    r_vrefca_bot = new Resistor
+    r_vrefca_bot.resistance = 10kohm +/- 1%
+    r_vrefca_bot.package = "0402"
+    model.power_external.hv ~ r_vrefca_top.unnamed[0]
+    r_vrefca_top.unnamed[1] ~ model.vrefca
+    model.vrefca ~ r_vrefca_bot.unnamed[0]
+    r_vrefca_bot.unnamed[1] ~ model.power_external.lv
+
+    cap_vrefca = new Capacitor
+    cap_vrefca.package = "0402"
+    cap_vrefca.capacitance = 100nF +/- 20%
+    cap_vrefca.max_voltage = 6.3V
+    model.vrefca ~> cap_vrefca ~> model.power_external.lv
+
+    # VREFDQ voltage divider (VDDQ/2)
+    r_vrefdq_top = new Resistor
+    r_vrefdq_top.resistance = 10kohm +/- 1%
+    r_vrefdq_top.package = "0402"
+    r_vrefdq_bot = new Resistor
+    r_vrefdq_bot.resistance = 10kohm +/- 1%
+    r_vrefdq_bot.package = "0402"
+    model.power_external.hv ~ r_vrefdq_top.unnamed[0]
+    r_vrefdq_top.unnamed[1] ~ model.vrefdq
+    model.vrefdq ~ r_vrefdq_bot.unnamed[0]
+    r_vrefdq_bot.unnamed[1] ~ model.power_external.lv
+
+    cap_vrefdq = new Capacitor
+    cap_vrefdq.package = "0402"
+    cap_vrefdq.capacitance = 100nF +/- 20%
+    cap_vrefdq.max_voltage = 6.3V
+    model.vrefdq ~> cap_vrefdq ~> model.power_external.lv
+
+    # ZQ calibration resistor (240 ohm to GND)
+    r_zq = new Resistor
+    r_zq.resistance = 240ohm +/- 1%
+    r_zq.package = "0402"
+    model.zq ~ r_zq.unnamed[0]
+    r_zq.unnamed[1] ~ model.power_external.lv
