@@ -1,21 +1,20 @@
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 
-import Electrical
 import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-from "atopile/relays/relays.ato" import RelayDPDT
+from "atopile/relays/helpers.ato" import RelayDPDT
 
 component Omron_Electronics_G2R_2_DC5_package:
     # This trait marks this file as auto-generated
     # If you want to manually change it, remove the trait
-    trait is_auto_generated<system="ato_part", source="easyeda:C469145", date="2025-09-04T23:41:04.462054+00:00", checksum="6407776205fb304ae390a45d943d3cbeb21574be6a30859c793c89df993c59f9">
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C469145", date = "2025-09-04T23:41:04.462054+00:00", checksum = "6407776205fb304ae390a45d943d3cbeb21574be6a30859c793c89df993c59f9">
 
-    trait is_atomic_part<manufacturer="Omron Electronics", partnumber="G2R-2-DC5", footprint="RELAY-TH_G2R-2-DCXX.kicad_mod", symbol="G2R-2-DC5.kicad_sym", model="RELAY-TH_G2R-2-DCXX.step">
-    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C469145", manufacturer="Omron Electronics", partno="G2R-2-DC5">
-    trait has_designator_prefix<prefix="K">
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G2R-2-DC5", footprint = "RELAY-TH_G2R-2-DCXX.kicad_mod", symbol = "G2R-2-DC5.kicad_sym", model = "RELAY-TH_G2R-2-DCXX.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C469145", manufacturer = "Omron Electronics", partno = "G2R-2-DC5">
+    trait has_designator_prefix<prefix = "K">
 
     # pins
     pin 7
@@ -38,3 +37,6 @@ module RelayDPDT5A5V from RelayDPDT:
     # Switch 1
     package.6 ~> switch_nc[1] ~> package.7
     package.6 ~> switch_no[1] ~> package.5
+
+    assert coil.voltage within 5V +/- 10%
+    assert coil.resistance within 47ohm +/- 10%
