@@ -55,9 +55,10 @@ module TI_ADS1115:
     # I2C Address Configuration
     addressor = new Addressor<address_bits=1>
     addressor.base = 0x48
+    addressor.address.default = 0x48
+    assert addressor.address is i2c.address
     addressor.address_lines[0].line ~ package.ADDR
     addressor.address_lines[0].reference ~ power
-    assert addressor.address is i2c.address
 
     # I2C Pullups
     sda_pullup = new Resistor
