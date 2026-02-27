@@ -1,0 +1,418 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import JTAG
+import Capacitor
+import Resistor
+
+from "parts/Lattice_LFE5U_25F_6BG256C/Lattice_LFE5U_25F_6BG256C.ato" import Lattice_LFE5U_25F_6BG256C_package
+from "parts/Murata_Electronics_BLM15PX121SN1D/Murata_Electronics_BLM15PX121SN1D.ato" import Murata_Electronics_BLM15PX121SN1D_package                 
+
+# Model defines pin types
+module Lattice_ECP5_model:
+
+    # Package
+    package = new Lattice_LFE5U_25F_6BG256C_package
+
+    # Ground
+    gnd = new Electrical
+    gnd.override_net_name = "GND"
+    gnd ~ package.GND
+
+    # Core Power
+    power_core = new ElectricPower
+    assert power_core.voltage within 1.1V +/- 3%
+    power_core.hv ~ package.VCC
+    power_core.lv ~ gnd
+
+    # Aux Power
+    power_vccaux_filtered = new ElectricPower
+    assert power_vccaux_filtered.voltage within 2.5V +/- 5%
+    power_vccaux_filtered.hv ~ package.VCCAUX
+    power_vccaux_filtered.lv ~ gnd
+
+    # IO Power
+    power_vccio = new ElectricPower[9]
+    for p in power_vccio:
+        p.lv ~ gnd
+    
+    power_vccio[0].hv ~ package.VCCIO0
+    power_vccio[1].hv ~ package.VCCIO1
+    power_vccio[2].hv ~ package.VCCIO2
+    power_vccio[3].hv ~ package.VCCIO3
+    # power_vccio[4] ~ package.VCCIO4 # there is no VCCIO4
+    # power_vccio[5] ~ package.VCCIO5 # there is no VCCIO5
+    power_vccio[6].hv ~ package.VCCIO6
+    power_vccio[7].hv ~ package.VCCIO7
+    power_vccio[8].hv ~ package.VCCIO8
+    
+    # JTAG
+    jtag = new JTAG
+    jtag.tck.line ~ package.TCK
+    jtag.tms.line ~ package.TMS
+    jtag.tdi.line ~ package.TDI
+    jtag.tdo.line ~ package.TDO
+    jtag.vtref ~ power_vccio[8] # JTAG signals are referenced to VCCIO8
+
+    # sysCONFIG
+    cfg = new ElectricLogic[3]
+    initn = new ElectricLogic
+    programn = new ElectricLogic
+    done = new ElectricLogic
+    cclk = new ElectricLogic
+    cfg[0].line ~ package.CFG_0
+    cfg[1].line ~ package.CFG_1
+    cfg[2].line ~ package.CFG_2
+    initn.line ~ package.INITN
+    programn.line ~ package.PROGRAMN
+    done.line ~ package.DONE
+    cclk.line ~ package.CCLK
+
+    # sysCONFIG signals are referenced to VCCIO8
+    power_vccio[8] ~ initn.reference
+    power_vccio[8] ~ programn.reference
+    power_vccio[8] ~ done.reference
+    power_vccio[8] ~ cclk.reference
+    for c in cfg:
+        power_vccio[8] ~ c.reference 
+
+    # # Button - from OrangeCrab
+    # button = new ElectricLogic
+    # button.line ~ package.PL38C
+
+    # # RBG LED - from OrangeCrab
+    # rgb_led = new ElectricLogic[3]
+    # rgb_led[0].line ~ package.PR38A
+    # rgb_led[1].line ~ package.PR41A
+    # rgb_led[2].line ~ package.PR29C
+
+    # IO Banks
+    io_bank_0 = new ElectricLogic[24] #PT
+    io_bank_1 = new ElectricLogic[32] #PT
+    io_bank_2 = new ElectricLogic[32] #PR
+    io_bank_3 = new ElectricLogic[32] #PR
+    io_bank_6 = new ElectricLogic[32] #PL
+    io_bank_7 = new ElectricLogic[32] #PL
+    io_bank_8 = new ElectricLogic[13] #PB
+
+    for io in io_bank_0:
+        io.reference ~ power_vccio[0]
+    for io in io_bank_1:
+        io.reference ~ power_vccio[1]
+    for io in io_bank_2:
+        io.reference ~ power_vccio[2]
+    for io in io_bank_3:
+        io.reference ~ power_vccio[3]
+    for io in io_bank_6:
+        io.reference ~ power_vccio[6]
+    for io in io_bank_7:
+        io.reference ~ power_vccio[7]
+    for io in io_bank_8:
+        io.reference ~ power_vccio[8]
+        
+#region
+    io_bank_0[23].line ~ package.PT29B
+    io_bank_0[22].line ~ package.PT27B
+    io_bank_0[21].line ~ package.PT29A
+    io_bank_0[20].line ~ package.PT27A
+    io_bank_0[19].line ~ package.PT24B
+    io_bank_0[18].line ~ package.PT22B
+    io_bank_0[17].line ~ package.PT24A
+    io_bank_0[16].line ~ package.PT22A
+    io_bank_0[15].line ~ package.PT20B
+    io_bank_0[14].line ~ package.PT18B
+    io_bank_0[13].line ~ package.PT20A
+    io_bank_0[12].line ~ package.PT18A
+    io_bank_0[11].line ~ package.PT15B
+    io_bank_0[10].line ~ package.PT13B
+    io_bank_0[9].line ~ package.PT15A
+    io_bank_0[8].line ~ package.PT13A
+    io_bank_0[7].line ~ package.PT11B
+    io_bank_0[6].line ~ package.PT9B
+    io_bank_0[5].line ~ package.PT11A
+    io_bank_0[4].line ~ package.PT9A
+    io_bank_0[3].line ~ package.PT6B
+    io_bank_0[2].line ~ package.PT4B
+    io_bank_0[1].line ~ package.PT6A
+    io_bank_0[0].line ~ package.PT4A
+
+    io_bank_1[31].line ~ package.PT67B
+    io_bank_1[30].line ~ package.PT65B
+    io_bank_1[29].line ~ package.PT67A
+    io_bank_1[28].line ~ package.PT65A
+    io_bank_1[27].line ~ package.PT62B
+    io_bank_1[26].line ~ package.PT60B
+    io_bank_1[25].line ~ package.PT62A
+    io_bank_1[24].line ~ package.PT60A
+    io_bank_1[23].line ~ package.PT58B
+    io_bank_1[22].line ~ package.PT56B
+    io_bank_1[21].line ~ package.PT58A
+    io_bank_1[20].line ~ package.PT56A
+    io_bank_1[19].line ~ package.PT53B
+    io_bank_1[18].line ~ package.PT51B
+    io_bank_1[17].line ~ package.PT53A
+    io_bank_1[16].line ~ package.PT51A
+    io_bank_1[15].line ~ package.PT49B
+    io_bank_1[14].line ~ package.PT47B
+    io_bank_1[13].line ~ package.PT49A
+    io_bank_1[12].line ~ package.PT47A
+    io_bank_1[11].line ~ package.PT44B
+    io_bank_1[10].line ~ package.PT42B
+    io_bank_1[9].line ~ package.PT44A
+    io_bank_1[8].line ~ package.PT42A
+    io_bank_1[7].line ~ package.PT40B
+    io_bank_1[6].line ~ package.PT38B
+    io_bank_1[5].line ~ package.PT40A
+    io_bank_1[4].line ~ package.PT38A
+    io_bank_1[3].line ~ package.PT35B
+    io_bank_1[2].line ~ package.PT33B
+    io_bank_1[1].line ~ package.PT35A
+    io_bank_1[0].line ~ package.PT33A
+
+    io_bank_2[31].line ~ package.PR23D
+    io_bank_2[30].line ~ package.PR23B
+    io_bank_2[29].line ~ package.PR23C
+    io_bank_2[28].line ~ package.PR23A
+    io_bank_2[27].line ~ package.PR20D
+    io_bank_2[26].line ~ package.PR20B
+    io_bank_2[25].line ~ package.PR20C
+    io_bank_2[24].line ~ package.PR20A
+    io_bank_2[23].line ~ package.PR17D
+    io_bank_2[22].line ~ package.PR17B
+    io_bank_2[21].line ~ package.PR17C
+    io_bank_2[20].line ~ package.PR17A
+    io_bank_2[19].line ~ package.PR14D
+    io_bank_2[18].line ~ package.PR14B
+    io_bank_2[17].line ~ package.PR14C
+    io_bank_2[16].line ~ package.PR14A
+    io_bank_2[15].line ~ package.PR11D
+    io_bank_2[14].line ~ package.PR11B
+    io_bank_2[13].line ~ package.PR11C
+    io_bank_2[12].line ~ package.PR11A
+    io_bank_2[11].line ~ package.PR8D
+    io_bank_2[10].line ~ package.PR8B
+    io_bank_2[9].line ~ package.PR8C
+    io_bank_2[8].line ~ package.PR8A
+    io_bank_2[7].line ~ package.PR5D
+    io_bank_2[6].line ~ package.PR5B
+    io_bank_2[5].line ~ package.PR5C
+    io_bank_2[4].line ~ package.PR5A
+    io_bank_2[3].line ~ package.PR2D
+    io_bank_2[2].line ~ package.PR2C
+    io_bank_2[1].line ~ package.PR2B
+    io_bank_2[0].line ~ package.PR2A
+
+    io_bank_3[31].line ~ package.PR47D
+    io_bank_3[30].line ~ package.PR47C
+    io_bank_3[29].line ~ package.PR47B
+    io_bank_3[28].line ~ package.PR47A
+    io_bank_3[27].line ~ package.PR44D
+    io_bank_3[26].line ~ package.PR44B
+    io_bank_3[25].line ~ package.PR44C
+    io_bank_3[24].line ~ package.PR44A
+    io_bank_3[23].line ~ package.PR41D
+    io_bank_3[22].line ~ package.PR41B
+    io_bank_3[21].line ~ package.PR41C
+    io_bank_3[20].line ~ package.PR41A
+    io_bank_3[19].line ~ package.PR38D
+    io_bank_3[18].line ~ package.PR38B
+    io_bank_3[17].line ~ package.PR38C
+    io_bank_3[16].line ~ package.PR38A
+    io_bank_3[15].line ~ package.PR35D
+    io_bank_3[14].line ~ package.PR35B
+    io_bank_3[13].line ~ package.PR35C
+    io_bank_3[12].line ~ package.PR35A
+    io_bank_3[11].line ~ package.PR32D
+    io_bank_3[10].line ~ package.PR32B
+    io_bank_3[9].line ~ package.PR32C
+    io_bank_3[8].line ~ package.PR32A
+    io_bank_3[7].line ~ package.PR29D
+    io_bank_3[6].line ~ package.PR29B
+    io_bank_3[5].line ~ package.PR29C
+    io_bank_3[4].line ~ package.PR29A
+    io_bank_3[3].line ~ package.PR26D
+    io_bank_3[2].line ~ package.PR26B
+    io_bank_3[1].line ~ package.PR26C
+    io_bank_3[0].line ~ package.PR26A
+
+    io_bank_6[31].line ~ package.PL26A
+    io_bank_6[30].line ~ package.PL26C
+    io_bank_6[29].line ~ package.PL26B
+    io_bank_6[28].line ~ package.PL26D
+    io_bank_6[27].line ~ package.PL29A
+    io_bank_6[26].line ~ package.PL29C
+    io_bank_6[25].line ~ package.PL29B
+    io_bank_6[24].line ~ package.PL29D
+    io_bank_6[23].line ~ package.PL32A
+    io_bank_6[22].line ~ package.PL32C
+    io_bank_6[21].line ~ package.PL32B
+    io_bank_6[20].line ~ package.PL32D
+    io_bank_6[19].line ~ package.PL35A
+    io_bank_6[18].line ~ package.PL35C
+    io_bank_6[17].line ~ package.PL35B
+    io_bank_6[16].line ~ package.PL35D
+    io_bank_6[15].line ~ package.PL38A
+    io_bank_6[14].line ~ package.PL38C
+    io_bank_6[13].line ~ package.PL38B
+    io_bank_6[12].line ~ package.PL38D
+    io_bank_6[11].line ~ package.PL41A
+    io_bank_6[10].line ~ package.PL41C
+    io_bank_6[9].line ~ package.PL41B
+    io_bank_6[8].line ~ package.PL41D
+    io_bank_6[7].line ~ package.PL44A
+    io_bank_6[6].line ~ package.PL44C
+    io_bank_6[5].line ~ package.PL44B
+    io_bank_6[4].line ~ package.PL44D
+    io_bank_6[3].line ~ package.PL47A
+    io_bank_6[2].line ~ package.PL47B
+    io_bank_6[1].line ~ package.PL47C
+    io_bank_6[0].line ~ package.PL47D
+
+    io_bank_7[31].line ~ package.PL2A
+    io_bank_7[30].line ~ package.PL2B
+    io_bank_7[29].line ~ package.PL2C
+    io_bank_7[28].line ~ package.PL2D
+    io_bank_7[27].line ~ package.PL5A
+    io_bank_7[26].line ~ package.PL5C
+    io_bank_7[25].line ~ package.PL5B
+    io_bank_7[24].line ~ package.PL5D
+    io_bank_7[23].line ~ package.PL8A
+    io_bank_7[22].line ~ package.PL8C
+    io_bank_7[21].line ~ package.PL8B
+    io_bank_7[20].line ~ package.PL8D
+    io_bank_7[19].line ~ package.PL11A
+    io_bank_7[18].line ~ package.PL11C
+    io_bank_7[17].line ~ package.PL11B
+    io_bank_7[16].line ~ package.PL11D
+    io_bank_7[15].line ~ package.PL14A
+    io_bank_7[14].line ~ package.PL14C
+    io_bank_7[13].line ~ package.PL14B
+    io_bank_7[12].line ~ package.PL14D
+    io_bank_7[11].line ~ package.PL17A
+    io_bank_7[10].line ~ package.PL17C
+    io_bank_7[9].line ~ package.PL17B
+    io_bank_7[8].line ~ package.PL17D
+    io_bank_7[7].line ~ package.PL20A
+    io_bank_7[6].line ~ package.PL20C
+    io_bank_7[5].line ~ package.PL20B
+    io_bank_7[4].line ~ package.PL20D
+    io_bank_7[3].line ~ package.PL23A
+    io_bank_7[2].line ~ package.PL23C
+    io_bank_7[1].line ~ package.PL23B
+    io_bank_7[0].line ~ package.PL23D
+
+    io_bank_8[12].line ~ package.PB4A
+    io_bank_8[11].line ~ package.PB6A
+    io_bank_8[10].line ~ package.PB4B
+    io_bank_8[9].line ~ package.PB6B
+    io_bank_8[8].line ~ package.PB9A
+    io_bank_8[7].line ~ package.PB11A
+    io_bank_8[6].line ~ package.PB9B
+    io_bank_8[5].line ~ package.PB11B
+    io_bank_8[4].line ~ package.PB13A
+    io_bank_8[3].line ~ package.PB15A
+    io_bank_8[2].line ~ package.PB13B
+    io_bank_8[1].line ~ package.PB15B
+    io_bank_8[0].line ~ package.PB18A
+#endregion
+
+# Driver contains required components (decoulping caps, pullups, etc)
+module Lattice_ECP5_driver:
+    model = new Lattice_ECP5_model
+
+    power_vccaux = new ElectricPower
+    power_vccaux.required = True
+    power_vccaux.voltage = 2.5V +/- 5%
+    power_vccaux.lv ~ model.power_vccaux_filtered.lv
+
+    # --- Decoupling Caps ---
+    caps_vcc_bulk = new Capacitor[3]
+    for cap in caps_vcc_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_core.hv ~> cap ~> model.power_core.lv
+
+    caps_vcc_per_pin = new Capacitor[6]
+    for cap in caps_vcc_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_core.hv ~> cap ~> model.power_core.lv
+
+    cap_vccaux_bulk = new Capacitor[1]
+    for cap in cap_vccaux_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
+    
+    cap_vccaux_per_pin = new Capacitor[2]
+    for cap in cap_vccaux_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 6.3V
+        model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
+
+    fb_vccaux = new Murata_Electronics_BLM15PX121SN1D_package
+    power_vccaux.hv ~ fb_vccaux.1; fb_vccaux.2 ~ model.power_vccaux_filtered.hv
+
+    cap_vccio_bulk = new Capacitor[7] # 7 VCCIO power rails
+    for cap in cap_vccio_bulk:
+        cap.package = "0603"
+        cap.capacitance = 10uF +/- 20%
+        cap.max_voltage = 6.3V
+    
+    model.power_vccio[0].hv ~> cap_vccio_bulk[0] ~> model.power_vccio[0].lv
+    model.power_vccio[1].hv ~> cap_vccio_bulk[1] ~> model.power_vccio[1].lv
+    model.power_vccio[2].hv ~> cap_vccio_bulk[2] ~> model.power_vccio[2].lv
+    model.power_vccio[3].hv ~> cap_vccio_bulk[3] ~> model.power_vccio[3].lv
+    model.power_vccio[6].hv ~> cap_vccio_bulk[4] ~> model.power_vccio[6].lv
+    model.power_vccio[7].hv ~> cap_vccio_bulk[5] ~> model.power_vccio[7].lv
+    model.power_vccio[8].hv ~> cap_vccio_bulk[6] ~> model.power_vccio[8].lv
+
+    cap_vccio_per_pin = new Capacitor[13] # 13 VCCIO power pins
+    for cap in cap_vccio_per_pin:
+        cap.package = "0402"
+        cap.capacitance = 100nF +/- 20%
+        cap.max_voltage = 10V
+    
+    model.power_vccio[0].hv ~> cap_vccio_per_pin[0] ~> model.power_vccio[0].lv
+    model.power_vccio[0].hv ~> cap_vccio_per_pin[1] ~> model.power_vccio[0].lv
+    model.power_vccio[1].hv ~> cap_vccio_per_pin[2] ~> model.power_vccio[1].lv
+    model.power_vccio[1].hv ~> cap_vccio_per_pin[3] ~> model.power_vccio[1].lv
+    model.power_vccio[2].hv ~> cap_vccio_per_pin[4] ~> model.power_vccio[2].lv
+    model.power_vccio[2].hv ~> cap_vccio_per_pin[5] ~> model.power_vccio[2].lv
+    model.power_vccio[3].hv ~> cap_vccio_per_pin[6] ~> model.power_vccio[3].lv
+    model.power_vccio[3].hv ~> cap_vccio_per_pin[7] ~> model.power_vccio[3].lv
+    model.power_vccio[6].hv ~> cap_vccio_per_pin[8] ~> model.power_vccio[6].lv
+    model.power_vccio[6].hv ~> cap_vccio_per_pin[9] ~> model.power_vccio[6].lv
+    model.power_vccio[7].hv ~> cap_vccio_per_pin[10] ~> model.power_vccio[7].lv
+    model.power_vccio[7].hv ~> cap_vccio_per_pin[11] ~> model.power_vccio[7].lv
+    model.power_vccio[8].hv ~> cap_vccio_per_pin[12] ~> model.power_vccio[8].lv
+
+    # --- JTAG Resistors ---
+    jtag_pullups = new Resistor[4]
+    for r in jtag_pullups:
+        r.resistance = 4.7kohm +/- 10%
+        r.package = "0402"
+    model.jtag.tdi.line ~> jtag_pullups[0] ~> model.jtag.vtref.hv
+    model.jtag.tms.line ~> jtag_pullups[1] ~> model.jtag.vtref.hv
+    model.jtag.tdo.line ~> jtag_pullups[2] ~> model.jtag.vtref.hv
+    model.jtag.tck.line ~> jtag_pullups[3] ~> model.jtag.vtref.lv
+
+    # --- Config Resistors ---
+    config_pullups = new Resistor[3]
+    for r in config_pullups:
+        r.resistance = 4.7kohm +/- 10%
+        r.package = "0402"
+    model.programn.line ~> config_pullups[0] ~> model.programn.reference.hv
+    model.initn.line ~> config_pullups[1] ~> model.initn.reference.hv
+    model.done.line ~> config_pullups[2] ~> model.done.reference.hv
+
+
+
+
