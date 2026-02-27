@@ -4,18 +4,17 @@ import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-import Electrical
 
-from "atopile/relays/relays.ato" import RelaySPDT
+from "atopile/relays/helpers.ato" import RelaySPDT
 
 component Omron_Electronics_G5V_1_DC5_package:
     # This trait marks this file as auto-generated
     # If you want to manually change it, remove the trait
-    trait is_auto_generated<system="ato_part", source="easyeda:C152705", date="2025-09-05T02:24:12.316486+00:00", checksum="fe5a24be844e2e17cbeedc33c74d4dae6d24f338cbf5e12fd26bea29dc48b5ac">
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C152705", date = "2025-09-05T02:24:12.316486+00:00", checksum = "fe5a24be844e2e17cbeedc33c74d4dae6d24f338cbf5e12fd26bea29dc48b5ac">
 
-    trait is_atomic_part<manufacturer="Omron Electronics", partnumber="G5V-1-DC5", footprint="RELAY-TH_G5V-1.kicad_mod", symbol="G5V-1-DC5.kicad_sym", model="RELAY-TH_L12.5-W7.5-H10.0.step">
-    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C152705", manufacturer="Omron Electronics", partno="G5V-1-DC5">
-    trait has_designator_prefix<prefix="K">
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G5V-1-DC5", footprint = "RELAY-TH_G5V-1.kicad_mod", symbol = "G5V-1-DC5.kicad_sym", model = "RELAY-TH_L12.5-W7.5-H10.0.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C152705", manufacturer = "Omron Electronics", partno = "G5V-1-DC5">
+    trait has_designator_prefix<prefix = "K">
 
     # pins
     pin 1
@@ -24,7 +23,6 @@ component Omron_Electronics_G5V_1_DC5_package:
     pin 6
     pin 9
     pin 10
-
 
 module RelaySPDT1A5V from RelaySPDT:
     package = new Omron_Electronics_G5V_1_DC5_package
@@ -36,3 +34,6 @@ module RelaySPDT1A5V from RelaySPDT:
 
     com ~> switch_nc ~> package.1
     com ~> switch_no ~> package.10
+
+    assert coil.voltage within 5V +/- 10%
+    assert coil.resistance within 167ohm +/- 10%

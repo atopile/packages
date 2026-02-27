@@ -8,35 +8,25 @@ Packaged in a tiny 4.4 × 2.4 mm **LGA-12** module.
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
-
 import ElectricPower
 import I2C
-import has_part_removed
 
 from "atopile/st-vl53l4cd/st-vl53l4cd.ato" import ST_VL53L4CD
-
-module MCU:
-    """Host MCU providing 3 V rail and I²C bus."""
-    power = new ElectricPower
-    i2c = new I2C
-
-    trait has_part_removed
 
 module Usage:
     """Minimal usage example for the ST_VL53L4CD sensor."""
 
-    mcu = new MCU
+    # ToF sensor
     tof_sensor = new ST_VL53L4CD
 
-    # Shared power rail
-    rail = new ElectricPower
-    rail.voltage = 3.3V
-    rail ~ mcu.power
-    rail ~ tof_sensor.power
+    # Power supply (3.3V typical)
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 5%
+    power ~ tof_sensor.power
 
-    # I²C connection
-    mcu.i2c ~ tof_sensor.i2c
+    # I²C bus (would connect to your MCU)
+    i2c = new I2C
+    i2c ~ tof_sensor.i2c
 
 ```
 

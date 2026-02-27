@@ -554,8 +554,8 @@ power interfaces:
 power*<name> = new ElectricPower
 power*<name>.required = True # If critical to the device
 assert power\*<name>.voltage within <minimum*operating_voltage>V to <maximum_operating_voltage>V
-power*<name>.vcc ~ <device>.<vcc pin>
-power\_<name>.gnd ~ <device>.<gnd pin>
+power*<name>.hv ~ <device>.<vcc pin>
+power\_<name>.lv ~ <device>.<gnd pin>
 
 i2c interfaces:
 i2c = new I2C
