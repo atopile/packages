@@ -333,28 +333,28 @@ module Lattice_ECP5_driver:
     for cap in caps_vcc_bulk:
         cap.package = "0603"
         cap.capacitance = 10uF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_core.hv ~> cap ~> model.power_core.lv
 
     caps_vcc_per_pin = new Capacitor[6]
     for cap in caps_vcc_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_core.hv ~> cap ~> model.power_core.lv
 
     cap_vccaux_bulk = new Capacitor[1]
     for cap in cap_vccaux_bulk:
         cap.package = "0603"
         cap.capacitance = 10uF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
     
     cap_vccaux_per_pin = new Capacitor[2]
     for cap in cap_vccaux_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_vccaux_filtered.hv ~> cap ~> model.power_vccaux_filtered.lv
 
     fb_vccaux = new Murata_Electronics_BLM15PX121SN1D_package
@@ -364,7 +364,7 @@ module Lattice_ECP5_driver:
     for cap in cap_vccio_bulk:
         cap.package = "0603"
         cap.capacitance = 10uF +/- 20%
-        cap.max_voltage = 6.3V
+
     
     model.power_vccio[0].hv ~> cap_vccio_bulk[0] ~> model.power_vccio[0].lv
     model.power_vccio[1].hv ~> cap_vccio_bulk[1] ~> model.power_vccio[1].lv
@@ -378,7 +378,7 @@ module Lattice_ECP5_driver:
     for cap in cap_vccio_per_pin:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 10V
+
     
     model.power_vccio[0].hv ~> cap_vccio_per_pin[0] ~> model.power_vccio[0].lv
     model.power_vccio[0].hv ~> cap_vccio_per_pin[1] ~> model.power_vccio[0].lv

@@ -1,0 +1,41 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: st-stm32f072-bmp.ato:BMP_STM32F072
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/st-stm32f072-bmp
+  repository: https://github.com/atopile/packages
+  homepage: 
+    https://github.com/atopile/packages/blob/main/packages/st-stm32f072-bmp/README.md
+  version: 0.1.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: Black Magic Probe debug probe based on STM32F072; SWD; JTAG; USB; GDB
+    server
+  license: MIT
+dependencies:
+- type: file
+  identifier: atopile/usb-connectors
+  path: ../usb-connectors
+- type: file
+  identifier: atopile/indicator-leds
+  path: ../indicator-leds
+- type: file
+  identifier: atopile/programming-headers
+  path: ../programming-headers
+- type: file
+  identifier: atopile/ti-tlv75901
+  path: ../ti-tlv75901

@@ -152,7 +152,7 @@ module Samsung_K4B4G1646E_BYMA_driver:
     for cap in caps_vdd:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_internal.hv ~> cap ~> model.power_internal.lv
 
     # Decoupling caps - VDDQ
@@ -160,7 +160,7 @@ module Samsung_K4B4G1646E_BYMA_driver:
     for cap in caps_vddq:
         cap.package = "0402"
         cap.capacitance = 100nF +/- 20%
-        cap.max_voltage = 6.3V
+
         model.power_external.hv ~> cap ~> model.power_external.lv
 
     # VREFCA voltage divider (VDD/2)
@@ -178,7 +178,7 @@ module Samsung_K4B4G1646E_BYMA_driver:
     cap_vrefca = new Capacitor
     cap_vrefca.package = "0402"
     cap_vrefca.capacitance = 100nF +/- 20%
-    cap_vrefca.max_voltage = 6.3V
+
     model.vrefca ~> cap_vrefca ~> model.power_external.lv
 
     # VREFDQ voltage divider (VDDQ/2)
@@ -196,7 +196,7 @@ module Samsung_K4B4G1646E_BYMA_driver:
     cap_vrefdq = new Capacitor
     cap_vrefdq.package = "0402"
     cap_vrefdq.capacitance = 100nF +/- 20%
-    cap_vrefdq.max_voltage = 6.3V
+
     model.vrefdq ~> cap_vrefdq ~> model.power_external.lv
 
     # ZQ calibration resistor (240 ohm to GND)

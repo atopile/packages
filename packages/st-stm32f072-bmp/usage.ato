@@ -1,0 +1,36 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import SWD
+import JTAG
+
+from "st-stm32f072-bmp.ato" import BMP_STM32F072
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/programming-headers/programming-headers.ato" import IDC_2_54mm_10pin_ARM_Cortex
+from "atopile/ti-tlv75901/ti-tlv75901.ato" import TI_TLV75901
+
+module Usage:
+    """
+    Complete standalone Black Magic Probe.
+    USB-C connector, 3.3V LDO, and 10-pin ARM Cortex debug header.
+    """
+
+    # Components
+    bmp = new BMP_STM32F072
+    usb_connector = new USB2_0TypeCHorizontalConnector
+    debug_header = new IDC_2_54mm_10pin_ARM_Cortex
+    ldo = new TI_TLV75901
+
+    # Power: USB VBUS -> LDO -> 3.3V
+    usb_connector.usb.usb_if.buspower ~ ldo.power_in
+    assert ldo.power_out.voltage within 3.3V +/- 5%
+    ldo.power_out ~ bmp.power_3v3
+
+    # USB data
+    usb_connector.usb.usb_if.d ~ bmp.usb.usb_if.d
+
+    # Debug header
+    bmp.swd ~ debug_header.swd
+    bmp.jtag ~ debug_header.jtag

@@ -1,0 +1,163 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import ElectricLogic
+import SWD
+import JTAG
+import UART_Base
+import USB2_0
+import XtalIF
+import Resistor
+import Capacitor
+
+from "parts/STMicroelectronics_STM32F072CBT6/STMicroelectronics_STM32F072CBT6.ato" import STMicroelectronics_STM32F072CBT6_package
+from "parts/Seiko_Epson_X1E0000210613/Seiko_Epson_X1E0000210613.ato" import Seiko_Epson_X1E0000210613_package
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorYellow
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
+
+module BMP_STM32F072:
+    """
+    Black Magic Probe debug probe based on STM32F072CBT6.
+    Provides SWD, JTAG, and UART interfaces for debugging ARM targets,
+    with a built-in GDB server over USB. No OpenOCD required.
+
+    BMP firmware pin map (from platform.h):
+    PA0=TDI, PA1=TMS/SWDIO, PA2=UART_TX, PA3=UART_RX,
+    PA5=nRST, PA6=TDO/SWO, PA7=TCK/SWCLK,
+    PA11=USB_D-, PA12=USB_D+,
+    PB5=LED_Green, PB6=LED_Yellow, PB7=LED_Red,
+    PF0=OSC_IN, PF1=OSC_OUT
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_STM32F072CBT6_package
+
+    # --- External interfaces ---
+    power_3v3 = new ElectricPower
+    """3.3V supply (2.0V to 3.6V)"""
+    power_3v3.required = True
+    assert power_3v3.voltage within 2.0V to 3.6V
+
+    swd = new SWD
+    """SWD debug output to target"""
+
+    jtag = new JTAG
+    """JTAG debug output to target"""
+
+    uart = new UART_Base
+    """Serial console to target (TX/RX only)"""
+
+    usb = new USB2_0
+    """USB 2.0 FS connection for GDB server"""
+
+    # --- Crystal (8 MHz) ---
+    hse = new XtalIF
+    crystal = new Seiko_Epson_X1E0000210613_package
+    crystal.OSC1 ~ hse.xin
+    crystal.OSC2 ~ hse.xout
+    crystal.GND ~ power_3v3.lv
+    hse.xin ~ package.PF0_OSC_IN
+    hse.xout ~ package.PF1_OSC_OUT
+    hse.gnd ~ power_3v3.lv
+
+    # Crystal load capacitors
+    hse_load_caps = new Capacitor[2]
+    for cap in hse_load_caps:
+        cap.capacitance = 20pF +/- 10%
+        cap.package = "0402"
+    crystal.OSC1 ~> hse_load_caps[0] ~> power_3v3.lv
+    crystal.OSC2 ~> hse_load_caps[1] ~> power_3v3.lv
+
+    # --- Power connections ---
+    package.VDD ~ power_3v3.hv
+    package.VSS ~ power_3v3.lv
+    package.VDDA ~ power_3v3.hv
+    package.VSSA ~ power_3v3.lv
+    package.VDDIO ~ power_3v3.hv
+    package.VBAT ~ power_3v3.hv
+
+    # --- Decoupling capacitors ---
+    # 4x 100nF for VDD/VDDA/VDDIO/VBAT
+    decoupling_100n = new Capacitor[4]
+    for cap in decoupling_100n:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+        power_3v3.hv ~> cap ~> power_3v3.lv
+
+    # 1uF for VDDA
+    decoupling_1u = new Capacitor
+    decoupling_1u.capacitance = 1uF +/- 20%
+    decoupling_1u.package = "0402"
+    power_3v3.hv ~> decoupling_1u ~> power_3v3.lv
+
+    # 4.7uF bulk
+    decoupling_4u7 = new Capacitor
+    decoupling_4u7.capacitance = 4.7uF +/- 20%
+    decoupling_4u7.package = "0402"
+    power_3v3.hv ~> decoupling_4u7 ~> power_3v3.lv
+
+    # --- NRST filter cap ---
+    nrst_cap = new Capacitor
+    nrst_cap.capacitance = 100nF +/- 20%
+    nrst_cap.package = "0402"
+    package.NRST ~> nrst_cap ~> power_3v3.lv
+
+    # --- BOOT0 pull-down (boot from flash) ---
+    boot0_pulldown = new Resistor
+    boot0_pulldown.resistance = 10kohm +/- 5%
+    boot0_pulldown.package = "0402"
+    package.BOOT0 ~> boot0_pulldown ~> power_3v3.lv
+
+    # --- SWD debug interface ---
+    swd.dio.line ~ package.PA1
+    swd.clk.line ~ package.PA7
+    swd.swo.line ~ package.PA6
+    swd.reset.line ~ package.PA5
+
+    # --- JTAG debug interface (shares physical pins with SWD) ---
+    jtag.tdi.line ~ package.PA0
+    jtag.tms.line ~ package.PA1
+    jtag.tck.line ~ package.PA7
+    jtag.tdo.line ~ package.PA6
+    jtag.n_reset.line ~ package.PA5
+
+    # --- Interface voltage references ---
+    jtag.vtref ~ power_3v3
+    swd.clk.reference ~ power_3v3
+    swd.dio.reference ~ power_3v3
+    swd.swo.reference ~ power_3v3
+    swd.reset.reference ~ power_3v3
+    jtag.tdi.reference ~ power_3v3
+    jtag.tms.reference ~ power_3v3
+    jtag.tck.reference ~ power_3v3
+    jtag.tdo.reference ~ power_3v3
+    jtag.n_reset.reference ~ power_3v3
+    uart.tx.reference ~ power_3v3
+    uart.rx.reference ~ power_3v3
+
+    # --- UART (serial console to target) ---
+    uart.tx.line ~ package.PA2
+    uart.rx.line ~ package.PA3
+
+    # --- USB FS ---
+    usb.usb_if.d.n.line ~ package.PA11
+    usb.usb_if.d.p.line ~ package.PA12
+
+    # --- Status LEDs (active-low: VDD -> LED -> R -> GPIO pin) ---
+    led_green = new LEDIndicatorGreen
+    led_green.power.voltage = 3.3V +/- 10%
+    led_green.power.hv ~ power_3v3.hv
+    led_green.power.lv ~ package.PB5
+
+    led_yellow = new LEDIndicatorYellow
+    led_yellow.power.voltage = 3.3V +/- 10%
+    led_yellow.power.hv ~ power_3v3.hv
+    led_yellow.power.lv ~ package.PB6
+
+    led_red = new LEDIndicatorRed
+    led_red.power.voltage = 3.3V +/- 10%
+    led_red.power.hv ~ power_3v3.hv
+    led_red.power.lv ~ package.PB7
