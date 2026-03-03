@@ -1,0 +1,317 @@
+import Requirement
+from "simulations.ato" import TPS62810Sims
+
+module SimulationRequirements from TPS62810Sims:
+    "Simulation requirements for the TPS62810 synchronous buck converter."
+    "Inherits DUT and simulation configurations from TPS62810Sims."
+    "Each requirement references a simulation by name."
+
+    # =========================================================================
+    # Startup Tests (uses tran_startup)
+    # =========================================================================
+
+    # REQ-001: Output voltage steady-state
+    req_output_voltage = new Requirement
+    req_output_voltage.req_name = "REQ-001: Startup output voltage"
+    req_output_voltage.simulation = "tran_startup"
+    req_output_voltage.net = "dut.power_out.hv"
+    req_output_voltage.min_val = 1.73
+    req_output_voltage.typical = 1.80
+    req_output_voltage.max_val = 1.87
+    req_output_voltage.measurement = "final_value"
+    req_output_voltage.context_nets = "dut.package.VIN,i(L1),dut.package.SW"
+    req_output_voltage.justification = "Vout=1.8V within 4% (0.6V * (1 + 200k/100k))"
+
+    # REQ-002: Feedback voltage steady-state
+    req_fb_voltage = new Requirement
+    req_fb_voltage.req_name = "REQ-002: Feedback voltage"
+    req_fb_voltage.simulation = "tran_startup"
+    req_fb_voltage.net = "dut.package.FB"
+    req_fb_voltage.min_val = 0.564
+    req_fb_voltage.typical = 0.600
+    req_fb_voltage.max_val = 0.636
+    req_fb_voltage.measurement = "final_value"
+    req_fb_voltage.context_nets = "dut.power_out.hv"
+    req_fb_voltage.justification = "TPS62810 Vref=0.6V within 6%"
+
+    # REQ-003: Startup overshoot
+    req_overshoot = new Requirement
+    req_overshoot.req_name = "REQ-003: Startup overshoot"
+    req_overshoot.simulation = "tran_startup"
+    req_overshoot.net = "dut.power_out.hv"
+    req_overshoot.min_val = 0
+    req_overshoot.typical = 3
+    req_overshoot.max_val = 10
+    req_overshoot.measurement = "overshoot"
+    req_overshoot.context_nets = "dut.package.VIN,i(L1),dut.package.SS_TR"
+    req_overshoot.justification = "Startup overshoot <10% with soft-start"
+
+    # REQ-004: Startup settling time
+    req_settling = new Requirement
+    req_settling.req_name = "REQ-004: Startup settling time"
+    req_settling.simulation = "tran_startup"
+    req_settling.net = "dut.power_out.hv"
+    req_settling.min_val = 0
+    req_settling.typical = 3e-3
+    req_settling.max_val = 5e-3
+    req_settling.measurement = "settling_time"
+    req_settling.settling_tolerance = 0.02
+    req_settling.context_nets = "dut.package.VIN,i(L1)"
+    req_settling.justification = "Settle within 5ms (SS_TR 10nF at 2uA = ~3ms), 2% band"
+
+    # REQ-024: Startup inrush current
+    req_inrush = new Requirement
+    req_inrush.req_name = "REQ-024: Startup inrush current"
+    req_inrush.simulation = "tran_startup"
+    req_inrush.net = "i(L1)"
+    req_inrush.min_val = 0
+    req_inrush.typical = 3
+    req_inrush.max_val = 6
+    req_inrush.measurement = "peak_to_peak"
+    req_inrush.context_nets = "dut.power_out.hv,dut.package.SW"
+    req_inrush.justification = "Soft-start limits peak inductor current during startup"
+
+    # =========================================================================
+    # Ripple Window Tests (uses tran_ripple)
+    # =========================================================================
+
+    # REQ-009: Output voltage ripple
+    req_output_ripple = new Requirement
+    req_output_ripple.req_name = "REQ-009: Output voltage ripple"
+    req_output_ripple.simulation = "tran_ripple"
+    req_output_ripple.net = "dut.power_out.hv"
+    req_output_ripple.min_val = 0
+    req_output_ripple.typical = 0.002
+    req_output_ripple.max_val = 0.020
+    req_output_ripple.measurement = "peak_to_peak"
+    req_output_ripple.context_nets = "i(L1),dut.package.SW"
+    req_output_ripple.justification = "Steady-state Vout ripple <20mV at VIN=3.3V, 2A load, 2.4MHz"
+
+    # REQ-005: Inductor current at steady state
+    req_inductor_current = new Requirement
+    req_inductor_current.req_name = "REQ-005: Inductor current"
+    req_inductor_current.simulation = "tran_ripple"
+    req_inductor_current.net = "i(L1)"
+    req_inductor_current.min_val = 1.5
+    req_inductor_current.typical = 2.0
+    req_inductor_current.max_val = 2.5
+    req_inductor_current.measurement = "final_value"
+    req_inductor_current.context_nets = "dut.package.SW"
+    req_inductor_current.justification = "1.8V/0.9ohm = 2A load current at steady state"
+
+    # REQ-013: Inductor current ripple
+    req_inductor_ripple = new Requirement
+    req_inductor_ripple.req_name = "REQ-013: Inductor current ripple"
+    req_inductor_ripple.simulation = "tran_ripple"
+    req_inductor_ripple.net = "i(L1)"
+    req_inductor_ripple.min_val = 0
+    req_inductor_ripple.typical = 0.35
+    req_inductor_ripple.max_val = 2.0
+    req_inductor_ripple.measurement = "peak_to_peak"
+    req_inductor_ripple.context_nets = "dut.power_out.hv,dut.package.SW"
+    req_inductor_ripple.justification = "Ripple = (Vin-Vout)*D/(Fsw*L) = 1.5*0.545/(2.4M*1u) = 0.34A"
+
+    # REQ-023: Switch node peak voltage (steady state)
+    req_sw_peak = new Requirement
+    req_sw_peak.req_name = "REQ-023: Switch node peak-to-peak voltage"
+    req_sw_peak.simulation = "tran_ripple"
+    req_sw_peak.net = "dut.package.SW"
+    req_sw_peak.min_val = 2.0
+    req_sw_peak.typical = 3.3
+    req_sw_peak.max_val = 5.0
+    req_sw_peak.measurement = "peak_to_peak"
+    req_sw_peak.context_nets = "dut.power_out.hv,i(L1)"
+    req_sw_peak.justification = "SW node swings ~0V to ~VIN (3.3V), must stay within safe limits"
+
+    # =========================================================================
+    # Steady-State Tests (uses tran_steady)
+    # =========================================================================
+
+    # REQ-025: SS_TR voltage steady-state
+    req_ss_voltage = new Requirement
+    req_ss_voltage.req_name = "REQ-025: SS_TR voltage steady-state"
+    req_ss_voltage.simulation = "tran_steady"
+    req_ss_voltage.net = "dut.package.SS_TR"
+    req_ss_voltage.min_val = 0.55
+    req_ss_voltage.typical = 0.65
+    req_ss_voltage.max_val = 0.70
+    req_ss_voltage.measurement = "final_value"
+    req_ss_voltage.context_nets = "dut.power_out.hv,dut.package.FB"
+    req_ss_voltage.justification = "SS_TR ramps to >Vref (0.6V) and clamps at ~0.7V"
+
+    # REQ-027: Input current at full load
+    req_input_current = new Requirement
+    req_input_current.req_name = "REQ-027: Input current at full load"
+    req_input_current.simulation = "tran_steady"
+    req_input_current.net = "i(V1)"
+    req_input_current.min_val = -2.5
+    req_input_current.typical = -1.2
+    req_input_current.max_val = -0.5
+    req_input_current.measurement = "average"
+    req_input_current.context_nets = "dut.power_out.hv,i(L1)"
+    req_input_current.justification = "Iin ~1.2A at 85% eff (Pout=3.6W, Pin=4.2W) — negative ngspice convention"
+
+    # REQ-028: Power Good asserted
+    req_pg_asserted = new Requirement
+    req_pg_asserted.req_name = "REQ-028: Power Good asserted"
+    req_pg_asserted.simulation = "tran_steady"
+    req_pg_asserted.net = "dut.package.PG"
+    req_pg_asserted.min_val = 0.5
+    req_pg_asserted.typical = 1.0
+    req_pg_asserted.max_val = 3.5
+    req_pg_asserted.measurement = "final_value"
+    req_pg_asserted.context_nets = "dut.power_out.hv,dut.package.FB"
+    req_pg_asserted.justification = "PG released (high-Z pulled up) when output is in regulation"
+
+    # =========================================================================
+    # Switching Frequency Tests (uses tran_sw_freq)
+    # =========================================================================
+
+    # REQ-007: Switching frequency at full load
+    req_sw_freq_loaded = new Requirement
+    req_sw_freq_loaded.req_name = "REQ-007: Switching frequency (full load)"
+    req_sw_freq_loaded.simulation = "tran_sw_freq"
+    req_sw_freq_loaded.net = "dut.package.SW"
+    req_sw_freq_loaded.min_val = 2.0e6
+    req_sw_freq_loaded.typical = 2.4e6
+    req_sw_freq_loaded.max_val = 2.9e6
+    req_sw_freq_loaded.measurement = "frequency"
+    req_sw_freq_loaded.context_nets = "dut.power_out.hv"
+    req_sw_freq_loaded.justification = "TPS62810 default Fsw ~2.4MHz (COMP_FSET tied to GND)"
+
+    # =========================================================================
+    # Load Step Response (uses tran_load_step)
+    # =========================================================================
+
+    # REQ-006: Load step transient response
+    req_load_step = new Requirement
+    req_load_step.req_name = "REQ-006: Load step response"
+    req_load_step.simulation = "tran_load_step"
+    req_load_step.net = "dut.power_out.hv"
+    req_load_step.min_val = 0
+    req_load_step.typical = 0.100
+    req_load_step.max_val = 0.500
+    req_load_step.measurement = "peak_to_peak"
+    req_load_step.context_nets = "i(V_ISENSE),dut.package.SW"
+    req_load_step.justification = "Output stability during 0.5A to 2A load step"
+
+    # =========================================================================
+    # Line Transient (uses tran_line)
+    # =========================================================================
+
+    # REQ-012: Line transient response
+    req_line_transient = new Requirement
+    req_line_transient.req_name = "REQ-012: Line transient response"
+    req_line_transient.simulation = "tran_line"
+    req_line_transient.net = "dut.power_out.hv"
+    req_line_transient.min_val = 0
+    req_line_transient.typical = 0.010
+    req_line_transient.max_val = 0.100
+    req_line_transient.measurement = "peak_to_peak"
+    req_line_transient.context_nets = "dut.package.VIN,i(L1)"
+    req_line_transient.justification = "Output perturbation <100mV during VIN step 3.3V to 5V"
+
+    # =========================================================================
+    # Protection & Safety
+    # =========================================================================
+
+    # REQ-015: UVLO inhibit
+    req_uvlo_vout = new Requirement
+    req_uvlo_vout.req_name = "REQ-015: UVLO inhibit (VIN=2V)"
+    req_uvlo_vout.simulation = "tran_uvlo"
+    req_uvlo_vout.net = "dut.power_out.hv"
+    req_uvlo_vout.min_val = 0
+    req_uvlo_vout.typical = 0
+    req_uvlo_vout.max_val = 0.5
+    req_uvlo_vout.measurement = "final_value"
+    req_uvlo_vout.context_nets = "dut.package.VIN,dut.package.SW"
+    req_uvlo_vout.justification = "VIN=2V below 2.6V UVLO threshold — converter must NOT start"
+
+    # REQ-016: UVLO inhibit — inductor current
+    req_uvlo_current = new Requirement
+    req_uvlo_current.req_name = "REQ-016: UVLO inhibit — inductor current"
+    req_uvlo_current.simulation = "tran_uvlo"
+    req_uvlo_current.net = "i(L1)"
+    req_uvlo_current.min_val = -0.1
+    req_uvlo_current.typical = 0
+    req_uvlo_current.max_val = 0.1
+    req_uvlo_current.measurement = "final_value"
+    req_uvlo_current.context_nets = "dut.power_out.hv,dut.package.SW"
+    req_uvlo_current.justification = "No inductor current when VIN below UVLO threshold"
+
+    # REQ-017: EN disable — converter inhibited
+    req_en_disable = new Requirement
+    req_en_disable.req_name = "REQ-017: EN disable — converter inhibited"
+    req_en_disable.simulation = "tran_en_disable"
+    req_en_disable.net = "dut.power_out.hv"
+    req_en_disable.min_val = 0
+    req_en_disable.typical = 0
+    req_en_disable.max_val = 0.5
+    req_en_disable.measurement = "final_value"
+    req_en_disable.context_nets = "dut.package.EN,dut.package.SW"
+    req_en_disable.justification = "EN pulled low via 100ohm (overpowers 100k pull-up) — converter must NOT start"
+
+    # REQ-018: OCP — short circuit
+    req_ocp = new Requirement
+    req_ocp.req_name = "REQ-018: OCP — short circuit output sag"
+    req_ocp.simulation = "tran_ocp"
+    req_ocp.net = "dut.power_out.hv"
+    req_ocp.min_val = 0
+    req_ocp.typical = 0.2
+    req_ocp.max_val = 1.0
+    req_ocp.measurement = "final_value"
+    req_ocp.context_nets = "i(L1),dut.package.SW"
+    req_ocp.justification = "Near-short-circuit (0.1 ohm) — output sags, OCP limits current to ~5.5A"
+
+    # =========================================================================
+    # Parametric Sweep Requirements
+    # =========================================================================
+
+    # SWEEP-001: VIN Regulation Sweep
+    sweep_vin_reg = new Requirement
+    sweep_vin_reg.req_name = "SWEEP-001: VIN regulation sweep"
+    sweep_vin_reg.simulation = "sweep_vin"
+    sweep_vin_reg.net = "dut.power_out.hv"
+    sweep_vin_reg.min_val = 1.73
+    sweep_vin_reg.typical = 1.80
+    sweep_vin_reg.max_val = 1.87
+    sweep_vin_reg.measurement = "average"
+    sweep_vin_reg.context_nets = "dut.package.VIN"
+    sweep_vin_reg.justification = "Output regulation across full VIN range (2.75V to 6V)"
+
+    # SWEEP-003: Efficiency vs Load Current
+    sweep_eff_load_req = new Requirement
+    sweep_eff_load_req.req_name = "SWEEP-003: Efficiency vs load current"
+    sweep_eff_load_req.simulation = "sweep_eff_load"
+    sweep_eff_load_req.net = "dut.power_out.hv"
+    sweep_eff_load_req.min_val = 70
+    sweep_eff_load_req.typical = 90
+    sweep_eff_load_req.max_val = 100
+    sweep_eff_load_req.measurement = "efficiency"
+    sweep_eff_load_req.context_nets = "i(V1),dut.package.VIN,i(V_LSENSE)"
+    sweep_eff_load_req.justification = "Efficiency across load range (Pout/Pin)"
+
+    # SWEEP-005: Output Ripple vs Inductor Value
+    sweep_ripple_l_req = new Requirement
+    sweep_ripple_l_req.req_name = "SWEEP-005: Output ripple vs inductor value"
+    sweep_ripple_l_req.simulation = "sweep_ripple_l"
+    sweep_ripple_l_req.net = "dut.power_out.hv"
+    sweep_ripple_l_req.min_val = 0
+    sweep_ripple_l_req.typical = 0.002
+    sweep_ripple_l_req.max_val = 0.050
+    sweep_ripple_l_req.measurement = "peak_to_peak"
+    sweep_ripple_l_req.context_nets = "dut.package.SW"
+    sweep_ripple_l_req.justification = "Output ripple sensitivity to inductor value"
+
+    # SWEEP-006: Settling Time vs Inductor Value
+    sweep_settle_l_req = new Requirement
+    sweep_settle_l_req.req_name = "SWEEP-006: Settling time vs inductor value"
+    sweep_settle_l_req.simulation = "sweep_settle_l"
+    sweep_settle_l_req.net = "dut.power_out.hv"
+    sweep_settle_l_req.min_val = 0
+    sweep_settle_l_req.typical = 3e-3
+    sweep_settle_l_req.max_val = 10e-3
+    sweep_settle_l_req.measurement = "settling_time"
+    sweep_settle_l_req.settling_tolerance = 0.02
+    sweep_settle_l_req.context_nets = "dut.package.VIN"
+    sweep_settle_l_req.justification = "Settling time sensitivity to inductor value"

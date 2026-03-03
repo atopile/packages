@@ -1,0 +1,129 @@
+#pragma experiment("BRIDGE_CONNECT")
+import Resistor
+import Capacitor
+import Inductor
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+
+from "parts/Texas_Instruments_TPS6281020QWRWYRQ1/Texas_Instruments_TPS6281020QWRWYRQ1.ato" import Texas_Instruments_TPS6281020QWRWYRQ1_package
+
+
+module TI_TPS62810:
+    """
+    Texas Instruments TPS62810-Q1 Synchronous Step-Down Converter
+    - 2.75V to 6V input voltage range
+    - 0.6V to 5.5V adjustable output voltage
+    - Up to 4A continuous output current
+    - 1.8MHz to 4MHz adjustable switching frequency
+    - Synchronous rectification (no external diode needed)
+    - AEC-Q100 qualified for automotive
+    - 3mm x 2mm VQFN-HR package with wettable flanks
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_TPS6281020QWRWYRQ1_package
+
+    # --- External Interfaces ---
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+
+    enable = new ElectricLogic
+    """Enable pin (active high). EN must not float."""
+
+    power_good = new ElectricLogic
+    """Power good output (open drain). High impedance when output is in regulation."""
+
+    mode_sync = new ElectricLogic
+    """MODE/SYNC pin. High = forced PWM, Low = auto PFM/PWM."""
+
+    # --- Voltage Constraints ---
+    assert power_in.voltage within 2.75V to 6V
+
+    # --- Inductor ---
+    inductor = new Inductor
+    inductor.inductance = 1uH +/- 20%
+    inductor.package = "SMD5x5mm"
+
+    # --- Input Decoupling ---
+    input_cap = new Capacitor
+    input_cap.capacitance = 22uF +/- 20%
+    input_cap.package = "0805"
+    assert input_cap.max_voltage >= 10V
+
+    # --- Output Capacitors (minimum 27uF total per datasheet) ---
+    output_cap1 = new Capacitor
+    output_cap1.capacitance = 22uF +/- 20%
+    output_cap1.package = "0805"
+    assert output_cap1.max_voltage >= 10V
+
+    output_cap2 = new Capacitor
+    output_cap2.capacitance = 22uF +/- 20%
+    output_cap2.package = "0805"
+    assert output_cap2.max_voltage >= 10V
+
+    # --- Soft-Start Capacitor ---
+    soft_start_cap = new Capacitor
+    soft_start_cap.capacitance = 10nF +/- 20%
+    soft_start_cap.package = "0201"
+
+    # --- Feedback Divider ---
+    # Vout = Vref * (1 + R_top / R_bottom), Vref = 0.6V
+    # Default: 1.8V output -> R_top/R_bottom = 2
+    # Override r_top and r_bottom in your design for different output voltages
+    r_top = new Resistor
+    r_top.resistance = 200kohm +/- 1%
+    r_top.package = "0201"
+
+    r_bottom = new Resistor
+    r_bottom.resistance = 100kohm +/- 1%
+    r_bottom.package = "0201"
+
+    # --- Enable Pull-up (default enabled) ---
+    enable_resistor = new Resistor
+    enable_resistor.resistance = 100kohm +/- 5%
+    enable_resistor.package = "0201"
+
+    # --- Package Connections ---
+    # Power
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    power_out.lv ~ package.GND
+
+    # Input decoupling
+    power_in.hv ~> input_cap ~> power_in.lv
+
+    # Output capacitors
+    power_out.hv ~> output_cap1 ~> power_out.lv
+    power_out.hv ~> output_cap2 ~> power_out.lv
+
+    # Switch node -> inductor -> output
+    package.SW ~> inductor ~> power_out.hv
+
+    # Feedback divider: Vout -> R_top -> FB -> R_bottom -> GND
+    power_out.hv ~> r_top ~> package.FB
+    package.FB ~> r_bottom ~> power_in.lv
+
+    # Soft-start / tracking
+    package.SS_TR ~> soft_start_cap ~> power_in.lv
+
+    # COMP/FSET — tied to GND for default compensation (~2.4MHz)
+    package.COMP_FSET ~ power_in.lv
+
+    # Enable — pull-up keeps EN high by default
+    enable.line ~ package.EN
+    enable.reference.lv ~ power_in.lv
+    power_in.hv ~> enable_resistor ~> package.EN
+
+    # Power Good (open drain)
+    power_good.line ~ package.PG
+
+    # MODE/SYNC
+    mode_sync.line ~ package.MODE_SYNC
+    mode_sync.reference.lv ~ power_in.lv
+
+    # --- Simulation Load (provides load for SPICE simulation) ---
+    r_load = new Resistor
+    r_load.resistance = 0.5ohm to 100ohm
+    r_load.package = "R1210"
+    power_out.hv ~> r_load ~> power_out.lv

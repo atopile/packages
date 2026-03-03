@@ -1,0 +1,137 @@
+import SimulationTransient
+import SimulationSweep
+from "simulation.ato" import TI_TPS62810_3V3_1V8
+
+module TPS62810Sims:
+    "Simulation configurations for the TPS62810 buck converter."
+
+    dut = new TI_TPS62810_3V3_1V8
+
+    # =========================================================================
+    # Startup Transient (VIN ramp 0->3.3V, 6ms capture)
+    # =========================================================================
+    tran_startup = new SimulationTransient
+    tran_startup.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_startup.time_step = 1e-7
+    tran_startup.time_stop = 6e-3
+
+    # =========================================================================
+    # Ripple Window (steady-state fine timestep, 4ms-4.01ms at 2.4MHz)
+    # =========================================================================
+    tran_ripple = new SimulationTransient
+    tran_ripple.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_ripple.time_step = 5e-9
+    tran_ripple.time_stop = 4.01e-3
+    tran_ripple.time_start = 4e-3
+
+    # =========================================================================
+    # Steady-State Window (4ms-5ms, medium timestep)
+    # =========================================================================
+    tran_steady = new SimulationTransient
+    tran_steady.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_steady.time_step = 1e-7
+    tran_steady.time_stop = 5e-3
+    tran_steady.time_start = 4e-3
+
+    # =========================================================================
+    # Switching Frequency Window (4ms-4.01ms, fine timestep)
+    # =========================================================================
+    tran_sw_freq = new SimulationTransient
+    tran_sw_freq.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_sw_freq.time_step = 5e-9
+    tran_sw_freq.time_stop = 4.01e-3
+    tran_sw_freq.time_start = 4e-3
+
+    # =========================================================================
+    # Load Step Response (0.5A -> 2A, 4ms-7ms)
+    # =========================================================================
+    tran_load_step = new SimulationTransient
+    tran_load_step.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_load_step.time_step = 1e-7
+    tran_load_step.time_stop = 7e-3
+    tran_load_step.time_start = 4e-3
+    tran_load_step.remove_elements = "R3"
+    tran_load_step.extra_spice = "R3_LIGHT dut_power_out_hv 0 3.6|V_ISENSE load_sense 0 0|I_LOAD dut_power_out_hv load_sense PULSE(0 1.5 4.5e-3 1u 1u 10 10)"
+
+    # =========================================================================
+    # Line Transient (VIN step 3.3V->5V->3.3V)
+    # =========================================================================
+    tran_line = new SimulationTransient
+    tran_line.spice = "V1 dut_package_2 0 PULSE(3.3 5 4e-3 1u 1u 2e-3 10)"
+    tran_line.time_step = 1e-7
+    tran_line.time_stop = 7e-3
+    tran_line.time_start = 3.9e-3
+
+    # =========================================================================
+    # UVLO Inhibit (VIN=2V, below 2.6V threshold)
+    # =========================================================================
+    tran_uvlo = new SimulationTransient
+    tran_uvlo.spice = "V1 dut_package_2 0 PULSE(0 2 0 10u 10u 10 10)"
+    tran_uvlo.time_step = 1e-7
+    tran_uvlo.time_stop = 6e-3
+
+    # =========================================================================
+    # EN Disable (EN tied low via 100 ohm, overpowers 100k pull-up)
+    # =========================================================================
+    tran_en_disable = new SimulationTransient
+    tran_en_disable.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_en_disable.time_step = 1e-7
+    tran_en_disable.time_stop = 6e-3
+    tran_en_disable.remove_elements = "R1"
+    tran_en_disable.extra_spice = "R1_GND dut_package_8 0 100"
+
+    # =========================================================================
+    # OCP — Short Circuit (0.1 ohm load)
+    # =========================================================================
+    tran_ocp = new SimulationTransient
+    tran_ocp.spice = "V1 dut_package_2 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    tran_ocp.time_step = 1e-7
+    tran_ocp.time_stop = 6e-3
+    tran_ocp.remove_elements = "R3"
+    tran_ocp.extra_spice = "R3_SHORT dut_power_out_hv 0 0.1"
+
+    # =========================================================================
+    # Parametric Sweeps
+    # =========================================================================
+
+    # VIN Regulation Sweep
+    sweep_vin = new SimulationSweep
+    sweep_vin.param_name = "VIN"
+    sweep_vin.param_values = "2.75,3.3,4.5,6"
+    sweep_vin.param_unit = "V"
+    sweep_vin.spice_template = "V1 dut_package_2 0 PULSE(0 {VIN} 0 10u 10u 10 10)"
+    sweep_vin.time_start = 4e-3
+    sweep_vin.time_stop = 5e-3
+    sweep_vin.time_step = 1e-7
+
+    # Efficiency vs Load Current
+    sweep_eff_load = new SimulationSweep
+    sweep_eff_load.param_name = "ILOAD"
+    sweep_eff_load.param_values = "0.5,1,2,4"
+    sweep_eff_load.param_unit = "A"
+    sweep_eff_load.time_start = 4e-3
+    sweep_eff_load.time_stop = 5e-3
+    sweep_eff_load.time_step = 1e-7
+    sweep_eff_load.remove_elements = "R3"
+    sweep_eff_load.extra_spice_template = "V_LSENSE dut_power_out_hv lsense_node 0|I_LOAD lsense_node 0 DC {ILOAD}"
+
+    # Output Ripple vs Inductor Value
+    sweep_ripple_l = new SimulationSweep
+    sweep_ripple_l.param_name = "L"
+    sweep_ripple_l.param_values = "0.47,1,2.2,4.7"
+    sweep_ripple_l.param_unit = "uH"
+    sweep_ripple_l.time_start = 4e-3
+    sweep_ripple_l.time_stop = 4.01e-3
+    sweep_ripple_l.time_step = 5e-9
+    sweep_ripple_l.remove_elements = "L1"
+    sweep_ripple_l.extra_spice_template = "L1_SWEEP dut_package_3 dut_power_out_hv {L}u"
+
+    # Settling Time vs Inductor Value
+    sweep_settle_l = new SimulationSweep
+    sweep_settle_l.param_name = "L"
+    sweep_settle_l.param_values = "0.47,1,2.2,4.7"
+    sweep_settle_l.param_unit = "uH"
+    sweep_settle_l.time_stop = 10e-3
+    sweep_settle_l.time_step = 1e-7
+    sweep_settle_l.remove_elements = "L1"
+    sweep_settle_l.extra_spice_template = "L1_SWEEP dut_package_3 dut_power_out_hv {L}u"

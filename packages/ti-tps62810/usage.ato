@@ -1,0 +1,33 @@
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import ElectricLogic
+
+from "atopile/ti-tps62810/ti-tps62810.ato" import TI_TPS62810
+
+module Usage:
+    """
+    Example: 3.3V to 1.8V @ up to 4A step-down conversion
+    Enable defaults to always-on via internal pull-up resistor.
+    """
+    regulator = new TI_TPS62810
+    regulator.power_out.max_current = 4000mA
+
+    # --- Power Rails ---
+    power_input = new ElectricPower
+    assert power_input.voltage within 3.3V +/- 5%
+    power_output = new ElectricPower
+    assert power_output.voltage within 1.8V +/- 3%
+
+    # --- Connections ---
+    power_input ~ regulator.power_in
+    regulator.power_out ~ power_output
+
+    # Enable — defaults to always-on via built-in pull-up
+    # For external control, connect an ElectricLogic signal:
+    # enable = new ElectricLogic
+    # regulator.enable ~ enable
+
+    # MODE/SYNC — tie to VIN for forced PWM mode
+    mode = new ElectricLogic
+    mode.line ~ power_input.hv
+    regulator.mode_sync ~ mode

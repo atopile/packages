@@ -1,0 +1,546 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import LineChart
+import BarChart
+import SimulationTransient
+import SimulationSweep
+import Requirement
+import Resistor
+
+from "ti-tps62810.ato" import TI_TPS62810
+
+# =============================================================================
+# TPS62810 Design Validation
+# Datasheet: SLVSDL9 (TPS62810-Q1)
+#
+# DUT: 1.8V/2A output, 3.3V nominal input, 2.4MHz switching
+#
+# Netlist element map (from ato build):
+#   R1=enable_resistor(100k) R2=r_bottom(100k) R3=r_load(0.9)
+#   R4=r_top(200k)
+#   C1=input_cap(22u) C2=output_cap1(22u) C3=output_cap2(22u)
+#   C4=soft_start_cap(10n)
+#   L1=inductor(1u)  X1=TPS62810_TRANS(FS=2400k)
+# =============================================================================
+
+# DUT wrapper: 3.3V to 1.8V @ 2A configuration
+module TPS62810_DV from TI_TPS62810:
+    """DUT wrapper with constrained operating point."""
+    assert r_load.resistance within 0.9ohm +/- 5%
+    assert power_in.voltage within 3.3V +/- 5%
+
+
+module DesignValidation:
+    """Design validation: comprehensive analysis of TPS62810 buck converter."""
+
+    # DUT Instance
+    dut = new TPS62810_DV
+    assert dut.power_out.voltage within 1.8V +/- 3%
+    dut.power_out.max_current = 4A
+
+    dut_list = "dut"
+
+    # =====================================================================
+    # Simulations
+    # =====================================================================
+
+    # --- Startup: VIN ramp 0->3.3V, 6ms capture ---
+    startup_transient = new SimulationTransient
+    startup_transient.duts = "dut"
+    startup_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    startup_transient.time_step = 100ns
+    startup_transient.time_stop = 6ms
+
+    # --- Ripple window: steady-state fine timestep, 4ms-4.01ms at 2.4MHz ---
+    ripple_transient = new SimulationTransient
+    ripple_transient.duts = "dut"
+    ripple_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    ripple_transient.time_step = 5ns
+    ripple_transient.time_stop = 4.01ms
+    ripple_transient.time_start = 4ms
+
+    # --- Steady-state window: 4ms-5ms, medium timestep ---
+    steady_transient = new SimulationTransient
+    steady_transient.duts = "dut"
+    steady_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    steady_transient.time_step = 100ns
+    steady_transient.time_stop = 5ms
+    steady_transient.time_start = 4ms
+
+    # --- Switching frequency window: 4ms-4.01ms, fine timestep ---
+    sw_freq_transient = new SimulationTransient
+    sw_freq_transient.duts = "dut"
+    sw_freq_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    sw_freq_transient.time_step = 5ns
+    sw_freq_transient.time_stop = 4.01ms
+    sw_freq_transient.time_start = 4ms
+
+    # --- Load step response: 0.5A -> 2A, 4ms-7ms ---
+    load_step_transient = new SimulationTransient
+    load_step_transient.duts = "dut"
+    load_step_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    load_step_transient.time_step = 100ns
+    load_step_transient.time_stop = 7ms
+    load_step_transient.time_start = 4ms
+    load_step_transient.remove_elements = "R3"
+    load_step_transient.extra_spice = "R3_LIGHT dut.power_out.hv 0 3.6|V_ISENSE load_sense 0 0|I_LOAD dut.power_out.hv load_sense PULSE(0 1.5 4.5e-3 1u 1u 10 10)"
+
+    # --- Line transient: VIN step 3.3V->5V->3.3V ---
+    line_transient = new SimulationTransient
+    line_transient.duts = "dut"
+    line_transient.spice = "V1 dut.power_in.hv 0 PULSE(3.3 5 4e-3 1u 1u 2e-3 10)"
+    line_transient.time_step = 100ns
+    line_transient.time_stop = 7ms
+    line_transient.time_start = 3.9ms
+
+    # --- UVLO inhibit: VIN=2V, below 2.6V threshold ---
+    uvlo_transient = new SimulationTransient
+    uvlo_transient.duts = "dut"
+    uvlo_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 2 0 10u 10u 10 10)"
+    uvlo_transient.time_step = 100ns
+    uvlo_transient.time_stop = 6ms
+
+    # --- EN disable: EN tied low via 100 ohm, overpowers 100k pull-up ---
+    en_disable_transient = new SimulationTransient
+    en_disable_transient.duts = "dut"
+    en_disable_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    en_disable_transient.time_step = 100ns
+    en_disable_transient.time_stop = 6ms
+    en_disable_transient.remove_elements = "R1"
+    en_disable_transient.extra_spice = "R1_GND dut.package.EN 0 100"
+
+    # --- OCP: short circuit (0.1 ohm load) ---
+    ocp_transient = new SimulationTransient
+    ocp_transient.duts = "dut"
+    ocp_transient.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    ocp_transient.time_step = 100ns
+    ocp_transient.time_stop = 6ms
+    ocp_transient.remove_elements = "R3"
+    ocp_transient.extra_spice = "R3_SHORT dut.power_out.hv 0 0.1"
+
+    # --- VIN regulation sweep ---
+    vin_sweep = new SimulationSweep
+    vin_sweep.duts = "dut"
+    vin_sweep.param_name = "VIN"
+    vin_sweep.param_values = "2.75,3.3,4.5,6"
+    vin_sweep.param_unit = "V"
+    vin_sweep.spice_template = "V1 dut.power_in.hv 0 PULSE(0 {VIN} 0 10u 10u 10 10)"
+    vin_sweep.time_start = 4ms
+    vin_sweep.time_stop = 5ms
+    vin_sweep.time_step = 100ns
+
+    # --- Efficiency vs load current ---
+    eff_load_sweep = new SimulationSweep
+    eff_load_sweep.duts = "dut"
+    eff_load_sweep.param_name = "ILOAD"
+    eff_load_sweep.param_values = "0.5,1,2,4"
+    eff_load_sweep.param_unit = "A"
+    eff_load_sweep.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    eff_load_sweep.time_start = 4ms
+    eff_load_sweep.time_stop = 5ms
+    eff_load_sweep.time_step = 100ns
+    eff_load_sweep.remove_elements = "R3"
+    eff_load_sweep.extra_spice_template = "V_LSENSE dut.power_out.hv lsense_node 0|I_LOAD lsense_node 0 DC {ILOAD}"
+
+    # --- Output ripple vs inductor value ---
+    ripple_l_sweep = new SimulationSweep
+    ripple_l_sweep.duts = "dut"
+    ripple_l_sweep.param_name = "L"
+    ripple_l_sweep.param_values = "0.47,1,2.2,4.7"
+    ripple_l_sweep.param_unit = "uH"
+    ripple_l_sweep.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    ripple_l_sweep.time_start = 4ms
+    ripple_l_sweep.time_stop = 4.01ms
+    ripple_l_sweep.time_step = 5ns
+    ripple_l_sweep.remove_elements = "L1"
+    ripple_l_sweep.extra_spice_template = "L1_SWEEP dut.package.SW dut.power_out.hv {L}u"
+
+    # --- Settling time vs inductor value ---
+    settle_l_sweep = new SimulationSweep
+    settle_l_sweep.duts = "dut"
+    settle_l_sweep.param_name = "L"
+    settle_l_sweep.param_values = "0.47,1,2.2,4.7"
+    settle_l_sweep.param_unit = "uH"
+    settle_l_sweep.spice = "V1 dut.power_in.hv 0 PULSE(0 3.3 0 10u 10u 10 10)"
+    settle_l_sweep.time_stop = 10ms
+    settle_l_sweep.time_step = 100ns
+    settle_l_sweep.remove_elements = "L1"
+    settle_l_sweep.extra_spice_template = "L1_SWEEP dut.package.SW dut.power_out.hv {L}u"
+
+    # =====================================================================
+    # Plots
+    # =====================================================================
+
+    # --- Startup plots ---
+    plot_startup_vout = new LineChart
+    plot_startup_vout.title = "Output Voltage Startup"
+    plot_startup_vout.x = "time"
+    plot_startup_vout.y = "dut.power_out.hv"
+    plot_startup_vout.y_secondary = "dut.power_in.hv"
+
+    plot_startup_il = new LineChart
+    plot_startup_il.title = "Inductor Current During Startup"
+    plot_startup_il.x = "time"
+    plot_startup_il.y = "i(l1)"
+    plot_startup_il.y_secondary = "dut.package.SW"
+
+    plot_startup_ss = new LineChart
+    plot_startup_ss.title = "Soft-Start Ramp During Startup"
+    plot_startup_ss.x = "time"
+    plot_startup_ss.y = "dut.power_out.hv"
+    plot_startup_ss.y_secondary = "dut.package.SS_TR"
+
+    # --- Ripple plots ---
+    plot_ripple_vout = new LineChart
+    plot_ripple_vout.title = "AC-Coupled Output Ripple"
+    plot_ripple_vout.x = "time"
+    plot_ripple_vout.y = "ac_coupled(dut.power_out.hv)"
+    plot_ripple_vout.y_secondary = "i(l1)"
+
+    plot_ripple_sw = new LineChart
+    plot_ripple_sw.title = "SW Node and Inductor Current"
+    plot_ripple_sw.x = "time"
+    plot_ripple_sw.y = "dut.package.SW"
+    plot_ripple_sw.y_secondary = "i(l1)"
+
+    # --- Steady-state plots ---
+    plot_steady_vout = new LineChart
+    plot_steady_vout.title = "Steady-State Output and SS_TR"
+    plot_steady_vout.x = "time"
+    plot_steady_vout.y = "dut.power_out.hv"
+    plot_steady_vout.y_secondary = "dut.package.SS_TR"
+
+    plot_steady_pg = new LineChart
+    plot_steady_pg.title = "Power Good and Output Voltage"
+    plot_steady_pg.x = "time"
+    plot_steady_pg.y = "dut.package.PG"
+    plot_steady_pg.y_secondary = "dut.power_out.hv"
+
+    # --- Switching frequency plot ---
+    plot_sw_freq = new LineChart
+    plot_sw_freq.title = "SW Node Waveform (Frequency Measurement)"
+    plot_sw_freq.x = "time"
+    plot_sw_freq.y = "dut.package.SW"
+    plot_sw_freq.y_secondary = "i(l1)"
+
+    # --- Load step plot ---
+    plot_loadstep_vout = new LineChart
+    plot_loadstep_vout.title = "Load Step Transient (0.5A to 2A)"
+    plot_loadstep_vout.x = "time"
+    plot_loadstep_vout.y = "dut.power_out.hv"
+    plot_loadstep_vout.y_secondary = "i(v_isense)"
+
+    # --- Line transient plot ---
+    plot_line_vout = new LineChart
+    plot_line_vout.title = "Line Transient (VIN 3.3V to 5V)"
+    plot_line_vout.x = "time"
+    plot_line_vout.y = "dut.power_out.hv"
+    plot_line_vout.y_secondary = "dut.power_in.hv"
+
+    # --- Protection plots ---
+    plot_uvlo_vout = new LineChart
+    plot_uvlo_vout.title = "UVLO Inhibit (VIN=2V)"
+    plot_uvlo_vout.x = "time"
+    plot_uvlo_vout.y = "dut.power_out.hv"
+    plot_uvlo_vout.y_secondary = "dut.package.SW"
+
+    plot_en_vout = new LineChart
+    plot_en_vout.title = "EN Disable — Converter Inhibited"
+    plot_en_vout.x = "time"
+    plot_en_vout.y = "dut.power_out.hv"
+    plot_en_vout.y_secondary = "dut.package.EN"
+
+    plot_ocp_vout = new LineChart
+    plot_ocp_vout.title = "OCP Short Circuit (0.1 ohm Load)"
+    plot_ocp_vout.x = "time"
+    plot_ocp_vout.y = "dut.power_out.hv"
+    plot_ocp_vout.y_secondary = "i(l1)"
+
+    # --- VIN sweep plots ---
+    plot_vin_bar = new BarChart
+    plot_vin_bar.title = "Average Output vs Input Voltage"
+    plot_vin_bar.x = "VIN"
+    plot_vin_bar.y = "average(dut.power_out.hv)"
+
+    plot_vin_traces = new LineChart
+    plot_vin_traces.title = "Output Voltage vs Input Voltage"
+    plot_vin_traces.x = "time"
+    plot_vin_traces.y = "dut.power_out.hv"
+    plot_vin_traces.color = "VIN"
+    plot_vin_traces.plot_limits = "false"
+
+    # --- Efficiency sweep plots ---
+    plot_eff_bar = new BarChart
+    plot_eff_bar.title = "Efficiency vs Load Current"
+    plot_eff_bar.x = "ILOAD"
+    plot_eff_bar.y = "average(dut.power_out.hv)"
+
+    # --- Ripple vs inductor plots ---
+    plot_ripple_l_bar = new BarChart
+    plot_ripple_l_bar.title = "Output Ripple vs Inductor Value"
+    plot_ripple_l_bar.x = "L"
+    plot_ripple_l_bar.y = "peak_to_peak(dut.power_out.hv)"
+
+    plot_ripple_l_traces = new LineChart
+    plot_ripple_l_traces.title = "AC-Coupled Output Ripple vs Inductance"
+    plot_ripple_l_traces.x = "time"
+    plot_ripple_l_traces.y = "ac_coupled(dut.power_out.hv)"
+    plot_ripple_l_traces.color = "L"
+    plot_ripple_l_traces.plot_limits = "false"
+
+    # --- Settling vs inductor plots ---
+    plot_settle_l = new LineChart
+    plot_settle_l.title = "Settling Time vs Inductor Value"
+    plot_settle_l.x = "L"
+    plot_settle_l.y = "settling_time(dut.power_out.hv)"
+
+    plot_settle_l_traces = new LineChart
+    plot_settle_l_traces.title = "Startup Traces by Inductor Value"
+    plot_settle_l_traces.x = "time"
+    plot_settle_l_traces.y = "dut.power_out.hv"
+    plot_settle_l_traces.color = "L"
+    plot_settle_l_traces.plot_limits = "false"
+
+    # =====================================================================
+    # Requirements
+    # =====================================================================
+
+    # --- REQ_001: Startup Output Voltage ---
+    req_001 = new Requirement
+    req_001.req_name = "REQ_001: Startup Output Voltage"
+    req_001.simulation = "startup_transient"
+    req_001.net = "dut.power_out.hv"
+    req_001.measurement = "final_value"
+    assert req_001.limit within 1.73V to 1.87V
+    req_001.justification = "Vout=1.8V within 4% (0.6V * (1 + 200k/100k)). Feedback divider sets output at Vref=0.6V with 2:1 ratio."
+    req_001.required_plot = "plot_startup_vout"
+    req_001.supplementary_plot = "plot_startup_ss"
+
+    # --- REQ_002: Feedback Voltage ---
+    req_002 = new Requirement
+    req_002.req_name = "REQ_002: Feedback Voltage"
+    req_002.simulation = "startup_transient"
+    req_002.net = "dut.package.FB"
+    req_002.measurement = "final_value"
+    assert req_002.limit within 0.564V to 0.636V
+    req_002.justification = "TPS62810 Vref=0.6V within 6% per datasheet."
+    req_002.required_plot = "plot_startup_vout"
+
+    # --- REQ_003: Startup Overshoot ---
+    req_003 = new Requirement
+    req_003.req_name = "REQ_003: Startup Overshoot"
+    req_003.simulation = "startup_transient"
+    req_003.net = "dut.power_out.hv"
+    req_003.measurement = "overshoot"
+    assert req_003.limit within 0 to 10
+    req_003.justification = "Startup overshoot <10% with soft-start (SS_TR 10nF at 2uA)."
+    req_003.required_plot = "plot_startup_vout"
+    req_003.supplementary_plot = "plot_startup_il"
+
+    # --- REQ_004: Startup Settling Time ---
+    req_004 = new Requirement
+    req_004.req_name = "REQ_004: Startup Settling Time"
+    req_004.simulation = "startup_transient"
+    req_004.net = "dut.power_out.hv"
+    req_004.measurement = "settling_time"
+    assert req_004.limit within 0 to 5ms
+    req_004.justification = "Settle within 5ms (SS_TR 10nF at 2uA = ~3ms typical), 2% band."
+    req_004.required_plot = "plot_startup_vout"
+    req_004.supplementary_plot = "plot_startup_il"
+
+    # --- REQ_005: Startup Inrush Current ---
+    req_005 = new Requirement
+    req_005.req_name = "REQ_005: Startup Inrush Current"
+    req_005.simulation = "startup_transient"
+    req_005.net = "i(l1)"
+    req_005.measurement = "peak_to_peak"
+    assert req_005.limit within 0A to 6A
+    req_005.justification = "Soft-start limits peak inductor current during startup."
+    req_005.required_plot = "plot_startup_il"
+    req_005.supplementary_plot = "plot_startup_vout"
+
+    # --- REQ_006: Output Voltage Ripple ---
+    req_006 = new Requirement
+    req_006.req_name = "REQ_006: Output Voltage Ripple"
+    req_006.simulation = "ripple_transient"
+    req_006.net = "dut.power_out.hv"
+    req_006.measurement = "peak_to_peak"
+    assert req_006.limit within 0V to 20mV
+    req_006.justification = "Steady-state Vout ripple <20mV at VIN=3.3V, 2A load, 2.4MHz."
+    req_006.required_plot = "plot_ripple_vout"
+    req_006.supplementary_plot = "plot_ripple_sw"
+
+    # --- REQ_007: Inductor Current ---
+    req_007 = new Requirement
+    req_007.req_name = "REQ_007: Inductor Current"
+    req_007.simulation = "ripple_transient"
+    req_007.net = "i(l1)"
+    req_007.measurement = "final_value"
+    assert req_007.limit within 1.5A to 2.5A
+    req_007.justification = "1.8V/0.9ohm = 2A load current at steady state."
+    req_007.required_plot = "plot_ripple_sw"
+
+    # --- REQ_008: Inductor Current Ripple ---
+    req_008 = new Requirement
+    req_008.req_name = "REQ_008: Inductor Current Ripple"
+    req_008.simulation = "ripple_transient"
+    req_008.net = "i(l1)"
+    req_008.measurement = "peak_to_peak"
+    assert req_008.limit within 0A to 2A
+    req_008.justification = "Ripple = (Vin-Vout)*D/(Fsw*L) = 1.5*0.545/(2.4M*1u) = 0.34A."
+    req_008.required_plot = "plot_ripple_sw"
+    req_008.supplementary_plot = "plot_ripple_vout"
+
+    # --- REQ_009: Switch Node Peak-to-Peak ---
+    req_009 = new Requirement
+    req_009.req_name = "REQ_009: Switch Node Peak-to-Peak Voltage"
+    req_009.simulation = "ripple_transient"
+    req_009.net = "dut.package.SW"
+    req_009.measurement = "peak_to_peak"
+    assert req_009.limit within 2V to 5V
+    req_009.justification = "SW node swings ~0V to ~VIN (3.3V), must stay within safe limits."
+    req_009.required_plot = "plot_ripple_sw"
+
+    # --- REQ_010: SS_TR Voltage Steady-State ---
+    req_010 = new Requirement
+    req_010.req_name = "REQ_010: SS_TR Voltage Steady-State"
+    req_010.simulation = "steady_transient"
+    req_010.net = "dut.package.SS_TR"
+    req_010.measurement = "final_value"
+    assert req_010.limit within 0.55V to 0.70V
+    req_010.justification = "SS_TR ramps to >Vref (0.6V) and clamps at ~0.7V."
+    req_010.required_plot = "plot_steady_vout"
+
+    # --- REQ_011: Input Current at Full Load ---
+    req_011 = new Requirement
+    req_011.req_name = "REQ_011: Input Current at Full Load"
+    req_011.simulation = "steady_transient"
+    req_011.net = "i(v1)"
+    req_011.measurement = "average"
+    assert req_011.limit within -2.5A to -0.5A
+    req_011.justification = "Iin ~1.2A at 85% eff (Pout=3.6W, Pin=4.2W) — negative ngspice convention."
+    req_011.required_plot = "plot_steady_vout"
+
+    # --- REQ_012: Power Good Asserted ---
+    req_012 = new Requirement
+    req_012.req_name = "REQ_012: Power Good Asserted"
+    req_012.simulation = "steady_transient"
+    req_012.net = "dut.package.PG"
+    req_012.measurement = "final_value"
+    assert req_012.limit within 0.5V to 3.5V
+    req_012.justification = "PG released (high-Z pulled up) when output is in regulation."
+    req_012.required_plot = "plot_steady_pg"
+    req_012.supplementary_plot = "plot_steady_vout"
+
+    # --- REQ_013: Switching Frequency ---
+    req_013 = new Requirement
+    req_013.req_name = "REQ_013: Switching Frequency (Full Load)"
+    req_013.simulation = "sw_freq_transient"
+    req_013.net = "dut.package.SW"
+    req_013.measurement = "frequency"
+    assert req_013.limit within 2MHz to 2.9MHz
+    req_013.justification = "TPS62810 default Fsw ~2.4MHz (COMP_FSET tied to GND)."
+    req_013.required_plot = "plot_sw_freq"
+
+    # --- REQ_014: Load Step Response ---
+    req_014 = new Requirement
+    req_014.req_name = "REQ_014: Load Step Response"
+    req_014.simulation = "load_step_transient"
+    req_014.net = "dut.power_out.hv"
+    req_014.measurement = "peak_to_peak"
+    assert req_014.limit within 0V to 500mV
+    req_014.justification = "Output stability during 0.5A to 2A load step."
+    req_014.required_plot = "plot_loadstep_vout"
+
+    # --- REQ_015: Line Transient Response ---
+    req_015 = new Requirement
+    req_015.req_name = "REQ_015: Line Transient Response"
+    req_015.simulation = "line_transient"
+    req_015.net = "dut.power_out.hv"
+    req_015.measurement = "peak_to_peak"
+    assert req_015.limit within 0V to 100mV
+    req_015.justification = "Output perturbation <100mV during VIN step 3.3V to 5V."
+    req_015.required_plot = "plot_line_vout"
+
+    # --- REQ_016: UVLO Inhibit ---
+    req_016 = new Requirement
+    req_016.req_name = "REQ_016: UVLO Inhibit (VIN=2V)"
+    req_016.simulation = "uvlo_transient"
+    req_016.net = "dut.power_out.hv"
+    req_016.measurement = "final_value"
+    assert req_016.limit within 0V to 0.5V
+    req_016.justification = "VIN=2V below 2.6V UVLO threshold — converter must NOT start."
+    req_016.required_plot = "plot_uvlo_vout"
+
+    # --- REQ_017: UVLO Inhibit — Inductor Current ---
+    req_017 = new Requirement
+    req_017.req_name = "REQ_017: UVLO Inhibit — Inductor Current"
+    req_017.simulation = "uvlo_transient"
+    req_017.net = "i(l1)"
+    req_017.measurement = "final_value"
+    assert req_017.limit within -100mA to 100mA
+    req_017.justification = "No inductor current when VIN below UVLO threshold."
+    req_017.required_plot = "plot_uvlo_vout"
+
+    # --- REQ_018: EN Disable ---
+    req_018 = new Requirement
+    req_018.req_name = "REQ_018: EN Disable — Converter Inhibited"
+    req_018.simulation = "en_disable_transient"
+    req_018.net = "dut.power_out.hv"
+    req_018.measurement = "final_value"
+    assert req_018.limit within 0V to 0.5V
+    req_018.justification = "EN pulled low via 100ohm (overpowers 100k pull-up) — converter must NOT start."
+    req_018.required_plot = "plot_en_vout"
+
+    # --- REQ_019: OCP Short Circuit ---
+    req_019 = new Requirement
+    req_019.req_name = "REQ_019: OCP — Short Circuit Output Sag"
+    req_019.simulation = "ocp_transient"
+    req_019.net = "dut.power_out.hv"
+    req_019.measurement = "final_value"
+    assert req_019.limit within 0V to 1V
+    req_019.justification = "Near-short-circuit (0.1 ohm) — output sags, OCP limits current to ~5.5A."
+    req_019.required_plot = "plot_ocp_vout"
+
+    # --- REQ_020: VIN Regulation Sweep ---
+    req_020 = new Requirement
+    req_020.req_name = "REQ_020: VIN Regulation Sweep"
+    req_020.simulation = "vin_sweep"
+    req_020.net = "dut.power_out.hv"
+    req_020.measurement = "average"
+    assert req_020.limit within 1.73V to 1.87V
+    req_020.justification = "Output regulation across full VIN range (2.75V to 6V)."
+    req_020.required_plot = "plot_vin_bar"
+    req_020.supplementary_plot = "plot_vin_traces"
+
+    # --- REQ_021: Efficiency vs Load Current ---
+    req_021 = new Requirement
+    req_021.req_name = "REQ_021: Efficiency vs Load Current"
+    req_021.simulation = "eff_load_sweep"
+    req_021.net = "dut.power_out.hv"
+    req_021.measurement = "efficiency"
+    assert req_021.limit within 70 to 100
+    req_021.justification = "Efficiency across load range (Pout/Pin)."
+    req_021.required_plot = "plot_eff_bar"
+
+    # --- REQ_022: Output Ripple vs Inductor Value ---
+    req_022 = new Requirement
+    req_022.req_name = "REQ_022: Output Ripple vs Inductor Value"
+    req_022.simulation = "ripple_l_sweep"
+    req_022.net = "dut.power_out.hv"
+    req_022.measurement = "peak_to_peak"
+    assert req_022.limit within 0V to 50mV
+    req_022.justification = "Output ripple sensitivity to inductor value."
+    req_022.required_plot = "plot_ripple_l_bar"
+    req_022.supplementary_plot = "plot_ripple_l_traces"
+
+    # --- REQ_023: Settling Time vs Inductor Value ---
+    req_023 = new Requirement
+    req_023.req_name = "REQ_023: Settling Time vs Inductor Value"
+    req_023.simulation = "settle_l_sweep"
+    req_023.net = "dut.power_out.hv"
+    req_023.measurement = "settling_time"
+    assert req_023.limit within 0 to 10ms
+    req_023.justification = "Settling time sensitivity to inductor value."
+    req_023.required_plot = "plot_settle_l"
+    req_023.supplementary_plot = "plot_settle_l_traces"

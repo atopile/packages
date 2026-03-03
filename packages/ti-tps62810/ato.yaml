@@ -1,0 +1,29 @@
+requires-atopile: "^0.14.0"
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-tps62810.ato:TI_TPS62810
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  design-validation:
+    entry: design-validation.ato:DesignValidation
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/ti-tps62810
+  repository: https://github.com/atopile/packages
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Texas Instruments TPS62810-Q1 2.75V-6V 4A step-down converter
+  license: MIT

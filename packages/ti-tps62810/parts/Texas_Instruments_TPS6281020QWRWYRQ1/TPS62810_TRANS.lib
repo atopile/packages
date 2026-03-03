@@ -1,0 +1,146 @@
+* TPS62810 Synchronous Buck Converter — Switching Behavioral Model for ngspice
+*
+* Based on TI TPS62810-Q1 datasheet (SLVSDL9).
+* Adapted from TPS54560_TRANS switching model architecture.
+*
+* SWITCHING model — resolves individual 2.4MHz cycles.
+* Accurate for: DC regulation, startup, ripple, frequency, load/line
+* transients, soft-start, protection (UVLO, OVP, OCP, EN), Power Good.
+*
+* Key differences from TPS54560 (asynchronous):
+* - Synchronous rectification (low-side FET, not Schottky diode)
+* - 0.6V internal reference (not 0.8V)
+* - Internal compensation (COMP/FSET pin sets frequency only)
+* - 2.4MHz default switching frequency
+* - 2uA soft-start current source into SS_TR cap
+* - Power Good open-drain output
+* - MODE/SYNC for forced PWM or auto PFM/PWM
+*
+* Pins: MODE_SYNC VIN SW GND FB SS_TR COMP_FSET EN PG
+*
+.SUBCKT TPS62810_TRANS MODE_SYNC VIN SW GND FB SS_TR COMP_FSET EN PG FS=2400k
+*
+* =====================================================================
+* SOFT-START (SS_TR pin — 2uA current source into external cap)
+* =====================================================================
+* With 10nF cap: ramp to 0.6V in ~3ms (t = C*V/I = 10n*0.6/2u = 3ms).
+I_ss VIN SS_TR 2u
+R_ss_lim SS_TR GND 10Meg
+* Smooth clamp at 0.7V (soft knee via sqrt)
+B_ss_clamp GND SS_TR I = 0.5*(V(SS_TR,GND)-0.7+sqrt((V(SS_TR,GND)-0.7)*(V(SS_TR,GND)-0.7)+1e-6))/10
+*
+* =====================================================================
+* ERROR AMPLIFIER (OTA) — Internal compensation
+* =====================================================================
+* Reference = smooth min(0.6V, V(SS_TR)) — avoids derivative discontinuity
+B_vref vref GND V = 0.5*(0.6+V(SS_TR,GND)-sqrt((0.6-V(SS_TR,GND))*(0.6-V(SS_TR,GND))+0.0001))
+*
+* Gm = 200uA/V (datasheet). Internal compensation network.
+* Output current hard-limited to +/- 30uA (source/sink spec)
+B_gm GND comp I = min(30u, max(-30u, 200u * (V(vref,GND) - V(FB,GND))))
+R_comp comp GND 500k
+C_comp comp GND 20n
+*
+* COMP lower clamp at 0.1V
+B_comp_lo GND comp I = (V(comp,GND) < 0.1) ? (0.1 - V(comp,GND)) / 1k : 0
+*
+* COMP to PWM comparator input, clamped 0.1V to 0.95V
+* Upper rail sets peak current limit via sense gain
+B_comp_cl comp_cl GND V = min(max(V(comp,GND), 0.1), 0.95)
+*
+* =====================================================================
+* CURRENT SENSE (via high-side FET RDSon = 50mOhm)
+* =====================================================================
+* When HS FET ON: V(VIN,SW) = IL * RDSon (small, < 1V)
+* When HS FET OFF: V(VIN,SW) >> 2V (SW near GND, VIN >> GND)
+* Sense gain: 0.14V/A → OCP at ~6A peak (0.95V / 0.14 ≈ 6.8A)
+* Leading-edge blanking handled by min on-time pulse
+B_isense isense GND V = (V(VIN,SW) < 2) ? max(V(VIN,SW) / 0.050, 0) * 0.14 : 0
+C_isense isense GND 1p
+*
+* =====================================================================
+* SLOPE COMPENSATION (~150mV/us for 2.4MHz operation)
+* =====================================================================
+* Prevents sub-harmonic oscillation at D > 50%.
+* Ramp resets each switching cycle. Peak at 2.4MHz:
+* 150e3 * 0.99/2.4e6 = 61.9mV
+V_slope slope_ramp GND PULSE(0 {150k*0.99/FS} 0 {0.99/FS} 5n 1n {1/FS})
+*
+* Sum of sensed current + slope compensation
+B_sum sense_sum GND V = V(isense,GND) + V(slope_ramp,GND)
+*
+* =====================================================================
+* CLOCK (sets SR latch at start of each switching cycle)
+* =====================================================================
+V_clk clk GND PULSE(0 1 0 5n 5n 20n {1/FS})
+*
+* =====================================================================
+* MINIMUM ON-TIME (50ns typical for TPS62810)
+* =====================================================================
+* Prevents premature current comparator trip during leading-edge noise.
+V_minon minon_pulse GND PULSE(0 1 0 5n 5n 50n {1/FS})
+*
+* =====================================================================
+* SR LATCH — Peak current-mode PWM with PFM pulse-skipping
+* =====================================================================
+* SET: on clock rising edge (if COMP > PFM threshold or forced PWM)
+* RESET: when sense_sum >= comp_cl (peak current reached)
+* R-dominant: reset overrides set (cycle-by-cycle current limiting)
+* PFM: COMP < 0.25V inhibits SET in auto mode (MODE_SYNC low)
+* Forced PWM: MODE_SYNC high forces continuous switching
+* Min on-time: during minon_pulse, reset is blocked
+B_latch latch_drv GND V = ((V(sense_sum,GND) >= V(comp_cl,GND)) & (V(minon_pulse,GND) < 0.5)) ? 0 : (V(clk,GND) > 0.5) ? (((V(MODE_SYNC,GND) > 0.5) | (V(comp,GND) > 0.25)) ? 1 : V(q_filt,GND)) : V(q_filt,GND)
+R_q latch_drv q_raw 10
+C_q q_raw GND 10p
+B_qfilt q_filt GND V = (V(q_raw,GND) > 0.5) ? 1 : 0
+*
+* =====================================================================
+* PROTECTION: EN, UVLO, OVP
+* =====================================================================
+* EN threshold: 1.1V typical (datasheet)
+B_en en_gate GND V = (V(EN,GND) > 1.1) ? 1 : 0
+*
+* UVLO: VIN must exceed 2.6V to enable (datasheet: 2.6V typ)
+B_uvlo uvlo GND V = (V(VIN,GND) > 2.6) ? 1 : 0
+*
+* OVP: forces high-side OFF when FB > 0.66V (110% of 0.6V reference)
+B_ovp ovp GND V = (V(FB,GND) > 0.66) ? 0 : 1
+*
+* Master gate: all conditions must be met to enable switching
+B_gate gate GND V = V(q_filt,GND) * V(en_gate,GND) * V(uvlo,GND) * V(ovp,GND)
+*
+* =====================================================================
+* POWER GOOD (open-drain output)
+* =====================================================================
+* Asserts when FB within 92%-110% of Vref (0.552V to 0.66V window)
+* Open-drain: pulls PG low when output out of regulation
+B_pg_drv pg_drv GND V = ((V(FB,GND) > 0.552) & (V(FB,GND) < 0.66)) ? 1 : 0
+R_pg_hi PG GND 100k
+B_pg_pull PG GND I = (1 - V(pg_drv,GND)) * V(PG,GND) / 100
+*
+* =====================================================================
+* POWER STAGE — Synchronous Buck
+* =====================================================================
+* High-side N-FET: RDSon = 50mOhm typical at 25C
+S_hs VIN SW gate GND SW_HS
+.model SW_HS SW VT=0.5 VH=0.1 Ron=50m Roff=100k
+*
+* Low-side N-FET: RDSon = 20mOhm typical (synchronous rectifier)
+* ON when gate is low AND converter is enabled (EN + UVLO OK)
+B_ls_gate ls_gate GND V = ((V(gate,GND) < 0.5) & (V(en_gate,GND) > 0.5) & (V(uvlo,GND) > 0.5)) ? 1 : 0
+S_ls SW GND ls_gate GND SW_LS
+.model SW_LS SW VT=0.5 VH=0.1 Ron=20m Roff=100k
+*
+* Body diode on low-side FET (conducts during dead-time transitions)
+D_body GND SW D_BODY
+.model D_BODY D IS=1e-6 N=1.5 RS=30m TT=5n CJO=50p
+*
+* =====================================================================
+* PIN CONNECTIONS
+* =====================================================================
+* COMP_FSET — sets frequency via external resistor (simplified, high-Z to GND)
+R_comp_fset COMP_FSET GND 1Meg
+* MODE_SYNC — default auto PFM/PWM (high-Z to GND)
+R_mode MODE_SYNC GND 10Meg
+*
+.ENDS TPS62810_TRANS

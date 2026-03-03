@@ -1,0 +1,8 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+from "ti-tps62810.ato" import TI_TPS62810
+
+module TI_TPS62810_3V3_1V8 from TI_TPS62810:
+    """3.3V to 1.8V @ 2A configuration for simulation."""
+    assert r_load.resistance within 0.9ohm +/- 5%
+    assert power_in.voltage within 3.3V +/- 5%
