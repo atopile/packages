@@ -34,6 +34,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Install prek
+        uses: j178/prek-action@v1
+        with:
+          install-only: true
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@beta
@@ -79,7 +84,7 @@ jobs:
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
 
           # Optional: Add specific tools for running tests or linting
-          allowed_tools: "Bash(pre-commit run --all-files),Bash(uv run pytest*),Bash(uv run ato*),Bash(ato*)"
+          allowed_tools: "Bash(prek run --all-files),Bash(uv run pytest*),Bash(uv run ato*),Bash(ato*)"
 
           # Optional: Skip review for certain conditions
           # if: |

@@ -1,14 +1,16 @@
+name: prek
+
 on:
   push:
     branches:
-      - 'main'
+      - main
   pull_request:
-    branches:
-      - '**'
+  workflow_dispatch:
 
 jobs:
-  pre-commit:
-    runs-on: [self-hosted]
+  prek:
+    runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
 
@@ -16,4 +18,4 @@ jobs:
       with:
         python-version-file: .python-version
 
-    - uses: pre-commit/action@v3.0.1
+    - uses: j178/prek-action@v1
