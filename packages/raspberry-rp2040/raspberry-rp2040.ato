@@ -10,19 +10,15 @@ import Capacitor
 import SWD
 import USB2_0
 import I2C
-import I2S
 import UART_Base
 import SPI
 import SPIFlash
 import MultiSPI
-import FilterElectricalRC
 import XtalIF
 import Crystal
-import Inductor
 import Resistor
-import has_part_removed
 import can_bridge_by_name
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package
 from "parts/Winbond_Elec_W25Q128JVSIQ/Winbond_Elec_W25Q128JVSIQ.ato" import Winbond_Elec_W25Q128JVSIQ_package
@@ -240,22 +236,23 @@ module Raspberry_Pi_RP2040:
 
     # --- References ---
     # connect all grounds
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
+    reset.reference ~ _io_power
     for logic in [
         i2c,
         spi,
         uart,
         qspi,
         swd,
-        reset,
     ]:
-        logic.reference_shim ~ _io_power
+        logic.has_single_electric_reference.reference ~ _io_power
 
     for logic in gpio:
-        logic.reference_shim ~ _io_power
+        logic.reference ~ _io_power
     for an in analog:
-        an.reference_shim ~ _adc_power
+        an.reference ~ _adc_power
+
 
 # --- Helper modules ---
 module _USBTermination:
@@ -320,7 +317,7 @@ module _QSPIFlash from SPIFlash:
     package = new Winbond_Elec_W25Q128JVSIQ_package
 
     assert power.voltage within 3.3V +/- 10%
-    assert memory_size is 128Mbit
+    assert memory_size within 128Mbit
 
     # parts
     decoupling_capacitor = new Capacitor[2]
