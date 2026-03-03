@@ -1,0 +1,103 @@
+# Mounting Holes
+
+Various mounting holes.
+
+Supported widths:
+
+SMD:
+
+- 0.5mm
+- 1.0mm
+- 2.0mm
+
+THT:
+
+- 0.5mm
+- 1.0mm
+- 2.0mm
+
+Supported pin counts:
+
+- 2
+- 3
+- 4
+
+Supported Pad Types:
+
+- SMD
+- THT
+
+## Usage
+
+```ato
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+
+# Circular SMD components
+from "atopile/netties/netties.ato" import NetTie_2_SMD_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_2_SMD_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_2_SMD_Pad2_0mm
+from "atopile/netties/netties.ato" import NetTie_3_SMD_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_3_SMD_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_3_SMD_Pad2_0mm
+from "atopile/netties/netties.ato" import NetTie_4_SMD_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_4_SMD_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_4_SMD_Pad2_0mm
+
+# Circular THT components
+from "atopile/netties/netties.ato" import NetTie_2_THT_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_2_THT_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_2_THT_Pad2_0mm
+from "atopile/netties/netties.ato" import NetTie_3_THT_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_3_THT_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_3_THT_Pad2_0mm
+from "atopile/netties/netties.ato" import NetTie_4_THT_Pad0_5mm
+from "atopile/netties/netties.ato" import NetTie_4_THT_Pad1_0mm
+from "atopile/netties/netties.ato" import NetTie_4_THT_Pad2_0mm
+
+module Usage:
+    """
+    Example of using generated components
+    """
+    # SMD circular components
+    nettie2smdpad05mm = new NetTie_2_SMD_Pad0_5mm
+    nettie2smdpad10mm = new NetTie_2_SMD_Pad1_0mm
+    nettie2smdpad20mm = new NetTie_2_SMD_Pad2_0mm
+    nettie3smdpad05mm = new NetTie_3_SMD_Pad0_5mm
+    nettie3smdpad10mm = new NetTie_3_SMD_Pad1_0mm
+    nettie3smdpad20mm = new NetTie_3_SMD_Pad2_0mm
+    nettie4smdpad05mm = new NetTie_4_SMD_Pad0_5mm
+    nettie4smdpad10mm = new NetTie_4_SMD_Pad1_0mm
+    nettie4smdpad20mm = new NetTie_4_SMD_Pad2_0mm
+    # THT circular components
+    nettie2thtpad05mm = new NetTie_2_THT_Pad0_5mm
+    nettie2thtpad10mm = new NetTie_2_THT_Pad1_0mm
+    nettie2thtpad20mm = new NetTie_2_THT_Pad2_0mm
+    nettie3thtpad05mm = new NetTie_3_THT_Pad0_5mm
+    nettie3thtpad10mm = new NetTie_3_THT_Pad1_0mm
+    nettie3thtpad20mm = new NetTie_3_THT_Pad2_0mm
+    nettie4thtpad05mm = new NetTie_4_THT_Pad0_5mm
+    nettie4thtpad10mm = new NetTie_4_THT_Pad1_0mm
+    nettie4thtpad20mm = new NetTie_4_THT_Pad2_0mm
+
+    power_a = new ElectricPower
+    power_b = new ElectricPower
+    power_c = new ElectricPower
+
+    power_a ~> nettie2smdpad05mm ~> power_b
+    power_a ~> nettie2thtpad05mm ~> power_b
+
+    for pwr in [power_a, power_b, power_c]:
+        pwr ~ nettie3smdpad05mm.power
+
+```
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).

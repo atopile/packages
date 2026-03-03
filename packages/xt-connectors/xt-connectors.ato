@@ -1,5 +1,7 @@
-#C431092
+#pragma experiment("TRAITS")
+
 import ElectricPower
+import has_part_removed
 
 from "parts/AMASS_XT30PW_F20_G_Y/AMASS_XT30PW_F20_G_Y.ato" import AMASS_XT30PW_F20_G_Y_package
 from "parts/AMASS_XT30PW_M30_G_Y/AMASS_XT30PW_M30_G_Y.ato" import AMASS_XT30PW_M30_G_Y_package
@@ -8,46 +10,32 @@ from "parts/AMASS_XT30U_M/AMASS_XT30U_M.ato" import AMASS_XT30U_M_package
 
 module XTConnector_base:
     power = new ElectricPower
-    
+    trait has_part_removed
+
 module XT30_Male_Right_Angle from XTConnector_base:
     # Package
     package = new AMASS_XT30PW_F20_G_Y_package
     # Connections
-    power.vcc ~ package.1
-    power.gnd ~ package.2
+    power.hv ~ package.1
+    power.lv ~ package.2
 
 module XT30_Male_Vertical from XTConnector_base:
     # Package
     package = new AMASS_XT30U_M_package
     # Connections
-    power.vcc ~ package.1
-    power.gnd ~ package.2
+    power.hv ~ package.1
+    power.lv ~ package.2
 
 module XT30_Female_Right_Angle from XTConnector_base:
     # Package
     package = new AMASS_XT30PW_M30_G_Y_package
     # Connections
-    power.vcc ~ package.1
-    power.gnd ~ package.2
+    power.hv ~ package.2
+    power.lv ~ package.1
 
 module XT30_Female_Vertical from XTConnector_base:
     # Package
     package = new AMASS_XT30UPB_F30_G_Y_package
     # Connections
-    power.vcc ~ package.1
-    power.gnd ~ package.2
-
-
-module Test:
-    """Test module for XT30 connectors"""
-    right_angle_male = new XT30_Male_Right_Angle
-    vertical_male = new XT30_Male_Vertical
-    right_angle_female = new XT30_Female_Right_Angle
-    vertical_female = new XT30_Female_Vertical
-
-    # Connect power together
-    power = new ElectricPower
-    power ~ right_angle_male.power
-    power ~ vertical_male.power
-    power ~ right_angle_female.power
-    power ~ vertical_female.power
+    power.hv ~ package.1
+    power.lv ~ package.2

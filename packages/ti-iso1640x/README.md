@@ -1,60 +1,45 @@
-# TI ISO1640 I2C Isolator
+# Texas Instruments ISO1640QDWRQ1 Bidirectional I2C Isolator
+
+The ISO1640QDWRQ1 is a bidirectional I2C isolator that provides 1500V isolation between two I2C buses. It supports data rates up to 1MHz and operates with supply voltages from 2.25V to 5.5V on each side. This device is automotive qualified (AEC-Q100).
 
 ## Usage
 
 ```ato
-#pragma experiment("BRIDGE_CONNECT")
-
 import I2C
-import Power
+import ElectricPower
 
-from "atopile/ti-iso1640x/ti-iso1640.ato" import Texas_Instruments_ISO1640_driver
-from "atopile/ti-iso1640x/parts/Texas_Instruments_ISO1640QDWRQ1/Texas_Instruments_ISO1640QDWRQ1.ato" import Texas_Instruments_ISO1640QDWRQ1_package
-from "atopile/ti-iso1640x/parts/TEXAS_INSTRUMENTS_ISO1640BDR/TEXAS_INSTRUMENTS_ISO1640BDR.ato" import TEXAS_INSTRUMENTS_ISO1640BDR_package
+from "atopile/ti-iso1640x/ti-iso1640x.ato" import TI_ISO1640QDWRQ1
 
-
-module Micro:
-    i2c = new I2C
-    power = new Power
-
-module Sensor:
-    i2c = new I2C
-    power = new Power
-
-module Test:
+module Usage:
     """
-    Connect a microcontroller to a sensor via an I2C isolator
+    Example usage of ISO1640QDWRQ1 I2C isolator
     """
 
-    # Components
-    micro = new Micro
-    sensor = new Sensor
-    isolator1 = new TEXAS_INSTRUMENTS_ISO1640BDR_driver # 400V
-    # isolator1 = new TEXAS_INSTRUMENTS_ISO1640QDWRQ1_driver # 1500V
+    isolator = new TI_ISO1640QDWRQ1
 
-    # Power Rails
-    power = new ElectricPower
-    power_iso = new ElectricPower
+    power_3v3 = new ElectricPower
+    power_iso_3v3 = new ElectricPower
 
-    # Connections - isolator is 'bridgable'
-    micro.i2c ~> isolator1 ~> sensor.i2c
+    assert power_3v3.voltage within 3.3V +/- 5%
+    assert power_iso_3v3.voltage within 3.3V +/- 5%
 
-    # Power
-    power ~ micro.power
-    power ~ isolator1.power_rails[0]
+    i2c_mcu = new I2C
+    i2c_sensor = new I2C
 
-    # Isolated Power
-    power_iso ~ sensor.power
-    power_iso ~ isolator1.power_rails[1]
+    assert i2c_mcu.frequency <= 400kHz
+    assert i2c_sensor.frequency <= 400kHz
 
-
-
+    # Connections
+    i2c_mcu ~ isolator.i2cs[0]
+    i2c_sensor ~ isolator.i2cs[1]
+    power_3v3 ~ isolator.power_rails[0]
+    power_iso_3v3 ~ isolator.power_rails[1]
 ```
 
 ## Contributing
 
-Contributions to this package are welcome via pull requests on the GitHub repository.
+Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
+This package is provided under the [MIT License](https://opensource.org/license/mit/).

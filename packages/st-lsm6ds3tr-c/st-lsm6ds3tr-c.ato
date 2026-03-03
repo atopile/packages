@@ -1,0 +1,112 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Resistor
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import I2C
+
+from "parts/STMicroelectronics_LSM6DS3TR_C/STMicroelectronics_LSM6DS3TR_C.ato" import STMicroelectronics_LSM6DS3TR_C_package
+
+module ST_LSM6DS3TR_C:
+    """Driver for STMicroelectronics LSM6DS3TR-C 6-axis accelerometer and gyroscope.
+
+    Exposes:
+        * i2c – I²C bus interface (7-bit addr 0x6A / 0x6B)
+        * power – Central power supply for the module (1.71V to 3.6V)
+        * interrupts – Interrupt output pins [INT1, INT2]
+    """
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x6A / 0x6B)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Central power supply for the module feeding the power rails
+    """
+    power.required = True
+
+    # Interrupt outputs (using array for multiple channels)
+    interrupts = new ElectricLogic[2]
+    """
+    Interrupt output pins [INT1, INT2]
+    """
+    for interrupt in interrupts:
+        interrupt.required = False
+
+    # --- Internal power rails ---
+    power_core = new ElectricPower  # Connects to VDD (sensor core)
+    power_core.required = False
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io = new ElectricPower  # Connects to VDDIO (digital I/O)
+    power_io.required = False
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # Connect internal rails to external power
+    power ~> power_core
+    power ~> power_io
+
+    # Connect I2C reference to power
+    i2c.has_single_electric_reference.reference ~ power
+
+    # --- I²C bus ---
+    # I2C address configuration using addressor for SDO/SA0 pin
+    addressor = new Addressor<address_bits = 1>
+    addressor.base = 0x6A  # Base address when SDO/SA0 = 0
+    assert i2c.address is addressor.address
+    # Default to base address (0x6A), can be overridden by user
+    i2c.address.default = 0x6A
+
+    # I2C pull-up resistors (soft pullups)
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Other configuration ---
+    chip_select_pullup = new Resistor
+    chip_select_pullup.resistance = 10kohm +/- 1%
+    chip_select_pullup.package = "0402"
+
+    # --- Decoupling capacitors ---
+    power_caps = new Capacitor[2]
+    for capacitor in power_caps:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+    power_core.hv ~> power_caps[0] ~> power_core.lv
+    power_io.hv ~> power_caps[1] ~> power_io.lv
+
+    # --- Package connections (package always on the left) ---
+    package = new STMicroelectronics_LSM6DS3TR_C_package
+
+    # Power connections
+    package.VDD ~ power_core.hv
+    package.VDDIO ~ power_io.hv
+    package.GND ~ power_core.lv
+
+    # I2C connections
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # Address pin connection
+    package.SDO_SA0 ~ addressor.address_lines[0].line
+    addressor.address_lines[0].reference ~ power_io
+
+    # Interrupt connections
+    package.INT1 ~ interrupts[0].line
+    package.INT2 ~ interrupts[1].line
+    interrupts[0].reference ~ power_io
+    interrupts[1].reference ~ power_io
+
+    # force I2C mode by pulling up CS pin
+    package.CS ~> chip_select_pullup ~> power_io.hv

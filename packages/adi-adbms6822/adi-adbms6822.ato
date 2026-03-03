@@ -1,0 +1,231 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import SPI
+import ElectricPower
+import Resistor
+import Capacitor
+import Electrical
+import DifferentialPair
+import ElectricSignal
+import ElectricLogic
+
+from "parts/Analog_Devices_ADBMS6822WCCSZ_RL/Analog_Devices_ADBMS6822WCCSZ_RL.ato" import Analog_Devices_ADBMS6822WCCSZ_RL_package
+from "adi-adbms6822-configurator.py" import ADI_ADBMS6822_Configurator
+
+module ADI_ADBMS6822:
+    "Single isoSPI Transceiver Module"
+    package = new Analog_Devices_ADBMS6822WCCSZ_RL_package
+
+    # --- External interfaces ---
+    vdds_spi_power = new ElectricPower
+    """
+    SPI bus power supply. Typically supplied by host microcontroller.
+    """
+    vdds_spi_power.required = True
+    assert vdds_spi_power.voltage within 1.7V to 5.5V
+
+    vdd_iso_spi_power = new ElectricPower
+    """
+    Power supplly for isoSPI bus.
+    """
+    vdd_iso_spi_power.required = True
+    assert vdd_iso_spi_power.voltage within 3.0V to 5.5V
+
+    vp_power = new ElectricPower
+    """
+    High voltage power supply for LPCM. If not used connect to vdd_iso_spi_power
+    """
+    vp_power.required = True
+    assert vp_power.voltage within 3.0V to 30V
+
+    mstr_1 = new ElectricSignal
+    mstr_2 = new ElectricSignal
+    """
+    SPI Mode Select. Connect to VDDS for SPI controller mode or to GND for peripheral mode.
+    """
+    mstr_1.reference ~ vdds_spi_power
+    mstr_2.reference ~ vdds_spi_power
+
+    phapol_1 = new ElectricSignal
+    phapol_2 = new ElectricSignal
+    """
+    Multilevel, Resistor Set SPI PHA/POL Selection Inputs. Configures SPI clock phase and polarity.
+    """
+    phapol_1.reference ~ vdds_spi_power
+    phapol_2.reference ~ vdds_spi_power
+
+    xcvrmd_1 = new ElectricSignal
+    xcvrmd_2 = new ElectricSignal
+    """
+    Multilevel, Resistor Set Transceiver Mode Selection Inputs. Configures the transceiver operating mode.
+    """
+    xcvrmd_1.reference ~ vdds_spi_power
+    xcvrmd_2.reference ~ vdds_spi_power
+
+    rto_1 = new ElectricSignal
+    rto_2 = new ElectricSignal
+    """
+    Multilevel, Resistor Set LPCM Timeout Selection Inputs. Configures the Low Power Communication Mode timeout period.
+    """
+    rto_1.reference ~ vdds_spi_power
+    rto_2.reference ~ vdds_spi_power
+
+    intr_1 = new ElectricSignal
+    intr_2 = new ElectricSignal
+    """
+    LPCM Interrupt Current-Limited Outputs. Indicates interrupt conditions in Low Power Communication Mode.
+    """
+    intr_1.reference ~ vdds_spi_power
+    intr_2.reference ~ vdds_spi_power
+
+    wake_1 = new ElectricSignal
+    wake_2 = new ElectricSignal
+    """
+    Device Wake-Up State Current-Limited Outputs or Inputs. Used to wake up the device from low power mode.
+    """
+    wake_1.reference ~ vdds_spi_power
+    wake_2.reference ~ vdds_spi_power
+
+    # SPI Interfaces (can be configured as controller or peripheral based on MSTR pin settings)
+    spi = new SPI[2]
+    spi_cs = new ElectricLogic[2]
+    """
+    SPI Interface 1. Functions as controller outputs/peripheral inputs (PICO), controller inputs/peripheral outputs (POCI),
+    clock (SCK), and chip select (CS) based on MSTR pin configuration.
+    """
+    for spi_bus in spi:
+        spi_bus.reference_shim ~ vdds_spi_power
+    for chip_select in spi_cs:
+        chip_select.reference ~ vdds_spi_power
+
+    # isoSPI Interfaces
+    isospi_ports = new DifferentialPair[2]
+    """
+    Isolated SPI Interfaces. Differential pair for isoSPI communication (IP/IM pins).
+    """
+    for isospi_port in isospi_ports:
+        isospi_port.reference_shim ~ vdd_iso_spi_power
+
+    # --- Power connections ---
+    bypass_capacitors = new Capacitor[6]
+    for bypass_capacitor in bypass_capacitors:
+        bypass_capacitor.capacitance = 1uF +/- 20%
+        bypass_capacitor.package = "0402"
+
+    package.VDDS ~> bypass_capacitors[0] ~> vdds_spi_power.lv
+    package.VDDS2 ~> bypass_capacitors[1] ~> vdds_spi_power.lv
+    package.VDD ~> bypass_capacitors[2] ~> vdd_iso_spi_power.lv
+    package.VDD2 ~> bypass_capacitors[3] ~> vdd_iso_spi_power.lv
+    package.VP ~> bypass_capacitors[4] ~> vp_power.lv
+    package.VP2 ~> bypass_capacitors[5] ~> vp_power.lv
+
+    # --- SPI Interface Connections ---
+    spi[0].mosi.line ~ package.PICO
+    spi[0].miso.line ~ package.POCI
+    spi[0].sclk.line ~ package.SCK
+    spi_cs[0].line ~ package.nCS
+
+    spi[1].mosi.line ~ package.PICO2
+    spi[1].miso.line ~ package.POCI2
+    spi[1].sclk.line ~ package.SCK2
+    spi_cs[1].line ~ package.nCS2
+
+    # --- isoSPI Interface Connections ---
+    isospi_ports[0].p.line ~ package.IP
+    isospi_ports[0].n.line ~ package.IM
+
+    isospi_ports[1].p.line ~ package.IP2
+    isospi_ports[1].n.line ~ package.IM2
+
+    # --- Configuration ---
+    adi_adbms6822_configurator = new ADI_ADBMS6822_Configurator<spi_mode_1="MASTER", spi_mode_2="MASTER", phapol_1="CLK_HIGH_SECOND_EDGE", phapol_2="CLK_HIGH_SECOND_EDGE", xcvrmd_1="BIDIRECTIONAL_STANDARD", xcvrmd_2="BIDIRECTIONAL_STANDARD", rto_1="TIMEOUT_1_5_SEC", rto_2="TIMEOUT_1_5_SEC">
+    """
+    Configures the ADBMS6822 module based on the external interface settings.
+    SPI Mode 1: SPI controller mode
+    SPI Mode 2: SPI peripheral mode
+    PHAPOL 1: SPI clock phase and polarity
+    PHAPOL 2: SPI clock phase and polarity
+    XCVRMD 1: Transceiver mode
+    XCVRMD 2: Transceiver mode
+    RTO 1: Timeout period
+    RTO 2: Timeout period
+    """
+    adi_adbms6822_configurator.spi_mode_1_signal ~ mstr_1
+    adi_adbms6822_configurator.spi_mode_2_signal ~ mstr_2
+    adi_adbms6822_configurator.phapol_1_signal ~ phapol_1
+    adi_adbms6822_configurator.phapol_2_signal ~ phapol_2
+    adi_adbms6822_configurator.xcvrmd_1_signal ~ xcvrmd_1
+    adi_adbms6822_configurator.xcvrmd_2_signal ~ xcvrmd_2
+    adi_adbms6822_configurator.rto_1_signal ~ rto_1
+    adi_adbms6822_configurator.rto_2_signal ~ rto_2
+
+    mstr_1.line.override_net_name = "MSTR_1_CONFIG"
+    mstr_2.line.override_net_name = "MSTR_2_CONFIG"
+    phapol_1.line.override_net_name = "PHAPOL_1_CONFIG"
+    phapol_2.line.override_net_name = "PHAPOL_2_CONFIG"
+    xcvrmd_1.line.override_net_name = "XCVRMD_1_CONFIG"
+    xcvrmd_2.line.override_net_name = "XCVRMD_2_CONFIG"
+    rto_1.line.override_net_name = "RTO_1_CONFIG"
+    rto_2.line.override_net_name = "RTO_2_CONFIG"
+
+    # --- Package Connections ---
+    package.EP ~ package.GND
+
+    vdds_spi_power.hv ~ package.VDDS
+    vdds_spi_power.hv ~ package.VDDS2
+    vdd_iso_spi_power.hv ~ package.VDD
+    vdd_iso_spi_power.hv ~ package.VDD2
+    vp_power.hv ~ package.VP
+    vp_power.hv ~ package.VP2
+
+    vdds_spi_power.lv ~ package.GND
+    vdd_iso_spi_power.lv ~ package.GND
+    vp_power.lv ~ package.GND
+    package.EP ~ package.GND
+
+    # --- Signal Interface References ---
+    mstr_1.reference ~ vdds_spi_power
+    mstr_2.reference ~ vdds_spi_power
+    phapol_1.reference ~ vdds_spi_power
+    phapol_2.reference ~ vdds_spi_power
+    xcvrmd_1.reference ~ vdds_spi_power
+    xcvrmd_2.reference ~ vdds_spi_power
+    rto_1.reference ~ vdds_spi_power
+    rto_2.reference ~ vdds_spi_power
+    intr_1.reference ~ vdds_spi_power
+    intr_2.reference ~ vdds_spi_power
+    wake_1.reference ~ vdds_spi_power
+    wake_2.reference ~ vdds_spi_power
+
+    intr_1.line ~ package.INTR
+    intr_2.line ~ package.INTR2
+    wake_1.line ~ package.WAKE
+    wake_2.line ~ package.WAKE2
+
+    mstr_1.line ~ package.MSTR
+    mstr_2.line ~ package.MSTR2
+    phapol_1.line ~ package.PHAPOL
+    phapol_2.line ~ package.PHAPOL2
+    xcvrmd_1.line ~ package.XCVRMD
+    xcvrmd_2.line ~ package.XCVRMD2
+    rto_1.line ~ package.RTO
+    rto_2.line ~ package.RTO2
+
+    # --- isoSPI termination network ---
+    isoSPI_termination_resistors = new Resistor[4]
+    for resistor in isoSPI_termination_resistors:
+        resistor.resistance = 50ohm +/- 10%
+        resistor.package = "0402"
+    isoSPI_dc_bias_caps = new Capacitor[2]
+    for cap in isoSPI_dc_bias_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    iso_1_termination_midpoint = new Electrical
+    iso_2_termination_midpoint = new Electrical
+    isospi_ports[0].p.line ~> isoSPI_termination_resistors[0] ~> iso_1_termination_midpoint; iso_1_termination_midpoint ~> isoSPI_termination_resistors[1] ~> isospi_ports[0].n.line
+    iso_1_termination_midpoint ~> isoSPI_dc_bias_caps[0] ~> vdd_iso_spi_power.lv
+    isospi_ports[1].p.line ~> isoSPI_termination_resistors[2] ~> iso_2_termination_midpoint; iso_2_termination_midpoint ~> isoSPI_termination_resistors[3] ~> isospi_ports[1].n.line
+    iso_2_termination_midpoint ~> isoSPI_dc_bias_caps[1] ~> vdd_iso_spi_power.lv

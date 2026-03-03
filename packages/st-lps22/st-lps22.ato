@@ -1,0 +1,128 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import SPI
+import Resistor
+
+from "parts/STMicroelectronics_LPS22HHTR/STMicroelectronics_LPS22HHTR.ato" import STMicroelectronics_LPS22HHTR_package
+
+module ST_LPS22:
+    """
+    Driver for STMicroelectronics LPS22 nano pressure sensor.
+
+    Key features:
+    - Pressure range: 260-1260 hPa
+    - Accuracy: ±1 hPa
+    - Low power: 3 µA in one-shot mode
+    - Dual interface: I²C and SPI
+    - Operating temperature: -40°C to +85°C
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_LPS22HHTR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x5C/0x5D based on SA0 pin)
+    Standard mode (100 kHz) and fast mode (400 kHz) supported
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply (1.7V to 3.6V)
+    Powers both analog and digital sections
+    """
+    power.required = True
+
+    spi = new SPI
+    """
+    SPI bus interface for high-speed communication
+    Supports up to 10 MHz clock frequency
+    """
+    spi.required = False
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select pin (active low)
+    Required when using SPI interface
+    """
+    spi_cs.required = False
+
+    interrupt = new ElectricLogic
+    """
+    Interrupt output pin (open-drain, active low)
+    Configurable for data ready or threshold events
+    """
+    interrupt.required = False
+
+    # --- Power connections ---
+    package.VDD ~ power.hv
+    package.Vdd_IO ~ power.hv  # I/O power supply
+    package.GND ~ power.lv
+
+    # Connect reserved pin to GND as per datasheet
+    package.Reserved ~ power.lv
+
+    assert power.voltage within 1.7V to 3.6V
+
+    # --- I²C interface ---
+    package.SCLSPC ~ i2c.scl.line
+    package.SDA_SDI_SDI_SDO ~ i2c.sda.line
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # I²C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0201"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- I²C address selection ---
+    addressor = new Addressor<address_bits = 1>
+    addressor.base = 0x5C
+    addressor.address_lines[0].line ~ package.SDO_SA0
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x5C), can be overridden by user
+    i2c.address.default = 0x5C
+
+    # --- Set communication mode to I2C ---
+    cs_pullup = new Resistor
+    cs_pullup.resistance = 10kohm +/- 1%
+    cs_pullup.package = "0201"
+    power.hv ~> cs_pullup ~> package.CS
+
+    # --- SPI interface ---
+    # In SPI mode:
+    # - Pin 2 (SCLSPC) is SPI serial clock
+    # - Pin 4 (SDA_SDI_SDI_SDO) is data input in 4-wire SPI, or bidirectional in 3-wire
+    # - Pin 5 (SDO_SA0) is data output in 4-wire SPI
+    spi.sclk.line ~ package.SCLSPC
+    spi.mosi.line ~ package.SDA_SDI_SDI_SDO  # SDI in 4-wire mode
+    spi.miso.line ~ package.SDO_SA0  # SDO in 4-wire mode
+    spi.sclk.reference ~ power
+    spi.mosi.reference ~ power
+    spi.miso.reference ~ power
+
+    spi_cs.line ~ package.CS
+    spi_cs.reference ~ power
+
+    # --- Interrupt pin ---
+    interrupt.line ~ package.INT_DRDY
+    interrupt.reference ~ power
+
+    # --- Decoupling capacitors ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0201"
+    power.hv ~> decoupling_cap ~> power.lv

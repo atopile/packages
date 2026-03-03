@@ -1,79 +1,45 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
 
-import Resistor
-import ElectricSignal
-import Button
-import ElectricLogic
-import ElectricPower
+import Electrical
+import can_bridge_by_name
+import has_part_removed
 
 from "parts/ALPSALPINE_SKRPACE010/ALPSALPINE_SKRPACE010.ato" import ALPSALPINE_SKRPACE010_package
 from "parts/ALPSALPINE_SKTDLDE010/ALPSALPINE_SKTDLDE010.ato" import ALPSALPINE_SKTDLDE010_package
 
-
-module ButtonSKRPACE010 from ALPSALPINE_SKRPACE010_package:
-    pass
-
-module ButtonSKTDLDE010 from ALPSALPINE_SKTDLDE010_package:
-    pass
-
-
-module ButtonPullup:
+module Button:
     """
-    Connects button output to output reference.hv via a resistor when button is pressed
+    Simple momentary switch with two terminals that can be bridged.
+    Use this to connect circuits when the button is pressed.
     """
-    btn = new Button
-    output = new ElectricSignal
-    pullup = new Resistor
+    input = new Electrical
+    output = new Electrical
 
-    # Connections
-    output.line ~ btn.unnamed[0]
-    btn.unnamed[1] ~> pullup ~> output.reference.hv
+    trait can_bridge_by_name<input_name="input", output_name="output">
 
-    # Configure pullup
-    pullup.resistance = 10kohms +/- 20%
-    pullup.package = "R0402"
-
-
-module ButtonPulldown:
+module VerticalButton from ALPSALPINE_SKRPACE010_button_driver:
     """
-    Connects button output to output reference.gnd via a resistor when button is pressed
+    Vertical momentary switch (Alps Alpine SKRPACE010)
     """
-    btn = new Button
-    output = new ElectricSignal
-    pulldown = new Resistor
 
-    # Connections
-    output.line ~ btn.unnamed[0]
-    btn.unnamed[1] ~> pulldown ~> output.reference.gnd
-
-    # Configure pulldown
-    pulldown.resistance = 10kohms +/- 20%
-    pulldown.package = "R0402"
-
-
-module Test:
+module HorizontalButton from ALPSALPINE_SKTDLDE010_button_driver:
     """
-    Test module for buttons
+    Horizontal momentary switch (Alps Alpine SKTDLDE010)
     """
-    # Make and configure buttons
-    btn_pullup_vertical = new ButtonPullup
-    btn_pullup_vertical.btn -> ALPSALPINE_SKRPACE010_package
 
-    btn_pullup_horizontal = new ButtonPullup
-    btn_pullup_horizontal.btn -> ALPSALPINE_SKTDLDE010_package
+# Button driver implementations
+module ALPSALPINE_SKRPACE010_button_driver from Button:
+    package = new ALPSALPINE_SKRPACE010_package
+    # Connect both sides of the switch
+    input ~ package.1
+    input ~ package.2
+    output ~ package.3
+    output ~ package.4
 
-    btn_pulldown_vertical = new ButtonPulldown
-    btn_pulldown_vertical.btn -> ALPSALPINE_SKRPACE010_package
-
-    btn_pulldown_horizontal = new ButtonPulldown
-    btn_pulldown_horizontal.btn -> ALPSALPINE_SKTDLDE010_package
-
-    # Create example signals
-    enable = new ElectricLogic
-    power = new ElectricPower
-    enable.reference ~ power # Typically done inside a driver
-
-    # Connect button
-    enable ~ btn_pullup_vertical.output
-
-    # When button is pressed, enable will be pulled HIGH via a 10k resistor
+module ALPSALPINE_SKTDLDE010_button_driver from Button:
+    package = new ALPSALPINE_SKTDLDE010_package
+    # Connect the switch terminals
+    input ~ package.1
+    output ~ package.2
+    # package.3 and package.4 are mechanical

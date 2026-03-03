@@ -1,0 +1,44 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import ElectricLogic
+
+from "atopile/st-ism330dhcx/st-ism330dhcx.ato" import ST_ISM330DHCX
+
+module Usage:
+    """
+    Minimal usage example for st-ism330dhcx.
+
+    This example demonstrates basic I²C connection and interrupt usage
+    for the ISM330DHCX 6-axis IMU with embedded machine learning.
+    """
+
+    sensor = new ST_ISM330DHCX
+
+    # Connect external I²C bus
+    i2c = new I2C
+    i2c ~ sensor.i2c
+
+    # Connect power supplies (can be the same rail)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    power_3v3 ~ sensor.power_core
+    power_3v3 ~ sensor.power_io
+
+    # Connect interrupt pins to microcontroller GPIOs
+    interrupt1_gpio = new ElectricLogic
+    interrupt2_gpio = new ElectricLogic
+
+    interrupt1_gpio ~ sensor.interrupt1
+    interrupt2_gpio ~ sensor.interrupt2
+
+    # Set I²C address to 0x6A (SA0 pulled low)
+    assert sensor.i2c.address within 0x6A
+
+    # Optional: Connect external sensor via auxiliary SPI
+    # external_magnetometer_cs = new ElectricLogic
+    # external_magnetometer_cs ~ sensor.aux_spi_cs

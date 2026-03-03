@@ -1,0 +1,40 @@
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import USB2_0
+import has_part_removed
+from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
+
+# Mock modules for usage example
+
+module USBCConn:
+    trait has_part_removed
+    power = new ElectricPower
+    usb = new USB2_0
+
+module LDO:
+    trait has_part_removed
+    power_in = new ElectricPower
+    power_out = new ElectricPower
+    v_out = 3.3V
+
+module Usage:
+    """
+    Example usage of ESP32-S3
+    """
+    mcu = new Espressif_ESP32_S3
+
+    # Components
+    usb = new USBCConn
+    ldo = new LDO
+
+    # Connections
+    usb.power ~ ldo.power_in
+    ldo.power_out ~ mcu.power
+
+    # USB Data
+    usb.usb.usb_if.d.p ~ mcu.usb.usb_if.d.p
+    usb.usb.usb_if.d.n ~ mcu.usb.usb_if.d.n
+
+    # LDO Config
+    ldo.v_out = 3.3V

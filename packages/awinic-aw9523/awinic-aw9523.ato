@@ -1,0 +1,139 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/AWINIC_AW9523BTQR/AWINIC_AW9523BTQR.ato" import AWINIC_AW9523BTQR_package
+
+module Awinic_AW9523:
+    """
+    AWINIC AW9523 16-bit I2C GPIO expander and LED driver
+
+    Features:
+    - 16 configurable GPIO pins (2 ports of 8 pins each)
+    - Each pin configurable as GPIO input/output or PWM LED driver
+    - 256-step linear dimming in LED mode
+    - I2C interface with 4 possible addresses (0x58-0x5B)
+    - Interrupt output capability
+    - 2.5V to 5.5V supply voltage
+    - TQFN-24-EP package
+    """
+
+    # --- Package ---
+    package = new AWINIC_AW9523BTQR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x58-0x5B configurable)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Main power supply (2.5V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 2.5V to 5.5V
+
+    # --- GPIO pins ---
+    gpios = new ElectricLogic[16]
+    """
+    16 configurable GPIO pins (gpios[0] to gpios[15])
+    Each pin can be configured as:
+    - GPIO input with optional interrupt
+    - GPIO output
+    - PWM LED driver output (256 steps)
+    """
+    for gpio in gpios:
+        gpio.required = False
+
+    # --- Control pins ---
+    reset_n = new ElectricLogic
+    """
+    Active-low reset pin
+    Default pulled low
+    """
+    reset_n.required = False
+
+    interrupt_n = new ElectricLogic
+    """
+    Active-low interrupt output pin
+    Optional interrupt for GPIO state changes
+    """
+    interrupt_n.required = False
+
+    # --- Reset Pulldown Resistor ---
+    reset_n_pulldown = new Resistor
+    reset_n_pulldown.resistance = 10kohm +/- 20%
+    reset_n_pulldown.package = "0402"
+    reset_n.line ~> reset_n_pulldown ~> power.lv
+
+    # --- I2C address configuration ---
+    addressor = new Addressor<address_bits = 2>
+    addressor.base = 0x58
+    assert addressor.address is i2c.address
+    # Default to base address (0x58), can be overridden by user
+    i2c.address.default = 0x58
+
+    # Connect address lines to package pins
+    addressor.address_lines[0].line ~ package.AD0  # LSB
+    addressor.address_lines[1].line ~ package.AD1  # MSB
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].reference ~ power
+
+    # --- Power connections ---
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+
+    # --- I2C connections ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Control pin connections ---
+    reset_n.line ~ package.RSTN
+    reset_n.reference ~ power
+
+    interrupt_n.line ~ package.INTN
+    interrupt_n.reference ~ power
+
+    # --- GPIO pin connections ---
+    # Port 0 (P0_0 to P0_7)
+    gpios[0].line ~ package.P0_0
+    gpios[1].line ~ package.P0_1
+    gpios[2].line ~ package.P0_2
+    gpios[3].line ~ package.P0_3
+    gpios[4].line ~ package.P0_4
+    gpios[5].line ~ package.P0_5
+    gpios[6].line ~ package.P0_6
+    gpios[7].line ~ package.P0_7
+
+    # Port 1 (P1_0 to P1_7)
+    gpios[8].line ~ package.P1_0
+    gpios[9].line ~ package.P1_1
+    gpios[10].line ~ package.P1_2
+    gpios[11].line ~ package.P1_3
+    gpios[12].line ~ package.P1_4
+    gpios[13].line ~ package.P1_5
+    gpios[14].line ~ package.P1_6
+    gpios[15].line ~ package.P1_7
+
+    # Connect all GPIO references to power
+    for gpio in gpios:
+        gpio.reference ~ power
+
+    # --- Decoupling capacitors ---
+    # Main supply decoupling
+    power_cap = new Capacitor
+    power_cap.capacitance = 100nF +/- 20%
+    power_cap.package = "0402"
+    power.hv ~> power_cap ~> power.lv

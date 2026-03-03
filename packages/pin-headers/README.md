@@ -1,49 +1,81 @@
-# Pin Headers
+# 2.54mm Through-Hole Pin Headers
 
-A collection of standard 2.54mm pitch pin headers for through-hole mounting.
-
-## Available Components
-
-### Single Row (1xN)
-
-| Size | Female | Male |
-| ---- | ------ | ---- |
-| 1x2  | ✅     | ✅   |
-| 1x3  | ✅     | ✅   |
-| 1x4  | ✅     | ✅   |
-| 1x5  | ✅     | ✅   |
-| 1x6  | ✅     | ✅   |
-| 1x8  | ✅     | ❌   |
-| 1x10 | ✅     | ✅   |
-
-### Dual Row (2xN)
-
-| Size | Female | Male |
-| ---- | ------ | ---- |
-| 2x2  | ❌     | ✅   |
-| 2x7  | ✅     | ❌   |
-| 2x8  | ✅     | ❌   |
+Comprehensive collection of 2.54mm pitch male and female pin headers covering common 1xN and 2xN arrangements, ready to drop into through-hole designs.
 
 ## Usage
 
 ```ato
-import "pin-headers"
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x2P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x2P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x3P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x3P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x4P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x4P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x5P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x5P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x6P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x6P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x8P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x8P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_1x10P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_1x10P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x2P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x7P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x8P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x8P_TH
+from "atopile/pin-headers/pin-headers.ato" import Female_2_54mm_2x10P_TH
+from "atopile/pin-headers/pin-headers.ato" import Male_2_54mm_2x10P_TH
 
-// Example usage in your design
-module MyModule:
-    // Create a 1x4 female header
-    header = new Female_2_54mm_1x4P_TH
+module Usage:
+    """Test module for pin headers"""
+    # 1x2 pin headers
+    female_1x2p_th = new Female_2_54mm_1x2P_TH
+    male_1x2p_th = new Male_2_54mm_1x2P_TH
 
-    // Connect signals to the pins
-    my_signal ~ header.p1
-    another_signal ~ header.p2
+    # 1x3 pin headers
+    female_1x3p_th = new Female_2_54mm_1x3P_TH
+    male_1x3p_th = new Male_2_54mm_1x3P_TH
+
+    # 1x4 pin headers
+    female_1x4p_th = new Female_2_54mm_1x4P_TH
+    male_1x4p_th = new Male_2_54mm_1x4P_TH
+
+    # 1x5 pin headers
+    female_1x5p_th = new Female_2_54mm_1x5P_TH
+    male_1x5p_th = new Male_2_54mm_1x5P_TH
+
+    # 1x6 pin headers
+    female_1x6p_th = new Female_2_54mm_1x6P_TH
+    male_1x6p_th = new Male_2_54mm_1x6P_TH
+
+    # 1x8 pin headers
+    female_1x8p_th = new Female_2_54mm_1x8P_TH
+    male_1x8p_th = new Male_2_54mm_1x8P_TH
+
+    # 1x10 pin headers
+    female_1x10p_th = new Female_2_54mm_1x10P_TH
+    male_1x10p_th = new Male_2_54mm_1x10P_TH
+
+    # 2x2 pin header
+    male_2x2p_th = new Male_2_54mm_2x2P_TH
+
+    # 2x7 pin header
+    female_2x7p_th = new Female_2_54mm_2x7P_TH
+
+    # 2x8 pin header
+    female_2x8p_th = new Female_2_54mm_2x8P_TH
+    male_2x8p_th = new Male_2_54mm_2x8P_TH
+
+    # 2x10 pin header
+    female_2x10p_th = new Female_2_54mm_2x10P_TH
+    male_2x10p_th = new Male_2_54mm_2x10P_TH
+
 ```
 
-## Package Contents
+## Contributing
 
-- Footprint and symbol definitions for all pin header variants
-- Test module with examples of all available components
+Contributions are welcome! Feel free to open issues or pull requests.
 
 ## License
 
-This package is released under the MIT License.
+This package is provided under the [MIT License](https://opensource.org/license/mit/).

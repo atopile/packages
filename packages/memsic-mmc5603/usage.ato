@@ -1,0 +1,28 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+
+from "atopile/memsic-mmc5603/memsic-mmc5603.ato" import MEMSIC_MMC5603
+
+module Usage:
+    """
+    Minimal usage example for MEMSIC MMC5603 magnetometer.
+    Shows how to connect power supply and I2C bus to the sensor.
+    """
+
+    # Create sensor instance
+    magnetometer = new MEMSIC_MMC5603
+
+    # External power supply (1.8V typical)
+    power_1v8 = new ElectricPower
+    power_1v8.voltage = 1.8V +/- 5%
+
+    # External I2C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+
+    # Connect interfaces
+    power_1v8 ~ magnetometer.power
+    i2c_bus ~ magnetometer.i2c

@@ -1,0 +1,183 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import Ethernet
+import Resistor
+import SPI
+
+from "parts/WIZNET_W5500/WIZNET_W5500.ato" import WIZNET_W5500_package
+from "parts/Yangxing_Tech_X322525MRB4SI/Yangxing_Tech_X322525MRB4SI.ato" import Yangxing_Tech_X322525MRB4SI_package
+
+module Wiznet_W5500:
+    """
+    Wiznet W5500 Ethernet Controller with Hardwired TCP/IP Stack
+
+    The W5500 is a hardwired TCP/IP embedded Ethernet controller that enables
+    easier internet connection for embedded systems. It supports SPI interface
+    and includes 32KB internal memory buffer for Ethernet packet processing.
+    """
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    3.3V power supply for the W5500 controller
+    """
+    power.required = True
+    assert power.voltage within 3.0V to 3.6V
+
+    spi = new SPI
+    """
+    SPI interface for communication with the W5500
+    """
+    spi.required = True
+
+    spi_cs = new ElectricLogic
+    """
+    SPI chip select signal (active low)
+    """
+
+    interrupt = new ElectricLogic
+    """
+    Interrupt output signal (active low)
+    """
+
+    reset = new ElectricLogic
+    """
+    Reset input signal (active low), keep low for at least 500us
+    """
+
+    ethernet = new Ethernet
+    """
+    Ethernet interface with differential pairs and LED outputs
+    For 10/100 Ethernet, only pairs[0] (TX) and pairs[1] (RX) are used
+    """
+
+    # --- Package ---
+    package = new WIZNET_W5500_package
+
+    # --- Power connections ---
+    power.hv ~ package.AVDD
+    power.hv ~ package.VDD
+    power.lv ~ package.AGND
+    power.lv ~ package.GND
+
+    # --- SPI connections ---
+    spi.mosi.line ~ package.MOSI
+    spi.miso.line ~ package.MISO
+    spi.sclk.line ~ package.SCLK
+    spi_cs.line ~ package.SCSn
+    interrupt.line ~ package.INTn
+    reset.line ~ package.RSTn
+
+    # Suggested net names for external SPI interface
+    spi.mosi.line.suggest_net_name = "W5500_MOSI"
+    spi.miso.line.suggest_net_name = "W5500_MISO"
+    spi.sclk.line.suggest_net_name = "W5500_SCLK"
+    spi_cs.line.suggest_net_name = "W5500_CS"
+    interrupt.line.suggest_net_name = "W5500_INT"
+    reset.line.suggest_net_name = "W5500_RST"
+
+    # --- Ethernet connections ---
+    # W5500 is 10/100 Ethernet, so we use pairs[0] for TX and pairs[1] for RX
+    ethernet.pairs[0].p.line ~ package.TXP  # TX+
+    ethernet.pairs[0].n.line ~ package.TXN  # TX-
+    ethernet.pairs[1].p.line ~ package.RXP  # RX+
+    ethernet.pairs[1].n.line ~ package.RXN  # RX-
+
+    # Suggested net names for Ethernet differential pairs
+    ethernet.pairs[0].p.line.suggest_net_name = "W5500_TXP"
+    ethernet.pairs[0].n.line.suggest_net_name = "W5500_TXN"
+    ethernet.pairs[1].p.line.suggest_net_name = "W5500_RXP"
+    ethernet.pairs[1].n.line.suggest_net_name = "W5500_RXN"
+
+    # --- LED connections ---
+    ethernet.led_link.line ~ package.LINKLED
+    ethernet.led_speed.line ~ package.ACTLED  # Use activity LED as speed indicator
+
+    # Suggested net names for LED outputs
+    ethernet.led_link.line.suggest_net_name = "W5500_LINK_LED"
+    ethernet.led_speed.line.suggest_net_name = "W5500_ACT_LED"
+
+    # --- PHY Operation mode configuration ---
+    # PMODE[2,1,0] | Description
+    # -----------|-----------------------------------------------------
+    # 0  0  0  | 10BT Half-duplex, Auto-negotiation disabled
+    # 0  0  1  | 10BT Full-duplex, Auto-negotiation disabled
+    # 0  1  0  | 100BT Half-duplex, Auto-negotiation disabled
+    # 0  1  1  | 100BT Full-duplex, Auto-negotiation disabled
+    # 1  0  0  | 100BT Half-duplex, Auto-negotiation enabled
+    # 1  0  1  | Not used
+    # 1  1  0  | Not used
+    # 1  1  1  | All capable, Auto-negotiation enabled
+    package.PMODE2 ~ power.hv
+    package.PMODE1 ~ power.hv
+    package.PMODE0 ~ power.hv
+
+    # --- Crystal oscillator ---
+    crystal = new Yangxing_Tech_X322525MRB4SI_package
+    """
+    25MHz crystal oscillator (Yangxing Tech X322525MRB4SI)
+    Specifications: 25MHz, 18pF load capacitance, ±10ppm, -40°C to +85°C
+    """
+
+    # Crystal loading capacitors (18pF each to match crystal specification)
+    xtal_caps = new Capacitor[2]
+    for cap in xtal_caps:
+        cap.capacitance = 18pF +/- 10%
+        cap.package = "0402"
+        cap.max_voltage = 50V +/- 20%
+
+    # Connect crystal
+    package.XI_CLKIN ~ crystal.OSC1
+    package.XO ~ crystal.OSC2
+    crystal.OSC1 ~> xtal_caps[0] ~> power.lv
+    crystal.OSC2 ~> xtal_caps[1] ~> power.lv
+    crystal.GND ~ power.lv
+
+    # Crystal stability resistor
+    xtal_resistor = new Resistor
+    xtal_resistor.resistance = 1Mohm +/- 10%
+    xtal_resistor.package = "0402"
+    xtal_resistor.max_power = 63mW +/- 20%
+    crystal.OSC1 ~> xtal_resistor ~> crystal.OSC2
+
+    # --- EXRES1 configuration ---
+    exres1_resistor = new Resistor
+    exres1_resistor.resistance = 12.4kohm +/- 1%
+    exres1_resistor.package = "0402"
+    exres1_resistor.max_power = 63mW +/- 20%
+    package.EXRES1 ~> exres1_resistor ~> power.lv
+
+    # --- Internal voltage regulator decoupling ---
+    p1v2o_cap = new Capacitor
+    p1v2o_cap.capacitance = 10nF +/- 10%
+    p1v2o_cap.package = "0402"
+    p1v2o_cap.max_voltage = 50V +/- 20%
+    package.P1V2O ~> p1v2o_cap ~> power.lv
+
+    # --- TOCAP decoupling ---
+    tocap_cap = new Capacitor
+    tocap_cap.capacitance = 4.7uF +/- 10%
+    tocap_cap.package = "0805"
+    tocap_cap.max_voltage = 10V +/- 20%
+    package.TOCAP ~> tocap_cap ~> power.lv
+
+    # --- Power supply decoupling ---
+    # 100nF decoupling capacitors
+    decap_100nf = new Capacitor[6]
+    for cap in decap_100nf:
+        cap.capacitance = 100nF +/- 10%
+        cap.package = "0402"
+        cap.max_voltage = 16V +/- 20%
+        power.hv ~> cap ~> power.lv
+
+    # Bulk decoupling capacitor
+    bulk_cap = new Capacitor
+    bulk_cap.capacitance = 10uF +/- 10%
+    bulk_cap.package = "0805"
+    bulk_cap.max_voltage = 10V +/- 20%
+    power.hv ~> bulk_cap ~> power.lv

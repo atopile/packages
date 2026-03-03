@@ -1,0 +1,38 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+from "atopile/relays/helpers.ato" import RelaySPDT
+
+component Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C38031", date = "2025-09-04T23:43:41.192310+00:00", checksum = "ae22ec23cfe67d9ccb5b02d884bb8e44a8359b5a1b23d5b70b2d63e378653e0a">
+
+    trait is_atomic_part<manufacturer = "Ningbo Keke New Era Appliance", partnumber = "HK4100F-DC24V-SHG", footprint = "RELAY-TH_HK4100F-XXX-XXXX.kicad_mod", symbol = "HK4100F-DC24V-SHG.kicad_sym", model = "RELAY-TH_L15.5-W10.5-H11.8.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C38031", manufacturer = "Ningbo Keke New Era Appliance", partno = "HK4100F-DC24V-SHG">
+    trait has_designator_prefix<prefix = "K">
+
+    # pins
+    pin 2
+    pin 4
+    pin 6
+    pin 5
+    pin 3
+    pin 1
+
+module RelaySPDT3A24V from RelaySPDT:
+    package = new Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG_package
+    package.4 ~> coil ~> package.3
+
+    com = new Electrical
+    com ~ package.5
+    com ~ package.6
+
+    com ~> switch_nc ~> package.2
+    com ~> switch_no ~> package.1
+
+    assert coil.voltage within 24V +/- 10%
+    assert coil.resistance within 2880ohm +/- 10%

@@ -1,0 +1,29 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "atopile/nxp-pct2075/nxp-pct2075.ato" import NXP_PCT2075
+
+module Usage:
+    """
+    Minimal usage example for NXP PCT2075 temperature sensor.
+    Demonstrates basic I²C connection and power supply.
+    """
+
+    sensor = new NXP_PCT2075
+
+    # Power supply
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ sensor.power
+
+    # I²C bus
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ sensor.i2c
+
+    # Set I²C address (default 0x48 with all address pins low)
+    sensor.i2c.address = 0x48

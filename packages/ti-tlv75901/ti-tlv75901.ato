@@ -1,81 +1,71 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
 #pragma experiment("BRIDGE_CONNECT")
-
-import Resistor
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 import Capacitor
-import ElectricLogic
 import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import ResistorVoltageDivider
+import has_single_electric_reference
 
-from "regulators.ato" import AdjustableRegulator
+from "regulators.ato" import AdjustableLDO
+from "parts/Texas_Instruments_TLV75901PDRVR/Texas_Instruments_TLV75901PDRVR.ato" import Texas_Instruments_TLV75901PDRVR_package
 
-component TLV75901PDRVR_package:
-    # component TLV75901PDRVR
-    # 1A LDO, 1.5V to 6V input, 0.55V to 5.5V output
-    lcsc_id = "C544759"
-
-    # pins
-    signal OUT ~ pin 1
-    signal FB ~ pin 2
-    signal GND ~ pin 3
-    signal EN ~ pin 4
-    signal DNC ~ pin 5
-    signal IN ~ pin 6
-    signal EP ~ pin 7
-
-module TLV75901_driver from AdjustableRegulator:
+module TI_TLV75901 from AdjustableLDO:
     """
     LDO regulator with adjustable output voltage
-    controled via a DAC with I2C interface
     """
-    package = new TLV75901PDRVR_package
+    # --- Package ---
+    package = new Texas_Instruments_TLV75901PDRVR_package
 
-    # Configure parameters
+    # --- Parameters ---
+    dropout_voltage = 161mV to 1050mV
     assert power_in.voltage within 1.5V to 6V
     assert power_out.voltage within 0.55V to 5.5V
-    assert v_ref is 0.55V +/- 0.1%
+    # assert power_out.voltage within power_in.voltage - dropout_voltage # TODO: fix
+    assert reference_voltage within 0.55V +/- 0.7%
+    assert power_out.max_current <= 1000mA
 
-    # Connections
-    power_in.vcc ~ package.IN
-    power_in.gnd ~ package.GND
-    power_out.vcc ~ package.OUT
-    power_out.gnd ~ package.GND
-    power_out.gnd ~ package.EP
-
-    # Output cap
-    output_cap_1 = new Capacitor
-    output_cap_1.capacitance = 1uF +/- 10%
-    output_cap_1.package = "C0402"
-    power_out ~ output_cap_1.power
-
-    # Enable
+    # --- External interfaces ---
     enable = new ElectricLogic
-    enable_resistor = new Resistor
-    enable_resistor.resistance = 10kohm +/- 5%
-    enable_resistor.package = "R0402"
-    enable.line ~ enable_resistor.p1
-    enable_resistor.p2 ~ package.EN
+    enable.reference ~ power_in
+    assert enable.reference.voltage within 0V to 6V
 
-    # Feedback
-    power_out ~ feedback_div.power
-    package.FB ~ feedback_div.output.line
-    feedback_div.r_top.resistance = 10kohm +/- 5%
-    feedback_div.r_top.package = "R0402"
-    feedback_div.r_bottom.package = "R0402"
+    # --- Internal interfaces ---
+    _enable = new ElectricLogic
+    _enable.reference ~ power_in
 
-module Test:
-    # Create LDO
-    ldo = new TLV75901_driver
+    # --- Components ---
+    # Output decoupling capacitor
+    output_decoupling_capacitor = new Capacitor
+    output_decoupling_capacitor.capacitance = 1uF +/- 10%
+    output_decoupling_capacitor.package = "C0402"
+    power_out.hv ~> output_decoupling_capacitor ~> power_out.lv
 
-    # Configure voltages
-    ldo.v_in = 5V +/- 1%
-    ldo.v_out = 3.3V +/- 3%
+    # Input decoupling capacitor
+    input_decoupling_capacitor = new Capacitor
+    input_decoupling_capacitor.capacitance = 1uF +/- 10%
+    input_decoupling_capacitor.package = "C0402"
+    power_in.hv ~> input_decoupling_capacitor ~> power_in.lv
 
-    # Create example power interfaces
-    power_in = new ElectricPower
-    power_out = new ElectricPower
+    # --- Feedback Divider ---
+    assert feedback_divider.total_resistance within 5kohm to 150kohm * (1 + (-0.01 to 0.01))
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
 
-    # Connect to regulator (bridge connect)
-    power_in ~> ldo ~> power_out
+    # --- Enable ---
+    # enable by default
+    _enable.line ~ power_in.hv
 
-    # Connect to regulator (Interfaces)
-    power_in ~ ldo.power_in
-    power_out ~ ldo.power_out
+    # --- Other connections ---
+    trait has_single_electric_reference<ground_only = True>
+
+    # --- Package Connections ---
+    power_in.hv ~ package.IN
+    power_in.lv ~ package.GND
+    power_out.hv ~ package.OUT
+    power_out.lv ~ package.EP
+    _enable.line ~ package.EN
+    feedback_divider.ref_out.hv ~ package.FB

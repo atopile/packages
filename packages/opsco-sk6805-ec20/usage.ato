@@ -1,0 +1,34 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+
+from "atopile/opsco-sk6805-ec20/opsco-sk6805-ec20.ato" import OPSCO_SK6805_EC20
+
+module Usage:
+    """
+    Minimal usage example for opsco-sk6805-ec20.
+
+    This example demonstrates chaining 10 addressable RGB LEDs
+    to create a simple LED strip for colorful lighting effects.
+    """
+
+    # Create array of 10 LEDs
+    leds = new OPSCO_SK6805_EC20[10]
+
+    # Power supply (5V for LED strip)
+    power_5v = new ElectricPower
+    power_5v.voltage = 5.0V +/- 2%
+
+    # Connect power to all LEDs
+    for led in leds:
+        power_5v ~ led.power
+
+    # Data input from microcontroller
+    data_input = new ElectricLogic
+    data_input.reference ~ power_5v
+
+    # Chain LEDs together: data flows through each LED
+    data_input ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> leds[5] ~> leds[6] ~> leds[7] ~> leds[8] ~> leds[9]

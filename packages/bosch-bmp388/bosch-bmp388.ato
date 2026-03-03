@@ -1,0 +1,101 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Addressor
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import SPI
+
+from "parts/Bosch_Sensortec_BMP388/Bosch_Sensortec_BMP388.ato" import Bosch_Sensortec_BMP388_package
+
+module Bosch_BMP388:
+    """Driver for Bosch BMP388 temperature & pressure sensor (I²C/SPI).
+
+    Exposes:
+        * i2c – I²C bus interface (7-bit addr 0x76 / 0x77)
+        * power_core – Core supply rail (1.71 V – 3.6 V)
+        * power_io – Digital I/O supply rail (1.2 V – 3.6 V)
+        * interrupt – Interrupt output pin
+    """
+
+    # --- Package ---
+    package = new Bosch_Sensortec_BMP388_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    power_core = new ElectricPower
+    power_core.required = True
+    power_io = new ElectricPower
+    power_io.required = True
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    interrupt = new ElectricLogic
+
+    # --- Power supply ---
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.VSS
+    assert power_core.voltage within 1.71V to 3.6V
+
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ power_core.lv
+    assert power_io.voltage within 1.2V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.line ~ package.SCK
+    i2c.sda.line ~ package.SDI
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    # --- I2C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power_io.hv ~> scl_pullup ~> i2c.scl.line
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power_io.hv ~> sda_pullup ~> i2c.sda.line
+
+    # Address selection via SDO pin
+    addressor = new Addressor<address_bits = 1>
+    addressor.base = 0x76
+    addressor.address_lines[0].line ~ package.SDO
+    addressor.address_lines[0].reference ~ power_io
+    assert addressor.base within 0x76
+    assert addressor.address is i2c.address
+    # Default to base address (0x76), can be overridden by user
+    i2c.address.default = 0x76
+
+    # --- SPI bus ---
+    spi.sclk.line ~ package.SCK
+    spi.mosi.line ~ package.SDI
+    spi.miso.line ~ package.SDO
+    spi.sclk.reference ~ power_io
+    spi.mosi.reference ~ power_io
+    spi.miso.reference ~ power_io
+
+    spi_cs.line ~ package.CSB
+    spi_cs.reference ~ power_io
+
+    # --- Interrupt pin ---
+    interrupt.line ~ package.INT
+    interrupt.reference ~ power_io
+
+    # --- Chip-select pin (enable I²C mode) ---
+    csb_pullup = new Resistor
+    csb_pullup.resistance = 10kohm +/- 20%
+    csb_pullup.package = "0402"
+    power_io.hv ~> csb_pullup ~> package.CSB
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

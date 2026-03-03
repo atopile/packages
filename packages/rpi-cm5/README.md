@@ -3,19 +3,17 @@
 ## Usage
 
 ```ato
-from "atopile/rpi-cm5/cm5.ato" import CM5
+from "atopile/rpi-cm5/rpi-cm5.ato" import RPI_CM5
 
-module App:
-    # Components
-    cm5 = new CM5
+import ElectricPower
 
-    # Interfaces
-    power_5v = new Power
-    i2c = new I2C
+module Usage:
+    """Usage example for the Raspberry Pi CM5 module"""
 
-    # Connect Power
+    cm5 = new RPI_CM5
+
+    power_5v = new ElectricPower
     power_5v ~ cm5.power_5v
-    i2c ~ cm5.i2c[0]
 
 ```
 

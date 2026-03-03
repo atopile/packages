@@ -1,0 +1,134 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import Resistor
+import Capacitor
+import Addressor
+import ElectricSignal
+
+# --- Part import ---
+from "parts/ISSI_IS31FL3731_QFLS2_TR/ISSI_IS31FL3731_QFLS2_TR.ato" import ISSI_IS31FL3731_QFLS2_TR_package
+
+module ISSI_IS31FL3731:
+    """
+    ISSI IS31FL3731 – 144-LED matrix driver with I²C interface.
+
+    External interfaces:
+        • power – Supply rail (2.7 V … 5.5 V)
+        • i2c – I²C bus (address 0x74 / 0x77 via AD pin)
+        • int – INTB interrupt output (open-drain, active-low)
+    """
+
+    # --- Package ---
+    package = new ISSI_IS31FL3731_QFLS2_TR_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    power.required = True
+    i2c = new I2C
+    i2c.required = True
+    interrupt = new ElectricLogic
+    shutdown = new ElectricLogic
+    audio_input = new ElectricSignal
+    channel_a = new ElectricSignal[9]
+    channel_b = new ElectricSignal[9]
+
+    # --- Power ---
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+    power.lv ~ package.EP  # Exposed pad
+    assert power.voltage within 2.7V to 5.5V
+
+    # --- I²C ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c.address = 0x74  # should use advanced addressor (4 level)
+    i2c_address_pull_down = new Resistor
+    i2c_address_pull_down.resistance = 10kohm +/- 10%
+    i2c_address_pull_down.package = "0402"
+    package.AD ~> i2c_address_pull_down ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 4.7kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Interrupt output ---
+    interrupt.reference ~ power
+    interrupt_pullup_resistor = new Resistor
+    interrupt_pullup_resistor.resistance = 10kohm +/- 10%
+    interrupt_pullup_resistor.package = "0402"
+    interrupt.line ~> interrupt_pullup_resistor ~> power.hv
+
+    # --- Reference & filter components ---
+    # Shutdown pull-up resistor
+    shutdown_pullup_resistor = new Resistor
+    shutdown_pullup_resistor.resistance = 10kohm +/- 10%
+    shutdown_pullup_resistor.package = "0402"
+    package.SDB ~> shutdown_pullup_resistor ~> power.lv
+
+    # External resistor to set max current
+    current_set_resistor = new Resistor
+    current_set_resistor.resistance = 20kohm +/- 1%
+    current_set_resistor.package = "0402"
+    package.R_EXT ~> current_set_resistor ~> power.lv
+
+    # audio input capacitor
+    audio_input_capacitor = new Capacitor
+    audio_input_capacitor.capacitance = 100nF +/- 20%
+    audio_input_capacitor.package = "0402"
+    audio_input.line ~> audio_input_capacitor ~> package.IN
+
+    # --- Filter capacitor ---
+    filter_capacitor = new Capacitor
+    filter_capacitor.capacitance = 100nF +/- 20%
+    filter_capacitor.package = "0402"
+    package.C_FILT ~> filter_capacitor ~> power.lv
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor_small = new Capacitor
+    decoupling_capacitor_small.capacitance = 100nF +/- 20%
+    decoupling_capacitor_small.package = "0402"
+    power.hv ~> decoupling_capacitor_small ~> power.lv
+
+    decoupling_capacitor_big = new Capacitor
+    decoupling_capacitor_big.capacitance = 10uF +/- 20%
+    decoupling_capacitor_big.package = "0603"
+    power.hv ~> decoupling_capacitor_big ~> power.lv
+
+    # --- Package ---
+    package.VCC ~ power.hv
+    package.GND ~ power.lv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.INTB ~ interrupt.line
+    package.SDB ~ shutdown.line
+    package.INTB ~ interrupt.line
+    package.CA1 ~ channel_a[0].line
+    package.CA2 ~ channel_a[1].line
+    package.CA3 ~ channel_a[2].line
+    package.CA4 ~ channel_a[3].line
+    package.CA5 ~ channel_a[4].line
+    package.CA6 ~ channel_a[5].line
+    package.CA7 ~ channel_a[6].line
+    package.CA8 ~ channel_a[7].line
+    package.CA9 ~ channel_a[8].line
+    package.CB1 ~ channel_b[0].line
+    package.CB2 ~ channel_b[1].line
+    package.CB3 ~ channel_b[2].line
+    package.CB4 ~ channel_b[3].line
+    package.CB5 ~ channel_b[4].line
+    package.CB6 ~ channel_b[5].line
+    package.CB7 ~ channel_b[6].line
+    package.CB8 ~ channel_b[7].line
+    package.CB9 ~ channel_b[8].line

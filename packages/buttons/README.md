@@ -1,48 +1,67 @@
-# Assorted Buttons
+# Buttons - Momentary Switches
 
-Implements a few common buttons configured as current limited pullups/pulldowns
-
-Connected like so:
-
-```
-output.line ~> btn ~> resistor ~> output.hv/.lv (pullup/pulldown)
-```
+Simple momentary switches that can be used to bridge connections in circuits.
 
 ## Usage
 
 ```ato
-from "atopile/buttons/buttons.ato" import ButtonPullup
-from "atopile/buttons/buttons.ato" import ButtonDown
-from "atopile/buttons/buttons.ato" import ButtonSKRPACE010
-from "atopile/buttons/buttons.ato" import ButtonSKTDLDE010
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
 
+import Electrical
+import ElectricPower
+import Resistor
 
-module Test:
+from "atopile/buttons/buttons.ato" import VerticalButton
+from "atopile/buttons/buttons.ato" import HorizontalButton
+
+module Usage:
     """
-    Test module for buttons
+    Examples showing different ways to use buttons:
+    1. Simple bridging connections
+    2. Pullup configuration (button pulls to ground, resistor pulls to VCC)
+    3. Pulldown configuration (button pulls to VCC, resistor pulls to ground)
     """
-    # Make and configure buttons
-    btn_pullup_vertical = new ButtonPullup
-    btn_pullup_vertical.btn -> ButtonSKRPACE010
 
-    btn_pullup_horizontal = new ButtonPullup
-    btn_pullup_horizontal.btn -> ButtonSKTDLDE010
-
-    btn_pulldown_vertical = new ButtonPulldown
-    btn_pulldown_vertical.btn -> ButtonSKRPACE010
-
-    btn_pulldown_horizontal = new ButtonPulldown
-    btn_pulldown_horizontal.btn -> ButtonSKTDLDE010
-
-    # Create example signals
-    enable = new ElectricLogic
+    # Power supply for pullup/pulldown examples
     power = new ElectricPower
-    enable.reference ~ power # Typically done inside a driver
 
-    # Connect button
-    enable ~ btn_pullup_vertical.output
+    # === Example 1: Simple bridging ===
+    btn_bridge = new VerticalButton
+    signal_a = new Electrical
+    signal_b = new Electrical
 
-    # When button is pressed, enable will be pulled HIGH via a 10k resistor
+    # When button is pressed, signal_a connects to signal_b
+    signal_a ~> btn_bridge ~> signal_b
+
+    # === Example 2: Pullup configuration ===
+    # Button pulls signal to ground when pressed, resistor pulls to VCC when released
+    btn_pullup = new HorizontalButton
+    pullup_resistor = new Resistor
+    pullup_signal = new Electrical
+
+    # Configure pullup resistor
+    pullup_resistor.resistance = 10kohm +/- 5%
+    pullup_resistor.package = "0402"
+
+    # Connections: signal pulled high by resistor, pulled low by button
+    power.hv ~> pullup_resistor ~> pullup_signal
+    pullup_signal ~> btn_pullup ~> power.lv
+
+    # === Example 3: Pulldown configuration ===
+    # Button pulls signal to VCC when pressed, resistor pulls to ground when released
+    btn_pulldown = new VerticalButton
+    pulldown_resistor = new Resistor
+    pulldown_signal = new Electrical
+
+    # Configure pulldown resistor
+    pulldown_resistor.resistance = 10kohm +/- 5%
+    pulldown_resistor.package = "0402"
+
+    # Connections: signal pulled low by resistor, pulled high by button
+    power.lv ~> pulldown_resistor ~> pulldown_signal
+    pulldown_signal ~> btn_pulldown ~> power.hv
+
 ```
 
 ## Contributing

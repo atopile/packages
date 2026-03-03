@@ -1,0 +1,19 @@
+import ElectricPower
+import I2C
+
+from "atopile/liteon-ltr329/liteon-ltr329.ato" import Liteon_LTR329
+
+module Usage:
+    """Minimal example for the Liteon_LTR329 ambient light sensor."""
+
+    # Sensor
+    ambient_light_sensor = new Liteon_LTR329
+
+    # Shared 3V3 rail
+    power = new ElectricPower
+    power.voltage = 3.3V
+    power ~ ambient_light_sensor.power
+
+    # I²C connection
+    i2c_bus = new I2C
+    i2c_bus ~ ambient_light_sensor.i2c

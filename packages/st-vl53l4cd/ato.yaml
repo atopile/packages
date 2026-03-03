@@ -1,0 +1,26 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  default:
+    entry: st-vl53l4cd.ato:ST_VL53L4CD
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/st-vl53l4cd
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/st-vl53l4cd/README.md
+  version: "0.2.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "ST; VL53L4CD; Time-of-Flight; Distance; Sensor; I2C; Qwiic; STEMMA; Adafruit; 5396"
+  license: MIT

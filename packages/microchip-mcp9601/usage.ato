@@ -1,0 +1,48 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import I2C
+import ElectricPower
+import Resistor
+
+from "atopile/microchip-mcp9601/microchip-mcp9601.ato" import Microchip_MCP9601
+
+
+module Usage:
+    """
+    Complete usage example for microchip-mcp9601 thermocouple amplifier.
+    Demonstrates connecting a K-type thermocouple with I2C and power interfaces,
+    plus temperature alert outputs for a complete temperature monitoring system.
+    """
+
+    # Main thermocouple amplifier
+    sensor = new Microchip_MCP9601
+
+    # External interfaces
+    i2c = new I2C
+    power = new ElectricPower
+
+    # Thermocouple simulation (in practice, connect actual K-type thermocouple wires here)
+    # This resistor represents the thermocouple's differential resistance
+    # Replace with actual thermocouple: positive wire (yellow) to thermocouple_positive
+    #                                   negative wire (red) to thermocouple_negative
+    thermocouple_sim = new Resistor
+    thermocouple_sim.resistance = 100ohm +/- 5%  # Typical thermocouple wire resistance
+    thermocouple_sim.package = "0603"
+
+    # Connect core interfaces
+    i2c ~ sensor.i2c
+    power ~ sensor.power
+
+    # Connect thermocouple simulation to sensor inputs
+    # In practice: Connect thermocouple wires directly to these inputs
+    sensor.thermocouple_positive.line ~> thermocouple_sim ~> sensor.thermocouple_negative.line
+
+    # Set power supply voltage (3.3V typical for thermocouple applications)
+    assert power.voltage within 3.0V to 3.6V
+
+    # Optional: Connect alert outputs for temperature monitoring
+    # sensor.alert1, sensor.alert2, sensor.alert3, sensor.alert4
+    # sensor.oc_alert (open-circuit detection)
+    # sensor.sc_alert (short-circuit detection)

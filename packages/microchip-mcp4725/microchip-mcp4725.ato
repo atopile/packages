@@ -11,22 +11,21 @@ import Resistor
 
 from "parts/Microchip_Tech_MCP4725A0T_E_CH/Microchip_Tech_MCP4725A0T_E_CH.ato" import Microchip_Tech_MCP4725A0T_E_CH_package
 
-
 module Microchip_MCP4725_driver:
     """Microchip_MCP4725_driver"""
     package = new Microchip_Tech_MCP4725A0T_E_CH_package
 
     # power
     power = new ElectricPower
-    power.vcc ~ package.VDD
-    power.gnd ~ package.VSS
+    power.hv ~ package.VDD
+    power.lv ~ package.VSS
     assert power.voltage within 2.7V to 5.5V
 
     # Decoupling Capacitor
     decoupling_capacitor = new Capacitor
     decoupling_capacitor.capacitance = 100nF +/- 10%
     decoupling_capacitor.package = "C0402"
-    power.vcc ~> decoupling_capacitor ~> power.gnd
+    power.hv ~> decoupling_capacitor ~> power.lv
 
     # I2C
     i2c = new I2C
@@ -43,12 +42,13 @@ module Microchip_MCP4725_driver:
     output.reference ~ power
 
     # Addressor
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.address_lines[0].line ~ package.A0
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
-    assert addressor.base is 0x60
-
+    # Default to base address (0x60), can be overridden by user
+    i2c.address.default = 0x60
+    assert addressor.base within 0x60
 
 module Test:
     # Create 2 DACs
@@ -64,8 +64,8 @@ module Test:
         pullup.resistance = 10kohm +/- 10%
         pullup.package = "R0402"
 
-    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.vcc
-    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.vcc
+    i2c.scl.line ~> pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullups[1] ~> i2c.sda.reference.hv
 
     # Connect DACs to power and I2C
     for dac in dacs:
@@ -73,5 +73,5 @@ module Test:
         dac.i2c ~ i2c
 
     # Set DAC addresses
-    dacs[0].i2c.address = 0x60
-    dacs[1].i2c.address = 0x61
+    assert dacs[0].i2c.address within 0x60
+    assert dacs[1].i2c.address within 0x61

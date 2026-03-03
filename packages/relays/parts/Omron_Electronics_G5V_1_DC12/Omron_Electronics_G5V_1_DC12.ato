@@ -1,0 +1,39 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+
+from "atopile/relays/helpers.ato" import RelaySPDT
+
+component Omron_Electronics_G5V_1_DC12_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C31113", date = "2025-09-05T02:24:21.344722+00:00", checksum = "b25c5d19d1698aaed4f4757ce081f9964785c57428df5b2581382685e8ed3ca9">
+
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G5V-1-DC12", footprint = "RELAY-TH_G5V-1.kicad_mod", symbol = "G5V-1-12V.kicad_sym", model = "RELAY-TH_L12.5-W7.5-H10.0.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C31113", manufacturer = "Omron Electronics", partno = "G5V-1-DC12">
+    trait has_designator_prefix<prefix = "U">
+
+    # pins
+    pin 1
+    pin 2
+    pin 5
+    pin 6
+    pin 9
+    pin 10
+
+module RelaySPDT1A12V from RelaySPDT:
+    package = new Omron_Electronics_G5V_1_DC12_package
+    package.2 ~> coil ~> package.9
+
+    com = new Electrical
+    com ~ package.6
+    com ~ package.5
+
+    com ~> switch_nc ~> package.1
+    com ~> switch_no ~> package.10
+
+    assert coil.voltage within 12V +/- 10%
+    assert coil.resistance within 960ohm +/- 10%

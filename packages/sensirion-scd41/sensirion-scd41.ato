@@ -1,0 +1,84 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import Resistor
+
+from "parts/Sensirion_SCD41_D_R2/Sensirion_SCD41_D_R2.ato" import Sensirion_SCD41_D_R2_package
+
+module Sensirion_SCD41:
+    """
+    Sensirion SCD41 CO2, Temperature, and Humidity Sensor
+
+    Features:
+    - Photoacoustic NDIR CO2 sensing (400-5000 ppm range)
+    - Built-in SHT4x temperature and humidity sensor
+    - High accuracy: ±(40 ppm + 5% of reading) for CO2
+    - I2C interface with fixed address 0x62
+    - Low power single-shot measurement mode
+    - Wide supply voltage range: 2.4V to 5.5V
+    - Small LGA-20 package (10.1 x 10.1 mm)
+    """
+
+    # --- Package ---
+    package = new Sensirion_SCD41_D_R2_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (fixed 7-bit address 0x62)
+    """
+    i2c.required = True
+    assert i2c.address within 0x62
+
+    power_core = new ElectricPower
+    """
+    Core power supply (2.4V to 5.5V, typically 3.3V)
+    """
+    power_core.required = True
+    assert power_core.voltage within 2.4V to 5.5V
+
+    power_heater = new ElectricPower
+    """
+    Heater power supply (2.4V to 5.5V, typically same as core)
+    """
+    power_heater.required = True
+    assert power_heater.voltage within 2.4V to 5.5V
+
+    # --- I2C Pullup resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 4.7kohm +/- 5%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+
+    # --- Power connections ---
+    power_core.hv ~ package.VDD  # Core supply
+    power_heater.hv ~ package.VDDH  # Heater supply
+    power_core.lv ~ package.GND
+    power_heater.lv ~ package.GND
+
+    # --- I2C connections ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power_core
+    i2c.sda.reference ~ power_core
+
+    # --- Decoupling capacitors ---
+    # Core supply decoupling
+    power_core_cap = new Capacitor
+    power_core_cap.capacitance = 100nF +/- 20%
+    power_core_cap.package = "0402"
+    power_core.hv ~> power_core_cap ~> power_core.lv
+
+    # Heater supply decoupling
+    power_heater_cap = new Capacitor
+    power_heater_cap.capacitance = 100nF +/- 20%
+    power_heater_cap.package = "0402"
+    power_heater.hv ~> power_heater_cap ~> power_heater.lv

@@ -1,37 +1,24 @@
-# Microchip MCP4728 4-channel DAC
+# TDPOWER TDK20 20W Isolated DC-DC Converter
 
 ## Usage
 
 ```ato
+#pragma experiment("BRIDGE_CONNECT")
 
-import I2C
-import Power
+import ElectricPower
+from "atopile/tdpower-tdk20x/tdpower-tdk20x.ato" import TDPOWER_TDK20_driver
 
-from "atopile/microchip-mcp4728/microchip-mcp4728.ato" import Microchip_MCP4728_driver
+module Usage:
+    # Create converter (default 24V in, 24V out)
+    converter = new TDPOWER_TDK20_driver
 
+    # Create power rails
+    power_in = new ElectricPower
+    power_out = new ElectricPower
 
-module Test:
-    # Create DAC
-    dac = new Microchip_MCP4728_driver
-
-    # Create power and I2C interfaces
-    power = new ElectricPower
-    i2c = new I2C
-
-    # Connect power and I2C to DAC
-    power ~ dac.power
-    i2c ~ dac.i2c
-
-    # Create example electric logics
-    outputs = new ElectricSignal[4]
-
-    # Connect outputs to DAC
-    outputs[0] ~ dac.outputs[0]
-    outputs[1] ~ dac.outputs[1]
-    outputs[2] ~ dac.outputs[2]
-    outputs[3] ~ dac.outputs[3]
-
-
+    # connect power to converter
+    power_in ~ converter.power_in
+    converter.power_out ~ power_out
 
 ```
 

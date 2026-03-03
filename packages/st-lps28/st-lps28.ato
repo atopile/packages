@@ -1,0 +1,88 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/STMicroelectronics_LPS28DFWTR/STMicroelectronics_LPS28DFWTR.ato" import STMicroelectronics_LPS28DFWTR_package
+
+module ST_LPS28:
+    """
+    STMicroelectronics LPS28DFW dual full-scale (1260/4060 hPa) absolute digital
+    output pressure sensor with water-resistant package.
+
+    Features:
+    - Dual pressure range: 1260 hPa and 4060 hPa
+    - I2C digital interface
+    - Operating temperature: -40°C to +85°C
+    - Ultra-low power consumption
+    - Water-resistant package
+    """
+
+    # --- Package ---
+    package = new STMicroelectronics_LPS28DFWTR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface with configurable 7-bit address (0x5C / 0x5D)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Power supply interface (1.7V to 3.6V)
+    """
+    power.required = True
+
+    interrupt = new ElectricLogic
+    """
+    Optional interrupt/data ready output pin
+    """
+    interrupt.required = False
+
+    # --- Internal power connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    power.lv ~ package.PAD2LID
+    assert power.voltage within 1.7V to 3.6V
+
+    # --- I²C interface ---
+    i2c.sda.line ~ package.SDA
+    i2c.scl.line ~ package.SCL
+    i2c.sda.reference ~ power
+    i2c.scl.reference ~ power
+
+    # --- Address configuration ---
+    addressor = new Addressor<address_bits = 1>
+    addressor.base = 0x5C  # Base address when SA0 = 0
+    addressor.address_lines[0].line ~ package.SA0
+    addressor.address_lines[0].reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x5C), can be overridden by user
+    i2c.address.default = 0x5C
+
+    # --- Interrupt/Data Ready ---
+    interrupt.line ~ package.INT_DRDY
+    interrupt.reference ~ power
+
+    # --- Decoupling capacitors ---
+    power_cap = new Capacitor
+    power_cap.capacitance = 100nF +/- 20%
+    power_cap.package = "0402"
+    power.hv ~> power_cap ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+
+    i2c.scl.line ~> i2c_pullups[0] ~> power.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> power.hv

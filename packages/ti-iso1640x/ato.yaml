@@ -1,25 +1,26 @@
-requires-atopile: "^0.9.0"
+requires-atopile: ^0.14.0
 
 paths:
-  src: .
-  layout: ./layouts
+    src: ./
+    layout: ./layouts
 
 builds:
-  iso1640bdr:
-    entry: ti-iso1640.ato:TEXAS_INSTRUMENTS_ISO1640BDR_driver
-
-  iso1640qdwrq1:
-    entry: ti-iso1640.ato:TEXAS_INSTRUMENTS_ISO1640QDWRQ1_driver
-
-  test:
-    entry: ti-iso1640.ato:Test
+    default:
+        entry: ti-iso1640x.ato:TI_ISO1640QDWRQ1
+        hide_designators: true
+        exclude_checks: ["PCB.requires_drc_check"]
+    usage:
+        entry: usage.ato:Usage
+        hide_designators: true
+        exclude_checks: ["PCB.requires_drc_check"]
 
 package:
-  identifier: atopile/ti-iso1640x
-  repository: https://github.com/atopile/packages
-  version: "0.1.2"
-  authors:
-    - name: atopile
-      email: hi@atopile.io
-  summary: Texas Instruments ISO1640x I2C isolator
-  license: MIT
+    identifier: atopile/ti-iso1640x
+    repository: https://github.com/atopile/packages
+    homepage: https://github.com/atopile/packages/blob/main/packages/ti-iso1640x/README.md
+    version: "0.3.0"
+    authors:
+        - name: atopile
+          email: hi@atopile.io
+    summary: "Tags: Texas Instruments; TI; ISO1640; I2C; Isolator; Bidirectional; IC; 1500V; Automotive; SOIC-16"
+    license: MIT

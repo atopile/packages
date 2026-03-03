@@ -1,0 +1,72 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import ElectricPower
+import I2C
+import Capacitor
+import Resistor
+
+from "parts/ROHM_Semicon_BH1750FVI_TR/ROHM_Semicon_BH1750FVI_TR.ato" import ROHM_Semicon_BH1750FVI_TR_package
+
+module ROHM_BH1750:
+    """
+    Digital ambient light sensor with I²C interface.
+    """
+    package = new ROHM_Semicon_BH1750FVI_TR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    """
+    I²C bus interface (fixed address 0x23)
+    """
+    i2c.required = True
+
+    power = new ElectricPower
+    """
+    Power supply (2.4V to 3.6V)
+    """
+    power.required = True
+
+    # --- Power supply ---
+    assert power.voltage within 2.4V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+    i2c_address_pulldown_resistor = new Resistor
+    i2c_address_pulldown_resistor.resistance = 10kohm +/- 10%
+    i2c_address_pulldown_resistor.package = "0402"
+    power.lv ~> i2c_address_pulldown_resistor ~> package.ADDR
+    i2c.address = 0x23
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 10kohm +/- 5%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- DVI low-pass filter ---
+    # Manual RC low-pass filter for DVI pin (datasheet recommended)
+    dvi_resistor = new Resistor
+    dvi_resistor.resistance = 1kohm +/- 10%
+    dvi_resistor.package = "0402"
+    dvi_capacitor = new Capacitor
+    dvi_capacitor.capacitance = 100nF +/- 10%
+    dvi_capacitor.package = "0402"
+    # RC filter: power.hv -> resistor -> DVI pin, capacitor to ground
+    power.hv ~> dvi_resistor ~> package.DVI
+    package.DVI ~> dvi_capacitor ~> power.lv
+
+    # --- Package ---
+    package.GND ~ power.lv
+    package.VCC ~ power.hv
+    package.SDA ~ i2c.sda.line
+    package.SCL ~ i2c.scl.line
+    package.EP ~ power.lv

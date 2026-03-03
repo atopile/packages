@@ -1,0 +1,182 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import ElectricLogic
+import Capacitor
+import can_bridge_by_name
+
+from "parts/Diodes_Incorporated_74LVC1T45DW_7/Diodes_Incorporated_74LVC1T45DW_7.ato" import Diodes_Incorporated_74LVC1T45DW_7_package
+
+module Diodes_Inc_74LVC1T45DW_7:
+    """
+    Diodes Incorporated 74LVC1T45DW-7 Single-Bit Dual-Supply Bus Transceiver
+
+    Key features:
+    - Single-bit bidirectional voltage level translator
+    - Dual supply operation: 1.65V to 5.5V on both sides
+    - Direction control pin for signal flow
+    - Auto-direction sensing capability
+    - Very low power consumption
+    - SOT-363 (SC-70-6) package
+    - 3.6ns propagation delay typical
+    """
+
+    # --- Package ---
+    package = new Diodes_Incorporated_74LVC1T45DW_7_package
+
+    # --- External interfaces ---
+    power_a = new ElectricPower
+    """
+    Power supply for side A (1.65V to 5.5V)
+    Typically connects to lower voltage domain
+    """
+    power_a.required = True
+
+    power_b = new ElectricPower
+    """
+    Power supply for side B (1.65V to 5.5V)
+    Typically connects to higher voltage domain
+    """
+    power_b.required = True
+
+    signal_a = new ElectricLogic
+    """
+    Signal line for side A
+    Logic levels referenced to power_a
+    """
+    signal_a.required = True
+
+    signal_b = new ElectricLogic
+    """
+    Signal line for side B
+    Logic levels referenced to power_b
+    """
+    signal_b.required = True
+
+    dir = new ElectricLogic
+    """
+    Direction control pin
+    HIGH (power_a.hv): A to B transmission
+    LOW (power_a.lv): B to A transmission
+    Referenced to power_a supply
+    """
+
+    # --- Power supply constraints ---
+    assert power_a.voltage within 1.65V to 5.5V
+    assert power_b.voltage within 1.65V to 5.5V
+
+    # --- Signal references ---
+    signal_a.reference ~ power_a
+    signal_b.reference ~ power_b
+    dir.reference ~ power_a
+
+    # --- Package pin connections ---
+    # Power connections
+    power_a.hv ~ package.VCCA
+    power_b.hv ~ package.VCCB
+
+    # Shared ground connection
+    power_a.lv ~ package.GND
+    power_b.lv ~ package.GND
+
+    # Signal connections
+    signal_a.line ~ package.A
+    signal_b.line ~ package.B
+    dir.line ~ package.DIR
+
+    # --- Direction control ---
+    # Direction control is exposed as 'dir' interface
+    # Connect to power_a.hv for A -> B direction
+    # Connect to power_a.lv for B -> A direction
+
+    # --- Power decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+
+    # Connect decoupling capacitors
+    power_a.hv ~> decoupling_caps[0] ~> power_a.lv
+    power_b.hv ~> decoupling_caps[1] ~> power_b.lv
+
+    # --- Bridging trait for level shifting chains ---
+    trait can_bridge_by_name<input_name = "signal_a", output_name = "signal_b">
+
+module Level_Shifter_3V3_to_5V:
+    """
+    Pre-configured 3.3V to 5V level shifter using 74LVC1T45DW-7.
+    Common configuration for interfacing 3.3V microcontrollers with 5V peripherals.
+    """
+
+    # Level shifter instance
+    shifter = new Diodes_Inc_74LVC1T45DW_7
+
+    # External interfaces
+    power_3v3 = new ElectricPower
+    """3.3V power supply"""
+
+    power_5v = new ElectricPower
+    """5V power supply"""
+
+    signal_3v3 = new ElectricLogic
+    """3.3V logic signal"""
+
+    signal_5v = new ElectricLogic
+    """5V logic signal"""
+
+    # Power constraints
+    assert power_3v3.voltage within 3.0V to 3.6V
+    assert power_5v.voltage within 4.5V to 5.5V
+
+    # Connect power supplies
+    power_3v3 ~ shifter.power_a
+    power_5v ~ shifter.power_b
+
+    # Connect signals
+    signal_3v3 ~ shifter.signal_a
+    signal_5v ~ shifter.signal_b
+
+    # Set direction: 3.3V -> 5V (A -> B)
+    shifter.dir.line ~ power_3v3.hv
+
+module Bidirectional_Level_Shifter:
+    """
+    Bidirectional level shifter with external direction control.
+    Allows runtime control of signal direction.
+    """
+
+    # Level shifter instance
+    shifter = new Diodes_Inc_74LVC1T45DW_7
+
+    # External interfaces
+    power_low = new ElectricPower
+    """Lower voltage domain power supply"""
+
+    power_high = new ElectricPower
+    """Higher voltage domain power supply"""
+
+    signal_low = new ElectricLogic
+    """Lower voltage domain signal"""
+
+    signal_high = new ElectricLogic
+    """Higher voltage domain signal"""
+
+    direction_control = new ElectricLogic
+    """
+    External direction control
+    HIGH: low -> high voltage transmission
+    LOW: high -> low voltage transmission
+    """
+
+    # Connect power supplies
+    power_low ~ shifter.power_a
+    power_high ~ shifter.power_b
+
+    # Connect signals
+    signal_low ~ shifter.signal_a
+    signal_high ~ shifter.signal_b
+
+    # External direction control
+    direction_control ~ shifter.dir

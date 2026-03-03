@@ -1,0 +1,33 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+# Ensure the project has at least a default build and a usage build
+builds:
+  default:
+    entry: wiznet-w5500.ato:Wiznet_W5500
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/wiznet-w5500
+  repository: https://github.com/atopile/packages
+  homepage:
+    https://github.com/atopile/packages/blob/main/packages/wiznet-w5500/README.md
+  version: 0.2.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: 'Tags: Wiznet; W5500; Ethernet; SPI; TCP/IP; Hardwired; IC; Network; Internet;
+    Controller'
+  license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/rj45-connectors
+  release: 0.2.0

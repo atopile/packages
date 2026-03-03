@@ -1,0 +1,75 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import Resistor
+import I2C
+
+from "parts/Analog_Devices_LTC4311CSC6_TRPBF/Analog_Devices_LTC4311CSC6_TRPBF.ato" import Analog_Devices_LTC4311CSC6_TRPBF_package
+
+module ADI_LTC4311:
+    """Driver for ADI LTC4311 Low Voltage I2C/SMBus Accelerator.
+
+    The LTC4311 is a rise-time accelerator that provides buffered connections
+    for I2C bus lines. It has two independent bidirectional signal buffers
+    that can be used for SDA and SCL lines.
+
+    Exposes:
+        * power – Power supply (1.6V to 5.5V)
+        * i2c – I2C bus interface
+        * enable – Enable pin (optional, can be tied high)
+    """
+
+    # --- Package ---
+    package = new Analog_Devices_LTC4311CSC6_TRPBF_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply (1.6V to 5.5V)
+    """
+    power.required = True
+    assert power.voltage within 1.6V to 5.5V
+
+    # --- I2C bus ---
+    i2c = new I2C
+    """
+    I2C bus interface
+    """
+    i2c.required = True
+
+    enable = new ElectricLogic
+    """
+    Enable pin - default tied high
+    """
+    enable.required = False
+
+    # --- Power connections ---
+    power.hv ~ package.VCC
+    power.lv ~ package.GND
+
+    # --- Signal connections ---
+    i2c.sda.line ~ package.BUS1
+    i2c.sda.reference ~ power
+
+    i2c.scl.line ~ package.BUS2
+    i2c.scl.reference ~ power
+
+    # --- Enable pin ---
+    enable.line ~ package.ENABLE
+    enable.reference ~ power
+
+    # --- Enable pullup (default enabled when not controlled) ---
+    enable_pullup = new Resistor
+    enable_pullup.resistance = 10kohm +/- 20%
+    enable_pullup.package = "0402"
+    power.hv ~> enable_pullup ~> package.ENABLE
+
+    # --- Decoupling capacitor ---
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100nF +/- 20%
+    bypass_cap.package = "0402"
+    power.hv ~> bypass_cap ~> power.lv

@@ -1,0 +1,40 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+
+# --- Package import ---
+from "atopile/sensirion-sht40/sensirion-sht40.ato" import Sensirion_SHT40
+
+module Usage:
+    """
+    Minimal usage example for `sensirion-sht40`.
+    Powers the SHT40 from a 3.3V rail and places it on an I²C bus at the
+    fixed address **0x44**.
+    """
+
+    # Power rail (3.3 V)
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # I²C bus
+    i2c_bus = new I2C
+
+    # Sensor instance
+    sensor = new Sensirion_SHT40
+
+    # Connect required power rail
+    power_3v3 ~ sensor.power
+
+    # Provide logic reference for the bus
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    # Connect I²C bus
+    i2c_bus ~ sensor.i2c
+
+    # Address is fixed at 0x44 (no configuration needed)
+    assert sensor.i2c.address within 0x44

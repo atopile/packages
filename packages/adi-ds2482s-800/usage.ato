@@ -1,0 +1,29 @@
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+from "atopile/adi-ds2482s-800/adi-ds2482s-800.ato" import ADI_DS2482S_800
+
+module Usage:
+    """
+    Minimal usage example for `adi-ds2482s-800`.
+    Shows how to connect the DS2482S-800 8-channel I2C to 1-Wire bus adapter.
+    """
+
+    # Create the DS2482S-800 instance
+    ds2482 = new ADI_DS2482S_800
+
+    # Power supply (3.3V typical)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ ds2482.power
+
+    # I2C bus connection
+    i2c = new I2C
+    i2c.frequency = 400kHz
+    i2c.address = 0x18  # Base address when all address pins are low
+    i2c ~ ds2482.i2c
+
+    # The 8 1-Wire channels are now available as:
+    # ds2482.onewire_channels[0] through ds2482.onewire_channels[7]
+    # These can be connected to DS18B20 temperature sensors or other 1-Wire devices

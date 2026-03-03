@@ -1,0 +1,32 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricLogic
+import ElectricPower
+import I2C
+
+from "atopile/vishay-vcnl4040/vishay-vcnl4040.ato" import Vishay_VCNL4040
+
+module Usage:
+    """
+    Minimal usage example for vishay-vcnl4040.
+    Demonstrates basic connections for proximity and light sensing with interrupt.
+    """
+
+    # --- Sensor instance ---
+    sensor = new Vishay_VCNL4040
+
+    # --- Power supply ---
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ sensor.power
+
+    # --- I2C bus ---
+    i2c_bus = new I2C
+    i2c_bus.frequency = 400kHz
+    i2c_bus ~ sensor.i2c
+
+    # --- Interrupt connection (optional) ---
+    interrupt_line = new ElectricLogic
+    interrupt_line ~ sensor.int_pin

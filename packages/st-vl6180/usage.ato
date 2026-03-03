@@ -1,0 +1,68 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricLogic
+import I2C
+
+from "atopile/st-vl6180/st-vl6180.ato" import ST_VL6180
+
+module Usage:
+    """
+    Minimal usage example for `st-vl6180`.
+    Demonstrates Time-of-Flight ranging and ambient light sensor setup with proper power supplies.
+    """
+
+    # --- Main component ---
+    tof_sensor = new ST_VL6180
+
+    # --- Power supplies ---
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # Analog and VCSEL supplies (need 2.6V to 3.0V)
+    power_2v8 = new ElectricPower
+    assert power_2v8.voltage within 2.8V to 2.9V
+
+    # --- I2C bus ---
+    i2c_bus = new I2C
+    assert i2c_bus.frequency within 100kHz to 400kHz
+
+    # --- Connect interfaces ---
+    # I/O supply can use 3.3V (2.6V-5.5V range)
+    power_3v3 ~ tof_sensor.power_io
+    # Analog and VCSEL supplies need 2.8V (2.6V-3.0V range)
+    power_2v8 ~ tof_sensor.power_analog
+    power_2v8 ~ tof_sensor.power_vcsel
+
+    # I2C connection
+    i2c_bus ~ tof_sensor.i2c
+
+    # I2C address is fixed at 0x29 by default
+    assert tof_sensor.i2c.address within 0x29
+
+    # --- Optional: GPIO usage ---
+    # GPIO0/CE can be used for chip enable and data ready interrupt
+    chip_enable = new ElectricLogic
+    chip_enable.reference ~ power_3v3
+    chip_enable ~ tof_sensor.gpio0_ce
+
+    # GPIO1 can be used for threshold interrupts
+    interrupt_pin = new ElectricLogic
+    interrupt_pin.reference ~ power_3v3
+    interrupt_pin ~ tof_sensor.gpio1
+
+    # --- Usage notes ---
+    # The VL6180 provides:
+    # - Time-of-Flight ranging: 0-100mm typical, up to 600mm possible
+    # - Ambient light sensing: 0-100k lux range
+    # - Independent of target color/reflectance
+    # - Low power: ~1.7mA during ranging at 10Hz
+    #
+    # Key features:
+    # - Default I2C address: 0x29 (can be changed in software)
+    # - GPIO0: Chip enable input / Data ready output
+    # - GPIO1: Programmable interrupt output
+    # - Fast ranging: up to 100Hz measurement rate
+    # - Integrated IR emitter (VCSEL) and photodiode

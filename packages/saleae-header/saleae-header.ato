@@ -1,72 +1,123 @@
-import ElectricSignal, Resistor
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 
-# import SPI from "generics/interfaces.ato"
-# import I2C from "generics/interfaces.ato"
-# import UART from "generics/interfaces.ato"
-# import USB2 from "generics/interfaces.ato"
+import Electrical
+import ElectricSignal
+import I2C
+import Resistor
+import SPI
+import UART
+import USB2_0
 
-from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package
+import has_single_electric_reference
 
+from "parts/HCTL_PZ254_2_04_S/HCTL_PZ254_2_04_S.ato" import HCTL_PZ254_2_04_S_package  # C3294462
+from "parts/HCTL_PM254_2_04_W_8_5/HCTL_PM254_2_04_W_8_5.ato" import HCTL_PM254_2_04_W_8_5_package  # C2897424
 
-module SaleaeHeader:
-    header = new HCTL_PZ254_2_04_S_package
-    ch0 = new ElectricSignal
-    ch1 = new ElectricSignal
-    ch2 = new ElectricSignal
-    ch3 = new ElectricSignal
+module SaleaeHeader from SaleaeHeaderRightAngle_2:
+    pass
 
-    # Connect the grounds together
-    signal gnd
-    gnd ~ ch0.reference.gnd
-    gnd ~ ch1.reference.gnd
-    gnd ~ ch2.reference.gnd
-    gnd ~ ch3.reference.gnd
+module SaleaeHeaderVertical:
+    package = new HCTL_PZ254_2_04_S_package
+    channels = new ElectricSignal[4]
+    protection_resistors = new Resistor[4]
 
-    # protection resistors
-    r1 = new _protection_resistor
-    r2 = new _protection_resistor
-    r3 = new _protection_resistor
-    r4 = new _protection_resistor
+    # Configure resistors
+    for resistor in protection_resistors:
+        resistor.resistance = 1kohm +/- 5%
+        resistor.package = "R0402"
 
     # connect ios via resistors to the header
-    ch0.line ~ r1.p1; r1.p2 ~ header.1
-    ch1.line ~ r2.p1; r2.p2 ~ header.3
-    ch2.line ~ r3.p1; r3.p2 ~ header.5
-    ch3.line ~ r4.p1; r4.p2 ~ header.7
+    channels[0].line ~> protection_resistors[0] ~> package.2
+    channels[1].line ~> protection_resistors[1] ~> package.4
+    channels[2].line ~> protection_resistors[2] ~> package.6
+    channels[3].line ~> protection_resistors[3] ~> package.8
 
     # connect the grounds together
-    ch0.reference.gnd ~ header.2
-    ch1.reference.gnd ~ header.4
-    ch2.reference.gnd ~ header.6
-    ch3.reference.gnd ~ header.8
+    trait has_single_electric_reference<ground_only = True>
 
-    # FIXME: do we use all these?
-    # # SPI
-    # spi = new SPI
-    # spi.mosi ~ ch0.io
-    # spi.miso ~ ch1.io
-    # spi.sck ~ ch2.io
-    # spi.cs ~ ch3.io
-    # spi.gnd ~ gnd
+    channels[0].reference.lv ~ package.1
+    channels[1].reference.lv ~ package.3
+    channels[2].reference.lv ~ package.5
+    channels[3].reference.lv ~ package.7
 
-    # # I2C
-    # i2c = new I2C
-    # i2c.scl ~ ch0.io
-    # i2c.sda ~ ch1.io
-    # i2c.gnd ~ gnd
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
 
-    # # UART
-    # uart = new UART
-    # uart.tx ~ ch2.io
-    # uart.rx ~ ch3.io
-    # uart.gnd ~ gnd
+    # SPI
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    spi.mosi ~ channels[0]
+    spi.miso ~ channels[1]
+    spi.sclk ~ channels[2]
+    spi_cs ~ channels[3]
 
-    # # USB2
-    # usb2 = new USB2
-    # usb2.dp ~ ch2.io
-    # usb2.dm ~ ch3.io
+    # I2C
+    i2c = new I2C
+    i2c.scl ~ channels[0]
+    i2c.sda ~ channels[1]
+    i2c.scl.reference.lv ~ channels[0].reference.lv
 
+    # UART
+    uart = new UART
+    uart.base_uart.tx ~ channels[2]
+    uart.base_uart.rx ~ channels[3]
+    uart.base_uart.tx.reference.lv ~ channels[0].reference.lv
 
-component _protection_resistor from Resistor:
-    resistance = 1kohm +/- 5%
-    package = "R0402"
+module SaleaeHeaderRightAngle:
+    package = new HCTL_PM254_2_04_W_8_5_package
+    channels = new ElectricSignal[4]
+    protection_resistors = new Resistor[4]
+
+    # Configure resistors
+    for resistor in protection_resistors:
+        resistor.resistance = 1kohm +/- 5%
+        resistor.package = "R0402"
+
+    # connect ios via resistors to the header
+    channels[0].line ~> protection_resistors[0] ~> package.2
+    channels[1].line ~> protection_resistors[1] ~> package.4
+    channels[2].line ~> protection_resistors[2] ~> package.6
+    channels[3].line ~> protection_resistors[3] ~> package.8
+
+    # connect the grounds together
+    trait has_single_electric_reference<ground_only = True>
+
+    channels[0].reference.lv ~ package.1
+    channels[1].reference.lv ~ package.3
+    channels[2].reference.lv ~ package.5
+    channels[3].reference.lv ~ package.7
+
+    for channel in channels:
+        assert channel.reference.voltage within -25V to 25V
+
+    # SPI
+    spi = new SPI
+    spi_cs = new ElectricSignal
+    spi.mosi ~ channels[0]
+    spi.miso ~ channels[1]
+    spi.sclk ~ channels[2]
+    spi_cs ~ channels[3]
+
+    # I2C
+    i2c = new I2C
+    i2c.scl ~ channels[0]
+    i2c.sda ~ channels[1]
+    i2c.scl.reference.lv ~ channels[0].reference.lv
+
+    # UART
+    uart = new UART
+    uart.base_uart.tx ~ channels[2]
+    uart.base_uart.rx ~ channels[3]
+    uart.base_uart.tx.reference.lv ~ channels[0].reference.lv
+
+module SaleaeHeaderRightAngle_1:
+    headers = new SaleaeHeaderRightAngle[1]
+
+module SaleaeHeaderRightAngle_2:
+    headers = new SaleaeHeaderRightAngle[2]
+
+module SaleaeHeaderRightAngle_4:
+    headers = new SaleaeHeaderRightAngle[4]

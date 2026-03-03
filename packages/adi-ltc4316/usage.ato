@@ -1,0 +1,67 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+import Resistor
+import I2C
+import ElectricPower
+import ElectricLogic
+
+from "atopile/adi-ltc4316/adi-ltc4316.ato" import ADI_LTC4316
+
+module Usage:
+    """
+    Minimal usage example for adi-ltc4316.
+    Shows how to use the LTC4316 I2C address translator to resolve address conflicts.
+
+    This example shows:
+    - Basic power supply connection
+    - I2C bus connections (pull-ups included in module)
+    - Enable pin configuration
+    - Address translation configuration using pull-up/down resistors
+    - READY pin monitoring (optional)
+    """
+
+    # I2C address translator
+    translator = new ADI_LTC4316
+
+    # Power supply
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+    power_3v3 ~ translator.power
+
+    # I2C buses
+    i2c_input = new I2C
+    i2c_output = new I2C
+
+    # Connect I2C buses
+    # Note: I2C pull-up resistors are built into the translator module
+    i2c_input ~ translator.i2c_in
+    i2c_output ~ translator.i2c_out
+
+    # Optional: Monitor READY pin status
+    # READY pin has built-in pull-up resistor in translator module
+    ready_status = new ElectricLogic
+    ready_status ~ translator.ready
+
+    # Configure address translation with pull-up/down resistors
+    # XOR configuration resistors determine address translation
+    # This example configuration: XORH=HIGH, XORL=LOW
+    # Result: Flips address bits A6 (always) + A5 (from XORH=HIGH)
+
+    # XORH pull-up: sets upper address bits in XOR mask
+    xor_high_pullup = new Resistor
+    xor_high_pullup.resistance = 10kohm +/- 5%
+    xor_high_pullup.package = "0402"
+    translator.xor_high.line ~ xor_high_pullup.unnamed[0]
+    power_3v3.hv ~ xor_high_pullup.unnamed[1]
+
+    # XORL pull-down: clears lower address bit in XOR mask
+    xor_low_pulldown = new Resistor
+    xor_low_pulldown.resistance = 10kohm +/- 5%
+    xor_low_pulldown.package = "0402"
+    translator.xor_low.line ~ xor_low_pulldown.unnamed[0]
+    power_3v3.lv ~ xor_low_pulldown.unnamed[1]
+
+    # Address translation examples with this configuration:
+    # Input 0x38 (AHT20) -> Output 0x78 (bits A6+A5 flipped)
+    # Input 0x76 (BME280) -> Output 0x36 (bits A6+A5 flipped)
+    # To reset translation: toggle ENABLE pin low then high

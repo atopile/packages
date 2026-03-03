@@ -1,0 +1,86 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/TDK_InvenSense_MPU_6050/TDK_InvenSense_MPU_6050.ato" import TDK_InvenSense_MPU_6050_package
+
+module Invensense_MPU6050:
+    """TDK InvenSense MPU-6050 6-axis IMU (I²C).
+
+    Exposes:
+        * i2c – I²C bus interface
+        * power_core – Core supply (2.375 V – 3.46 V)
+        * power_io – Digital I/O supply (1.71 V – 3.6 V)
+    """
+
+    # --- Package ---
+    package = new TDK_InvenSense_MPU_6050_package
+
+    # --- External interfaces ---
+    power_core = new ElectricPower
+    """
+    Core power supply (2.375V to 3.46V)
+    """
+    power_core.required = True
+
+    power_io = new ElectricPower
+    """
+    Digital I/O power supply (1.71V to 3.6V)
+    """
+    power_io.required = True
+
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addresses 0x68/0x69)
+    """
+    i2c.required = True
+    i2c.has_single_electric_reference.reference ~ power_io
+
+    # --- Power connections ---
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
+    power_core.lv ~ package.EP
+    assert power_core.voltage within 2.375V to 3.46V
+
+    power_io.hv ~ package.VLOGIC
+    power_io.lv ~ power_core.lv
+    assert power_io.voltage within 1.71V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # --- I²C pull-up resistors ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 10%
+    scl_pullup.package = "0402"
+    i2c.scl.line ~> scl_pullup ~> power_io.hv
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 10%
+    sda_pullup.package = "0402"
+    i2c.sda.line ~> sda_pullup ~> power_io.hv
+
+    # --- I²C address selection (AD0 pin) ---
+    addressor = new Addressor<address_bits = 1>
+    addressor.address_lines[0].line ~ package.AD0
+    addressor.address_lines[0].reference ~ power_io
+    addressor.base = 0x68
+    assert addressor.address is i2c.address
+    # Default to base address (0x68), can be overridden by user
+    i2c.address.default = 0x68
+
+    # --- Decoupling capacitors ---
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "C0402"
+
+    power_core.hv ~> decoupling_caps[0] ~> power_core.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_core.lv

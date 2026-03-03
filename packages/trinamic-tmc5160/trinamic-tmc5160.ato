@@ -1,0 +1,424 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import SPI
+import Capacitor
+import Resistor
+import DifferentialPair
+
+from "parts/TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T/TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T.ato" import TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T_package
+
+module Trinamic_TMC5160:
+    """
+    Trinamic TMC5160 high-performance stepper motor driver with SPI interface.
+
+    The TMC5160 is a high-performance motion controller IC for stepper motors
+    with integrated MOSFET drivers, advanced motion control features, and
+    comprehensive protection mechanisms.
+    """
+
+    # --- Package ---
+    package = new TRINAMIC_Motion_Control_GmbH_TMC5160A_TA_T_package
+
+    # --- External interfaces ---
+    gnd = new Electrical
+
+    power_motor = new ElectricPower
+    """
+    Motor power supply (VS, high voltage supply for motor drivers)
+    """
+    power_motor.required = True
+    assert power_motor.voltage within 10V to 55V
+
+    power_vsa = new ElectricPower
+    """
+    Analog power supply for internal analog circuits (VSA)
+
+    power_vsa powers the internal 12V and 5V regulators
+    power_vsa is commonly connected to power_motor, but can also be directly supplied with external 12V supply and shorted to 12Vout
+    """
+    power_vsa.required = True
+    assert power_vsa.voltage within 10V to 50V
+
+    power_vccio = new ElectricPower
+    """
+    I/O power supply for the TMC5160 driver (VCC_IO, typically 3.3V)
+    """
+    power_vccio.required = True
+    assert power_vccio.voltage within 3.0V to 5.25V
+
+    # Internally generated power rails
+    power_12v_out = new ElectricPower
+    """
+    12V output power supply (V12OUT)
+    """
+    assert power_12v_out.voltage within 10.8V to 13V  # Internal LDO will stay below 12.2V
+
+    power_5v_out = new ElectricPower
+    """
+    5V output power supply (V5OUT)
+    """
+    assert power_5v_out.voltage within 4.8V to 5.2V
+
+    power_vcc = new ElectricPower
+    """
+    VCC power supply for internal operation
+    """
+    assert power_vcc.voltage within 4.8V to 5.2V
+
+    spi = new SPI
+    chip_select = new ElectricLogic
+    """
+    SPI interface for communication and configuration
+    """
+    spi.required = True
+
+    # Motor driver outputs
+    """
+    TMC5160 supports one full bridge per phase for one bipolar motor.
+
+    motor_a_high1: high side gate drive output of first half bridge for phase A
+    motor_a_low1: low side gate drive output of first half bridge for phase A
+    motor_a_cap1: bootstrap capacitor of first half bridge for phase A
+    motor_a_bm1: bridge midpoint sense of first half bridge for phase A
+    """
+    motor_a_high1 = new ElectricLogic
+    motor_a_high2 = new ElectricLogic
+    motor_a_low1 = new ElectricLogic
+    motor_a_low2 = new ElectricLogic
+    motor_a_cap1 = new ElectricSignal
+    motor_a_cap2 = new ElectricSignal
+    motor_a_bm1 = new ElectricSignal
+    motor_a_bm2 = new ElectricSignal
+
+    motor_b_high1 = new ElectricLogic
+    motor_b_high2 = new ElectricLogic
+    motor_b_low1 = new ElectricLogic
+    motor_b_low2 = new ElectricLogic
+    motor_b_cap1 = new ElectricSignal
+    motor_b_cap2 = new ElectricSignal
+    motor_b_bm1 = new ElectricSignal
+    motor_b_bm2 = new ElectricSignal
+
+    # Curent sensing resistors
+    motor_a_current_sense = new DifferentialPair
+    motor_b_current_sense = new DifferentialPair
+
+    # Configuration and control pins
+    drive_enable = new ElectricLogic
+    """
+    Driver enable input (DRV_ENN, active low).
+
+    The power stage becomes switched off (all motor outputs floating)
+    when this pin becomes driven to a high level.
+    """
+
+    diag0_swn = new ElectricLogic
+    """
+    Diagnostic output 0 / Single Wire Negative (DIAG0_SWN).
+
+    This pin has multiple functions depending on operating mode:
+    - Diagnostic output DIAG0 (normal operation modes)
+    - Interrupt or STEP output for motion controller (SD_MODE = 0, SPI_MODE = 1)
+    - Single wire I/O negative terminal (SD_MODE = 0, SPI_MODE = 0, UART mode)
+
+    Hardware considerations:
+    - Use external pullup resistor with 47kΩ or less in open drain mode
+    - Can be configured as push-pull or open-drain output
+    - For single-wire UART: connect to UART RX/TX line (negative polarity)
+    """
+
+    diag1_swp = new ElectricLogic
+    """
+    Diagnostic output 1 / Single Wire Positive (DIAG1_SWP).
+
+    This pin has multiple functions depending on operating mode:
+    - Diagnostic output DIAG1 (normal operation modes)
+    - Position-compare or DIR output for motion controller (SD_MODE = 0, SPI_MODE = 1)
+    - Single wire I/O positive terminal (SD_MODE = 0, SPI_MODE = 0, UART mode)
+
+    Hardware considerations:
+    - Use external pullup resistor with 47kΩ or less in open drain mode
+    - Can be configured as push-pull or open-drain output
+    - For single-wire UART: connect to UART RX/TX line (positive polarity)
+    """
+
+    # Configuration pins
+    clk = new ElectricLogic
+    """
+    Clock input (CLK).
+
+    Tie to GND using short wire for internal clock or supply external clock.
+    Internal clock-fail over circuit protects against loss of external clock signal.
+    """
+
+    sd_mode = new ElectricLogic
+    """
+    SD mode configuration pin (SD_MODE).
+
+    high: STEP/DIR inputs control driver
+    low: Internal ramp generator generates step pulse
+    SD_MODE = 0 and SPI_MODE = 0 enable UART operation.
+    """
+    sd_mode.line.required = True
+
+    spi_mode = new ElectricLogic
+    """
+    SPI mode configuration pin (SPI_MODE, with integrated pull-down).
+
+    high: SPI interface enabled
+    low: With SD_MODE = 1, chip is in standalone mode and pins have CFG functions
+    """
+    spi_mode.line.required = True
+
+    test_mode = new ElectricLogic
+    """
+    Test mode configuration pin (TST_MODE).
+
+    High for test mode, low for normal operation.
+    Tie to GND using short wire.
+    """
+    test_mode.line.required = True
+
+    enca_dcin_cfg5 = new ElectricLogic
+    """
+    Encoder A-channel input (ENCA_DCIN_CFG5, with integrated pull-down).
+
+    This pin shares the same physical connection as dcin and has multiple functions:
+    - Encoder A-channel input (when using internal ramp generator, SD_MODE = 0)
+    - DcStep gating input for axis synchronization (SD_MODE = 1, SPI_MODE = 1)
+    - Configuration input CFG5 (SPI_MODE = 0)
+
+    For encoder operation, connect to quadrature encoder A-channel output.
+    """
+
+    encb_dcen_cfg4 = new ElectricLogic
+    """
+    Encoder B-channel input (ENCB_DCEN_CFG4, with integrated pull-down).
+
+    This pin shares the same physical connection as dcen and has multiple functions:
+    - Encoder B-channel input (when using internal ramp generator, SD_MODE = 0)
+    - DcStep enable input (SD_MODE = 1, SPI_MODE = 1) – leave open or tie to GND
+        for normal operation in this mode (no DcStep)
+    - Configuration input CFG4 (SPI_MODE = 0)
+
+    For encoder operation, connect to quadrature encoder B-channel output.
+    """
+
+    encn_dco_cfg6 = new ElectricLogic
+    """
+    Encoder N-channel input/output (ENCN_DCO_CFG6).
+
+    This pin shares the same physical connection as dco and has multiple functions:
+    - Encoder N-channel input (SD_MODE = 0) for index/reference pulse
+    - DcStep ready output (SD_MODE = 1)
+    - Configuration input CFG6 (SPI_MODE = 0)
+
+    For encoder operation with index pulse:
+    - Connect to encoder index/reference output
+    - Pull to GND or VCC_IO if not using index pulse
+
+    Note: Direction depends on operating mode (input for encoder, output for dcStep).
+    """
+
+    refl_step = new ElectricLogic
+    """
+    Left reference input or STEP input (REFL_STEP).
+
+    Left reference input (for internal ramp generator) or
+    STEP input when (SD_MODE = 1).
+    """
+    refl_step.required = True
+
+    refr_dir = new ElectricLogic
+    """
+    Right reference input or DIR input (REFR_DIR).
+
+    Right reference input (for internal ramp generator) or
+    DIR input (SD_MODE = 1).
+    """
+    refr_dir.required = True
+
+    # --- Power supply decoupling ---
+    power_motor_100nf_caps = new Capacitor[2]
+    for cap in power_motor_100nf_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0603"
+        assert cap.max_voltage within 50V to 100V
+        power_motor.hv ~> cap ~> power_motor.lv
+
+    power_motor_10uf_caps = new Capacitor[2]
+    for cap in power_motor_10uf_caps:
+        cap.capacitance = 10uF +/- 20%
+        assert cap.max_voltage within 50V to 100V
+        power_motor.hv ~> cap ~> power_motor.lv
+
+    cap_12v = new Capacitor
+    cap_12v.capacitance = 4.7uF +/- 20%
+    cap_12v.package = "0603"
+    power_12v_out.hv ~> cap_12v ~> power_12v_out.lv
+
+    cap_5v = new Capacitor
+    cap_5v.capacitance = 4.7uF +/- 20%
+    cap_5v.package = "0603"
+    power_5v_out.hv ~> cap_5v ~> power_5v_out.lv
+
+    cap_vcc = new Capacitor
+    cap_vcc.capacitance = 1uF +/- 20%
+    cap_vcc.package = "0603"
+    power_vcc.hv ~> cap_vcc ~> power_vcc.lv
+
+    cap_vccio = new Capacitor
+    cap_vccio.capacitance = 100nF +/- 20%
+    cap_vccio.package = "0603"
+    power_vccio.hv ~> cap_vccio ~> power_vccio.lv
+
+    cap_cp = new Capacitor
+    cap_cp.capacitance = 22nF +/- 20%
+    cap_cp.package = "0603"
+    assert cap_cp.max_voltage >= 100V
+    package.CPI ~> cap_cp ~> package.CPO
+
+    cap_vcp = new Capacitor
+    cap_vcp.capacitance = 100nF +/- 20%
+    cap_vcp.package = "0603"
+    assert cap_vcp.max_voltage >= 16V
+    package.VCP ~> cap_vcp ~> package.VS
+
+    # 5Vout connection to vcc rail
+    r_5v_vcc = new Resistor
+    r_5v_vcc.resistance = 2.2ohm +/- 5%
+    r_5v_vcc.package = "0603"
+    power_5v_out.hv ~> r_5v_vcc ~> power_vcc.hv
+
+    # --- Power connections ---
+    power_motor.hv ~ package.VS
+    power_vsa.hv ~ package.VSA
+    power_vccio.hv ~ package.VCC_IO
+    power_12v_out.hv ~ package.P12VOUT
+    power_5v_out.hv ~ package.P5VOUT
+    power_vcc.hv ~ package.VCC
+
+    power_motor.lv ~ gnd
+    power_vsa.lv ~ gnd
+    power_vccio.lv ~ gnd
+    power_12v_out.lv ~ gnd
+    power_5v_out.lv ~ gnd
+    power_vcc.lv ~ gnd
+
+    package.GNDD ~ gnd
+    package.GNDA ~ gnd
+    package.EP ~ gnd
+
+    # --- SPI interface ---
+    spi.sclk.line ~ package.SCK_CFG2
+    spi.mosi.line ~ package.SDI_CFG1
+    spi.miso.line ~ package.SDO_CFG0
+    chip_select.line ~ package.CSN_CFG3
+
+    spi.sclk.reference ~ power_vccio
+    spi.miso.reference ~ power_vccio
+    spi.mosi.reference ~ power_vccio
+    chip_select.reference ~ power_vccio
+    # --- Motor driver connections ---
+    motor_a_high1.line ~ package.HA1
+    motor_a_high2.line ~ package.HA2
+    motor_a_low1.line ~ package.LA1
+    motor_a_low2.line ~ package.LA2
+    motor_a_cap1.line ~ package.CA1
+    motor_a_cap2.line ~ package.CA2
+    motor_a_bm1.line ~ package.BMA1
+    motor_a_bm2.line ~ package.BMA2
+
+    motor_b_high1.line ~ package.HB1
+    motor_b_high2.line ~ package.HB2
+    motor_b_low1.line ~ package.LB1
+    motor_b_low2.line ~ package.LB2
+    motor_b_cap1.line ~ package.CB1
+    motor_b_cap2.line ~ package.CB2
+    motor_b_bm1.line ~ package.BMB1
+    motor_b_bm2.line ~ package.BMB2
+
+    motor_a_high1.reference ~ power_12v_out
+    motor_a_high2.reference ~ power_12v_out
+    motor_a_low1.reference ~ power_12v_out
+    motor_a_low2.reference ~ power_12v_out
+    motor_a_cap1.reference ~ power_motor
+    motor_a_cap2.reference ~ power_motor
+    motor_a_bm1.reference ~ power_motor
+    motor_a_bm2.reference ~ power_motor
+
+    motor_b_high1.reference ~ power_12v_out
+    motor_b_high2.reference ~ power_12v_out
+    motor_b_low1.reference ~ power_12v_out
+    motor_b_low2.reference ~ power_12v_out
+    motor_b_cap1.reference ~ power_motor
+    motor_b_cap2.reference ~ power_motor
+    motor_b_bm1.reference ~ power_motor
+    motor_b_bm2.reference ~ power_motor
+
+    # --- Control and diagnostic connections ---
+    drive_enable.line ~ package.DRV_ENN
+    drive_enable.reference ~ power_vcc
+
+    diag0_swn.line ~ package.DIAG0_SWN
+    diag0_swn.reference ~ power_vcc
+
+    diag1_swp.line ~ package.DIAG1_SWP
+    diag1_swp.reference ~ power_vcc
+
+    # Current sense connections
+    motor_a_current_sense.p.line ~ package.SRAH
+    motor_a_current_sense.n.line ~ package.SRAL
+    motor_a_current_sense.p.reference ~ power_vccio
+    motor_a_current_sense.n.reference ~ power_vccio
+
+    motor_b_current_sense.p.line ~ package.SRBH
+    motor_b_current_sense.n.line ~ package.SRBL
+    motor_b_current_sense.p.reference ~ power_vccio
+    motor_b_current_sense.n.reference ~ power_vccio
+
+    # Clock input
+    clk.line ~ package.CLK
+    clk.reference ~ power_vccio
+
+    # --- Configuration connections ---
+    # Connect configuration pins for SPI mode
+    spi_mode.line ~ package.SPI_MODE
+    spi_mode.reference ~ power_vccio
+
+    sd_mode.line ~ package.SD_MODE
+    sd_mode.reference ~ power_vccio
+
+    test_mode.line ~ package.TST_MODE
+    test_mode.reference ~ power_vccio
+
+    # Connect encoder/dcStep pins
+    enca_dcin_cfg5.line ~ package.ENCA_DCIN_CFG5
+    enca_dcin_cfg5.reference ~ power_vccio
+
+    encb_dcen_cfg4.line ~ package.ENCB_DCEN_CFG4
+    encb_dcen_cfg4.reference ~ power_vccio
+
+    encn_dco_cfg6.line ~ package.ENCN_DCO_CFG6
+    encn_dco_cfg6.reference ~ power_vccio
+
+    # Connect step/dir pins
+    refl_step.line ~ package.REFL_STEP
+    refl_step.reference ~ power_vccio
+
+    refr_dir.line ~ package.REFR_DIR
+    refr_dir.reference ~ power_vccio
+
+    # power_motor.hv.override_net_name = "power-motor"
+    # power_vsa.hv.override_net_name = "power-vsa"
+    # power_vccio.hv.override_net_name = "power-vccio"
+    power_12v_out.hv.override_net_name = "power-12v-out"
+    power_5v_out.hv.override_net_name = "power-5v-out"
+    power_vcc.hv.override_net_name = "power-vcc"
+    gnd.override_net_name = "gnd"

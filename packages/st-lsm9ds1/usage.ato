@@ -1,0 +1,35 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+import ElectricPower
+import I2C
+
+from "atopile/st-lsm9ds1/st-lsm9ds1.ato" import ST_LSM9DS1
+
+module Usage:
+    """
+    Minimal usage example for `st-lsm9ds1`.
+    Shows how to connect the LSM9DS1 9-DOF IMU to power and I2C bus.
+
+    This example demonstrates I2C mode with default addressing:
+    - Accelerometer/Gyroscope: 0x6B (default when SDO_A_G is high)
+    - Magnetometer: 0x1E (internal address when SDO_M is high)
+    """
+
+    imu = new ST_LSM9DS1
+
+    # Power supplies
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # I2C bus (supports 100kHz-400kHz)
+    i2c_bus = new I2C
+    assert i2c_bus.frequency within 100kHz to 400kHz
+
+    # Connections
+    # Connect both power domains to same 3.3V supply (typical configuration)
+    power_3v3 ~ imu.power_core    # VDD: sensor core power
+    power_3v3 ~ imu.power_io      # VDDIO: I/O interface power
+    i2c_bus ~ imu.i2c
+
+    # I2C address will be 0x6B (default when SDO_A_G pulled high by internal resistor)
+    # Magnetometer uses separate address 0x1E on the same I2C bus

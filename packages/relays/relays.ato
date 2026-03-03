@@ -1,101 +1,156 @@
 #pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
 
-import ElectricPower
-import ElectricSignal
-import Resistor
-import MOSFET
-import PoweredLED
+from "atopile/relays/helpers.ato" import LogicLevelRelayBase
+from "atopile/relays/helpers.ato" import LogicLevelBistableRelayBase
 
-from "components/switch.py" import PowerSwitch
+from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG.ato" import RelaySPDT3A5V
+from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC12V_SHG.ato" import RelaySPDT3A12V
+from "parts/Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG/Ningbo_Keke_New_Era_Appliance_HK4100F_DC24V_SHG.ato" import RelaySPDT3A24V
+from "parts/Omron_Electronics_G2R_2_DC12/Omron_Electronics_G2R_2_DC12.ato" import RelayDPDT5A12V
+from "parts/Omron_Electronics_G2R_2_DC24/Omron_Electronics_G2R_2_DC24.ato" import RelayDPDT5A24V
+from "parts/Omron_Electronics_G2R_2_DC5/Omron_Electronics_G2R_2_DC5.ato" import RelayDPDT5A5V
+from "parts/HF_HF115F_005_2ZS4/HF_HF115F_005_2ZS4.ato" import RelayDPDT8A5V
+from "parts/HF_HF115F_012_2ZS4/HF_HF115F_012_2ZS4.ato" import RelayDPDT8A12V
+from "parts/HF_HF115F_024_2ZS4/HF_HF115F_024_2ZS4.ato" import RelayDPDT8A24V
+from "parts/Omron_Electronics_G6K_2F_Y_TR_DC3/Omron_Electronics_G6K_2F_Y_TR_DC3.ato" import RelayDPDT1A3V
+from "parts/Omron_Electronics_G6K_2F_Y_TR_DC5/Omron_Electronics_G6K_2F_Y_TR_DC5.ato" import RelayDPDT1A5V
+from "parts/Omron_Electronics_G6K_2F_Y_TR_DC12/Omron_Electronics_G6K_2F_Y_TR_DC12.ato" import RelayDPDT1A12V
+from "parts/Omron_Electronics_G6K_2F_Y_TR_DC24/Omron_Electronics_G6K_2F_Y_TR_DC24.ato" import RelayDPDT1A24V
+from "parts/Omron_Electronics_G5V_1_DC3/Omron_Electronics_G5V_1_DC3.ato" import RelaySPDT1A3V
+from "parts/Omron_Electronics_G5V_1_DC5/Omron_Electronics_G5V_1_DC5.ato" import RelaySPDT1A5V
+from "parts/Omron_Electronics_G5V_1_DC12/Omron_Electronics_G5V_1_DC12.ato" import RelaySPDT1A12V
+from "parts/Omron_Electronics_G5V_1_DC24/Omron_Electronics_G5V_1_DC24.ato" import RelaySPDT1A24V
+from "parts/Omron_Electronics_G6KU_2F_Y_TR_DC3/Omron_Electronics_G6KU_2F_Y_TR_DC3.ato" import BistableRelayDPDT1A3V
+from "parts/Omron_Electronics_G6KU_2F_Y_TR_DC5/Omron_Electronics_G6KU_2F_Y_TR_DC5.ato" import BistableRelayDPDT1A5V
 
-from "parts/HF_HFD4_5/HF_HFD4_5.ato" import HF_HFD4_5_package
+"""
+Power relays:
+HK4100F Series:
+SPDT 3A 5V: C12072
+SPDT 3A 12V: C13467
+SPDT 5A 24V: C38031
 
-module PowerRelay:
-    """
-    DPDT relay with 5V coil and 5V indicator LED
-    Logic level control with N-FET
-    Designed to switch + and - of a power rail
-    """
-    # External interfaces
-    power = new ElectricPower
-    switch = new PowerSwitch
-    control = new ElectricSignal
+G2R-2 Series:
+DPDT 5A 5V: C469145
+DPDT 5A 12V: C48903
+DPDT 5A 24V: C14539
 
-    # Relay
-    relay = new HFXiamen_Hongfa_Electroacoustic_HFD4_5
+HF115F Series:
+DPDT 8A 5V: C9226
+DPDT 8A 12V: C163534
+DPDT 8A 24V: C34915
 
-    # Indicator LED
-    indicator_led = new PoweredLED
-    indicator_led.current_limiting_resistor.package = "R0402"
-    indicator_led.current_limiting_resistor.resistance = 2.2kohm +/- 10%
-    indicator_led.led.lcsc_id = "C12624"
+Signal Relays:
+SPDT 1A 3V: C397232
+SPDT 1A 5V: C152705
+SPDT 1A 12V: C31113
+SPDT 1A 24V: C28694
 
-    # Mosfet
-    fet = new MOSFET
-    fet.lcsc_id = "C67273"
-    fet_gate_resistor = new Resistor
-    fet_ilim_resistor = new Resistor
-    fet_gate_resistor.package = "R0402"
-    fet_ilim_resistor.package = "R0402"
-    fet_gate_resistor.resistance = 10kohm +/- 5%
-    fet_ilim_resistor.resistance = 1kohm +/- 5%
+DPDT 1A 3V: C2153097
+DPDT 1A 5V: C47190
+DPDT 1A 12V: C397192
+DPDT 1A 24V: C5278023
 
-    # coil connections
-    relay.coil ~ indicator_led.power
-    power.vcc ~> indicator_led ~> fet ~> power.gnd
+Bistable relays:
+DPDT 1A 3V: C6259328
+DPDT 1A 5V: C2153173
+"""
 
-    # power connections
-    relay.power_in ~> switch ~> relay.power_out
+# Uni-stable relays
 
-    # Fet connections
-    control.line ~> fet_gate_resistor ~> fet.gate
-    control.line ~> fet_ilim_resistor ~> power.gnd
+module LogicLevelRelaySPDT3A5V from LogicLevelRelayBase:
+    relay = new RelaySPDT3A5V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
+module LogicLevelRelaySPDT3A12V from LogicLevelRelayBase:
+    relay = new RelaySPDT3A12V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-component HFXiamen_Hongfa_Electroacoustic_HFD4_5 from HF_HFD4_5_package:
-    """HFXiamen_Hongfa_Electroacoustic_HFD4_5 component"""
-    lcsc_id = "C23510"
-    manufacturer = "HF(Xiamen Hongfa Electroacoustic)"
-    mpn = "HFD4/5"
-    datasheet_url = "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_HF-Xiamen-Hongfa-Electroacoustic-HFD4-5_C23510.pdf"
-    designator_prefix = "K"
+module LogicLevelRelaySPDT3A24V from LogicLevelRelayBase:
+    relay = new RelaySPDT3A24V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # pins
-    coil = new ElectricPower
-    assert coil.voltage within 4.5V to 5.5V
-    coil.vcc ~ pin 1
-    coil.gnd ~ pin 8
+module LogicLevelRelayDPDT5A5V from LogicLevelRelayBase:
+    relay = new RelayDPDT5A5V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    power_out = new ElectricPower
-    power_out.vcc ~ pin 6
-    power_out.gnd ~ pin 3
+module LogicLevelRelayDPDT5A12V from LogicLevelRelayBase:
+    relay = new RelayDPDT5A12V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    power_in = new ElectricPower
-    power_in.vcc ~ pin 5
-    power_in.gnd ~ pin 4
+module LogicLevelRelayDPDT5A24V from LogicLevelRelayBase:
+    relay = new RelayDPDT5A24V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
+module LogicLevelRelayDPDT8A5V from LogicLevelRelayBase:
+    relay = new RelayDPDT8A5V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-module Test:
-    # make a relay
-    power_relay = new PowerRelay
+module LogicLevelRelayDPDT8A12V from LogicLevelRelayBase:
+    relay = new RelayDPDT8A12V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Power interfaces to switch
-    power_in = new ElectricPower
-    power_out = new ElectricPower
+module LogicLevelRelayDPDT8A24V from LogicLevelRelayBase:
+    relay = new RelayDPDT8A24V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Control signal
-    control = new ElectricSignal
+module LogicLevelRelayDPDT1A3V from LogicLevelRelayBase:
+    relay = new RelayDPDT1A3V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Power for relay coil
-    power_5v = new ElectricPower
+module LogicLevelRelayDPDT1A5V from LogicLevelRelayBase:
+    relay = new RelayDPDT1A5V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Connect control signal to relay
-    control ~> power_relay.control
-    # Driving control signal high will turn on the relay (>2.5V)
-    # Driving control signal low will turn off the relay (<1V)
+module LogicLevelRelayDPDT1A12V from LogicLevelRelayBase:
+    relay = new RelayDPDT1A12V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Connect power_5v to relay power
-    power_5v ~> power_relay.power
+module LogicLevelRelayDPDT1A24V from LogicLevelRelayBase:
+    relay = new RelayDPDT1A24V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
 
-    # Connect power_in to power_out via switch
-    power_in ~> power_relay.switch ~> power_out
+module LogicLevelRelaySPDT1A3V from LogicLevelRelayBase:
+    relay = new RelaySPDT1A3V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
+
+module LogicLevelRelaySPDT1A5V from LogicLevelRelayBase:
+    relay = new RelaySPDT1A5V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
+
+module LogicLevelRelaySPDT1A12V from LogicLevelRelayBase:
+    relay = new RelaySPDT1A12V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
+
+module LogicLevelRelaySPDT1A24V from LogicLevelRelayBase:
+    relay = new RelaySPDT1A24V
+    coil_power.hv ~> relay.coil ~> coil_switch ~> coil_power.lv
+    assert coil_power.voltage is relay.coil.voltage
+
+module LogicLevelBistableRelayDPDT1A3V from LogicLevelBistableRelayBase:
+    relay = new BistableRelayDPDT1A3V
+    coil_driver.motor_outs[1] ~> relay.coil ~> coil_driver.motor_outs[0]
+    assert coil_power.voltage is relay.coil.voltage
+
+module LogicLevelBistableRelayDPDT1A5V from LogicLevelBistableRelayBase:
+    relay = new BistableRelayDPDT1A5V
+    coil_driver.motor_outs[1] ~> relay.coil ~> coil_driver.motor_outs[0]
+    assert coil_power.voltage is relay.coil.voltage

@@ -1,0 +1,30 @@
+requires-atopile: "^0.14.0"
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  horizontal:
+    entry: sparkfun-qwiic.ato:QwiicHorizontal
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  vertical:
+    entry: sparkfun-qwiic.ato:QwiicVertical
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/sparkfun-qwiic
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/sparkfun-qwiic/README.md
+  version: "0.2.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: Sparkfun; QWIIC; STEMMA; QT; I²C;
+  license: MIT

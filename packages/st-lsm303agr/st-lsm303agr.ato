@@ -1,0 +1,78 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import ElectricPower
+import I2C
+import ElectricLogic
+import Resistor
+import Capacitor
+
+from "parts/STMicroelectronics_LSM303AGRTR/STMicroelectronics_LSM303AGRTR.ato" import STMicroelectronics_LSM303AGRTR_package
+
+module ST_LSM303AGR:
+    """
+    ST LSM303AGR 3-axis accelerometer & magnetometer (eCompass).
+    """
+
+    package = new STMicroelectronics_LSM303AGRTR_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+
+    power = new ElectricPower
+    power.required = True
+
+    interrupt = new ElectricLogic[3]
+
+    # --- Internal power rails ---
+    power_digital = new ElectricPower
+    power_analog = new ElectricPower
+    power_digital ~ power
+    power_analog ~ power
+
+    # --- Power supply ---
+    assert power.voltage within 1.71V to 3.6V
+
+    # --- I²C bus ---
+    i2c.scl.reference ~ power_digital
+    i2c.sda.reference ~ power_digital
+    i2c.address = 0x19
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 4.7kohm +/- 1%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitor = new Capacitor
+    decoupling_capacitor.capacitance = 100nF +/- 20%
+    decoupling_capacitor.package = "0402"
+    power.hv ~> decoupling_capacitor ~> power.lv
+
+    # --- Chip-select pin pull-ups ---
+    chip_select_pullups = new Resistor[2]
+    for resistor in chip_select_pullups:
+        resistor.resistance = 10kohm +/- 20%
+        resistor.package = "0402"
+    power_digital.hv ~> chip_select_pullups[0] ~> package.CS_MAG
+    power_digital.hv ~> chip_select_pullups[1] ~> package.CS_XL
+
+    # --- Internal regulation capacitor ---
+    internal_regulation_capacitor = new Capacitor
+    internal_regulation_capacitor.capacitance = 220nF +/- 20%
+    internal_regulation_capacitor.package = "0402"
+    power.lv ~> internal_regulation_capacitor ~> package.C1
+
+    # --- Package connections ---
+    package.GND ~ power_analog.gnd
+    package.Vdd ~ power_analog.hv
+    package.Vdd_IO ~ power_digital.hv
+    package.INT_1_XL ~ interrupt[0].line
+    package.INT_2_XL ~ interrupt[1].line
+    package.INT_MAG_DRDY ~ interrupt[2].line
+    package.SCL_SPC ~ i2c.scl.line
+    package.SDA_SDI_SDO ~ i2c.sda.line

@@ -1,0 +1,36 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "atopile/ti-tca4307/ti-tca4307.ato" import TI_TCA4307
+
+module Usage:
+    """
+    Minimal usage example for ti-tca4307.
+    Demonstrates basic I²C buffer configuration with 3.3V power supply.
+    The buffer provides isolation and hot-swap capability between upstream
+    controller and downstream I²C devices.
+    """
+
+    # Buffer instance
+    buffer = new TI_TCA4307
+
+    # External I²C busses
+    i2c_host = new I2C
+    """Host/controller I2C bus (upstream)"""
+
+    i2c_devices = new I2C
+    """Device I2C bus (downstream)"""
+
+    # Bridge connect
+    i2c_host ~> buffer ~> i2c_devices
+
+    # Power supply (3.3V rail)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V +/- 5%
+
+    # Connect power supply
+    power_3v3 ~ buffer.power

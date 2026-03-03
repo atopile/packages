@@ -1,0 +1,278 @@
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import Resistor
+import can_bridge_by_name
+
+from "parts/Worldsemi_WS2812C/Worldsemi_WS2812C.ato" import Worldsemi_WS2812C_package
+from "parts/Worldsemi_WS2812C_2020_V1/Worldsemi_WS2812C_2020_V1.ato" import Worldsemi_WS2812C_2020_V1_package
+from "parts/Worldsemi_WS2812C_4020/Worldsemi_WS2812C_4020.ato" import Worldsemi_WS2812C_4020_package
+
+module Worldsemi_WS2812C_2020:
+    """
+    Driver for Worldsemi WS2812C addressable RGB LED.
+
+    Key features:
+    - Integrated RGB LED with WS2812C controller
+    - Single-wire serial communication protocol
+    - 24-bit color depth (8-bit per R/G/B channel)
+    - 5V power supply (3.7V-5.3V range)
+    - Cascadable for LED strips and matrices
+    - 2kHz PWM frequency for smooth operation
+    - SMD5050 package (5mm x 5mm)
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812C_2020_V1_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.7V-5.3V, typical 5V)
+    Maximum current: 60mA per LED at full brightness
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.7V to 5.3V
+
+    # --- Data signal references ---
+    power ~ data_in.reference
+    power ~ data_out.reference
+
+    # --- Package connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+
+    # --- Data input protection ---
+    data_protection_r = new Resistor
+    data_protection_r.resistance = 330ohm +/- 5%
+    data_protection_r.package = "0402"
+    data_in.line ~> data_protection_r ~> package.DI
+
+    # --- Data output ---
+    data_out.line ~ package.DO
+
+    # --- Power decoupling ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module Worldsemi_WS2812C_4020:
+    """
+    Driver for Worldsemi WS2812C addressable RGB LED.
+
+    Key features:
+    - Integrated RGB LED with WS2812C controller
+    - Single-wire serial communication protocol
+    - 24-bit color depth (8-bit per R/G/B channel)
+    - 5V power supply (3.7V-5.3V range)
+    - Cascadable for LED strips and matrices
+    - 2kHz PWM frequency for smooth operation
+    - SMD5050 package (5mm x 5mm)
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812C_4020_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.7V-5.3V, typical 5V)
+    Maximum current: 60mA per LED at full brightness
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.7V to 5.3V
+
+    # --- Data signal references ---
+    power ~ data_in.reference
+    power ~ data_out.reference
+
+    # --- Package connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.VSS
+
+    # --- Data input protection ---
+    data_protection_r = new Resistor
+    data_protection_r.resistance = 330ohm +/- 5%
+    data_protection_r.package = "0402"
+    data_in.line ~> data_protection_r ~> package.DIN
+
+    # --- Data output ---
+    data_out.line ~ package.DOUT
+
+    # --- Power decoupling ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module Worldsemi_WS2812C_5050:
+    """
+    Driver for Worldsemi WS2812C addressable RGB LED.
+
+    Key features:
+    - Integrated RGB LED with WS2812C controller
+    - Single-wire serial communication protocol
+    - 24-bit color depth (8-bit per R/G/B channel)
+    - 5V power supply (3.7V-5.3V range)
+    - Cascadable for LED strips and matrices
+    - 2kHz PWM frequency for smooth operation
+    - SMD5050 package (5mm x 5mm)
+    """
+
+    # --- Package ---
+    package = new Worldsemi_WS2812C_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Power supply interface (3.7V-5.3V, typical 5V)
+    Maximum current: 60mA per LED at full brightness
+    """
+    power.required = True
+
+    data_in = new ElectricLogic
+    """
+    Serial data input for RGB control
+    Receives 24-bit GRB data packets
+    """
+    data_in.required = True
+
+    data_out = new ElectricLogic
+    """
+    Serial data output for chaining to next LED
+    Forwards remaining data bits after processing own 24 bits
+    """
+
+    # --- Power supply constraints ---
+    assert power.voltage within 3.7V to 5.3V
+
+    # --- Data signal references ---
+    power ~ data_in.reference
+    power ~ data_out.reference
+
+    # --- Package connections ---
+    power.hv ~ package.VDD
+    power.lv ~ package.VSS
+
+    # --- Data input protection ---
+    data_protection_r = new Resistor
+    data_protection_r.resistance = 330ohm +/- 5%
+    data_protection_r.package = "0402"
+    data_in.line ~> data_protection_r ~> package.DIN
+
+    # --- Data output ---
+    data_out.line ~ package.DOUT
+
+    # --- Power decoupling ---
+    decoupling_cap = new Capacitor
+    decoupling_cap.capacitance = 100nF +/- 20%
+    decoupling_cap.package = "0402"
+    power.hv ~> decoupling_cap ~> power.lv
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module WS2812C_5050_Strip:
+    """
+    WS2812C LED strip with 10 LEDs chained together.
+    Standard 5050 package size for general purpose applications.
+
+    Applications:
+    - General purpose LED strips
+    - Decorative lighting
+    - Indicator arrays
+    - Medium-density LED matrices
+    """
+
+    # Create array of 10 LEDs
+    leds = new Worldsemi_WS2812C_5050[5]
+
+    # External interfaces
+    power = new ElectricPower
+    """Strip power supply (5V recommended)"""
+
+    data_in = new ElectricLogic
+    """Strip data input from microcontroller"""
+
+    data_out = new ElectricLogic
+    """Strip data output for chaining to next strip"""
+
+    # Connect power to all LEDs
+    for led in leds:
+        power ~ led.power
+
+    # Chain data signals through all LEDs
+    data_in ~> leds[0] ~> leds[1] ~> leds[2] ~> leds[3] ~> leds[4] ~> data_out
+
+    # --- Bridging trait for LED strips ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">
+
+module WS2812C_5050_Matrix:
+    """
+    8×8 LED matrix using WS2812C for display applications.
+    Standard 5050 package provides good balance of size and brightness.
+    """
+
+    # Create 5x5 matrix using strips (25 LEDs total)
+    strips = new WS2812C_5050_Strip[5]
+
+    # External interfaces
+    power = new ElectricPower
+    """Matrix power supply (5V recommended)"""
+
+    data_in = new ElectricLogic
+    """Matrix data input from controller"""
+
+    data_out = new ElectricLogic
+    """Matrix data output for chaining to next matrix"""
+
+    # Connect power to all strips
+    for strip in strips:
+        power ~ strip.power
+
+    # Chain strips in matrix order (row by row)
+    data_in ~> strips[0] ~> strips[1] ~> strips[2] ~> strips[3] ~> strips[4] ~> data_out
+
+    # --- Bridging trait for LED matrices ---
+    trait can_bridge_by_name<input_name = "data_in", output_name = "data_out">

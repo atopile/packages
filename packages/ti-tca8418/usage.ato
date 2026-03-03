@@ -1,0 +1,32 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import I2C
+import ElectricPower
+
+from "atopile/ti-tca8418/ti-tca8418.ato" import TI_TCA8418
+
+module Usage:
+    """
+    Minimal usage example for TI TCA8418 keypad matrix scanner and GPIO expander.
+    Demonstrates basic connections for I2C and power supply.
+    """
+
+    # Create TCA8418 instance
+    keypad_controller = new TI_TCA8418
+
+    # Create I2C bus
+    i2c_bus = new I2C
+
+    # Create power supply
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.3V +/- 5%
+
+    # Connect interfaces
+    i2c_bus ~ keypad_controller.i2c
+    power_3v3 ~ keypad_controller.power
+
+    # I2C address is automatically set to 0x34 (fixed)
+
+    # GPIO row pins are available as keypad_controller.gpio_rows[0] through gpio_rows[7]
+    # GPIO column pins are available as keypad_controller.gpio_cols[0] through gpio_cols[9]
+    # Interrupt pin is available as keypad_controller.interrupt

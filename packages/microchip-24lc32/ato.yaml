@@ -1,0 +1,26 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: microchip-24lc32.ato:Microchip_24LC32
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/microchip-24lc32
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/microchip-24lc32/README.md
+  version: "0.3.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Microchip; 24LC32; 32-Kbit; I2C; Serial; EEPROM; Memory; Adafruit; 5146"
+  license: MIT

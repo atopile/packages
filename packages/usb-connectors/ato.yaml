@@ -1,17 +1,27 @@
-requires-atopile: "^0.9.0"
+requires-atopile: ^0.14.0
 
 paths:
   src: "."
   layout: ./layouts
 
 builds:
-  usbc:
-    entry: usb-connectors.ato:USBCConn
+  default:
+    entry: usb-connectors.ato:USB2_0TypeCHorizontalConnector
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  vertical:
+    entry: usb-connectors.ato:USB2_0TypeCVerticalConnector
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/usb-connectors
   repository: https://github.com/atopile/packages
-  version: "0.1.2"
+  version: "0.4.1"
   authors:
     - name: atopile
       email: hi@atopile.io

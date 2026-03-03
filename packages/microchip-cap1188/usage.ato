@@ -1,0 +1,57 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import I2C
+import ElectricPower
+import ElectricLogic
+
+from "atopile/microchip-cap1188/microchip-cap1188.ato" import Microchip_CAP1188
+
+module Usage:
+    """
+    Usage example for the Microchip CAP1188 8-channel capacitive touch sensor.
+    Demonstrates basic connections for touch sensing with optional LED feedback.
+    """
+
+    # --- Touch sensor ---
+    touch_sensor = new Microchip_CAP1188
+
+    # --- Power supply (3.3V) ---
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # --- I²C bus ---
+    i2c_bus = new I2C
+    assert i2c_bus.frequency <= 400kHz
+    assert i2c_bus.address within 0x2B  # Default address with 100kohm resistor
+
+    # --- Optional control signals ---
+    reset_pin = new ElectricLogic
+    interrupt_pin = new ElectricLogic
+
+    # --- Touch pad connections (optional - connect as needed) ---
+    touch_button_1 = new ElectricLogic
+    touch_button_2 = new ElectricLogic
+    touch_button_3 = new ElectricLogic
+    touch_button_4 = new ElectricLogic
+
+    # --- LED connections (optional - connect as needed) ---
+    status_led_1 = new ElectricLogic
+    status_led_2 = new ElectricLogic
+
+    # --- Connections ---
+    power_3v3 ~ touch_sensor.power
+    i2c_bus ~ touch_sensor.i2c
+    reset_pin ~ touch_sensor.reset
+    interrupt_pin ~ touch_sensor.interrupt
+
+    # Connect some touch pads (as examples)
+    touch_button_1 ~ touch_sensor.touch_pads[0]
+    touch_button_2 ~ touch_sensor.touch_pads[1]
+    touch_button_3 ~ touch_sensor.touch_pads[2]
+    touch_button_4 ~ touch_sensor.touch_pads[3]
+
+    # Connect some LEDs (as examples)
+    status_led_1 ~ touch_sensor.led_outputs[0]
+    status_led_2 ~ touch_sensor.led_outputs[1]

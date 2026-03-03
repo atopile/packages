@@ -1,21 +1,125 @@
-requires-atopile: "^0.9.0"
+requires-atopile: ^0.14.0
 
 paths:
   src: .
   layout: ./layouts
 
 builds:
-  default:
-    entry: relays.ato:PowerRelay
-  test:
-    entry: relays.ato:Test
+  # Power Relays
+  # Usage example
+  usage:
+    entry: usage.ato:Usage
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # HK4100F Series
+  LogicLevelRelaySPDT3A5V:
+    entry: relays.ato:LogicLevelRelaySPDT3A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelaySPDT3A12V:
+    entry: relays.ato:LogicLevelRelaySPDT3A12V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelaySPDT3A24V:
+    entry: relays.ato:LogicLevelRelaySPDT3A24V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # G2R-2 Series
+  LogicLevelRelayDPDT5A5V:
+    entry: relays.ato:LogicLevelRelayDPDT5A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT5A12V:
+    entry: relays.ato:LogicLevelRelayDPDT5A12V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT5A24V:
+    entry: relays.ato:LogicLevelRelayDPDT5A24V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # HF115F Series
+  LogicLevelRelayDPDT8A5V:
+    entry: relays.ato:LogicLevelRelayDPDT8A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT8A12V:
+    entry: relays.ato:LogicLevelRelayDPDT8A12V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT8A24V:
+    entry: relays.ato:LogicLevelRelayDPDT8A24V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # Signal Relays
+  # G6K-2F-Y-TR Series (Signal DPDT 1A)
+  LogicLevelRelayDPDT1A3V:
+    entry: relays.ato:LogicLevelRelayDPDT1A3V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT1A5V:
+    entry: relays.ato:LogicLevelRelayDPDT1A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT1A12V:
+    entry: relays.ato:LogicLevelRelayDPDT1A12V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelayDPDT1A24V:
+    entry: relays.ato:LogicLevelRelayDPDT1A24V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # G5V-1 Series (Signal SPDT 1A)
+  LogicLevelRelaySPDT1A3V:
+    entry: relays.ato:LogicLevelRelaySPDT1A3V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelaySPDT1A5V:
+    entry: relays.ato:LogicLevelRelaySPDT1A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelaySPDT1A12V:
+    entry: relays.ato:LogicLevelRelaySPDT1A12V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelRelaySPDT1A24V:
+    entry: relays.ato:LogicLevelRelaySPDT1A24V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # Bistable relays
+  LogicLevelBistableRelayDPDT1A3V:
+    entry: relays.ato:LogicLevelBistableRelayDPDT1A3V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+  LogicLevelBistableRelayDPDT1A5V:
+    entry: relays.ato:LogicLevelBistableRelayDPDT1A5V
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
+
+  # Helpers
+  low_side_nfet_switch:
+    entry: helpers.ato:LowSideNFETSwitch
+    exclude_checks: [PCB.requires_drc_check]
+    hide_designators: true
 
 package:
   identifier: atopile/relays
-  repository: https://github.com/atopile/packages
-  version: "0.1.3"
+  repository: https://github.com/atopile/packages/blob/main/packages/relays/README.md
+  version: 0.2.0
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: DPDT relay with logic level driver circuit and LED indicator
   license: MIT
+dependencies:
+- type: registry
+  identifier: atopile/indicator-leds
+  release: 0.2.3
+- type: registry
+  identifier: atopile/ti-drv883x
+  release: 0.1.0

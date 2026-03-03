@@ -1,0 +1,341 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# 0 Context
+A package is a special atopile project that is intended to be shared and reused in other designs. A package is denoted by a `package` section in the ato.yaml file. A package aims to design a basic implementation of a given integrated circuit component. The requirement is for this package to include all the necessary components to get the core device working, such as decoupling capacitors, pullup/pulldown resistors, and more. Most importantly, since this package will be reused in a different design, it is critical to correctly create, expose, and connect all the external interfaces properly. External interfaces should be created using the proper object type (ElectricPower/ElectricLogic/etc.) and clearly defined with docstrings.
+Some examples of critical interfaces to expose for users include but are not limited to:
+  - ElectricPower for the power rails - `add electricpower.required = true` for required power rails
+  - SPI/I2C/I2S/etc. - communication interfaces should be defined and connected to the pins of the physical package
+  - EnablePins - `enable_pin.line.required = true` so users don't ignore or forget to connect the enable line somewhere
+
+The purpose of the usage build is to show users how to use the package. This means this example should show the preferred method of use, and is most helpful if it shows the user how to use many of the interfaces.
+
+# 1 Building a new package
+
+## 1.1 File Structure
+
+```
+packages/
+  packages/
+    <package_name>/
+        layouts/
+        parts/
+        ato.yaml
+        <package_name>.ato
+        README.md
+        usage.ato
+```
+
+## 1.2 Steps to create a new package
+
+1. Create a new directory `<package_name>` as stated in the file structure.
+2. Create ato.yaml, `<package_name>.ato`, README.md, usage.ato
+3. Look through other packages for inspiration
+4. Create part using tool call 'search_and_install_jlcpcb_part'
+   4.1 Inspect the part ato file in the parts/ directory
+5. Import the part into the main ato file
+6. Read the datasheet for the device
+7. Populate the files with the correct information (see below)
+   7.1 Create interfaces and connect them
+   7.2 Add decoupling caps where needed
+   7.3 Add i2c addressor if device has configurable address
+   If format is: <n x fixed address bits><m x pin configured address bits>
+   use addressor module:
+
+- Use `Addressor<address_bits=N>` where **N = number of address pins**.
+- Connect each `address_lines[i].line` to the corresponding pin, and its `.reference` to a local power rail.
+- Set `addressor.base` to the lowest possible address and `assert addressor.address is i2c.address`.
+
+  7.4 Other configuration etc
+
+8. Review the content wholistically again
+9. Build the main build target using CLI `ato build`
+10. Make sure to make use of the LSP and build errors
+
+## 1.3 Additional Notes & Gotchas (generic)
+
+- Multi-rail devices (VDD / VDDIO, AVDD / DVDD, etc.)
+
+  - Model separate `ElectricPower` interfaces for each rail (e.g. `power_core`, `power_io`).
+  - Mark each `.required = True` if the device cannot function without it, and add voltage assertions per datasheet.
+
+- Using the right type of signal: Eletrical, ElectricLogic, ElectricSignal, DifferentialPair, I2C, SPI, ...
+
+  - Electrical: Represents a basic electrical object, does not have a voltage reference.
+  - ElectricSignal: Represents an electric signal with a voltage domain reference (electricsignla.reference) which should be connected to the appropriate ElectricPower object. The electricsignal.line can represent any voltage between the hv and lv of the reference. Useful for things like analog signals, voltage divider outputs, etc.
+  - ElectricLogic: Represents an electric logic, which is a special type of electric signal that should only take the discrete values of reference.hv and reference.lv. electriclogic.line  will often be soft pulled up or down to its reference rails.
+  - DifferentialPair: Represents a pair of ElectricLogics that share a reference ground (still need to connect the reference ElectricPower to something) and carry a signal differentially between the p.line and n.line
+  - I2C, SPI, etc: Represent interfaces of common communication protocols. Investigate the files in the standard library to find which signals are available for each interface. Interfaces should be used wherever possible as a layer of abstraction. Instead of connecting sensor.sda_pin~micro.sda_pin and sensor.scl_pin~micro.scl_pin, I2C interfaces should be described in the definition of the sensor and the micro such that at application level they can be connected via sensor.i2c ~ micro.i2c
+
+- Use arrays for multiple channels or repetitve signals/modules
+  e.g `vouts = new ElectricLogic[4]` and access them with for-loops
+  e.g `gpios = new ElectricLogic[10]` and access them with a for-loop such as
+      for gpio in gpios:
+          gpio.reference ~ power_3v3
+
+- Optional interfaces (SPI vs I²C)
+
+  - If the device supports multiple buses, pick one for the initial driver. Leave unused bus pins as `ElectricLogic` lines or expose a second interface module later.
+
+- Decoupling guidance
+
+  - If the datasheet shows multiple caps, model the **minimum required** set so the build passes; you can refine values/packages later.
+
+- File / directory layout recap
+  - `<vendor>-<device>/` – package root
+  - `ato.yaml` – build manifest (include `default` **and** `example` targets)
+  - `<vendor>-<device>.ato` – driver implementation in module called `<module_name>`
+  - `parts/<MANUFACTURER_PARTNO>/` – atomic part + footprint/symbol/step files. Do not edit any files in the parts/ directory. These are autogenerated and should only be added with `ato create part` CLI command
+
+These tips should prevent common "footprint not found", "pin X missing", and build-time path errors when you add new devices.
+
+## 1.4 Legend
+
+`<lowest_atopile_version>`: lowest version of ato compiler package has run with (`ato --version`)
+
+`<manufacturer>`: lower-case, <10 chars
+
+- adi
+- ti
+- nordic
+- bosch
+- sensirion
+- st
+- onsemi
+- microchip
+- invensense
+- nxp
+- ublox
+- mps
+
+`<part_number>`: non-package related, lower-case
+
+- mcp23017
+- bme280
+- adxl345
+- stm32f767
+
+`<Manufacturer>`: upper-case of `<manufacturer>`
+
+- ADI
+- TI
+- Nordic
+- Bosch
+
+`<Part_Number>`: upper-case of `<part_number>`
+
+- MCP23017
+- BME280
+- ADXL345
+- STM32F767
+
+`<package_name>`: `<manufacturer>`-`<part_number>`
+
+`<module_name>`: `<Manufacturer>`\_`<Part_Number>`
+
+## 1.5 <package_name>.ato
+
+`````ato
+<pragmas>
+<stl imports>
+
+<part imports>
+
+module <module_name>:
+    """
+        <Description of the module>
+    """
+
+    # --- External interfaces ---
+    example:
+    power = new ElectricPower
+    """
+    Central power supply for the module feeding the power rails
+    """
+
+    power.required = True
+    i2c = new I2C
+    """
+    I²C bus interface (7-bit addr 0x76 / 0x77)
+    """
+    i2c.required = True
+    i2c.reference_shim ~ power
+
+
+    # --- Internal power rails ---
+    example:
+    power_core = new ElectricPower  # Connects to VDD (sensor core)
+    power_core.vcc ~ package.VDD
+    power_core.gnd ~ package.GND
+    only define new rails here if there are multiple power rails, else just the one in external interfaces
+    assert power_core.voltage within 1.71V to 3.6V
+
+    # --- Power supply ---
+
+    # --- I²C bus ---
+    <addressor>
+    e.g
+    addressor = new Addressor<address_bits=2>
+    addressor.base = 0x40
+    assert i2c.address is addressor.address
+    (no need to constrain i2c.address, done automatically via addressor)
+    # using soft pullups, just in case
+    # I2C pull-up resistors
+    i2c_pullups = new Resistor[2]
+    for r in i2c_pullups:
+        r.resistance = 10kohm +/- 1%
+        r.package = "0402"
+    i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
+    ...
+
+    # --- Decoupling capacitors ---
+
+
+    # --- <Other configuration> ---
+    eg: int line pullups
+
+
+
+    # --- Package ---
+    package = new <package_name>
+    <package_connections> (package always on the left)
+    e.g
+    package.VDD ~ power.hv
+    package.VDDH ~ power.hv
+    package.GND ~ power.lv
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    dont make any connections to the package above, only here
+
+```
+
+Remove empty sections.
+
+
+## ato.yaml
+
+```yaml
+requires-atopile: "^`<latest_atopile_version>`"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+# Ensure the project has at least a default build and a usage build
+builds:
+  default:
+    entry: <package_name>.ato:<module_name>
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/<package_Name>
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/<package_name>/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: `<package_summary>`
+  license: MIT
+```
+
+`<package_summary>`: Bunch of tags to find the package on the web.
+e.g
+Tags: Bosch; BME280; Temperature; Humidity; Pressure; Sensor; IC; I2C; Adafruit; <adafruit_product_id>; QWIIC, STEMMA
+
+`<adafruit_product_id>`: Adafruit product ID, e.g `3660` for BME680 (if available)
+
+## usage.ato
+
+```ato
+<pragmas>
+<stl imports>
+
+<module imports>
+
+
+module Usage:
+    """
+    Minimal usage example for `<package_name>`.
+    <short description of the example>
+    """
+
+    <instance_name> = new <module_name>
+
+    <example usage of module>
+    <connect all required interfaces>
+    e.g power supply
+    e.g i2c bus
+
+    <set required parameters>
+    e.g i2c.address = 0x76
+```
+
+## README.md
+
+````markdown
+# `<verbose_package_name>` e.g Bosch BME280 Temperature, Humidity & Pressure Sensor
+
+`<longer description of the package and main component>`
+
+## Usage
+
+```ato
+<copy-paste exactly the latest of usage.ato>
+```
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or pull requests.
+
+## License
+
+This package is provided under the [MIT License](mdc:packages/packages/packages/https:/opensource.org/license/mit).
+`````
+# 2 Updating an existing package
+The package should follow the structure that is described in detail. To update a package, review each section to ensure that it complies with the latest syntax and structure. The following steps are a guideline to effectively review packages:
+
+
+## 2.1 Review Procedure
+1) Inspect file structure. Ensure that it complies with section 1.1 of this document.
+2) Inpect ato.yaml file. Esnure that it complies with section 1.2 of this document. Ensure that there is at least a default and usage build target - it is valid to have extra build targets. Check what version of atopile is being used by running "ato --version", set the requires-atopile field to be greater than the current version being used.
+3) Run "ato build" from CLI. Resolve any errors or warnings with the build. Try not to add or delete compoents, as it will change the layout and require manual relayout.
+4) Run "ato build --frozen" from CLI. Resolve any errors or warnings.
+5) If all the build targets are successfully building, update the README.md to have the exact same text as the usage.ato file. Also enure that the existing information in the readme is accurate - if not, search for the part number and update the readme with information about the part. Try not to stray far from the instructions, and don't add too much information from the datasheet, only what would be helpful for a user browsing the package directory and evaluating using this package.
+6) Run "ato package verify" with CLI. Ensure that this passes as the final check that the package is ready to be published.
+
+## 2.2 Additional Notes
+* Be careful when deleting and readding parts, as this will require manual layout work to fix
+* If the name of a build target is wrong, and you change it (for example to default), then you should try to copy the contents of the pre-existing /layout/* directory to the new build target so the layout gets carried over as well. If you dont do this, the layout will be lost.
+* After updating a package, use the MCP tool to inspect the current version that is available on the package registry and be sure to minor rev from the current latest version on the package resistry -> x.y.z and update it to exactly x.y.z+1
+* If a build is failing the frozen build, saying there have been changes to the layout, try running a regular build first, then running a frozen build to see if the issue is resolved.
+* If package verifications is failing because there are warnings in the logs, try running a new build, as sometimes there are one time warnings when a component changes that will go away on the next build.
+* Try to build the package using 'ato build' command or MCP ato build command 1a. If the package builds, then DO NOT update the requires-atopile
+ version in the ato.yaml. Any changes will be considered a minor change, so increment the package version number by adding the following mask to the version: new_version = old_version + 0.0.1 1b.
+ * If the package fails to build, then update the requires-atopile version in the ato.yaml to the version of atopile used to run the build. This is now considered a major revision, so update the package version number according to: new_version = old_version + 0.1.0
+
+* In order for the package to be published, it must pass an "ato build --frozen", which checks that nothing changed since the last build. If this fails, you may need to run a normal build immediately before the frozen build.
+* After build and build --frozen, use the ato package verify command (or MCP tool) to verify that the package passes all the automated tests and is ready to be published. You may need to reiterate through steps 3-5 until the package verification is successful. Use the descriptive errors returned by the package verify command to guide your changes.
+* Open a PR with the changes, name the PR "package-name: LLM Update with 0.11.5", but replace package-name with the name of the package and replace 0.11.5 with the version of the compiler used. Be sure to leave a comment in the description about what was done to update the package. Specifically include information about whether the package build initially with the
+
+## 2.3 Advice & Pointers
+* Try not to make major changes to the packages, we are looking for minor changes if something in the new version of the compiler breaks the existing packages.
+* We care a lot about package stability, this means we care that the pacakges build and pass the package verification check. Be sure that when you open a PR, the code changes still pass the ato build and ato package verify commands.
+* Keep PRs short and to the point. Explain briefly what you saw when you started working on the package, what you fixed in the package (version update from to, dependency upgrades from to, etc), and the current state of the package. PRs should only pertain to one package at a time, and should not have changes for any other packages in the changed files.
+* If the package specified to be update is in the /packages/packages/archive directory, then the first step will be moving it up to the packages/packages directory if there are no naming conflicts. If there are naming conflicts with this operation, please raise a flag and do not proceed.
+* Almost all physical values specified in ato should have a tolerance specified. Resistance, capacitance, inductance, voltage, etc. should almost always have a default tolerance.
+* Do not include imports or #pragmas that are not necessary
+* PRs that work on changes should be named `<package_name>`: Updating `<reason_for_updating>` or `<package_name>`: Create .  or similar
+## 2.4 Forbidden actions
+* Some changes may necessetate this, but try not to change anything in the /layout directory, as this will then require manual intervention to check that the layout is working properly and slow down the process.
+* Do not make changes to any other packages while updating one package

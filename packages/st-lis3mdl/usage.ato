@@ -1,0 +1,26 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import I2C
+from "atopile/st-lis3mdl/st-lis3mdl.ato" import ST_LIS3MDL
+
+module Usage:
+    """Minimal usage example for `st-lis3mdl`.
+    Shows how to wire the magnetometer to a shared 3V3 power rail and I²C bus.
+    """
+
+    # Shared rails / busses
+    power_3v3 = new ElectricPower
+    i2c_bus = new I2C
+
+    # Magnetometer instance
+    magnetometer = new ST_LIS3MDL
+
+    # Connections
+    magnetometer.power_core ~ power_3v3
+    magnetometer.power_io ~ power_3v3
+    magnetometer.i2c ~ i2c_bus
+
+    # Configure I²C address (SA1 pulled low => 0x1C)
+    # SA1 pulled high => 0x1E
+    assert i2c_bus.address within 0x1C +/- 0

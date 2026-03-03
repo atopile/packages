@@ -1,21 +1,26 @@
-requires-atopile: "^0.9.0"
-
+requires-atopile: ^0.14.0
 paths:
-  src: .
+  src: ./
   layout: ./layouts
-
 builds:
   default:
-    entry: microchip-mcp4728.ato:Microchip_MCP4728_driver
-  test:
-    entry: microchip-mcp4728.ato:Test
-
+    entry: microchip-mcp4728.ato:Microchip_MCP4728
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/microchip-mcp4728
   repository: https://github.com/atopile/packages
-  version: "0.1.4"
+  homepage: https://github.com/atopile/packages/blob/main/packages/microchip-mcp4728/README.md
+  version: 0.2.0
   authors:
-    - name: atopile
-      email: hi@atopile.io
-  summary: Microchip MCP4728 4-channel DAC
+  - name: atopile
+    email: hi@atopile.io
+  summary: 'Tags: Microchip; MCP4728; DAC; Digital-to-Analog Converter; 12-bit; Quad;
+    EEPROM; I2C; Adafruit; 4470'
   license: MIT

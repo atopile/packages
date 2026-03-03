@@ -1,0 +1,76 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import ElectricPower
+import I2C
+import ElectricLogic
+import Capacitor
+import Addressor
+import Resistor
+
+from "parts/Analog_Devices_ADXL375BCCZ_RL7/Analog_Devices_ADXL375BCCZ_RL7.ato" import Analog_Devices_ADXL375BCCZ_RL7_package
+
+module ADI_ADXL375:
+    """
+    Analog Devices ADXL375 ±200G 3-axis accelerometer with I²C interface.
+    """
+
+    package = new Analog_Devices_ADXL375BCCZ_RL7_package
+
+    # --- External interfaces ---
+    i2c = new I2C
+    i2c.required = True
+    power = new ElectricPower
+    power.required = True
+    interrupt = new ElectricLogic[2]
+
+    # --- Internal power rails ---
+    power_analog = new ElectricPower
+    power_digital = new ElectricPower
+
+    # --- Power supply ---
+    assert power.voltage within 2.0V to 3.6V
+    power_analog ~ power
+    power_digital ~ power
+
+    # --- I²C bus ---
+    i2c.sda.reference ~ power_digital
+    i2c.scl.reference ~ power_digital
+    addressor = new Addressor<address_bits = 1>
+    addressor.address_lines[0].line ~ package.SDO_ALTADDRESS
+    addressor.address_lines[0].reference ~ power_digital
+    assert addressor.base within 0x53
+    assert addressor.address is i2c.address
+    # Default to base address (0x53), can be overridden by user
+    i2c.address.default = 0x53
+
+    # --- Decoupling capacitors ---
+    decoupling_capacitors = new Capacitor[2]
+    for capacitor in decoupling_capacitors:
+        capacitor.capacitance = 100nF +/- 20%
+        capacitor.package = "0402"
+    power_analog.hv ~> decoupling_capacitors[0] ~> power_analog.lv
+    power_digital.hv ~> decoupling_capacitors[1] ~> power_digital.lv
+
+    # --- I²C pull-up resistors ---
+    pullup_resistors = new Resistor[2]
+    for resistor in pullup_resistors:
+        resistor.resistance = 4.7kohm +/- 20%
+        resistor.package = "0402"
+    i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
+
+    # --- Chip select ---
+    chip_select_pullup_resistor = new Resistor
+    chip_select_pullup_resistor.resistance = 10kohm +/- 20%
+    chip_select_pullup_resistor.package = "0402"
+    package.nCS ~> chip_select_pullup_resistor ~> power_digital.hv
+
+    # --- Package ---
+    package.GND ~ power_digital.lv
+    package.VS ~ power_analog.hv
+    package.VDDI_O ~ power_digital.hv
+    package.SDA_SDI_SDIO ~ i2c.sda.line
+    package.SCL_SCLK ~ i2c.scl.line
+    package.INT1 ~ interrupt[0].line
+    package.INT2 ~ interrupt[1].line
