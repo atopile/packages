@@ -26,6 +26,7 @@ The PJRC Teensy 4.1 is a microcontroller board based on the NXP MCU LPC5526.
 
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
+
 import Ethernet
 import Capacitor
 
