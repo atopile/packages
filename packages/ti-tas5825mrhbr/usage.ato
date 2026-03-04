@@ -27,5 +27,5 @@ module Usage:
     amp.i2s ~ i2s
     amp.i2c ~ i2c
 
-    # Set I2C address
-    assert amp.i2c.address is 0x50
+    # Set I2C address (0x4E = base 0x4C + offset 2 → 4.7kohm resistor)
+    assert amp.i2c.address within 0x4E
