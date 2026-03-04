@@ -7,7 +7,6 @@ import Capacitor
 from "regulators.ato" import AdjustableLDO
 from "parts/STMicroelectronics_LDK220M_R/STMicroelectronics_LDK220M_R.ato" import STMicroelectronics_LDK220M_R_package
 
-
 module LDK220M_R from AdjustableLDO:
     """Adjustable LDO with 1.185V reference voltage,
     max 200mA output current and max 13.2V input voltage"""
@@ -18,6 +17,9 @@ module LDK220M_R from AdjustableLDO:
     assert power_out.voltage within 1.2V to 12V
     # assert power_out.voltage within power_in.voltage - dropout_voltage # TODO: fix
     assert reference_voltage within 1.185V +/- 2%
+
+    power_in.voltage.default = 5V
+    power_out.voltage.default = 3.3V
 
     # Package
     package = new STMicroelectronics_LDK220M_R_package
@@ -42,6 +44,9 @@ module LDK220M_R from AdjustableLDO:
     feedback_divider.ref_out.hv ~ package.ADJ_NC
     feedback_divider.chain.resistors[0].package = "0402"
     feedback_divider.chain.resistors[1].package = "0402"
+
+    # assert feedback_divider.current within 100uA to 1mA
+    assert feedback_divider.chain.resistors[0].resistance within 33kohm +/- 50%
 
     # trait has_single_electric_reference_shared<gnd_only=True>
 

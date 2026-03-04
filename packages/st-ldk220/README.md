@@ -34,8 +34,6 @@ module MCU:
     power = new ElectricPower
     assert power.voltage is 3.3V +/- 5%
 
-    trait has_part_removed
-
 
 module Usage:
     """Minimal example for the LDK220M-R LDO."""
@@ -49,6 +47,7 @@ module Usage:
 
     # Shared 3V3 rail
     some_input_power ~> ldo ~> mcu.power
+
 ```
 
 ## Output Voltage Configuration
