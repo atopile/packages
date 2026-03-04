@@ -29,9 +29,6 @@ import ElectricLogic
 import ElectricPower
 import ElectricSignal
 import Resistor
-import ResistorVoltageDivider
-
-import can_bridge_by_name
 import has_part_removed
 
 ## DF40 3mm stack Connectors:
@@ -279,11 +276,11 @@ module TempSensor:
     r_bottom.resistance = 10kohm +/- 0.1%
     r_bottom.package = "0402"
 
-    power.hv ~ r_top.p1
-    r_top.p2 ~ r_bottom.p1
-    power.lv ~ r_bottom.p2
+    power.hv ~ r_top.unnamed[0]
+    r_top.unnamed[1] ~ r_bottom.unnamed[0]
+    power.lv ~ r_bottom.unnamed[1]
 
-    output.line ~ r_top.p2
+    output.line ~ r_top.unnamed[1]
     output.reference.lv ~ power.lv
 
 module StackableBMBInterface:

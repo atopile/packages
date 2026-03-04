@@ -1,260 +1,319 @@
+# This file is part of the faebryk project
+# SPDX-License-Identifier: MIT
+
 import math
-from faebryk.core.parameter import Quantity_Interval
-from faebryk.library.FilterElectricalLC import FilterElectricalLC
-import faebryk.library._F as F  # noqa: F401
-from faebryk.libs.units import P, dimensionless  # noqa: F401
-from faebryk.core.module import Module  # noqa: F401
-from faebryk.libs.library import L  # noqa: F401
-from faebryk.libs.util import times  # noqa: F401
-from faebryk.libs.units import Quantity
-from faebryk.libs.sets.quantity_sets import Quantity_Interval_Disjoint
+
+import faebryk.core.node as fabll
+import faebryk.library._F as F
 
 
-class SenseFilter(Module):
-    def __init__(
-        self,
-        sense_filter_resistance: Quantity_Interval = L.Range.from_center_rel(
-            200 * P.Ω, 1 * P.percent
+# Constants for filter calculations
+# max_balance_current = 100mA
+_BLEED_R = (4.25 / 0.1) / 2  # 21.25 ohm
+_BLEED_C = 1 / (_BLEED_R * 2 * math.pi * 80000)  # ~93.6nF
+_BLEED_POWER_MIN = (4.25 / 2) ** 2 / _BLEED_R  # ~0.2124W
+
+NUM_CELLS = 16
+
+
+class SenseFilter(fabll.Node):
+    """
+    RC low-pass filter between cell power and sense inputs.
+    Resistance: 200 ohm +/- 1%, Capacitance: 10nF +/- 20%
+    """
+
+    # ----------------------------------------
+    #     modules, interfaces, parameters
+    # ----------------------------------------
+    cell_power = F.ElectricPower.MakeChild()
+    sense_input = F.DifferentialPair.MakeChild()
+
+    sense_resistor = F.Resistor.MakeChild()
+    sense_capacitor = F.Capacitor.MakeChild()
+
+    # ----------------------------------------
+    #                 traits
+    # ----------------------------------------
+    _is_module = fabll.Traits.MakeEdge(fabll.is_module.MakeChild())
+
+    # ----------------------------------------
+    #            Connections
+    # ----------------------------------------
+    # Topology: cell_power.hv ~> resistor ~> sense_input.p.line
+    #           sense_input.p.line ~> capacitor ~> sense_input.n.line
+    _connections = [
+        # cell_power.hv ~ sense_resistor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [cell_power, F.ElectricPower.hv],
+            [sense_resistor, F.Resistor.unnamed[0]],
         ),
-        sense_filter_capacitance: Quantity_Interval = L.Range.from_center_rel(
-            10 * P.nF, 20 * P.percent
+        # sense_resistor.unnamed[1] ~ sense_input.p.line
+        fabll.is_interface.MakeConnectionEdge(
+            [sense_resistor, F.Resistor.unnamed[1]],
+            [sense_input, F.DifferentialPair.p, F.ElectricSignal.line],
         ),
-    ):
-        super().__init__()
-        self.sense_filter_resistance = sense_filter_resistance
-        self.sense_filter_capacitance = sense_filter_capacitance
-
-    cell_power: F.ElectricPower
-    sense_input: F.DifferentialPair
-
-    @L.rt_field
-    def sense_filter(self):
-        return F.FilterElectricalRC.hardcoded_rc(
-            self.sense_filter_resistance,
-            self.sense_filter_capacitance,
-        )
-
-    def __preinit__(self):
-        self.cell_power.hv.connect_via(
-            self.sense_filter.resistor, self.sense_input.p.line
-        )
-        self.sense_input.p.line.connect_via(
-            self.sense_filter.capacitor, self.sense_input.n.line
-        )
-
-
-class BalanceFilter(Module):
-    def __init__(
-        self,
-        bleed_resistance_target: float = 20 * P.ohms,
-        bleed_filter_capacitance: Quantity_Interval = L.Range.from_center_rel(
-            10 * P.nF, 20 * P.percent
+        # sense_input.p.line ~ sense_capacitor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [sense_input, F.DifferentialPair.p, F.ElectricSignal.line],
+            [sense_capacitor, F.Capacitor.unnamed[0]],
         ),
-    ):
-        super().__init__()
-        self.bleed_resistance_target = bleed_resistance_target
-        self.bleed_filter_capacitance = bleed_filter_capacitance
+        # sense_capacitor.unnamed[1] ~ sense_input.n.line
+        fabll.is_interface.MakeConnectionEdge(
+            [sense_capacitor, F.Capacitor.unnamed[1]],
+            [sense_input, F.DifferentialPair.n, F.ElectricSignal.line],
+        ),
+    ]
 
-    cell_power: F.ElectricPower
-    balance_input: F.DifferentialPair
-    cap_bridge_connect: F.ElectricSignal  # Connect to cell below, transients to gnd
-
-    @L.rt_field
-    def top_balance_filter(self):
-        bleed_resistance = L.Range.from_center_rel(
-            self.bleed_resistance_target,
-            5 * P.percent,
-        )
-        return F.FilterElectricalRC.hardcoded_rc(
-            bleed_resistance,
-            self.bleed_filter_capacitance,
-        )
-
-    @L.rt_field
-    def bottom_balance_filter(self):
-        bleed_resistance = L.Range.from_center_rel(
-            self.bleed_resistance_target,
-            5 * P.percent,
-        )
-        return F.FilterElectricalRC.hardcoded_rc(
-            bleed_resistance,
-            self.bleed_filter_capacitance,
-        )
-
-    def __preinit__(self):
-        self.top_balance_filter.resistor.max_power.constrain_ge(
-            (4.25 / 2 * P.V) * (4.25 / 2 * P.V) / (self.bleed_resistance_target)
-        )
-        self.bottom_balance_filter.resistor.max_power.constrain_ge(
-            (4.25 / 2 * P.V) * (4.25 / 2 * P.V) / (self.bleed_resistance_target)
-        )
-        self.cell_power.hv.connect_via(
-            self.top_balance_filter.resistor, self.balance_input.p.line
-        )
-        self.cell_power.lv.connect_via(
-            self.bottom_balance_filter.resistor, self.balance_input.n.line
-        )
-        self.balance_input.p.line.connect_via(
-            self.top_balance_filter.capacitor, self.balance_input.n.line
-        )
-        self.balance_input.n.line.connect_via(
-            self.bottom_balance_filter.capacitor, self.cap_bridge_connect.line
-        )
+    # ----------------------------------------
+    #            Constraints
+    # ----------------------------------------
+    # Sense filter: 200 ohm +/- 1%, 10nF +/- 20%
+    _constraints = [
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [sense_resistor, F.Resistor.resistance],
+            198.0, 202.0, unit=F.Units.Ohm,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [sense_capacitor, F.Capacitor.capacitance],
+            8e-9, 12e-9, unit=F.Units.Farad,
+        ),
+    ]
 
 
-class ADBMS6830InputFilters(Module):
+class BalanceFilter(fabll.Node):
     """
-    Filters between the cell connections and the primary and secondary sense pins of the ADBMS6830.
-
-    :param number_of_cells: Number of battery cells in the stack
-    :param sense_filter_resistance: Resistance of the sense filter
-    :param sense_filter_capacitance: Capacitance of the sense filter
-    :param max_balance_current: Maximum balance current, used to calculate balance resistor values
-    :param total_number_of_channels: Total number of channels available on ASIC, unused channels are depopulated
-
-    Balance Filters: f(max_balance_current, sense_filter_corner_frequency)
-        Values calculated from maximum balance current and sense filter corner frequency
+    Dual RC filter for cell balancing.
+    Top filter: cell_power.hv -> resistor -> balance_input.p.line
+    Bottom filter: cell_power.lv -> resistor -> balance_input.n.line
+    Bridge capacitor connects balance_input.n to lower cell for transient filtering.
     """
 
-    def __init__(
-        self,
-        number_of_cells: int = 6,
-        sense_filter_resistance_ohms: int = 200,
-        sense_filter_capacitance_nF: int = 10,
-        max_balance_current_mA: float = 200,
-        total_number_of_channels: int = 16,
-    ):
-        super().__init__()
-        self.number_of_cells = number_of_cells
-        self.sense_filter_resistance = L.Range.from_center_rel(
-            sense_filter_resistance_ohms * P.Ω, 1 * P.percent
-        )
-        self.sense_filter_capacitance = L.Range.from_center_rel(
-            sense_filter_capacitance_nF * P.nF, 20 * P.percent
-        )
-        self.max_balance_current = max_balance_current_mA * P.mA
-        self.total_number_of_channels = total_number_of_channels
+    # ----------------------------------------
+    #     modules, interfaces, parameters
+    # ----------------------------------------
+    cell_power = F.ElectricPower.MakeChild()
+    balance_input = F.DifferentialPair.MakeChild()
+    cap_bridge_connect = F.ElectricSignal.MakeChild()
 
-    @L.rt_field
-    def cell_inputs(self) -> list[F.ElectricPower]:
-        return times(self.number_of_cells, F.ElectricPower)
+    top_resistor = F.Resistor.MakeChild()
+    bot_resistor = F.Resistor.MakeChild()
+    top_capacitor = F.Capacitor.MakeChild()
+    bot_capacitor = F.Capacitor.MakeChild()
 
-    @L.rt_field
-    def sense_inputs(self) -> list[F.DifferentialPair]:
-        return times(self.total_number_of_channels, F.DifferentialPair)
+    # ----------------------------------------
+    #                 traits
+    # ----------------------------------------
+    _is_module = fabll.Traits.MakeEdge(fabll.is_module.MakeChild())
 
-    @L.rt_field
-    def balance_inputs(self) -> list[F.DifferentialPair]:
-        return times(self.total_number_of_channels, F.DifferentialPair)
+    # ----------------------------------------
+    #            Connections
+    # ----------------------------------------
+    _connections = [
+        # cell_power.hv ~ top_resistor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [cell_power, F.ElectricPower.hv],
+            [top_resistor, F.Resistor.unnamed[0]],
+        ),
+        # top_resistor.unnamed[1] ~ balance_input.p.line
+        fabll.is_interface.MakeConnectionEdge(
+            [top_resistor, F.Resistor.unnamed[1]],
+            [balance_input, F.DifferentialPair.p, F.ElectricSignal.line],
+        ),
+        # cell_power.lv ~ bot_resistor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [cell_power, F.ElectricPower.lv],
+            [bot_resistor, F.Resistor.unnamed[0]],
+        ),
+        # bot_resistor.unnamed[1] ~ balance_input.n.line
+        fabll.is_interface.MakeConnectionEdge(
+            [bot_resistor, F.Resistor.unnamed[1]],
+            [balance_input, F.DifferentialPair.n, F.ElectricSignal.line],
+        ),
+        # balance_input.p.line ~ top_capacitor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [balance_input, F.DifferentialPair.p, F.ElectricSignal.line],
+            [top_capacitor, F.Capacitor.unnamed[0]],
+        ),
+        # top_capacitor.unnamed[1] ~ balance_input.n.line
+        fabll.is_interface.MakeConnectionEdge(
+            [top_capacitor, F.Capacitor.unnamed[1]],
+            [balance_input, F.DifferentialPair.n, F.ElectricSignal.line],
+        ),
+        # balance_input.n.line ~ bot_capacitor.unnamed[0]
+        fabll.is_interface.MakeConnectionEdge(
+            [balance_input, F.DifferentialPair.n, F.ElectricSignal.line],
+            [bot_capacitor, F.Capacitor.unnamed[0]],
+        ),
+        # bot_capacitor.unnamed[1] ~ cap_bridge_connect.line
+        fabll.is_interface.MakeConnectionEdge(
+            [bot_capacitor, F.Capacitor.unnamed[1]],
+            [cap_bridge_connect, F.ElectricSignal.line],
+        ),
+    ]
 
-    @L.rt_field
-    def sense_filters(self) -> list[SenseFilter]:
-        return times(
-            self.number_of_cells,
-            lamb=lambda: SenseFilter(
-                self.sense_filter_resistance, self.sense_filter_capacitance
-            ),
-        )
+    # ----------------------------------------
+    #            Constraints
+    # ----------------------------------------
+    # Balance filter: bleed resistance ~21.25 ohm +/- 5%
+    _constraints = [
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [top_resistor, F.Resistor.resistance],
+            _BLEED_R * 0.95, _BLEED_R * 1.05, unit=F.Units.Ohm,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [bot_resistor, F.Resistor.resistance],
+            _BLEED_R * 0.95, _BLEED_R * 1.05, unit=F.Units.Ohm,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [top_capacitor, F.Capacitor.capacitance],
+            _BLEED_C * 0.80, _BLEED_C * 1.20, unit=F.Units.Farad,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [bot_capacitor, F.Capacitor.capacitance],
+            _BLEED_C * 0.80, _BLEED_C * 1.20, unit=F.Units.Farad,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [top_resistor, F.Resistor.max_power],
+            _BLEED_POWER_MIN, 10.0, unit=F.Units.Watt,
+        ),
+        F.Literals.Numbers.MakeChild_SetSuperset(
+            [bot_resistor, F.Resistor.max_power],
+            _BLEED_POWER_MIN, 10.0, unit=F.Units.Watt,
+        ),
+    ]
 
-    @L.rt_field
-    def balance_filters(self) -> list[BalanceFilter]:
-        bleed_resistance_target = ((4.25 * P.V) / self.max_balance_current) / 2
-        bleed_filter_capacitance = L.Range.from_center_rel(
-            1 / (bleed_resistance_target * (2 * math.pi) * (80 * P.kHz)),
-            20 * P.percent,
-        )
-        return times(
-            self.number_of_cells,
-            lamb=lambda: BalanceFilter(
-                bleed_resistance_target, bleed_filter_capacitance
-            ),
-        )
 
+def _build_input_filter_connections(
+    cell_inputs, sense_inputs, balance_inputs,
+    sense_filters, balance_filters, bottom_sense_filter,
+):
+    """Build connections for ADBMS6830InputFilters.
+
+    Extracted to module-level function to avoid Python 3 class-scope
+    list comprehension visibility issue.
     """
-    Bottom sense filter, used to connect the bottom of the first cell to the lowest
-    ADC channel - side and filter transients to gnd
-    """
-
-    def __preinit__(self):
-        # self.bleed_resistance_target.alias_is(
-        #     ((4.25 * P.V) / self.max_balance_current) / 2
-        # )
-        # Calculate balance resistance value based on max balance current
-        for idx, cell_input in enumerate(self.cell_inputs):
-            # Set filter component values
-            # self.sense_filters[idx].sense_filter.hardcoded_rc(
-            #     L.Range.from_center_rel(10 * P.ohms, 5 * P.percent),
-            #     L.Range.from_center_rel(47 * P.nF, 20 * P.percent),
-            # )
-            # self.balance_filters[idx].top_balance_filter.hardcoded_rc(
-            #     L.Range.from_center_rel(10 * P.ohms, 5 * P.percent),
-            #     L.Range.from_center_rel(47 * P.nF, 20 * P.percent),
-            # )
-            # self.balance_filters[idx].bottom_balance_filter.hardcoded_rc(
-            #     L.Range.from_center_rel(10 * P.ohms, 5 * P.percent),
-            #     L.Range.from_center_rel(47 * P.nF, 20 * P.percent),
-            # )
-
-            cell_input.connect(self.sense_filters[idx].cell_power)
-            self.sense_filters[idx].sense_input.connect(self.sense_inputs[idx])
-
-            cell_input.connect(self.balance_filters[idx].cell_power)
-            self.balance_filters[idx].balance_input.connect(self.balance_inputs[idx])
-
-            if idx > 0:
-                # Connect bridge capacitor down the stack
-                self.balance_filters[idx].cap_bridge_connect.connect(
-                    self.balance_filters[idx - 1].balance_input.p
-                )
-                # Connect cell stack together
-                self.cell_inputs[idx].lv.connect(self.cell_inputs[idx - 1].hv)
-            else:
-                self.balance_filters[idx].cap_bridge_connect.line.connect(
-                    self.cell_inputs[0].lv
-                )
-
-        # Connect Bottom of Stack to GND with additional sense filter
-        self.bottom_sense_filter = self.add(
-            SenseFilter(self.sense_filter_resistance, self.sense_filter_capacitance)
-        )
-        self.bottom_sense_filter.cell_power.hv.connect(self.cell_inputs[0].lv)
-        self.bottom_sense_filter.sense_input.p.line.connect(self.sense_inputs[0].n.line)
-        self.bottom_sense_filter.sense_input.n.line.connect(self.cell_inputs[0].lv)
-
-        """
-        If there are any depopulated channels, connect both the sense and
-        balance inputs to the top of the stack through a 1kohm resistor
-        """
-        number_of_depopulated_channels = (
-            self.total_number_of_channels - self.number_of_cells
-        )
-        if number_of_depopulated_channels > 0:
-            depop_resistor = self.add(F.Resistor())
-            depop_resistor.resistance.constrain_subset(
-                L.Range.from_center_rel(1 * P.kΩ, 1 * P.percent)
+    return (
+        # Connect cell inputs to sense filters
+        [
+            fabll.is_interface.MakeConnectionEdge(
+                [cell_inputs[i]],
+                [sense_filters[i], SenseFilter.cell_power],
             )
-            for idx in range(number_of_depopulated_channels):
-                self.sense_inputs[
-                    self.total_number_of_channels - 1 - idx
-                ].p.line.connect_via(
-                    depop_resistor,
-                    self.cell_inputs[self.number_of_cells - 1].hv,
-                )
-                self.sense_inputs[
-                    self.total_number_of_channels - 1 - idx
-                ].n.line.connect_via(
-                    depop_resistor,
-                    self.cell_inputs[self.number_of_cells - 1].hv,
-                )
-                self.balance_inputs[
-                    self.total_number_of_channels - 1 - idx
-                ].p.line.connect_via(
-                    depop_resistor,
-                    self.cell_inputs[self.number_of_cells - 1].hv,
-                )
-                self.balance_inputs[
-                    self.total_number_of_channels - 1 - idx
-                ].n.line.connect_via(
-                    depop_resistor,
-                    self.cell_inputs[self.number_of_cells - 1].hv,
-                )
+            for i in range(NUM_CELLS)
+        ]
+        # Connect sense filter outputs to sense inputs
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [sense_filters[i], SenseFilter.sense_input],
+                [sense_inputs[i]],
+            )
+            for i in range(NUM_CELLS)
+        ]
+        # Connect cell inputs to balance filters
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [cell_inputs[i]],
+                [balance_filters[i], BalanceFilter.cell_power],
+            )
+            for i in range(NUM_CELLS)
+        ]
+        # Connect balance filter outputs to balance inputs
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [balance_filters[i], BalanceFilter.balance_input],
+                [balance_inputs[i]],
+            )
+            for i in range(NUM_CELLS)
+        ]
+        # Chain: balance_filters[i].cap_bridge_connect ~ balance_filters[i-1].balance_input.p
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [balance_filters[i], BalanceFilter.cap_bridge_connect],
+                [
+                    balance_filters[i - 1],
+                    BalanceFilter.balance_input,
+                    F.DifferentialPair.p,
+                ],
+            )
+            for i in range(1, NUM_CELLS)
+        ]
+        # Chain: cell_inputs[i].lv ~ cell_inputs[i-1].hv
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [cell_inputs[i], F.ElectricPower.lv],
+                [cell_inputs[i - 1], F.ElectricPower.hv],
+            )
+            for i in range(1, NUM_CELLS)
+        ]
+        # Bottom cell (idx=0): balance_filters[0].cap_bridge_connect.line ~ cell_inputs[0].lv
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [
+                    balance_filters[0],
+                    BalanceFilter.cap_bridge_connect,
+                    F.ElectricSignal.line,
+                ],
+                [cell_inputs[0], F.ElectricPower.lv],
+            ),
+        ]
+        # Bottom sense filter connections
+        + [
+            fabll.is_interface.MakeConnectionEdge(
+                [bottom_sense_filter, SenseFilter.cell_power, F.ElectricPower.hv],
+                [cell_inputs[0], F.ElectricPower.lv],
+            ),
+            fabll.is_interface.MakeConnectionEdge(
+                [
+                    bottom_sense_filter,
+                    SenseFilter.sense_input,
+                    F.DifferentialPair.p,
+                    F.ElectricSignal.line,
+                ],
+                [sense_inputs[0], F.DifferentialPair.n, F.ElectricSignal.line],
+            ),
+            fabll.is_interface.MakeConnectionEdge(
+                [
+                    bottom_sense_filter,
+                    SenseFilter.sense_input,
+                    F.DifferentialPair.n,
+                    F.ElectricSignal.line,
+                ],
+                [cell_inputs[0], F.ElectricPower.lv],
+            ),
+        ]
+    )
+
+
+class ADBMS6830InputFilters(fabll.Node):
+    """
+    Filters between cell connections and sense/balance pins of the ADBMS6830.
+    Hardcoded for 16 cells / 16 channels (no depopulated channels).
+
+    Sense Filters: 200 ohm +/- 1% / 10nF +/- 20% RC low-pass
+    Balance Filters: calculated from 100mA max balance current
+    """
+
+    # ----------------------------------------
+    #     modules, interfaces, parameters
+    # ----------------------------------------
+    _is_module = fabll.Traits.MakeEdge(fabll.is_module.MakeChild())
+
+    # External interfaces
+    cell_inputs = [F.ElectricPower.MakeChild() for _ in range(NUM_CELLS)]
+    sense_inputs = [F.DifferentialPair.MakeChild() for _ in range(NUM_CELLS)]
+    balance_inputs = [F.DifferentialPair.MakeChild() for _ in range(NUM_CELLS)]
+
+    # Internal filter modules
+    sense_filters = [SenseFilter.MakeChild() for _ in range(NUM_CELLS)]
+    balance_filters = [BalanceFilter.MakeChild() for _ in range(NUM_CELLS)]
+
+    # Bottom sense filter for connecting bottom of stack to lowest ADC channel
+    bottom_sense_filter = SenseFilter.MakeChild()
+
+    # ----------------------------------------
+    #            Connections
+    # ----------------------------------------
+    _connections = _build_input_filter_connections(
+        cell_inputs, sense_inputs, balance_inputs,
+        sense_filters, balance_filters, bottom_sense_filter,
+    )
