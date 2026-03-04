@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -1394,6 +1438,12 @@
 			(hide yes)
 			(uuid "1ca00b64-5a6d-4562-8614-3cce4642524b")
 		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/buttons/layouts/VerticalButton/VerticalButton.kicad_pcb:package]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "cc5a43f1-1708-45cc-933d-30514642524b")
+		)
 		(attr smd)
 		(fp_line
 			(start -0.51 -1.02)
@@ -1669,6 +1719,12 @@
 			(hide yes)
 			(uuid "b56bcc1e-d13e-4f77-878d-fcd74642524b")
 		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/buttons/layouts/VerticalButton/VerticalButton.kicad_pcb:package]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "ff447bb4-4cf3-4b70-8ece-f5f44642524b")
+		)
 		(attr smd)
 		(fp_line
 			(start -0.51 -1.02)
@@ -1842,7 +1898,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1974,7 +2030,7 @@
 				)
 			)
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3617,6 +3673,12 @@
 			(hide yes)
 			(uuid "e7a0acac-9a68-4213-8f31-bfb74642524b")
 		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:connector.package]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "488b7cc1-ff8c-47a8-9e3c-c1ef4642524b")
+		)
 		(attr smd)
 		(fp_line
 			(start -4.5 1.39)
@@ -3935,6 +3997,12 @@
 			(hide yes)
 			(uuid "88b48732-b03a-4ebb-b149-12ec4642524b")
 		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:esd_protection.package]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "6aaa6f06-29a9-4858-a86a-1bd84642524b")
+		)
 		(attr smd)
 		(fp_line
 			(start 1.54 0.89)
@@ -4122,6 +4190,12 @@
 			(hide yes)
 			(uuid "c19d7c94-1267-412e-ac7e-19e64642524b")
 		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:fused_usb.fuse.package]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "27bbc705-09d6-4ad4-a198-720f4642524b")
+		)
 		(attr smd)
 		(fp_line
 			(start -2.06 -0.76)
@@ -4284,7 +4358,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "aaa79cdc-b483-4880-8dd2-2d9f6bfefee9")
@@ -4337,13 +4411,13 @@
 			(hide yes)
 			(uuid "1d8ccba6-53c5-4631-94fc-53f84642524b")
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "85912dd9-f1a6-4872-8acf-1b844642524b")
 		)
-		(property "max_power" "100mW"
+		(property "max_power" "0.1W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4366,6 +4440,12 @@
 			(layer "User.9")
 			(hide yes)
 			(uuid "8fa1f68b-6c98-43c6-9366-edc24642524b")
+		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:cc_resistors[0]]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "ddd8ddce-d565-4fbb-9cdd-03464642524b")
 		)
 		(attr smd)
 		(fp_line
@@ -4505,7 +4585,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0F"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "96b07d0a-3923-49df-bc2c-1a8d968712bb")
@@ -4558,7 +4638,7 @@
 			(hide yes)
 			(uuid "179655e5-685c-4edf-ba9d-06304642524b")
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4593,6 +4673,12 @@
 			(layer "User.9")
 			(hide yes)
 			(uuid "2dfdcf5b-7f95-4c25-af41-d4324642524b")
+		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:esd_protection.decoupling_capacitor]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "744591e0-9acc-4069-bf91-2f014642524b")
 		)
 		(attr smd)
 		(fp_line
@@ -4780,7 +4866,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "aaa79cdc-b483-4880-8dd2-2d9f6bfefee9")
@@ -4833,13 +4919,13 @@
 			(hide yes)
 			(uuid "d9426a43-6b7e-485e-84d6-16334642524b")
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1d1ec197-df68-449e-995e-a6264642524b")
 		)
-		(property "max_power" "100mW"
+		(property "max_power" "0.1W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4862,6 +4948,12 @@
 			(layer "User.9")
 			(hide yes)
 			(uuid "e3083519-5c50-43d7-abbd-86574642524b")
+		)
+		(property "atopile_subaddresses" "[.ato/modules/atopile/usb-connectors/layouts/default/default.kicad_pcb:cc_resistors[1]]"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "97869f22-37a2-4138-ac9f-f2204642524b")
 		)
 		(attr smd)
 		(fp_line
@@ -5979,8 +6071,11 @@
 	)
 	(group "usb_connector"
 		(uuid "15068ba3-206a-4468-8f19-49fbe4c82820")
-		(members "1407fbf7-d204-4041-bdb3-300620b0175c" "354c8446-2061-4963-8dec-1b79beb12b4e"
-			"6dc62372-a982-49d1-ae0b-b1f44642524b" "a3f1bd2c-232a-405d-b177-cc9d4642524b"
+		(members "1407fbf7-d204-4041-bdb3-300620b0175c" "17cd42ff-5a4c-431c-845c-a3cd4642524b"
+			"354c8446-2061-4963-8dec-1b79beb12b4e" "436a3eb8-1532-40d4-92df-97e44642524b"
+			"56c0cd9a-0511-4501-ad85-c68a4642524b" "57d37bda-e085-4427-98c6-eaab4642524b"
+			"63bd9e14-36ec-4294-bac2-1b814642524b" "6dc62372-a982-49d1-ae0b-b1f44642524b"
+			"6f086506-b14a-4a9a-8a85-51a54642524b" "a3f1bd2c-232a-405d-b177-cc9d4642524b"
 			"a64f38e5-1a7a-4a14-a877-8bd2fdcb928e" "bcd3cc5c-d6c6-46d7-ad5c-7e7bcb3bbab2"
 			"eea8596e-8e4e-410f-8011-f6c74642524b"
 		)
@@ -5992,6 +6087,16 @@
 			"991cadce-cc23-4d92-897f-ec624642524b" "ab59c3d6-480a-4984-869e-f4614642524b"
 			"ba6bdae6-f42f-459a-b8c0-534e4642524b"
 		)
+	)
+	(group "program_button"
+		(uuid "81e57072-6f67-7261-6d5f-627574746f6e")
+		(locked no)
+		(members "599a58cd-ad3a-414a-a065-73c74642524b")
+	)
+	(group "power_button"
+		(uuid "9b7c8b6f-706f-7765-725f-627574746f6e")
+		(locked no)
+		(members "80006828-3807-420a-a579-4b5c4642524b")
 	)
 	(embedded_fonts no)
 )
