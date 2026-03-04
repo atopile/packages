@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -89,13 +133,12 @@
 	(net 2 "PRETERM")
 	(net 5 "ISET")
 	(net 6 "pg_led-power-lv")
-	(net 7 "TS")
-	(net 8 "lv")
+	(net 8 "chg_led-power-lv")
 	(net 9 "pg_led-cathode")
 	(net 11 "cathode")
-	(net 3 "output_cap-power-lv")
-	(net 12 "hv")
-	(net 13 "anode")
+	(net 3 "lv")
+	(net 1 "anode")
+	(net 4 "TS")
 	(footprint "Hubei_KENTO_Elec_KT_0603G:LED0603-RD"
 		(layer "F.Cu")
 		(uuid "00811002-31e2-42aa-bba7-32414642524b")
@@ -432,7 +475,7 @@
 			(at 0.8 0 180)
 			(size 0.8 0.8)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "anode")
+			(net 1 "anode")
 			(uuid "39d7c283-c4cb-4318-9707-e588932a4174")
 		)
 		(model "${KIPRJMOD}/../../parts/Hubei_KENTO_Elec_KT_0603G/LED0603-RD-YELLOW.STEP"
@@ -463,7 +506,7 @@
 				)
 			)
 		)
-		(property "Value" "1kΩ"
+		(property "Value" "1000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -607,13 +650,13 @@
 				)
 			)
 		)
-		(property "resistance" "1±1.0%kΩ"
+		(property "resistance" "1000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5f87cdf9-6597-4d0d-934d-755c4642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -743,7 +786,7 @@
 			(at 0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
+			(net 3 "lv")
 			(uuid "ef60de95-5394-4bd8-8149-577c48ad7885")
 		)
 		(embedded_fonts no)
@@ -756,300 +799,6 @@
 			)
 			(rotate
 				(xyz 0 0 0)
-			)
-		)
-	)
-	(footprint "UNI_ROYAL_0603WAF1002T5E:R0603"
-		(layer "F.Cu")
-		(uuid "4cf2532a-3242-4a41-8a07-c90e4642524b")
-		(at 173.7 98.6 -90)
-		(property "Reference" "R4"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "b14eab7b-93fc-4bec-a2a2-0a7417f4d09e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Value" "10kΩ"
-			(at 0 4 270)
-			(layer "F.Fab")
-			(hide no)
-			(uuid "16e5d9b8-aba4-41e2-9e72-3109bd4227d7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "e151419d-38da-4dcb-9c85-0f654642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 90)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "e9afee75-0404-4930-9cff-536b4e05d843")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "__atopile_lib_fp_hash__" "49eb49fe-66d7-5b07-9454-f0eee77fa43f"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "385e8dec-2b1a-4479-9ae3-49aa4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "LCSC" "C25804"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "d7212ea3-32b9-4db0-803d-310a4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "Manufacturer" "UNI-ROYAL(Uniroyal Elec)"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "c38db8eb-cd0f-4edc-b16a-22754642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "Partnumber" "0603WAF1002T5E"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "fbb7e62c-7021-4574-9d6a-e90b4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "fc1ea8d9-3dbb-4830-95aa-31fd4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "6096a43e-080f-40db-8bd6-7a8a4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "568b68c6-4191-4c04-b95e-bf204642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "atopile_address" "ts_pull"
-			(at 0 0 90)
-			(layer "User.9")
-			(hide yes)
-			(uuid "d49747f9-e0c4-42cd-bcac-773c4642524b")
-			(effects
-				(font
-					(size 0.125 0.125)
-					(thickness 0.01875)
-				)
-			)
-		)
-		(property "resistance" "10±1.0%kΩ"
-			(at 0 0 0)
-			(layer "User.9")
-			(hide yes)
-			(uuid "95c86d6f-d447-4464-bdf3-6b1c4642524b")
-		)
-		(property "max_power" "100mW"
-			(at 0 0 0)
-			(layer "User.9")
-			(hide yes)
-			(uuid "02c90169-6d51-4817-98e8-c5934642524b")
-		)
-		(property "max_voltage" "75V"
-			(at 0 0 0)
-			(layer "User.9")
-			(hide yes)
-			(uuid "d64a3331-10b8-4045-bdf6-f6814642524b")
-		)
-		(property "lcsc_id" "C25804"
-			(at 0 0 0)
-			(layer "User.9")
-			(hide yes)
-			(uuid "cff63a18-2cda-4b3a-9dbd-db384642524b")
-		)
-		(attr smd)
-		(fp_line
-			(start -1.39 0.66)
-			(end -1.39 -0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "ba575f71-4d75-44ef-9034-975fc09e6902")
-		)
-		(fp_line
-			(start -0.43 0.66)
-			(end -1.39 0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "c32babdb-feba-4ded-8b38-4650ff099d07")
-		)
-		(fp_line
-			(start 0.43 0.66)
-			(end 1.39 0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "76bc7a37-b4ed-4d42-8667-ca5420fe1ec4")
-		)
-		(fp_line
-			(start 1.39 0.66)
-			(end 1.39 -0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "a4d11d23-be75-4c4f-92cc-a1e8abd655b0")
-		)
-		(fp_line
-			(start -1.39 -0.66)
-			(end -0.43 -0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "43632c3c-97a9-49f7-b7c0-64e379a1f1c5")
-		)
-		(fp_line
-			(start 1.39 -0.66)
-			(end 0.43 -0.66)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(layers "F.SilkS")
-			(locked no)
-			(uuid "fa9582ef-75f3-4014-a23f-8860b25cf766")
-		)
-		(fp_circle
-			(center -0.8 0.4)
-			(end -0.77 0.4)
-			(stroke
-				(width 0.06)
-				(type solid)
-			)
-			(layer "F.Fab")
-			(locked no)
-			(uuid "49659267-af74-4fd3-8c88-67cc2e63a7b3")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "24f1b227-ab24-46fa-831b-6b06d83ca2c1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(pad "1" smd rect
-			(at -0.75 0 270)
-			(size 0.81 0.86)
-			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "TS")
-			(uuid "50207dba-5018-417f-9d66-4ff83476ff3c")
-		)
-		(pad "2" smd rect
-			(at 0.75 0 270)
-			(size 0.81 0.86)
-			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
-			(uuid "61fbd25a-2a79-4de2-9b77-ce662d6ed7d8")
-		)
-		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF1002T5E/R0603.STEP"
-			(offset
-				(xyz 0 0 -0)
-			)
-			(scale
-				(xyz 1 1 1)
-			)
-			(rotate
-				(xyz 0 0 270)
 			)
 		)
 	)
@@ -1069,7 +818,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -1213,13 +962,13 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8b18253f-4a60-4a2e-bb2e-47da4642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1349,7 +1098,7 @@
 			(at 0.43 0 90)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "lv")
+			(net 8 "chg_led-power-lv")
 			(uuid "cb50ad6a-d2e6-4243-9fd5-205394971b29")
 		)
 		(embedded_fonts no)
@@ -1576,7 +1325,7 @@
 			(at -0.8 0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "anode")
+			(net 1 "anode")
 			(uuid "21f06f8d-7fc6-4fc5-8aa4-a0dfd221321f")
 		)
 		(pad "2" smd rect
@@ -1590,7 +1339,7 @@
 			(at 0 0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
+			(net 3 "lv")
 			(uuid "c2de0a69-a0b4-430e-bf0f-5c4e1d96d016")
 		)
 		(pad "4" smd rect
@@ -1617,35 +1366,35 @@
 			(at 0.4 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "anode")
+			(net 1 "anode")
 			(uuid "7dd1c47f-9713-4dab-ace9-596984714cde")
 		)
 		(pad "8" smd rect
 			(at 0 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "lv")
+			(net 8 "chg_led-power-lv")
 			(uuid "e5c56b92-7cc1-40e0-a45b-3cee7509d64d")
 		)
 		(pad "9" smd rect
 			(at -0.4 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "TS")
+			(net 4 "TS")
 			(uuid "05f4328d-e6b8-4947-9841-ca1a985b2290")
 		)
 		(pad "10" smd rect
 			(at -0.8 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "hv")
+			(net 1 "anode")
 			(uuid "bb4d68e1-bb4c-41a2-aef2-63f8c08333b9")
 		)
 		(pad "11" smd rect
 			(at 0 0 0)
 			(size 1.5 0.9)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
+			(net 3 "lv")
 			(uuid "2337697e-ccdb-4310-9d40-a23b180d1b11")
 		)
 		(model "${KIPRJMOD}/../../parts/Texas_Instruments_BQ24040DSQR/WSON-10_L2.0-W2.0-H0.8-P0.40.step"
@@ -1676,7 +1425,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1820,13 +1569,13 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "88f6d852-bda0-439e-a869-54904642524b")
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1988,7 +1737,7 @@
 				)
 			)
 		)
-		(property "Value" "1µF"
+		(property "Value" "0F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -2132,7 +1881,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%µF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2309,14 +2058,14 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
+			(net 3 "lv")
 			(uuid "d497648e-e25a-4266-99fd-94b541e788ee")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 12 "hv")
+			(net 1 "anode")
 			(uuid "37fb9854-bc4c-4e62-8672-12cec2357a02")
 		)
 		(embedded_fonts no)
@@ -2668,7 +2417,7 @@
 			(at 0.8 0 0)
 			(size 0.8 0.8)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "anode")
+			(net 1 "anode")
 			(uuid "fb7a9897-616c-4d87-a95d-45e172d09bfe")
 		)
 		(model "${KIPRJMOD}/../../parts/Hubei_KENTO_Elec_KT_0603G/LED0603-RD-YELLOW.STEP"
@@ -2699,7 +2448,7 @@
 				)
 			)
 		)
-		(property "Value" "1µF"
+		(property "Value" "0F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -2843,7 +2592,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%µF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3020,14 +2769,14 @@
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 3 "output_cap-power-lv")
+			(net 3 "lv")
 			(uuid "25a3f464-c17e-4e54-a476-4f04bbde68d7")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 13 "anode")
+			(net 1 "anode")
 			(uuid "ad0fccbf-1d02-4666-a911-73451f8fcec7")
 		)
 		(embedded_fonts no)
@@ -3040,6 +2789,227 @@
 			)
 			(rotate
 				(xyz 0 0 0)
+			)
+		)
+	)
+	(footprint "UNI_ROYAL_0603WAF1002T5E:R0603"
+		(layer "F.Cu")
+		(uuid "db89f11f-8401-4800-9de1-6b604642524b")
+		(at 0 0 0)
+		(property "Reference" "R4"
+			(at 0 -4)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "b652558a-750a-4ebc-80c8-0c397ec5c814")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "10000Ω"
+			(at 0 4)
+			(layer "F.Fab")
+			(uuid "e2d9191d-4828-44c4-9f47-3c0d74fe8520")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C25804"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "41d89027-d312-4a52-b14c-42064642524b")
+		)
+		(property "Manufacturer" "UNI-ROYAL(Uniroyal Elec)"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "5284e656-863b-4912-9fed-47164642524b")
+		)
+		(property "PARAM_max_power" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 0.1, \"max\": 0.1}}]}}, \"unit\": \"watt\"}}"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "0c7e1060-5fbc-4d26-8370-c1294642524b")
+		)
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 75.0, \"max\": 75.0}}]}}, \"unit\": \"volt\"}}"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "d22372e2-e657-4e71-9c28-67334642524b")
+		)
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "9831885a-3321-4d62-85aa-12aa4642524b")
+		)
+		(property "Partnumber" "0603WAF1002T5E"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "8e9cd3d0-d798-495c-819b-17464642524b")
+		)
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "243f9900-cac1-435b-bab1-9df24642524b")
+		)
+		(property "resistance" "10000±1.0%Ω"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "197959dc-058b-4111-b569-ed334642524b")
+		)
+		(property "max_power" "0.1W"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "5abab6a9-fee8-4fc6-a356-d2cf4642524b")
+		)
+		(property "max_voltage" "75V"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "fca8787b-249a-40db-b0e2-d3374642524b")
+		)
+		(property "atopile_address" "ts_pull"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "4a0dc50a-69a4-45e1-9b63-540b4642524b")
+		)
+		(property "lcsc_id" "C25804"
+			(at 0 0 0)
+			(layer "User.9")
+			(hide yes)
+			(uuid "3df14db8-91de-4096-8f46-9c8c4642524b")
+		)
+		(attr smd)
+		(fp_line
+			(start 0.43 0.66)
+			(end 1.39 0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "16d29f55-65fd-4d14-9b7f-aff0814f27f7")
+		)
+		(fp_line
+			(start 1.39 0.66)
+			(end 1.39 -0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "9b7505ee-2f8f-40b3-896d-62eba07810ab")
+		)
+		(fp_line
+			(start 1.39 -0.66)
+			(end 0.43 -0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "0d3a1537-b30e-4df7-9bdb-89a986f94ac1")
+		)
+		(fp_line
+			(start -0.43 0.66)
+			(end -1.39 0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "f9edd532-e4ef-4e49-b924-dade719d3b5e")
+		)
+		(fp_line
+			(start -1.39 0.66)
+			(end -1.39 -0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "30410935-5c5d-4f79-b037-cad560bd531b")
+		)
+		(fp_line
+			(start -1.39 -0.66)
+			(end -0.43 -0.66)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "4c09244f-824d-458f-8df5-ed9c4ab16370")
+		)
+		(fp_circle
+			(center -0.8 0.4)
+			(end -0.77 0.4)
+			(stroke
+				(width 0.06)
+				(type solid)
+			)
+			(layer "F.Fab")
+			(locked no)
+			(uuid "0b9d12fb-a504-43b8-931e-408da32455f4")
+		)
+		(fp_text user "%R"
+			(at 0 0)
+			(layer "F.Fab")
+			(uuid "65665c9c-612b-4606-be6e-0fec4985a9ff")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "2" smd rect
+			(at 0.75 0 0)
+			(size 0.81 0.86)
+			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 3 "lv")
+			(uuid "991b8c1f-3efc-48b1-9713-70ecb905439a")
+		)
+		(pad "1" smd rect
+			(at -0.75 0 0)
+			(size 0.81 0.86)
+			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 4 "TS")
+			(uuid "096a8ad0-2c33-4a94-a248-9163c0520af8")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0603WAF1002T5E/R0603.STEP"
+			(offset
+				(xyz 0 0 -0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 270)
 			)
 		)
 	)

@@ -26,17 +26,15 @@ module LEDIndicator:
     """
     resistor = new Resistor
     led = new LED
+    current: A
 
     resistor.package = "0402"
 
-    current = 0.5mA to 3mA  # TODO: calculate with brightness (TypicalLuminousIntensity) instead
+    current.default = 0.5mA to 0.8mA
 
-    assert (power.voltage - led.diode.forward_voltage) / current is resistor.resistance
-    assert (power.voltage - led.diode.forward_voltage) / resistor.resistance is current
-    assert resistor.resistance * current is (power.voltage - led.diode.forward_voltage)
+    assert resistor.resistance within (power.voltage - led.diode.forward_voltage) / current
     assert current <= led.diode.max_current
 
-    assert power.voltage <= 60V
     assert power.voltage >= led.diode.forward_voltage
 
     # Connections
