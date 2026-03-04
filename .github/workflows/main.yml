@@ -61,9 +61,9 @@ jobs:
       - uses: atopile/setup-atopile@v2
         # Uses pre-built Docker image from the atopile container registry
         # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
-        # Using stable release tag instead of 'main' to avoid broken dev builds
+        # Testing fix for SIGILL: https://github.com/atopile/atopile/pull/1770
         with:
-          docker-tag: 0.14.1004
+          docker-tag: pr-1770
 
       - name: Print atopile + KiCad versions
         run: |
