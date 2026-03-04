@@ -20,6 +20,8 @@ module OutputStage:
     Output stage for the TAS5825MRHBR amplifier
     """
 
+    trait has_single_electric_reference<ground_only=True>
+
     output = new DifferentialPair
     input = new DifferentialPair
     bootstrap = new DifferentialPair
@@ -31,6 +33,14 @@ module OutputStage:
     bootstrap_neg = new Capacitor
     output_cap_pos = new Capacitor
     output_cap_neg = new Capacitor
+
+    # Connect DifferentialPair reference grounds to output stage ground
+    input.p.reference.lv ~ reference.lv
+    input.n.reference.lv ~ reference.lv
+    output.p.reference.lv ~ reference.lv
+    output.n.reference.lv ~ reference.lv
+    bootstrap.p.reference.lv ~ reference.lv
+    bootstrap.n.reference.lv ~ reference.lv
 
     input.p.line ~> inductor_pos ~> output.p.line
     input.n.line ~> inductor_neg ~> output.n.line
@@ -152,7 +162,7 @@ module Texas_Instruments_TAS5825MRHBR:
     power_pvdd.hv ~ amplifier.PVDD
     power_dvdd.hv ~ amplifier.DVDD
 
-    for gnd in [amplifier.PGND, power_pvdd.lv, amplifier.AGND, amplifier.DGND, amplifier.EP]:
+    for gnd in [amplifier.PGND, power_dvdd.lv, amplifier.AGND, amplifier.DGND, amplifier.EP]:
         power_pvdd.lv ~ gnd
 
     # I2C

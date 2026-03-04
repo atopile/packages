@@ -1,25 +1,24 @@
-requires-atopile: ^0.14.0
-
+requires-atopile: ^0.14.1004
 paths:
   src: .
   layout: ./layouts
-
 builds:
   default:
     entry: ti-tas5825mrhbr.ato:Texas_Instruments_TAS5825MRHBR
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
+    exclude_checks:
+    - PCB.requires_drc_check
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
-
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/ti-tas5825mrhbr
   repository: https://github.com/atopile/packages
-  version: "0.2.0"
+  version: 0.2.0
   authors:
-    - name: atopile
-      email: hi@atopile.io
+  - name: atopile
+    email: hi@atopile.io
   summary: Texas Instruments TAS5825MRHBR audio amplifier
   license: MIT
