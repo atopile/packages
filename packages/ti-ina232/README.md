@@ -25,7 +25,6 @@ The INA232 is a high-side/low-side bidirectional current and power monitor with 
 #pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
 import I2C
-import Resistor
 
 from "atopile/ti-ina232/ti-ina232.ato" import TI_INA232
 
