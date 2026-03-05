@@ -3,7 +3,6 @@
 
 import I2C
 import ElectricPower
-import Resistor
 import ElectricLogic
 
 from "atopile/ti-tmp117/ti-tmp117.ato" import TI_TMP117
@@ -26,7 +25,7 @@ module Usage:
     i2c_bus ~ temp_sensor.i2c
 
     # Configure address (Possible addresses: 0x48, 0x49, 0x4A, 0x4B)
-    assert temp_sensor.i2c.address is 0x48
+    assert temp_sensor.i2c.address within 0x48 to 0x48
 
     # Alert pin is available for temperature limit notifications
     # Can be connected to microcontroller GPIO for interrupt-driven operation
