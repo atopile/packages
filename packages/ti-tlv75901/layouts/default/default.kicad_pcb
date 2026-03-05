@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -82,13 +126,11 @@
 			(outputdirectory "")
 		)
 	)
-	(net 0 "")
 	(net 1 "DNC")
-	(net 2 "lv")
 	(net 3 "hv")
 	(net 4 "output_decoupling_capacitor-power-hv")
 	(net 5 "ref_out-hv")
-	(net 6 "output_decoupling_capacitor-power-lv")
+	(net 7 "lv")
 	(footprint "Samsung_Electro_Mechanics_CL05A105KA5NQNC:C0402"
 		(layer "F.Cu")
 		(uuid "33b71820-c653-466f-ab7a-2e0d4642524b")
@@ -105,7 +147,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999..1.1}F"
+		(property "Value" "0F"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "5a42089d-240e-422a-afe6-961fcf9ffe2e")
@@ -236,7 +278,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999..1.1}F"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -450,7 +492,7 @@
 			(at 0.42 0 180)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "lv")
+			(net 7 "lv")
 			(uuid "a54ad7c6-e0e6-4af3-8069-c2693e5758cb")
 		)
 		(embedded_fonts no)
@@ -482,7 +524,7 @@
 				)
 			)
 		)
-		(property "Value" "10000±1.0%Ω"
+		(property "Value" "10000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "96ce6ae0-4bee-405f-80ac-4864e2906c18")
@@ -767,7 +809,7 @@
 			(at 0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "output_decoupling_capacitor-power-lv")
+			(net 7 "lv")
 			(uuid "8a9f7069-00c0-4427-aa8a-bb816a57c2e8")
 		)
 		(embedded_fonts no)
@@ -799,7 +841,7 @@
 				)
 			)
 		)
-		(property "Value" "10000±1.0%Ω"
+		(property "Value" "10000Ω"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(uuid "a6a21fe1-6f5b-4a44-af21-1c7edaede65b")
@@ -1116,7 +1158,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999..1.1}F"
+		(property "Value" "0F"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "37f0e85c-e9df-4d0a-96a5-790f387283a4")
@@ -1247,7 +1289,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999..1.1}F"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1461,7 +1503,7 @@
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "output_decoupling_capacitor-power-lv")
+			(net 7 "lv")
 			(uuid "01e0d270-d54b-44c6-9dcb-e8d5b681a753")
 		)
 		(embedded_fonts no)
@@ -1707,7 +1749,7 @@
 			(at -1.03 0.65 -90)
 			(size 0.36 0.61)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "lv")
+			(net 7 "lv")
 			(uuid "454f6f0f-9803-46db-bc35-65cbb5926648")
 		)
 		(pad "4" smd oval
@@ -1735,7 +1777,7 @@
 			(at 0 0 0)
 			(size 1 1.6)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "output_decoupling_capacitor-power-lv")
+			(net 7 "lv")
 			(uuid "b7dd1804-05b0-4ab8-bee7-da388499e5c1")
 		)
 		(model "${KIPRJMOD}/../../parts/Texas_Instruments_TLV75901PDRVR/WSON-6_L2.0-W2.0-H0.8-P0.65.step"
