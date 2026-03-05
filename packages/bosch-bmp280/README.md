@@ -53,7 +53,7 @@ module Usage:
     power_3v3 ~ i2c.sda.reference
 
     # Configure I²C address to 0x76 (SDO pin will be pulled low via internal pull-down)
-    sensor.i2c.address = 0x76
+    assert sensor.i2c.address within 0x76
 
 ```
 

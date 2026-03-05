@@ -1,0 +1,50 @@
+#pragma experiment("TRAITS")
+
+import ElectricPower
+import ElectricLogic
+import ElectricSignal
+import has_part_removed
+
+from "atopile/alpsalpine-rs60n11m9a0f/alpsalpine-rs60n11m9a0f.ato" import AlpsAlpine_RS60N11M9A0F
+
+module FakeMotorDriver:
+    """
+    Mock motor driver for testing
+    """
+    motor_out = new Electrical[2]
+    logic_in = new ElectricLogic[2]
+    power_motor = new ElectricPower
+    power_logic = new ElectricPower
+
+    max_motor_current: A
+
+    trait has_part_removed
+
+module Usage:
+    """
+    Usage example of AlpsAlpine RS60N11M9A0F motor fader.
+    """
+    motor_fader = new AlpsAlpine_RS60N11M9A0F
+    motor_driver = new FakeMotorDriver
+
+    # Power
+    power_motor = new ElectricPower
+    power_motor.voltage = 10V +/- 10%
+    logic_power = new ElectricPower
+    logic_power.voltage = 3.3V +/- 5%
+
+    # logics
+    pot_sense = new ElectricSignal
+    pot_sense.reference ~ logic_power
+    touch_sense = new ElectricLogic
+    touch_sense.reference ~ logic_power
+
+    # Connections
+    power_motor ~ motor_driver.power_motor
+    logic_power ~ motor_driver.power_logic
+    motor_driver.motor_out[0] ~ motor_fader.motor_positive
+    motor_driver.motor_out[1] ~ motor_fader.motor_negative
+    pot_sense ~ motor_fader.potentiometer_signal
+    touch_sense ~ motor_fader.touch_sense
+
+    assert motor_fader.motor_rated_voltage <= motor_driver.power_motor.voltage
