@@ -59,11 +59,8 @@ jobs:
           clean: false
 
       - uses: atopile/setup-atopile@v2
-        # Build against the main branch of atopile by setting the docker-tag
-        # Uses pre-built Docker image from the branch (built by atopile CI)
-        # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
+        # Uses pre-built Docker image from the atopile container registry
         # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
-        # Defaults to ato version in project ato.yaml if not specified
         with:
           docker-tag: main
 
