@@ -1,6 +1,7 @@
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
 import ElectricPower
 import I2C
 import USB2_0
@@ -48,7 +49,7 @@ module USBCConnector:
 
     cc_resistor = new Resistor[2]
     for resistor in cc_resistor:
-        resistor.resistance = 51kohm +/- 1%
+        resistor.resistance = 5.1kohm +/- 1%
         resistor.package = "0402"
 
     usb.usb_if.buspower.hv ~ package.VBUS

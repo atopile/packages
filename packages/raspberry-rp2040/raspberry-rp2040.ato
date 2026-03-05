@@ -1,7 +1,9 @@
+#pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
+
+# --- Standard library imports ---
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
@@ -20,6 +22,7 @@ import Resistor
 import can_bridge_by_name
 import has_single_electric_reference
 
+# --- Part imports ---
 from "parts/Raspberry_Pi_RP2040/Raspberry_Pi_RP2040.ato" import Raspberry_Pi_RP2040_package
 from "parts/Winbond_Elec_W25Q128JVSIQ/Winbond_Elec_W25Q128JVSIQ.ato" import Winbond_Elec_W25Q128JVSIQ_package
 from "parts/Abracon_LLC_ABM8_272_T3/Abracon_LLC_ABM8_272_T3.ato" import Abracon_LLC_ABM8_272_T3_package
@@ -77,9 +80,9 @@ module Raspberry_Pi_RP2040:
     core_power_decoupling_capacitor = new Capacitor[3]
     for cap in core_power_decoupling_capacitor[1:]:
         cap.capacitance = 100nF +/- 20%
-        cap.package = "C0402"
+        cap.package = "0402"
     core_power_decoupling_capacitor[0].capacitance = 2.2uF +/- 20%
-    core_power_decoupling_capacitor[0].package = "C0402"
+    core_power_decoupling_capacitor[0].package = "0402"
     package.VREG_VOUT ~> core_power_decoupling_capacitor[1] ~> _core_regulator_out_power.lv
     package.50 ~> core_power_decoupling_capacitor[2] ~> _core_power.lv
     package.23 ~> core_power_decoupling_capacitor[0] ~> _core_power.lv
@@ -117,9 +120,9 @@ module Raspberry_Pi_RP2040:
     io_power_decoupling_capacitor = new Capacitor[7]
     for cap in io_power_decoupling_capacitor[1:]:
         cap.capacitance = 100nF +/- 20%
-        cap.package = "C0402"
+        cap.package = "0402"
     io_power_decoupling_capacitor[0].capacitance = 2.2uF +/- 20%
-    io_power_decoupling_capacitor[0].package = "C0402"
+    io_power_decoupling_capacitor[0].package = "0402"
     package.44 ~> io_power_decoupling_capacitor[0] ~> _io_power.lv
     package.1 ~> io_power_decoupling_capacitor[1] ~> _io_power.lv
     package.10 ~> io_power_decoupling_capacitor[2] ~> _io_power.lv
@@ -267,7 +270,7 @@ module _USBTermination:
     termination_resistors = new Resistor[2]
     for resistor in termination_resistors:
         resistor.resistance = 27ohm +/- 5%
-        resistor.package = "R0402"
+        resistor.package = "0402"
 
     input.usb_if.d.p.line ~> termination_resistors[0] ~> output.usb_if.d.p.line
     input.usb_if.d.n.line ~> termination_resistors[1] ~> output.usb_if.d.n.line
@@ -303,7 +306,7 @@ module _CrystalOscillator:
 
     current_limiting_resistor = new Resistor
     current_limiting_resistor.resistance = 1kohm +/- 5%
-    current_limiting_resistor.package = "R0402"
+    current_limiting_resistor.package = "0402"
 
     crystal_interface.xin ~> crystal ~> current_limiting_resistor ~> crystal_interface.xout
     crystal.input ~> compensation_capacitors[0] ~> crystal_interface.gnd
@@ -323,7 +326,7 @@ module _QSPIFlash from SPIFlash:
     decoupling_capacitor = new Capacitor[2]
     for cap in decoupling_capacitor:
         power.hv ~> cap ~> power.lv
-        cap.package = "C0402"
+        cap.package = "0402"
     decoupling_capacitor[0].capacitance = 2.2uF +/- 20%
     decoupling_capacitor[1].capacitance = 100nF +/- 20%
 

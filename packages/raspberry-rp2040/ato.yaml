@@ -1,27 +1,28 @@
 requires-atopile: ^0.14.0
 
 paths:
-  src: .
+  src: ./
   layout: ./layouts
 
 builds:
   default:
     entry: raspberry-rp2040.ato:Raspberry_Pi_RP2040
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
+    exclude_checks: ["PCB.requires_drc_check"]
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/raspberry-rp2040
   repository: https://github.com/atopile/packages
-  version: 0.3.0
+  homepage: https://github.com/atopile/packages/blob/main/packages/raspberry-rp2040/README.md
+  version: "0.4.0"
   authors:
-  - name: atopile
-    email: hi@atopile.io
-  summary: The RP2040 microcontroller from RaspberryPi
+    - name: atopile
+      email: hi@atopile.io
+  summary: Raspberry Pi; RP2040; Microcontroller; Dual-Core; ARM; Cortex-M0+; USB; SPI; I2C; UART
   license: MIT
 dependencies:
 - type: registry

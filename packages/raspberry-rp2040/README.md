@@ -2,6 +2,15 @@
 
 This is the Raspberry Pi RP2040 microcontroller.
 
+## Features
+
+- Dual-core ARM Cortex-M0+ processor
+- USB 2.0, SPI, I2C, UART interfaces
+- 30 GPIO pins with 4 ADC channels
+- SWD debug interface
+- On-board QSPI flash (128Mbit)
+- Crystal oscillator, reset/boot switches, indicator LED
+
 ## Layout notes
 
 - Best to use a 4 layer board.
@@ -9,14 +18,14 @@ This is the Raspberry Pi RP2040 microcontroller.
 ## Usage
 
 ```ato
+#pragma experiment("TRAITS")
+#pragma experiment("MODULE_TEMPLATING")
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
 import ElectricPower
 import I2C
 import USB2_0
 import Resistor
-import LDO
 import has_part_removed
 
 from "atopile/raspberry-rp2040/raspberry-rp2040.ato" import Raspberry_Pi_RP2040
@@ -60,7 +69,7 @@ module USBCConnector:
 
     cc_resistor = new Resistor[2]
     for resistor in cc_resistor:
-        resistor.resistance = 51kohm +/- 1%
+        resistor.resistance = 5.1kohm +/- 1%
         resistor.package = "0402"
 
     usb.usb_if.buspower.hv ~ package.VBUS
@@ -74,13 +83,12 @@ module USBCConnector:
     usb.usb_if.buspower.lv ~> cc_resistor[0] ~> package.CC1
     usb.usb_if.buspower.lv ~> cc_resistor[1] ~> package.CC2
 
-
 ```
 
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or pull requests.
+Contributions to this package are welcome via pull requests on the GitHub repository.
 
 ## License
 
-This package is provided under the [MIT License](mdc:packages/https:/opensource.org/license/mit).
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
