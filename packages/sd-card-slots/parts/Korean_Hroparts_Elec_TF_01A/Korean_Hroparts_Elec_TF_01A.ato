@@ -1,0 +1,45 @@
+#pragma experiment("TRAITS")
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+
+component Korean_Hroparts_Elec_TF_01A_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    # trait is_auto_generated<system="ato_part", source="easyeda:C91145", date="2025-06-20T01:07:43.336810+00:00", checksum="0c1ab1487e2f29fad671ad29143ffdbf929316115980ea296d559d2389b037ef">
+
+    trait is_atomic_part<manufacturer="Korean Hroparts Elec", partnumber="TF-01A", footprint="TF-SMD_TF-01A.kicad_mod", symbol="TF-01A.kicad_sym", model="TF-SMD_TF-01A.STEP">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C91145", manufacturer="Korean Hroparts Elec", partno="TF-01A">
+    trait has_designator_prefix<prefix="Card">
+
+    # pins
+    signal CD ~ pin 9
+    signal CDDAT3CS ~ pin 2
+    signal CLKSCLK ~ pin 5
+    signal CMDDI ~ pin 3
+    signal DAT0D0 ~ pin 7
+    signal DAT1RSV ~ pin 8
+    signal DAT2RSV ~ pin 1
+    signal GND ~ pin 13
+    GND ~ pin 10
+    GND ~ pin 11
+    GND ~ pin 12
+    signal VDD ~ pin 4
+    signal VSS ~ pin 6
+
+
+from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
+module Korean_Hroparts_Elec_TF_01A_model from SDSlotMicroSS:
+    package = new Korean_Hroparts_Elec_TF_01A_package
+
+    card_pins.CD_DAT3 ~ package.CDDAT3CS
+    card_pins.CMD ~ package.CMDDI
+    card_pins.VSS1 ~ package.VSS
+    card_pins.VDD ~ package.VDD
+    card_pins.CLK ~ package.CLKSCLK
+    card_pins.VSS2 ~ package.VSS
+    card_pins.DAT0 ~ package.DAT0D0
+    card_pins.DAT1 ~ package.DAT1RSV
+    card_pins.DAT2 ~ package.DAT2RSV
+    card_pins.CD ~ package.CD

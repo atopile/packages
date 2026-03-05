@@ -1,0 +1,30 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: .
+  layout: ./layouts
+
+builds:
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+  default:
+    entry: sd-card-slots.ato:MicroSD_SPI
+    hide_designators: true
+    exclude_checks: [PCB.requires_drc_check]
+
+package:
+  identifier: atopile/sd-card-slots
+  repository: https://github.com/atopile/packages
+  version: 0.3.0
+  authors:
+  - name: atopile
+    email: hi@atopile.io
+  summary: SD and microSD card slots - SPI, SD Bus, UHS-II, SD Express
+  license: MIT
+
+dependencies:
+- type: registry
+  identifier: atopile/espressif-esp32-s3
+  release: 0.2.1

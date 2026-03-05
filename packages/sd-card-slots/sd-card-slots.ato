@@ -1,0 +1,319 @@
+"""
+SD Card Slots - assemblies for SD and microSD card slots.
+
+This is the main entry point. It combines pin interfaces, logic interfaces,
+transport protocol mappings, and driver circuitry into user-facing modules.
+
+Architecture:
+  pins.ato    - Physical contact pin definitions + slot base modules
+  logic.ato   - Typed electrical bus interfaces (per bus mode)
+  This file   - Drivers, transports, assemblies
+"""
+
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import SPI
+import ElectricPower
+import ElectricLogic
+import Resistor
+import Capacitor
+import has_single_electric_reference
+
+from "atopile/sd-card-slots/pins.ato" import SDCardPinsSS
+from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
+from "atopile/sd-card-slots/pins.ato" import SDSlotFullSS
+from "atopile/sd-card-slots/logic.ato" import SDLogicSDBus
+
+from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_model
+from "parts/XUNPU_SD_102/XUNPU_SD_102.ato" import XUNPU_SD_102_model
+
+# ==========================================================================
+# Drivers - pin-to-logic mapping + bypass capacitors
+# ==========================================================================
+
+module SDSlotDriverSS:
+    """
+    Maps standard speed card pins to typed logic signals
+    and adds the required VDD bypass capacitor.
+    """
+    sd = new SDLogicSDBus
+    card_pins = new SDCardPinsSS
+
+    # Pin-to-logic mapping
+    sd.power.hv ~ card_pins.VDD
+    sd.power.lv ~ card_pins.VSS1
+    sd.power.lv ~ card_pins.VSS2
+    sd.card_detect.line ~ card_pins.CD
+    sd.write_protect.line ~ card_pins.WP
+    sd.data[0].line ~ card_pins.DAT0
+    sd.data[1].line ~ card_pins.DAT1
+    sd.data[2].line ~ card_pins.DAT2
+    sd.data[3].line ~ card_pins.CD_DAT3
+    sd.clock.line ~ card_pins.CLK
+    sd.command.line ~ card_pins.CMD
+    sd.chip_select.line ~ card_pins.CD_DAT3
+
+    # VDD bypass capacitor
+    bypass_cap = new Capacitor
+    bypass_cap.capacitance = 100nF +/- 20%
+    bypass_cap.package = "0402"
+    sd.power.hv ~> bypass_cap ~> sd.power.lv
+
+# ==========================================================================
+# Transports - host protocol mapping
+# ==========================================================================
+
+module SDTransportSPI:
+    """
+    Maps SPI bus signals to SD logic signals.
+    Adds 10k pull-up resistors on MISO, MOSI, SCLK.
+    """
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    sd = new SDLogicSDBus
+
+    spi.required = True
+    spi_cs.required = True
+    sd.required = True
+
+    # Pull-up resistors
+    pullups = new Resistor[3]
+    for pullup in pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "R0402"
+    spi.miso.line ~> pullups[0] ~> spi.has_single_electric_reference.reference.hv
+    spi.mosi.line ~> pullups[1] ~> spi.has_single_electric_reference.reference.hv
+    spi.sclk.line ~> pullups[2] ~> spi.has_single_electric_reference.reference.hv
+
+    # SPI to SD bus mapping
+    spi.miso ~> sd.data[0]
+    spi.mosi ~> sd.command
+    spi.sclk ~> sd.clock
+    spi_cs ~> sd.chip_select
+
+    # Reference
+    spi.has_single_electric_reference.reference ~ sd.power
+
+module SDTransportSDBus:
+    """
+    SD native 4-bit bus transport.
+    Adds 10k pull-up resistors on CMD and DAT[0:3] per SD spec.
+    No pull-up on CLK (driven by host).
+    """
+    sd = new SDLogicSDBus
+
+    # Host-facing signals
+    data = new ElectricLogic[4]
+    cmd = new ElectricLogic
+    clk = new ElectricLogic
+
+    sd.required = True
+
+    # Pull-up resistors on CMD and DAT[0:3]
+    pullups = new Resistor[5]
+    for pullup in pullups:
+        pullup.resistance = 10kohm +/- 5%
+        pullup.package = "R0402"
+    cmd.line ~> pullups[0] ~> sd.power.hv
+    data[0].line ~> pullups[1] ~> sd.power.hv
+    data[1].line ~> pullups[2] ~> sd.power.hv
+    data[2].line ~> pullups[3] ~> sd.power.hv
+    data[3].line ~> pullups[4] ~> sd.power.hv
+
+    # Signal mapping
+    data[0] ~ sd.data[0]
+    data[1] ~ sd.data[1]
+    data[2] ~ sd.data[2]
+    data[3] ~ sd.data[3]
+    cmd ~ sd.command
+    clk ~ sd.clock
+
+# ==========================================================================
+# Assemblies - user-facing modules
+# ==========================================================================
+
+module MicroSD_SPI:
+    """
+    MicroSD card slot with SPI interface.
+
+    Includes:
+    - MicroSD slot (default: Korean Hroparts TF-01A)
+    - VDD bypass capacitor (100nF)
+    - SPI pull-up resistors (10k on MISO, MOSI, SCLK)
+
+    Interface:
+    - spi: SPI bus (connect to host SPI)
+    - spi_cs: chip select (connect to host GPIO)
+    - power: 3.3V supply
+    - card_detect: card detection signal
+    - write_protect: write protection signal
+    """
+    # Internal: slot + driver + transport
+    slot = new SDSlotMicroSS
+    driver = new SDSlotDriverSS
+    transport = new SDTransportSPI
+
+    # Wire slot pins through driver to transport
+    slot.card_pins ~ driver.card_pins
+    driver.sd ~ transport.sd
+
+    # Default slot component
+    slot -> Korean_Hroparts_Elec_TF_01A_model
+
+    # Public interface
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    power = new ElectricPower
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+
+    spi ~ transport.spi
+    spi_cs ~ transport.spi_cs
+    power ~ driver.sd.power
+    card_detect ~ driver.sd.card_detect
+    write_protect ~ driver.sd.write_protect
+
+    trait has_single_electric_reference
+
+module MicroSD_SDBus:
+    """
+    MicroSD card slot with SD Bus (4-bit) interface.
+
+    Includes:
+    - MicroSD slot (default: Korean Hroparts TF-01A)
+    - VDD bypass capacitor (100nF)
+    - SD Bus pull-up resistors (10k on CMD, DAT[0:3])
+
+    Interface:
+    - data[0:3]: 4-bit data bus
+    - cmd: command line
+    - clk: clock line
+    - power: 3.3V supply
+    - card_detect: card detection signal
+    - write_protect: write protection signal
+    """
+    # Internal: slot + driver + transport
+    slot = new SDSlotMicroSS
+    driver = new SDSlotDriverSS
+    transport = new SDTransportSDBus
+
+    # Wire slot pins through driver to transport
+    slot.card_pins ~ driver.card_pins
+    driver.sd ~ transport.sd
+
+    # Default slot component
+    slot -> Korean_Hroparts_Elec_TF_01A_model
+
+    # Public interface
+    data = new ElectricLogic[4]
+    cmd = new ElectricLogic
+    clk = new ElectricLogic
+    power = new ElectricPower
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+
+    data[0] ~ transport.data[0]
+    data[1] ~ transport.data[1]
+    data[2] ~ transport.data[2]
+    data[3] ~ transport.data[3]
+    cmd ~ transport.cmd
+    clk ~ transport.clk
+    power ~ driver.sd.power
+    card_detect ~ driver.sd.card_detect
+    write_protect ~ driver.sd.write_protect
+
+    trait has_single_electric_reference
+
+module FullSD_SPI:
+    """
+    Full-size SD card slot with SPI interface.
+
+    Includes:
+    - Full-size SD slot (default: XUNPU SD-102)
+    - VDD bypass capacitor (100nF)
+    - SPI pull-up resistors (10k on MISO, MOSI, SCLK)
+
+    Interface:
+    - spi: SPI bus (connect to host SPI)
+    - spi_cs: chip select (connect to host GPIO)
+    - power: 3.3V supply
+    - card_detect: card detection signal
+    - write_protect: write protection signal
+    """
+    # Internal: slot + driver + transport
+    slot = new SDSlotFullSS
+    driver = new SDSlotDriverSS
+    transport = new SDTransportSPI
+
+    # Wire slot pins through driver to transport
+    slot.card_pins ~ driver.card_pins
+    driver.sd ~ transport.sd
+
+    # Default slot component
+    slot -> XUNPU_SD_102_model
+
+    # Public interface
+    spi = new SPI
+    spi_cs = new ElectricLogic
+    power = new ElectricPower
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+
+    spi ~ transport.spi
+    spi_cs ~ transport.spi_cs
+    power ~ driver.sd.power
+    card_detect ~ driver.sd.card_detect
+    write_protect ~ driver.sd.write_protect
+
+    trait has_single_electric_reference
+
+module FullSD_SDBus:
+    """
+    Full-size SD card slot with SD Bus (4-bit) interface.
+
+    Includes:
+    - Full-size SD slot (default: XUNPU SD-102)
+    - VDD bypass capacitor (100nF)
+    - SD Bus pull-up resistors (10k on CMD, DAT[0:3])
+
+    Interface:
+    - data[0:3]: 4-bit data bus
+    - cmd: command line
+    - clk: clock line
+    - power: 3.3V supply
+    - card_detect: card detection signal
+    - write_protect: write protection signal
+    """
+    # Internal: slot + driver + transport
+    slot = new SDSlotFullSS
+    driver = new SDSlotDriverSS
+    transport = new SDTransportSDBus
+
+    # Wire slot pins through driver to transport
+    slot.card_pins ~ driver.card_pins
+    driver.sd ~ transport.sd
+
+    # Default slot component
+    slot -> XUNPU_SD_102_model
+
+    # Public interface
+    data = new ElectricLogic[4]
+    cmd = new ElectricLogic
+    clk = new ElectricLogic
+    power = new ElectricPower
+    card_detect = new ElectricLogic
+    write_protect = new ElectricLogic
+
+    data[0] ~ transport.data[0]
+    data[1] ~ transport.data[1]
+    data[2] ~ transport.data[2]
+    data[3] ~ transport.data[3]
+    cmd ~ transport.cmd
+    clk ~ transport.clk
+    power ~ driver.sd.power
+    card_detect ~ driver.sd.card_detect
+    write_protect ~ driver.sd.write_protect
+
+    trait has_single_electric_reference

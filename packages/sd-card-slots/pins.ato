@@ -1,0 +1,290 @@
+"""
+SD Card pin interfaces and slot base modules.
+
+Pin interfaces define the physical contacts for each SD standard.
+Slot modules combine a form factor with a pin interface.
+
+Pin standards:
+- SS (Standard Speed): 9 pins - Default Speed, High Speed, UHS-I
+- UHS-II: 17 pins - adds differential lanes for UHS-II/III
+- SD Express 1-Lane: 19 pins - adds PCIe Gen3/4 single lane
+- SD Express 2-Lane: 27 pins - adds PCIe Gen3/4 dual lane
+
+https://www.sdcard.org/downloads/pls/
+"""
+
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+import Electrical
+
+
+interface SDCardPins:
+    pass
+
+# Standard Speed pins (9 contacts) ----------------------------------------
+interface SDCardPinsSS from SDCardPins:
+    """
+    | Pin # | SD Mode Name | SPI Mode Name | Description                    |
+    |-------|--------------|---------------|--------------------------------|
+    | 1     | CD/DAT3      | CS            | Card Detect / Data Line 3      |
+    | 2     | CMD          | DI            | Command / Data In              |
+    | 3     | VSS1         | VSS           | Ground                         |
+    | 4     | VDD          | VDD           | Supply voltage                 |
+    | 5     | CLK          | SCLK          | Clock                          |
+    | 6     | VSS2         | VSS2          | Ground                         |
+    | 7     | DAT0         | DO            | Data Line 0 / Data Out         |
+    | 8     | DAT1         | RSV           | Data Line 1                    |
+    | 9     | DAT2         | RSV           | Data Line 2                    |
+    """
+
+    signal CD_DAT3
+    signal CMD
+    signal VSS1
+    signal VDD
+    signal CLK
+    signal VSS2
+    signal DAT0
+    signal DAT1
+    signal DAT2
+    signal WP
+    signal CD
+
+    pins = new Electrical[9]
+    pins[0] ~ CD_DAT3
+    pins[1] ~ CMD
+    pins[2] ~ VSS1
+    pins[3] ~ VDD
+    pins[4] ~ CLK
+    pins[5] ~ VSS2
+    pins[6] ~ DAT0
+    pins[7] ~ DAT1
+    pins[8] ~ DAT2
+
+# UHS-II pins (17 contacts) -----------------------------------------------
+interface SDCardPinsUHSII from SDCardPins:
+    """
+    | Pin # | Name  | Description              |
+    |-------|-------|--------------------------|
+    | 4     | VDD1  | Supply 2.7V to 3.6V      |
+    | 7     | RCLK+ | Diff Clock Input (+)     |
+    | 8     | RCLK- | Diff Clock Input (-)     |
+    | 10    | VSS3  | Ground                   |
+    | 11    | D0+   | Diff Data 0 (+)          |
+    | 12    | D0-   | Diff Data 0 (-)          |
+    | 13    | VSS4  | Ground                   |
+    | 14    | VDD2  | Supply 1.70V to 1.95V    |
+    | 15    | D1-   | Diff Data 1 (-)          |
+    | 16    | D1+   | Diff Data 1 (+)          |
+    | 17    | VSS5  | Ground                   |
+    """
+    pins = new Electrical[17]
+    sdbus = new SDCardPinsSS
+
+    pins[0] ~ sdbus.pins[0]
+    pins[1] ~ sdbus.pins[1]
+    pins[2] ~ sdbus.pins[2]
+    pins[3] ~ sdbus.pins[3]
+    pins[4] ~ sdbus.pins[4]
+    pins[5] ~ sdbus.pins[5]
+    pins[6] ~ sdbus.pins[6]
+    pins[7] ~ sdbus.pins[7]
+    pins[8] ~ sdbus.pins[8]
+
+    signal VDD1
+    signal RCLKp
+    signal RCLKn
+    signal VSS3
+    signal D0p
+    signal D0n
+    signal VSS4
+    signal VDD2
+    signal D1p
+    signal D1n
+    signal VSS5
+
+    VDD1 ~ pins[3]
+    RCLKp ~ pins[6]
+    RCLKn ~ pins[7]
+    VSS3 ~ pins[9]
+    D0p ~ pins[10]
+    D0n ~ pins[11]
+    VSS4 ~ pins[12]
+    VDD2 ~ pins[13]
+    D1p ~ pins[14]
+    D1n ~ pins[15]
+    VSS5 ~ pins[16]
+
+# SD Express 1-Lane pins (19 contacts) ------------------------------------
+interface SDCardPinsSDExpress1Lane from SDCardPins:
+    """
+    | Pin # | Name     | Description                     |
+    |-------|----------|---------------------------------|
+    | 1     | PERST#   | PCIe Reset (active low)         |
+    | 4     | VDD1     | Supply 2.7V to 3.6V            |
+    | 7     | REFCLK+  | PCIe Ref Clock (+)              |
+    | 8     | REFCLK-  | PCIe Ref Clock (-)              |
+    | 9     | CLKREQ#  | Clock Request (active low)      |
+    | 10    | VSS3     | Ground                          |
+    | 11    | PCIe TX+ | Host to Card (+)                |
+    | 12    | PCIe TX- | Host to Card (-)                |
+    | 13    | VSS4     | Ground                          |
+    | 14    | VDD2     | Supply 1.70V to 1.95V           |
+    | 15    | PCIe RX- | Card to Host (-)                |
+    | 16    | PCIe RX+ | Card to Host (+)                |
+    | 17    | VSS5     | Ground                          |
+    | 18    | VDD3     | Supply 1.14V to 1.30V (opt)     |
+    | 19    | VDD1a    | Supply 2.7V to 3.6V             |
+    """
+    sdbus = new SDCardPinsSS
+    pins = new Electrical[19]
+
+    pins[0] ~ sdbus.pins[0]
+    pins[1] ~ sdbus.pins[1]
+    pins[2] ~ sdbus.pins[2]
+    pins[3] ~ sdbus.pins[3]
+    pins[4] ~ sdbus.pins[4]
+    pins[5] ~ sdbus.pins[5]
+    pins[6] ~ sdbus.pins[6]
+    pins[7] ~ sdbus.pins[7]
+    pins[8] ~ sdbus.pins[8]
+
+    signal PERSTn
+    signal VDD1
+    signal REFCLKp
+    signal REFCLKn
+    signal CLKREQn
+    signal VSS3
+    signal PCIeTXp
+    signal PCIeTXn
+    signal VSS4
+    signal VDD2
+    signal PCIeRXp
+    signal PCIeRXn
+    signal VSS5
+    signal VDD3
+    signal VDD1a
+
+    PERSTn ~ pins[0]
+    VDD1 ~ pins[3]
+    REFCLKp ~ pins[6]
+    REFCLKn ~ pins[7]
+    CLKREQn ~ pins[8]
+    VSS3 ~ pins[9]
+    PCIeTXp ~ pins[10]
+    PCIeTXn ~ pins[11]
+    VSS4 ~ pins[12]
+    VDD2 ~ pins[13]
+    PCIeRXp ~ pins[14]
+    PCIeRXn ~ pins[15]
+    VSS5 ~ pins[16]
+    VDD3 ~ pins[17]
+    VDD1a ~ pins[18]
+
+# SD Express 2-Lane pins (27 contacts) ------------------------------------
+interface SDCardPinsSDExpress2Lane from SDCardPins:
+    """
+    Extends 1-Lane with a second PCIe lane.
+
+    | Pin # | Name       | Description               |
+    |-------|------------|---------------------------|
+    | 20    | VSS6       | Ground                    |
+    | 21    | PCIe TX1+  | Host to Card lane 1 (+)   |
+    | 22    | PCIe TX1-  | Host to Card lane 1 (-)   |
+    | 23    | VSS7       | Ground                    |
+    | 24    | VDD2a      | Supply 1.70V to 1.95V     |
+    | 25    | PCIe RX1-  | Card to Host lane 1 (-)   |
+    | 26    | PCIe RX1+  | Card to Host lane 1 (+)   |
+    | 27    | VSS8       | Ground                    |
+    """
+    sdbus = new SDCardPinsSS
+    pins = new Electrical[27]
+
+    pins[0] ~ sdbus.pins[0]
+    pins[1] ~ sdbus.pins[1]
+    pins[2] ~ sdbus.pins[2]
+    pins[3] ~ sdbus.pins[3]
+    pins[4] ~ sdbus.pins[4]
+    pins[5] ~ sdbus.pins[5]
+    pins[6] ~ sdbus.pins[6]
+    pins[7] ~ sdbus.pins[7]
+    pins[8] ~ sdbus.pins[8]
+
+    signal PERSTn
+    signal VDD1
+    signal REFCLKp
+    signal REFCLKn
+    signal CLKREQn
+    signal VSS3
+    signal PCIeTX0p
+    signal PCIeTX0n
+    signal VSS4
+    signal VDD2
+    signal PCIeRX0p
+    signal PCIeRX0n
+    signal VSS5
+    signal VDD3
+    signal VDD1a
+    signal VSS6
+    signal PCIeTX1p
+    signal PCIeTX1n
+    signal VSS7
+    signal VDD2a
+    signal PCIeRX1p
+    signal PCIeRX1n
+    signal VSS8
+
+    PERSTn ~ pins[0]
+    VDD1 ~ pins[3]
+    REFCLKp ~ pins[6]
+    REFCLKn ~ pins[7]
+    CLKREQn ~ pins[8]
+    VSS3 ~ pins[9]
+    PCIeTX0p ~ pins[10]
+    PCIeTX0n ~ pins[11]
+    VSS4 ~ pins[12]
+    VDD2 ~ pins[13]
+    PCIeRX0p ~ pins[14]
+    PCIeRX0n ~ pins[15]
+    VSS5 ~ pins[16]
+    VDD3 ~ pins[17]
+    VDD1a ~ pins[18]
+    VSS6 ~ pins[19]
+    PCIeTX1p ~ pins[20]
+    PCIeTX1n ~ pins[21]
+    VSS7 ~ pins[22]
+    VDD2a ~ pins[23]
+    PCIeRX1p ~ pins[24]
+    PCIeRX1n ~ pins[25]
+    VSS8 ~ pins[26]
+
+# ==========================================================================
+# Slot base modules - form factor + pin interface
+# ==========================================================================
+
+module SDSlot:
+    pass
+
+module SDSlotMicro from SDSlot:
+    pass
+
+module SDSlotFull from SDSlot:
+    pass
+
+module SDSlotMicroSS from SDSlotMicro:
+    card_pins = new SDCardPinsSS
+
+module SDSlotFullSS from SDSlotFull:
+    card_pins = new SDCardPinsSS
+
+module SDSlotMicroUHSII from SDSlotMicro:
+    card_pins = new SDCardPinsUHSII
+
+module SDSlotFullUHSII from SDSlotFull:
+    card_pins = new SDCardPinsUHSII
+
+module SDSlotFullExpress1Lane from SDSlotFull:
+    card_pins = new SDCardPinsSDExpress1Lane
+
+module SDSlotFullExpress2Lane from SDSlotFull:
+    card_pins = new SDCardPinsSDExpress2Lane
