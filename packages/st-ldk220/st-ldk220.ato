@@ -1,9 +1,9 @@
 #pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
-import ElectricLogic
-import has_single_electric_reference_shared
 
 import Capacitor
+import has_single_electric_reference
+
 from "regulators.ato" import AdjustableLDO
 from "parts/STMicroelectronics_LDK220M_R/STMicroelectronics_LDK220M_R.ato" import STMicroelectronics_LDK220M_R_package
 
@@ -45,9 +45,6 @@ module LDK220M_R from AdjustableLDO:
     feedback_divider.chain.resistors[0].package = "0402"
     feedback_divider.chain.resistors[1].package = "0402"
 
-    # assert feedback_divider.current within 100uA to 1mA
-    assert feedback_divider.chain.resistors[0].resistance within 33kohm +/- 50%
-
-    # trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only=True>
 
     power_out ~ feedback_divider.ref_in

@@ -32,14 +32,14 @@ module MCU:
     trait has_part_removed
 
     power = new ElectricPower
-    assert power.voltage is 3.3V +/- 5%
+    assert power.voltage within 3.3V +/- 5%
 
 
 module Usage:
     """Minimal example for the LDK220M-R LDO."""
 
     some_input_power = new ElectricPower
-    assert some_input_power.voltage is 5V +/- 5%
+    assert some_input_power.voltage within 5V +/- 5%
 
     # MCU & sensor
     mcu = new MCU

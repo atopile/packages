@@ -127,11 +127,11 @@
 			(outputdirectory "")
 		)
 	)
-	(net 2 "power_in-lv")
-	(net 4 "power_in-hv")
-	(net 5 "hv")
 	(net 6 "ref_out-hv")
-	(net 7 "lv")
+	(net 1 "lv")
+	(net 3 "power_in-lv")
+	(net 8 "power_in-hv")
+	(net 9 "hv")
 	(footprint "Samsung_Electro_Mechanics_CL05A105KA5NQNC:C0402"
 		(layer "F.Cu")
 		(uuid "5c674e3b-26ff-4660-805f-57234642524b")
@@ -469,12 +469,14 @@
 			(at 0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 3 "power_in-lv")
 			(uuid "f0688e8e-e8f6-40b8-9acf-7e25db2f706e")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 8 "power_in-hv")
 			(uuid "ebdcb164-7139-4099-8818-1a5c5c12b4c8")
 		)
 		(embedded_fonts no)
@@ -827,12 +829,14 @@
 			(at 0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 1 "lv")
 			(uuid "cff63d0a-4ead-417c-b0bd-dce136aacdc6")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 9 "hv")
 			(uuid "bfc00e40-2e82-4d51-b41c-22c9b6c07d45")
 		)
 		(embedded_fonts no)
@@ -853,7 +857,7 @@
 		(uuid "681e5c23-3a0a-4bcc-8c9e-655e4642524b")
 		(at 150.45 100.45 0)
 		(property "Reference" "U1"
-			(at 0 -5.15 0)
+			(at 0 -5.15)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "0a939298-e360-4324-8f2a-750a1ad462af")
@@ -865,7 +869,7 @@
 			)
 		)
 		(property "Value" ""
-			(at 0 5.15 0)
+			(at 0 5.15)
 			(layer "F.Fab")
 			(hide no)
 			(uuid "1a48dc1b-e513-4770-9620-d6c2d9fe99f7")
@@ -876,7 +880,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://lcsc.com/datasheet/lcsc_datasheet_1912202032_ST-LDK220M-R_C443854.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_1912202032_STMicroelectronics-LDK220M-R_C443854.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -987,6 +991,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "509e5b52-f764-4e00-bac2-3b9ef7bf2708")
 		)
 		(fp_line
@@ -997,6 +1003,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "46cfd4c3-3080-49a8-be2b-45280362af81")
 		)
 		(fp_line
@@ -1007,6 +1015,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "45ac0e4c-af9c-4804-ac1a-ce1746193e47")
 		)
 		(fp_circle
@@ -1016,8 +1026,8 @@
 				(width 0.3)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.SilkS")
+			(locked no)
 			(uuid "7eb25277-c2f1-4214-aa2c-1dcee290a966")
 		)
 		(fp_circle
@@ -1027,8 +1037,8 @@
 				(width 0.2)
 				(type solid)
 			)
-			(fill no)
 			(layer "Cmts.User")
+			(locked no)
 			(uuid "f7bcff04-b4e2-4438-b2fa-80767c620642")
 		)
 		(fp_circle
@@ -1038,12 +1048,12 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "f24e565f-7656-49bb-86d8-7ad517ff1a90")
 		)
 		(fp_text user "%R"
-			(at 0 0 0)
+			(at 0 0)
 			(layer "F.Fab")
 			(uuid "6d0d1af7-b3c2-4ae1-b12c-8dbde9afae10")
 			(effects
@@ -1053,37 +1063,25 @@
 				)
 			)
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.15 0)
-			(layer "F.SilkS")
-			(uuid "0a939298-e360-4324-8f2a-750a1ad462af")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.95 1.15 0)
 			(size 0.49 1.16)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "power_in-hv")
+			(net 8 "power_in-hv")
 			(uuid "611a4055-cbec-4b78-bf35-2c5325cd756b")
 		)
 		(pad "2" smd rect
 			(at 0 1.15 0)
 			(size 0.49 1.16)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 2 "power_in-lv")
+			(net 3 "power_in-lv")
 			(uuid "eba7a9a4-1259-413d-a8b4-b19431a82bd3")
 		)
 		(pad "3" smd rect
 			(at 0.95 1.15 0)
 			(size 0.49 1.16)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 4 "power_in-hv")
+			(net 8 "power_in-hv")
 			(uuid "5592ca7a-f1f1-4036-8f25-e5ceac11424e")
 		)
 		(pad "4" smd rect
@@ -1097,12 +1095,13 @@
 			(at -0.95 -1.15 0)
 			(size 0.49 1.18)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 5 "hv")
+			(net 9 "hv")
 			(uuid "acc8e85f-abe3-41bc-9dc3-8e245d75efea")
 		)
+		(embedded_fonts no)
 		(model "${KIPRJMOD}/../../parts/STMicroelectronics_LDK220M_R/SOT-23-5_L2.9-W1.6-H1.1-LS2.8-P0.95.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1112,7 +1111,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1003TCE:R0402"
+	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
 		(layer "F.Cu")
 		(uuid "8b5adb5f-9253-470d-b896-02244642524b")
 		(at 0 0 0)
@@ -1128,7 +1127,7 @@
 				)
 			)
 		)
-		(property "Value" "100000Ω"
+		(property "Value" "10000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "c328f0f3-f4d7-4ecb-8b73-abf9480d7272")
@@ -1139,7 +1138,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25741"
+		(property "LCSC" "C25744"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1163,25 +1162,25 @@
 			(hide yes)
 			(uuid "12b7fa19-c275-4700-8d74-d9264642524b")
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 99000.00002235174, \"max\": 100999.99997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "32d5e802-1205-47fa-84ea-d5e24642524b")
 		)
-		(property "Partnumber" "0402WGF1003TCE"
+		(property "Partnumber" "0402WGF1002TCE"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1e139cf9-c648-4be8-ac49-3cef4642524b")
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF1003TCE_C25741.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "efb98487-becb-4d1f-a1f6-f5514642524b")
 		)
-		(property "resistance" "100000±1.0%Ω"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1211,7 +1210,7 @@
 			(hide yes)
 			(uuid "7eeed77a-9276-40e0-b232-8d264642524b")
 		)
-		(property "lcsc_id" "C25741"
+		(property "lcsc_id" "C25744"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1322,7 +1321,7 @@
 			(at 0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "lv")
+			(net 1 "lv")
 			(uuid "18b74e8d-7d5a-4c82-bc51-bfeb6941fcef")
 		)
 		(pad "1" smd rect
@@ -1333,7 +1332,7 @@
 			(uuid "a6fe5145-6624-46b2-954d-745a327f4244")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1003TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -1345,7 +1344,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "UNI_ROYAL_0402WGF1802TCE:R0402"
 		(layer "F.Cu")
 		(uuid "a9e3c577-8ad7-45e9-a366-229a4642524b")
 		(at 0 -10 0)
@@ -1361,7 +1360,7 @@
 				)
 			)
 		)
-		(property "Value" "10000Ω"
+		(property "Value" "18000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "df6e1a93-7e8b-423a-8f22-dc89587c0a92")
@@ -1372,7 +1371,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25762"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1396,25 +1395,25 @@
 			(hide yes)
 			(uuid "41f7cbec-2bba-42f8-8ee0-ec874642524b")
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 17820.000004023314, \"max\": 18179.999995976686}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a7ffec25-2080-4cb6-883c-e8124642524b")
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0402WGF1802TCE"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "6d485320-5dec-4460-bdea-f7a54642524b")
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF1802TCE_C25762.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1785a89d-85cc-4163-969f-9a384642524b")
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "18000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1444,7 +1443,7 @@
 			(hide yes)
 			(uuid "d1961524-0efb-4ac2-ae12-5e114642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25762"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1562,11 +1561,11 @@
 			(at -0.43 0 0)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 5 "hv")
+			(net 9 "hv")
 			(uuid "3e5bccbd-d969-44a8-aca7-f4916877e800")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1802TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
