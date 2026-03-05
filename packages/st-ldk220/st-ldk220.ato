@@ -1,8 +1,6 @@
-#pragma experiment("TRAITS")
 #pragma experiment("MODULE_TEMPLATING")
 
 import Capacitor
-import has_single_electric_reference
 
 from "regulators.ato" import AdjustableLDO
 from "parts/STMicroelectronics_LDK220M_R/STMicroelectronics_LDK220M_R.ato" import STMicroelectronics_LDK220M_R_package
@@ -25,6 +23,7 @@ module LDK220M_R from AdjustableLDO:
     package = new STMicroelectronics_LDK220M_R_package
     power_in.hv ~ package.IN
     power_in.lv ~ package.GND
+    power_out.lv ~ package.GND
     power_in.hv ~ package.EN
     power_out.hv ~ package.OUT
 
@@ -36,7 +35,7 @@ module LDK220M_R from AdjustableLDO:
 
     # output cap
     output_decoupling_capacitor = new Capacitor
-    power_out ~ output_decoupling_capacitor.power
+    power_out.hv ~> output_decoupling_capacitor ~> power_out.lv
     output_decoupling_capacitor.capacitance = 1uF +/- 20%
     output_decoupling_capacitor.package = "0402"
 
@@ -44,7 +43,5 @@ module LDK220M_R from AdjustableLDO:
     feedback_divider.ref_out.hv ~ package.ADJ_NC
     feedback_divider.chain.resistors[0].package = "0402"
     feedback_divider.chain.resistors[1].package = "0402"
-
-    trait has_single_electric_reference<ground_only=True>
 
     power_out ~ feedback_divider.ref_in
