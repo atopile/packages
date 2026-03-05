@@ -5,9 +5,9 @@ import faebryk.core.node as fabll
 import faebryk.library._F as F
 
 
-class Switch(fabll.Node):
+class BasicSwitch(fabll.Node):
     """
-    Switch
+    Basic Switch (renamed to avoid collision with ti-ts5a22362 Switch)
     """
 
     unnamed = [F.Electrical.MakeChild() for _ in range(2)]
@@ -18,9 +18,9 @@ class Switch(fabll.Node):
     )
 
 
-class PowerSwitch(fabll.Node):
+class BasicPowerSwitch(fabll.Node):
     """
-    Power Switch
+    Basic Power Switch (renamed to avoid collision with ti-ts5a22362 PowerSwitch)
     """
 
     unnamed = [F.ElectricPower.MakeChild() for _ in range(2)]
