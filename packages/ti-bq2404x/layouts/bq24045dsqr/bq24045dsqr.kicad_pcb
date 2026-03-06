@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -82,15 +126,13 @@
 			(outputdirectory "")
 		)
 	)
-	(net 0 "")
 	(net 1 "ISET")
 	(net 2 "PRETERM")
 	(net 3 "TS")
 	(net 4 "nPG")
 	(net 5 "nCHG")
-	(net 6 "hv")
-	(net 7 "output_cap-power-hv")
 	(net 8 "lv")
+	(net 9 "hv")
 	(footprint "Samsung_Electro_Mechanics_CL05A105KA5NQNC:C0402"
 		(layer "F.Cu")
 		(uuid "3d658d81-9e3d-4df2-822d-c6b04642524b")
@@ -107,7 +149,7 @@
 				)
 			)
 		)
-		(property "Value" "1µF"
+		(property "Value" "0F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(uuid "e6e06c94-cf5e-4ab9-969e-9754a52e31e1")
@@ -238,7 +280,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%µF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -445,7 +487,7 @@
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "output_cap-power-hv")
+			(net 9 "hv")
 			(uuid "37b296f5-f908-42bc-a222-9ecea849acf4")
 		)
 		(pad "2" smd rect
@@ -484,7 +526,7 @@
 				)
 			)
 		)
-		(property "Value" "1µF"
+		(property "Value" "0F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(uuid "ba573e16-e0c1-434e-9d66-7a694efb4c51")
@@ -615,7 +657,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%µF"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -822,7 +864,7 @@
 			(at -0.42 0 90)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "hv")
+			(net 9 "hv")
 			(uuid "a4932af0-0fed-4ed6-a3b9-36c4166e14b7")
 		)
 		(pad "2" smd rect
@@ -861,7 +903,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10000Ω"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "d2a13a6a-b1d4-4eb3-bb27-b5e5b080e7bc")
@@ -992,7 +1034,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1004,7 +1046,7 @@
 				)
 			)
 		)
-		(property "max_power" "62.5mW"
+		(property "max_power" "0.062W"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1378,7 +1420,7 @@
 			(at -0.8 0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "hv")
+			(net 9 "hv")
 			(uuid "21f06f8d-7fc6-4fc5-8aa4-a0dfd221321f")
 		)
 		(pad "2" smd rect
@@ -1419,7 +1461,7 @@
 			(at 0.4 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 6 "hv")
+			(net 9 "hv")
 			(uuid "7dd1c47f-9713-4dab-ace9-596984714cde")
 		)
 		(pad "8" smd rect
@@ -1440,7 +1482,7 @@
 			(at -0.8 -0.93 0)
 			(size 0.22 0.51)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "output_cap-power-hv")
+			(net 9 "hv")
 			(uuid "bb4d68e1-bb4c-41a2-aef2-63f8c08333b9")
 		)
 		(pad "11" smd rect
