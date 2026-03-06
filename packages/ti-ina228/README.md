@@ -30,7 +30,7 @@ The INA228 is a high-precision current and power monitoring IC from Texas Instru
 import ElectricPower
 import ElectricLogic
 import I2C
-import Resistor
+
 from "atopile/ti-ina228/ti-ina228.ato" import TI_INA228
 
 module Usage:
@@ -56,6 +56,7 @@ module Usage:
 
     usb_monitor = new TI_INA228
     usb_monitor.max_current = 500mA
+    # usb_monitor.shunt_drop = 163.84mV
     usb_monitor.power ~ supply_3v3
     i2c = new I2C
     usb_monitor.i2c ~ i2c
@@ -72,6 +73,7 @@ module Usage:
 
     main_3v3_monitor = new TI_INA228
     main_3v3_monitor.max_current = 2A
+    # main_3v3_monitor.shunt_drop = 163.84mV
     main_3v3_monitor.power ~ supply_3v3
     i2c1 = new I2C
     main_3v3_monitor.i2c ~ i2c1
@@ -88,6 +90,7 @@ module Usage:
 
     supply_12v_monitor = new TI_INA228
     supply_12v_monitor.max_current = 5A
+    # supply_12v_monitor.shunt_drop = 163.84mV
     supply_12v_monitor.power ~ supply_3v3
     i2c2 = new I2C
     supply_12v_monitor.i2c ~ i2c2
@@ -104,6 +107,7 @@ module Usage:
 
     motor_monitor = new TI_INA228
     motor_monitor.max_current = 10A
+    # motor_monitor.shunt_drop = 163.84mV
     motor_monitor.power ~ supply_3v3
     i2c3 = new I2C
     motor_monitor.i2c ~ i2c3
@@ -120,6 +124,7 @@ module Usage:
 
     poe_monitor = new TI_INA228
     poe_monitor.max_current = 500mA
+    # poe_monitor.shunt_drop = 163.84mV
     poe_monitor.power ~ supply_3v3
     i2c4 = new I2C
     poe_monitor.i2c ~ i2c4
@@ -136,6 +141,7 @@ module Usage:
 
     battery_monitor = new TI_INA228
     battery_monitor.max_current = 2A
+    # battery_monitor.shunt_drop = 163.84mV
     battery_monitor.power ~ supply_3v3
     i2c5 = new I2C
     battery_monitor.i2c ~ i2c5
