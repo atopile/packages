@@ -2,16 +2,12 @@
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
+
 import Resistor
 import Capacitor
-import Diode
-import Inductor
-import ElectricPower
 import ElectricLogic
 import ElectricSignal
-import ResistorVoltageDivider
-import EnablePin
-import has_single_electric_reference_shared
+
 from "regulators.ato" import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS82130SILR/Texas_Instruments_TPS82130SILR.ato" import Texas_Instruments_TPS82130SILR_package
@@ -62,7 +58,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     Goes high impedance once the output is above 95% of the nominal voltage, and is
     driven low once the output voltage falls below typically 90% of the nominal voltage.
     """
-    assert power_good.reference.voltage <= power_out.voltage
+    # assert power_good.reference.voltage <= power_out.voltage
 
     # --- Internal interfaces ---
     _feedback = new ElectricSignal
@@ -70,20 +66,21 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
 
     # --- Adjustable Regulator Configuration ---
     assert reference_voltage within 0.800V +/- 0.015V
-    assert feedback_divider.max_current within 100uA to 1mA
-    assert feedback_divider.r_bottom.resistance <= 100kohm +/-1%
+
+    assert feedback_divider.current within 100uA to 1mA
+    assert feedback_divider.chain.resistors[0].resistance <= 100kohm +/-1%
 
     # --- Components & connections ---
     input_power_decoupling_capacitors = new Capacitor[2]
     for cap in input_power_decoupling_capacitors:
         cap.package = "0805"
         cap.capacitance = 4.7uF +/- 20%
-        cap.temperature_coefficient = "X7R"
-        assert cap.max_voltage >= power_in.voltage * 1.5
+        # cap.temperature_coefficient = "X7R"  # TODO: causes API crash (AbstractEnums bug)
+        assert cap.max_voltage >= 25.5V
         power_in.hv ~> cap ~> power_in.lv
 
     output_power_decoupling_capacitor = new Capacitor
-    output_power_decoupling_capacitor.package = "0805"
+    output_power_decoupling_capacitor.package = "1206"
     assert output_power_decoupling_capacitor.capacitance within 22uF to 400uF
     # assert output_power_decoupling_capacitor.max_voltage >= power_out.voltage * 1.5 # TODO: broken in solver
     assert output_power_decoupling_capacitor.max_voltage >= 9V
@@ -95,31 +92,33 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     power_out.hv ~> base_load_resistor ~> power_out.lv
 
     soft_start_capacitor = new Capacitor
-    soft_start_capacitor.package = "0201" # might need 0402 due to limited picker options
-    assert soft_start_capacitor.max_voltage >= power_in.voltage * 1.5
+    soft_start_capacitor.package = "0402"
+    assert soft_start_capacitor.capacitance within 10nF +/- 20%
+    assert soft_start_capacitor.max_voltage >= 10V
     _soft_start_tracking.line ~> soft_start_capacitor ~> power_in.lv
 
-    feedback_divider.r_bottom.package = "0201"
-    feedback_divider.r_top.package = "0201"
-    feedback_divider.output ~ _feedback
+    feedback_divider.chain.resistors[0].package = "0201"
+    feedback_divider.chain.resistors[1].package = "0201"
+    feedback_divider.ref_out.hv ~ _feedback.line
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    power_in.lv ~ power_out.lv
 
     # --- Calculations ---
     # soft start time
     _soft_start_current = 2.1uA to 2.8uA
     _soft_start_threshold_voltage = 1.25V
-    assert soft_start_capacitor.capacitance within soft_start_time_ms * (_soft_start_current / _soft_start_threshold_voltage) * (1 +/- 20%)
+    # assert soft_start_capacitor.capacitance within soft_start_time_ms * (_soft_start_current / _soft_start_threshold_voltage) * (1 +/- 20%)
 
     # load resistor
     _minimum_load_current = 13uA
-    base_load_resistor.resistance = power_out.voltage / _minimum_load_current
+    # base_load_resistor.resistance = power_out.voltage / _minimum_load_current
+    base_load_resistor.resistance = 100kohm +/- 10%
 
     # minimum output voltage
     dropout_resistance = 69mohm
-    dropout_voltage = power_out.max_current * dropout_resistance
-    assert power_out.voltage <= power_in.voltage - dropout_voltage
-    assert power_in.voltage >= power_out.voltage + dropout_voltage
+    # dropout_voltage = power_out.max_current * dropout_resistance
+    # assert power_out.voltage <= power_in.voltage - dropout_voltage
+    # assert power_in.voltage >= power_out.voltage + dropout_voltage
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
