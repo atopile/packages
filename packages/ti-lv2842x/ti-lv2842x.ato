@@ -69,14 +69,13 @@ module TI_LV2842X from Buck:
     # --- Bootstrap Capacitor ---
     bootstrap_capacitor = new Capacitor
     bootstrap_capacitor.capacitance = 200nF to 1uF
-    bootstrap_capacitor.package = "C0402"
+    bootstrap_capacitor.package = "0402"
     bootstrap_capacitor.unnamed[0] ~ _bootstrap.line
     bootstrap_capacitor.unnamed[1] ~ _power_sw_out.hv
 
     # --- Feedback Divider ---
-    assert feedback_divider.chain.resistors[1].resistance within 1kohm to 100kohm
-    feedback_divider.chain.resistors[0].package = "R0402"
-    feedback_divider.chain.resistors[1].package = "R0402"
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
     feedback_divider.ref_out.hv ~ _feedback.line
     feedback_divider.ref_out.lv ~ _feedback.reference.lv
 
@@ -91,14 +90,14 @@ module TI_LV2842X from Buck:
     # assert input_cap.max_voltage >= (power_in.voltage * 2) # DC bias derating factor
     assert input_cap.max_voltage >= 100V
     assert input_cap.capacitance within 2.2uF to 10uF
-    input_cap.package = "C1206"
+    input_cap.package = "1206"
 
     # --- Output Capacitors ---
     output_caps = new Capacitor[5]
     output_capacitance = 0 uF
     for cap in output_caps:
         cap.power ~ power_out
-        cap.package = "C1206"
+        cap.package = "1206"
         # assert cap.max_voltage >= power_out.voltage * 2 # DC bias derating factor
         # assert cap.max_voltage >= 49V
         assert cap.max_voltage within 50V to 100V
