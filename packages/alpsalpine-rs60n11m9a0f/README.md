@@ -7,6 +7,7 @@ The AlpsAlpine RS60N11M9A0F is a motorized fader that is used to control the vol
 ```ato
 #pragma experiment("TRAITS")
 
+import Electrical
 import ElectricPower
 import ElectricLogic
 import ElectricSignal
