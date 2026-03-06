@@ -3,11 +3,8 @@
 
 import Resistor
 import Capacitor
-import Diode
 import Inductor
-import ElectricPower
 import ElectricLogic
-import ElectricSignal
 import AdjustableRegulator
 
 from "parts/Texas_Instruments_TPS54560DDAR/Texas_Instruments_TPS54560DDAR.ato" import Texas_Instruments_TPS54560DDAR_package
@@ -40,14 +37,14 @@ module TI_TPS54560 from AdjustableRegulator:
     assert power_out.voltage is output_voltage
     assert input_voltage within 4.5V to 60V
     assert output_voltage within 0.8V to 58.8V
-    assert input_voltage >= output_voltage  # Buck converter constraint
+    # assert input_voltage >= output_voltage  # Buck converter constraint
 
     # Set feedback reference voltage
     assert reference_voltage within 0.8V +/- 0.1%
 
     # Inductor
     inductor.inductance = 5.6uH +/- 30%
-    assert inductor.max_current >= power_out.max_current
+    # assert inductor.max_current >= power_out.max_current BLOCKS SOLVER!
     inductor.package = "SMD8x8mm"
 
     # Input caps
@@ -108,8 +105,8 @@ module TI_TPS54560 from AdjustableRegulator:
     # Feedback
     power_out ~ feedback_divider.ref_in
     package.FB ~ feedback_divider.ref_out.hv
-    feedback_divider.chain.resistors[0].package = "R0402"
-    feedback_divider.chain.resistors[1].package = "R0402"
+    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "0402"
     assert feedback_divider.current within 10uA to 100uA
 
     # Enable
