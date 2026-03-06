@@ -27,7 +27,7 @@ module MyProject:
 
 ## Quick Start - SD Bus Mode
 
-```ato
+```atoxx
 from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SPI
 from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SPI
 from "atopile/sd-card-slots/parts/SOFNG_SD_006M/SOFNG_SD_006M.ato" import SOFNG_SD_006M_model
@@ -145,21 +145,33 @@ MicroSD_SPI (user-facing)
 2. Import the appropriate slot base and map the footprint pins:
 
 ```ato
-from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
+from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SPI
+from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SDBus
+from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SPI
+from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SDBus
+from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
 
-module My_New_Slot_model from SDSlotMicroSS:
-    package = new My_New_Slot_package
+module Usage:
+    mcu = new Espressif_ESP32_S3
 
-    card_pins.CD_DAT3 ~ package.CS
-    card_pins.CMD ~ package.DI
-    card_pins.VSS1 ~ package.GND
-    card_pins.VDD ~ package.VDD
-    card_pins.CLK ~ package.SCLK
-    card_pins.VSS2 ~ package.GND
-    card_pins.DAT0 ~ package.DO
-    card_pins.DAT1 ~ package.DAT1
-    card_pins.DAT2 ~ package.DAT2
-    card_pins.CD ~ package.CD
+    # MicroSD slot via SPI (default slot: Korean Hroparts TF-01A)
+    micro_sd_spi = new MicroSD_SPI
+    micro_sd_spi.spi ~ mcu.spi
+    micro_sd_spi.spi_cs ~ mcu.spi_cs
+    micro_sd_spi.power ~ mcu.power
+
+    # MicroSD slot via SD Bus
+    micro_sd_sdbus = new MicroSD_SDBus
+    micro_sd_sdbus.power ~ mcu.power
+
+    # Full-size SD slot via SPI (default slot: XUNPU SD-102)
+    full_sd_spi = new FullSD_SPI
+    full_sd_spi.power ~ mcu.power
+
+    # Full-size SD slot via SD Bus
+    full_sd_sdbus = new FullSD_SDBus
+    full_sd_sdbus.power ~ mcu.power
+
 ```
 
 3. Use it: `sd_card.slot -> My_New_Slot_model`
