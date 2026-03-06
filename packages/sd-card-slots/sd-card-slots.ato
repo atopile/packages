@@ -22,8 +22,6 @@ import Capacitor
 import has_single_electric_reference
 
 from "atopile/sd-card-slots/pins.ato" import SDCardPinsSS
-from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
-from "atopile/sd-card-slots/pins.ato" import SDSlotFullSS
 from "atopile/sd-card-slots/logic.ato" import SDLogicSDBus
 
 from "parts/Korean_Hroparts_Elec_TF_01A/Korean_Hroparts_Elec_TF_01A.ato" import Korean_Hroparts_Elec_TF_01A_model
@@ -151,16 +149,13 @@ module MicroSD_SPI:
     - write_protect: write protection signal
     """
     # Internal: slot + driver + transport
-    slot = new SDSlotMicroSS
+    slot = new Korean_Hroparts_Elec_TF_01A_model
     driver = new SDSlotDriverSS
     transport = new SDTransportSPI
 
     # Wire slot pins through driver to transport
     slot.card_pins ~ driver.card_pins
     driver.sd ~ transport.sd
-
-    # Default slot component
-    slot -> Korean_Hroparts_Elec_TF_01A_model
 
     # Public interface
     spi = new SPI
@@ -195,16 +190,13 @@ module MicroSD_SDBus:
     - write_protect: write protection signal
     """
     # Internal: slot + driver + transport
-    slot = new SDSlotMicroSS
+    slot = new Korean_Hroparts_Elec_TF_01A_model
     driver = new SDSlotDriverSS
     transport = new SDTransportSDBus
 
     # Wire slot pins through driver to transport
     slot.card_pins ~ driver.card_pins
     driver.sd ~ transport.sd
-
-    # Default slot component
-    slot -> Korean_Hroparts_Elec_TF_01A_model
 
     # Public interface
     data = new ElectricLogic[4]
@@ -243,16 +235,13 @@ module FullSD_SPI:
     - write_protect: write protection signal
     """
     # Internal: slot + driver + transport
-    slot = new SDSlotFullSS
+    slot = new XUNPU_SD_102_model
     driver = new SDSlotDriverSS
     transport = new SDTransportSPI
 
     # Wire slot pins through driver to transport
     slot.card_pins ~ driver.card_pins
     driver.sd ~ transport.sd
-
-    # Default slot component
-    slot -> XUNPU_SD_102_model
 
     # Public interface
     spi = new SPI
@@ -287,16 +276,13 @@ module FullSD_SDBus:
     - write_protect: write protection signal
     """
     # Internal: slot + driver + transport
-    slot = new SDSlotFullSS
+    slot = new XUNPU_SD_102_model
     driver = new SDSlotDriverSS
     transport = new SDTransportSDBus
 
     # Wire slot pins through driver to transport
     slot.card_pins ~ driver.card_pins
     driver.sd ~ transport.sd
-
-    # Default slot component
-    slot -> XUNPU_SD_102_model
 
     # Public interface
     data = new ElectricLogic[4]

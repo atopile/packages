@@ -28,19 +28,29 @@ module MyProject:
 ## Quick Start - SD Bus Mode
 
 ```ato
-from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SDBus
+from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SPI
+from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SPI
+from "atopile/sd-card-slots/parts/SOFNG_SD_006M/SOFNG_SD_006M.ato" import SOFNG_SD_006M_model
+from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
 
-module MyProject:
-    sd_card = new MicroSD_SDBus
+module Usage:
+    mcu = new Espressif_ESP32_S3
 
-    # Connect to host
-    sd_card.data[0] ~ mcu.sdmmc_data[0]
-    sd_card.data[1] ~ mcu.sdmmc_data[1]
-    sd_card.data[2] ~ mcu.sdmmc_data[2]
-    sd_card.data[3] ~ mcu.sdmmc_data[3]
-    sd_card.cmd ~ mcu.sdmmc_cmd
-    sd_card.clk ~ mcu.sdmmc_clk
-    sd_card.power ~ mcu.power
+    # MicroSD slot via SPI (default slot: Korean Hroparts TF-01A)
+    micro_sd = new MicroSD_SPI
+    micro_sd.spi ~ mcu.spi
+    micro_sd.spi_cs ~ mcu.spi_cs
+    micro_sd.power ~ mcu.power
+
+    # MicroSD slot via SPI with SOFNG SD-006M push-push slot
+    micro_sd_alt = new MicroSD_SPI
+    micro_sd_alt.slot -> SOFNG_SD_006M_model
+    micro_sd_alt.power ~ mcu.power
+
+    # Full-size SD slot via SPI (default slot: XUNPU SD-102)
+    full_sd = new FullSD_SPI
+    full_sd.power ~ mcu.power
+
 ```
 
 ## Swap the Slot Component
