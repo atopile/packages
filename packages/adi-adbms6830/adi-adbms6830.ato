@@ -9,9 +9,9 @@ import DifferentialPair
 import Electrical
 import ElectricPower
 import ElectricSignal
-import Inductor
 import Resistor
 import SPI
+import can_bridge_by_name
 
 from "parts/Analog_Devices_ADBMS6830MWCCSZ/Analog_Devices_ADBMS6830MWCCSZ.ato" import Analog_Devices_ADBMS6830MWCCSZ_package
 from "input-filters.py" import ADBMS6830InputFilters
@@ -449,7 +449,9 @@ module Diodes_Incorporated_FZT853TA from BJT:
     doping_type = "NPN"
 
 
-module BLM15HD182SN1D from Inductor:
+module BLM15HD182SN1D:
+    unnamed = new Electrical[2]
+    trait can_bridge_by_name<input_name = "unnamed[0]", output_name = "unnamed[1]">
     package = new Murata_Electronics_BLM15HD182SN1D_package
     unnamed[0] ~ package.1
     unnamed[1] ~ package.2
