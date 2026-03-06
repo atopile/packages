@@ -5,10 +5,7 @@
 
 import Capacitor
 import Resistor
-import ElectricPower
 import ElectricLogic
-import ElectricSignal
-import ResistorVoltageDivider
 import has_single_electric_reference_shared
 
 from "regulators.ato" import AdjustableRegulator
@@ -41,7 +38,7 @@ module TPSM863257 from AdjustableRegulator:
     assert power_in.voltage within 3V to 17V
     assert power_out.voltage within 0.6V to 5.5V
     assert power_out.max_current <= 3A
-    assert reference_voltage is 0.6V +/- 1%
+    assert reference_voltage within 0.6V +/- 1%
 
     # Ensure buck converter constraint (input > output)
     assert power_in.voltage >= power_out.voltage
