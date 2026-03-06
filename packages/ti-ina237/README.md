@@ -21,8 +21,6 @@ High-precision digital power monitor with 16-bit delta-sigma ADC designed for cu
 #pragma experiment("MODULE_TEMPLATING")
 import I2C
 import ElectricPower
-import ElectricLogic
-import Resistor
 from "atopile/ti-ina237/ti-ina237.ato" import TI_INA237
 
 module Usage:
