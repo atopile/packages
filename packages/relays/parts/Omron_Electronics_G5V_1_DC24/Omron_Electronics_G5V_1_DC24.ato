@@ -1,23 +1,23 @@
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
+import Electrical
 import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-import Electrical
 
-from "atopile/relays/relays.ato" import RelaySPDT
+from "atopile/relays/helpers.ato" import RelaySPDT
 
 component Omron_Electronics_G5V_1_DC24_package:
     """G5V-1-24VDC"""
 
     # This trait marks this file as auto-generated
     # If you want to manually change it, remove the trait
-    trait is_auto_generated<system="ato_part", source="easyeda:C28694", date="2025-09-05T02:24:27.981869+00:00", checksum="e645f0a323c63c1e0226a3fc966734c76d7cb161bd7efb2e29587ff1bb9bb877">
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C28694", date = "2025-09-05T02:24:27.981869+00:00", checksum = "e645f0a323c63c1e0226a3fc966734c76d7cb161bd7efb2e29587ff1bb9bb877">
 
-    trait is_atomic_part<manufacturer="Omron Electronics", partnumber="G5V-1-DC24", footprint="RELAY-TH_G5V-1.kicad_mod", symbol="G5V-1-24VDC.kicad_sym", model="RELAY-TH_L12.5-W7.5-H10.0.step">
-    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C28694", manufacturer="Omron Electronics", partno="G5V-1-DC24">
-    trait has_designator_prefix<prefix="RLY">
+    trait is_atomic_part<manufacturer = "Omron Electronics", partnumber = "G5V-1-DC24", footprint = "RELAY-TH_G5V-1.kicad_mod", symbol = "G5V-1-24VDC.kicad_sym", model = "RELAY-TH_L12.5-W7.5-H10.0.step">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C28694", manufacturer = "Omron Electronics", partno = "G5V-1-DC24">
+    trait has_designator_prefix<prefix = "RLY">
 
     # pins
     pin 1
@@ -26,7 +26,6 @@ component Omron_Electronics_G5V_1_DC24_package:
     pin 6
     pin 9
     pin 10
-
 
 module RelaySPDT1A24V from RelaySPDT:
     package = new Omron_Electronics_G5V_1_DC24_package
@@ -38,3 +37,6 @@ module RelaySPDT1A24V from RelaySPDT:
 
     com ~> switch_nc ~> package.1
     com ~> switch_no ~> package.10
+
+    assert coil.voltage within 24V +/- 10%
+    assert coil.resistance within 3840ohm +/- 10%

@@ -1,23 +1,24 @@
 #pragma experiment("TRAITS")
 #pragma experiment("BRIDGE_CONNECT")
 
+import Electrical
 import has_designator_prefix
 import has_part_picked
 import is_atomic_part
 import is_auto_generated
-import Electrical
-from "atopile/relays/relays.ato" import RelaySPDT
+
+from "atopile/relays/helpers.ato" import RelaySPDT
 
 component Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG_package:
     """HK4100F-DC5V-SHG"""
 
     # This trait marks this file as auto-generated
     # If you want to manually change it, remove the trait
-    trait is_auto_generated<system="ato_part", source="easyeda:C12072", date="2025-09-04T20:23:53.897549+00:00", checksum="2a25366f5c52288ce486ee0d80db803311a82c921533bbeb8ceb8149c5bf479c">
+    trait is_auto_generated<system = "ato_part", source = "easyeda:C12072", date = "2025-09-04T20:23:53.897549+00:00", checksum = "2a25366f5c52288ce486ee0d80db803311a82c921533bbeb8ceb8149c5bf479c">
 
-    trait is_atomic_part<manufacturer="Ningbo Keke New Era Appliance", partnumber="HK4100F-DC5V-SHG", footprint="RELAY-TH_HK4100F-DC5V-SHG.kicad_mod", symbol="HK4100F-DC5V-SHG.kicad_sym", model="4.STEP">
-    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C12072", manufacturer="Ningbo Keke New Era Appliance", partno="HK4100F-DC5V-SHG">
-    trait has_designator_prefix<prefix="K">
+    trait is_atomic_part<manufacturer = "Ningbo Keke New Era Appliance", partnumber = "HK4100F-DC5V-SHG", footprint = "RELAY-TH_HK4100F-DC5V-SHG.kicad_mod", symbol = "HK4100F-DC5V-SHG.kicad_sym", model = "4.STEP">
+    trait has_part_picked::by_supplier<supplier_id = "lcsc", supplier_partno = "C12072", manufacturer = "Ningbo Keke New Era Appliance", partno = "HK4100F-DC5V-SHG">
+    trait has_designator_prefix<prefix = "K">
 
     # pins
     pin 5
@@ -26,7 +27,6 @@ component Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG_package:
     pin 4
     pin 1
     pin 2
-
 
 module RelaySPDT3A5V from RelaySPDT:
     package = new Ningbo_Keke_New_Era_Appliance_HK4100F_DC5V_SHG_package
@@ -39,4 +39,5 @@ module RelaySPDT3A5V from RelaySPDT:
     com ~> switch_nc ~> package.2
     com ~> switch_no ~> package.1
 
-    # assert coil.voltage within 5V +/- 10%
+    assert coil.voltage within 5V +/- 10%
+    assert coil.resistance within 125ohm +/- 10%

@@ -9,7 +9,6 @@ import Capacitor
 import DifferentialPair
 import Addressor
 import can_bridge_by_name
-from "ti_addressor2.py" import TIAddressor2
 
 from "parts/Texas_Instruments_INA228AQDGSRQ1/Texas_Instruments_INA228AQDGSRQ1.ato" import Texas_Instruments_INA228AQDGSRQ1_package
 
@@ -69,7 +68,7 @@ module TI_INA228:
     i2c.required = True
     i2c.scl.line ~ package.SCL
     i2c.sda.line ~ package.SDA
-    i2c.single_electric_reference.reference ~ power
+    i2c.has_single_electric_reference.reference ~ power
 
     # --- I2C pullup resistors ---
     pullup_scl = new Resistor
@@ -78,8 +77,8 @@ module TI_INA228:
     pullup_sda.resistance = 10kohm +/- 5%
     pullup_scl.package = "0402"
     pullup_sda.package = "0402"
-    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.vcc
-    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.vcc
+    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.hv
 
     # --- ALERT output ---
     alert = new ElectricLogic
@@ -94,7 +93,7 @@ module TI_INA228:
     alert_pullup = new Resistor
     alert_pullup.resistance = 10kohm +/- 5%
     alert_pullup.package = "0402"
-    alert.line ~> alert_pullup ~> alert.reference.vcc
+    alert.line ~> alert_pullup ~> alert.reference.hv
 
     # --- Shunt measurement path ---
     # PCB Layout Guidelines:
@@ -117,10 +116,11 @@ module TI_INA228:
     Maximum expected current for automatic shunt resistor sizing
     """
     # Default to 1 A to provide initial constraint (can be overridden by instantiations)
-    max_current = 1A
+    max_current.default = 1A
 
     # INA228 default full-scale shunt drop (programmable). Use 163.84 mV typical.
-    shunt_drop = 163.84mV
+    shunt_drop: V
+    shunt_drop.default = 163.84mV
 
     # External shunt resistor (designer selects value & package)
     shunt = new Resistor
@@ -170,21 +170,23 @@ module TI_INA228:
     decouple.package = "C0402"
     power.hv ~> decouple ~> power.lv
 
-    # --- I²C address selection (A1, A0) ---
-    # INA228 has 16 selectable addresses via A0 and A1 pins
-    # Each pin can be connected to: GND=0, VS=1, SDA=2, SCL=3
-    # Address = 0x40 + (A1_config << 2) + (A0_config << 1)
-    # This gives addresses from 0x40 to 0x4F (16 total)
-
     # --- I2C address selection (A1, A0) ---
-    addressor = new TIAddressor2
-    addressor.i2c ~ i2c
+    # INA228 uses 4-state address pins: GND=0, VS=1, SDA=2, SCL=3
+    # 2 pins x 4 states = 16 selectable addresses (0x40-0x4F)
+    addressor = new Addressor<address_bits=2, states_per_pin=4>
     addressor.base = 0x40
     assert addressor.address is i2c.address
-    addressor.address_line_a0.line ~ package.A0
-    addressor.address_line_a0.reference ~ power
-    addressor.address_line_a1.line ~ package.A1
-    addressor.address_line_a1.reference ~ power
+    # assert addressor.address within 0x40 to 0x4F
+    i2c.address.default = 0x40
 
-    # I2C address constraint - supports all 16 possible addresses
-    assert i2c.address within 0x40 to 0x4F
+    # Map state_options to address pin destinations
+    addressor.state_options[0] ~ power.lv       # GND
+    addressor.state_options[1] ~ power.hv       # VS
+    addressor.state_options[2] ~ i2c.sda.line   # SDA
+    addressor.state_options[3] ~ i2c.scl.line   # SCL
+
+    # Connect address pins to package
+    addressor.address_lines[0].line ~ package.A0
+    addressor.address_lines[0].reference ~ power
+    addressor.address_lines[1].line ~ package.A1
+    addressor.address_lines[1].reference ~ power
