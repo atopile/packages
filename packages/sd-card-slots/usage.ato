@@ -1,9 +1,21 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
 from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SPI
 from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SDBus
 from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SPI
 from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SDBus
+from "atopile/sd-card-slots/sd-card-slots.ato" import SDSlotDriverSS
+from "atopile/sd-card-slots/sd-card-slots.ato" import SDTransportSPI
 from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
 from "parts/SHOU_HAN_TF_PUSH/SHOU_HAN_TF_PUSH.ato" import SHOU_HAN_TF_PUSH_model
+from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
+
+import SPI
+import ElectricPower
+import ElectricLogic
+import has_single_electric_reference
 
 module Usage:
     mcu = new Espressif_ESP32_S3
@@ -18,11 +30,11 @@ module Usage:
     micro_sd_sdbus = new MicroSD_SDBus
     micro_sd_sdbus.power ~ mcu.power
 
-    # MicroSD slot via SPI with alternate slot (SHOU HAN TF-PUSH)
+    # Double retype test: MicroSD_SPI already retypes slot -> Korean_Hroparts,
+    # then we retype again to SHOU_HAN_TF_PUSH
     micro_sd_spi_alt = new MicroSD_SPI
     micro_sd_spi_alt.slot -> SHOU_HAN_TF_PUSH_model
     micro_sd_spi_alt.power ~ mcu.power
-
 
     # Full-size SD slot via SPI (default slot: XUNPU SD-102)
     full_sd_spi = new FullSD_SPI
