@@ -131,12 +131,12 @@
 		)
 	)
 	(net 1 "PG")
-	(net 2 "soft_start_capacitor-power-hv")
 	(net 3 "EN")
 	(net 6 "input_power_decoupling_capacitors[1]-power-hv")
-	(net 7 "lv")
-	(net 8 "output_power_decoupling_capacitor-power-hv")
 	(net 9 "hv")
+	(net 4 "output_power_decoupling_capacitor-power-hv")
+	(net 5 "soft_start_capacitor-power-hv")
+	(net 10 "lv")
 	(footprint "Samsung_Electro_Mechanics_CL05B103KB5NNNC:C0402"
 		(layer "F.Cu")
 		(uuid "12a63155-1551-4ca7-9159-b8b34642524b")
@@ -153,7 +153,7 @@
 				)
 			)
 		)
-		(property "Value" "0F"
+		(property "Value" "10nF"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -285,7 +285,7 @@
 				)
 			)
 		)
-		(property "capacitance" "0±10.0%F"
+		(property "capacitance" "10±10.0%nF"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -463,12 +463,14 @@
 			(at 0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 10 "lv")
 			(uuid "0356f856-6d26-4ffa-919e-26f2a5db95d6")
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 5 "soft_start_capacitor-power-hv")
 			(uuid "9b6107af-511d-4a96-a8b0-ba0f77ebdf78")
 		)
 		(embedded_fonts no)
@@ -738,21 +740,21 @@
 			(at -1.13 0.32)
 			(size 0.65 0.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "930f3340-4c68-48f2-b150-e3cd32ff65f9")
 		)
 		(pad "4" smd rect
 			(at -1.13 0.97)
 			(size 0.65 0.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 8 "output_power_decoupling_capacitor-power-hv")
+			(net 4 "output_power_decoupling_capacitor-power-hv")
 			(uuid "622dbbdb-8812-423c-a11a-b6a938de3fd5")
 		)
 		(pad "5" smd rect
 			(at 1.13 0.97)
 			(size 0.65 0.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 8 "output_power_decoupling_capacitor-power-hv")
+			(net 4 "output_power_decoupling_capacitor-power-hv")
 			(uuid "046250f6-4cb1-48c7-81c6-cbb0dffe5828")
 		)
 		(pad "6" smd rect
@@ -773,7 +775,7 @@
 			(at 1.13 -0.97)
 			(size 0.65 0.45)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 2 "soft_start_capacitor-power-hv")
+			(net 5 "soft_start_capacitor-power-hv")
 			(uuid "b19843c3-457b-4523-bc10-2c949cbf37a6")
 		)
 		(pad "9" thru_hole circle
@@ -782,7 +784,7 @@
 			(drill 0.2)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "83dabdd7-28ee-40c2-bf47-a5a39278028b")
 		)
 		(pad "9" thru_hole circle
@@ -791,14 +793,14 @@
 			(drill 0.2)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "a8517fe0-6c87-43f6-a92f-b888d067f496")
 		)
 		(pad "9" smd rect
 			(at 0 0 90)
 			(size 1.9 1.1)
 			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "1ccdf5bc-e50c-427a-a6eb-71e81a893749")
 		)
 		(pad "9" thru_hole circle
@@ -807,7 +809,7 @@
 			(drill 0.2)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "91579d0e-9fc5-4a9d-8c49-ad727f7121b1")
 		)
 		(embedded_fonts no)
@@ -839,7 +841,7 @@
 				)
 			)
 		)
-		(property "Value" "100000Ω"
+		(property "Value" "100kΩ"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide no)
@@ -971,13 +973,13 @@
 				)
 			)
 		)
-		(property "resistance" "100000±1.0%Ω"
+		(property "resistance" "100±1.0%kΩ"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5c772330-991e-4578-882b-6aa44642524b")
 		)
-		(property "max_power" "0.05W"
+		(property "max_power" "50mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1101,14 +1103,14 @@
 			(at -0.24 0 90)
 			(size 0.3 0.32)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "output_power_decoupling_capacitor-power-hv")
+			(net 4 "output_power_decoupling_capacitor-power-hv")
 			(uuid "82d40239-c5bd-449a-a271-fc7bdf009ff7")
 		)
 		(pad "2" smd rect
 			(at 0.24 0 90)
 			(size 0.3 0.32)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "30baa490-e6eb-4151-bf46-49bb9a075791")
 		)
 		(embedded_fonts no)
@@ -1140,7 +1142,7 @@
 				)
 			)
 		)
-		(property "Value" "0F"
+		(property "Value" "47µF"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -1272,7 +1274,7 @@
 				)
 			)
 		)
-		(property "capacitance" "0±20.0%F"
+		(property "capacitance" "47±20.0%µF"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1450,12 +1452,14 @@
 			(at 1.59 0 180)
 			(size 1.49 1.73)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 10 "lv")
 			(uuid "b3dd7603-c6ca-429d-b7ad-329f33bb61af")
 		)
 		(pad "1" smd rect
 			(at -1.59 0 180)
 			(size 1.49 1.73)
 			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 4 "output_power_decoupling_capacitor-power-hv")
 			(uuid "1c21f664-26af-494d-b007-fca32a75e54f")
 		)
 		(embedded_fonts no)
@@ -1487,7 +1491,7 @@
 				)
 			)
 		)
-		(property "Value" "0F"
+		(property "Value" "4.7µF"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1619,7 +1623,7 @@
 				)
 			)
 		)
-		(property "capacitance" "0±10.0%F"
+		(property "capacitance" "4.7±10.0%µF"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1796,7 +1800,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "9bfc3ff1-b12a-4dcf-a47e-17b5704cdb0a")
 		)
 		(pad "1" smd rect
@@ -1835,7 +1839,7 @@
 				)
 			)
 		)
-		(property "Value" "0F"
+		(property "Value" "4.7µF"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1967,7 +1971,7 @@
 				)
 			)
 		)
-		(property "capacitance" "0±10.0%F"
+		(property "capacitance" "4.7±10.0%µF"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2144,7 +2148,7 @@
 			(at 1 0 270)
 			(size 1.41 1.35)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "9bfc3ff1-b12a-4dcf-a47e-17b5704cdb0a")
 		)
 		(pad "1" smd rect
@@ -2183,7 +2187,7 @@
 				)
 			)
 		)
-		(property "Value" "1000Ω"
+		(property "Value" "1kΩ"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "7444f438-8b7b-472d-9bd6-6f08f2424c6f")
@@ -2236,13 +2240,13 @@
 			(hide yes)
 			(uuid "6dd53042-94ca-42a4-9a9a-91ae4642524b")
 		)
-		(property "resistance" "1000±1.0%Ω"
+		(property "resistance" "1±1.0%kΩ"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "90f6079e-86cc-47c1-a7fb-80754642524b")
 		)
-		(property "max_power" "0.05W"
+		(property "max_power" "50mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2378,7 +2382,7 @@
 			(at -0.24 0 0)
 			(size 0.3 0.32)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "output_power_decoupling_capacitor-power-hv")
+			(net 4 "output_power_decoupling_capacitor-power-hv")
 			(uuid "0dcf468d-f362-4ff9-a75e-5a4f163d2401")
 		)
 		(embedded_fonts no)
@@ -2410,7 +2414,7 @@
 				)
 			)
 		)
-		(property "Value" "1000Ω"
+		(property "Value" "1kΩ"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "7444f438-8b7b-472d-9bd6-6f08f2424c6f")
@@ -2463,13 +2467,13 @@
 			(hide yes)
 			(uuid "dcf8c481-59da-4507-a905-3d674642524b")
 		)
-		(property "resistance" "1000±1.0%Ω"
+		(property "resistance" "1±1.0%kΩ"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "e311a7d2-e748-4981-9071-a7004642524b")
 		)
-		(property "max_power" "0.05W"
+		(property "max_power" "50mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2598,7 +2602,7 @@
 			(at 0.24 0 0)
 			(size 0.3 0.32)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 7 "lv")
+			(net 10 "lv")
 			(uuid "ff6c5f8f-d900-4a0c-9058-150bffaeffb8")
 		)
 		(pad "1" smd rect

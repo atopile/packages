@@ -43,6 +43,8 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     #assert soft_start_time_ms within 7ms +/-20%
     assert soft_start_time_ms within 0.1ms to 10ms
 
+    power_out.max_current.default = 3A
+
     # --- External interfaces ---
     # power_in from regulator
     # power_out from regulator
@@ -58,7 +60,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     Goes high impedance once the output is above 95% of the nominal voltage, and is
     driven low once the output voltage falls below typically 90% of the nominal voltage.
     """
-    # assert power_good.reference.voltage <= power_out.voltage
+    assert power_good.reference.voltage <= power_out.voltage
 
     # --- Internal interfaces ---
     _feedback = new ElectricSignal
@@ -82,7 +84,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     output_power_decoupling_capacitor = new Capacitor
     output_power_decoupling_capacitor.package = "1206"
     assert output_power_decoupling_capacitor.capacitance within 22uF to 400uF
-    # assert output_power_decoupling_capacitor.max_voltage >= power_out.voltage * 1.5 # TODO: broken in solver
+    assert output_power_decoupling_capacitor.max_voltage >= power_out.voltage * 1.5 # TODO: broken in solver
     assert output_power_decoupling_capacitor.max_voltage >= 9V
     power_out.hv ~> output_power_decoupling_capacitor ~> power_out.lv
 
@@ -107,18 +109,18 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     # soft start time
     _soft_start_current = 2.1uA to 2.8uA
     _soft_start_threshold_voltage = 1.25V
-    # assert soft_start_capacitor.capacitance within soft_start_time_ms * (_soft_start_current / _soft_start_threshold_voltage) * (1 +/- 20%)
+    assert soft_start_capacitor.capacitance within soft_start_time_ms * (_soft_start_current / _soft_start_threshold_voltage) * (1 +/- 20%)
 
     # load resistor
     _minimum_load_current = 13uA
-    # base_load_resistor.resistance = power_out.voltage / _minimum_load_current
+    base_load_resistor.resistance = power_out.voltage / _minimum_load_current
     base_load_resistor.resistance = 100kohm +/- 10%
 
     # minimum output voltage
     dropout_resistance = 69mohm
-    # dropout_voltage = power_out.max_current * dropout_resistance
-    # assert power_out.voltage <= power_in.voltage - dropout_voltage
-    # assert power_in.voltage >= power_out.voltage + dropout_voltage
+    dropout_voltage = power_out.max_current * dropout_resistance
+    assert power_out.voltage <= power_in.voltage - dropout_voltage # Comment out for build to pass
+    assert power_in.voltage >= power_out.voltage + dropout_voltage # Comment out for build to pass
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
