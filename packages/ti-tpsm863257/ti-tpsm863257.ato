@@ -52,7 +52,7 @@ module TPSM863257 from AdjustableRegulator:
     for cap in input_caps:
         cap.capacitance = 10uF +/- 20%
         # cap.temperature_coefficient = "X7R"
-        cap.max_voltage = 25V to 50V
+        assert cap.max_voltage within 25V to 50V
         cap.package = "0805"
 
     # Connect input capacitors in parallel
@@ -65,7 +65,7 @@ module TPSM863257 from AdjustableRegulator:
     for cap in output_caps:
         cap.capacitance = 22uF +/- 20%
         # cap.temperature_coefficient = "X7R"
-        assert cap.max_voltage >= power_out.voltage * 2
+        assert cap.max_voltage >= 10V
         cap.package = "0805"
 
     # Connect output capacitors in parallel
