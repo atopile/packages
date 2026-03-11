@@ -88,13 +88,13 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Input Filtering
     for cap in input_caps:
-        power_in ~ cap.power
+        power_in.hv ~> cap ~> power_in.lv
 
     # Output Stage
     package.SW ~> inductor ~> power_out.hv
     package.SW <~ diode <~ power_out.lv
     for cap in output_caps:
-        power_out ~ cap.power
+        power_out.hv ~> cap ~> power_out.lv
 
     # Compensation
     package.COMP ~> compensation_resistor ~> compensation_capacitors[0] ~> power_in.lv
