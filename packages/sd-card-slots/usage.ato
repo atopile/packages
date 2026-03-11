@@ -3,6 +3,7 @@ from "atopile/sd-card-slots/sd-card-slots.ato" import MicroSD_SDBus
 from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SPI
 from "atopile/sd-card-slots/sd-card-slots.ato" import FullSD_SDBus
 from "atopile/espressif-esp32-s3/espressif-esp32-s3.ato" import Espressif_ESP32_S3
+from "parts/SHOU_HAN_TF_PUSH/SHOU_HAN_TF_PUSH.ato" import SHOU_HAN_TF_PUSH_model
 
 module Usage:
     mcu = new Espressif_ESP32_S3
@@ -16,6 +17,12 @@ module Usage:
     # MicroSD slot via SD Bus
     micro_sd_sdbus = new MicroSD_SDBus
     micro_sd_sdbus.power ~ mcu.power
+
+    # MicroSD slot via SPI with alternate slot (SHOU HAN TF-PUSH)
+    micro_sd_spi_alt = new MicroSD_SPI
+    micro_sd_spi_alt.slot -> SHOU_HAN_TF_PUSH_model
+    micro_sd_spi_alt.power ~ mcu.power
+
 
     # Full-size SD slot via SPI (default slot: XUNPU SD-102)
     full_sd_spi = new FullSD_SPI

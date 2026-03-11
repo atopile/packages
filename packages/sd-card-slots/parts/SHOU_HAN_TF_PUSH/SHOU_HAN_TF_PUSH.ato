@@ -1,0 +1,50 @@
+#pragma experiment("TRAITS")
+import has_datasheet
+import has_designator_prefix
+import has_part_picked
+import is_atomic_part
+import is_auto_generated
+
+component SHOU_HAN_TF_PUSH_package:
+    # This trait marks this file as auto-generated
+    # If you want to manually change it, remove the trait
+    trait is_auto_generated<system="ato_part", source="easyeda:C393941", date="2026-03-11T00:00:26.601131+00:00", checksum="80536ec814b4f7e7be78a8da33f401ce6bfaf8c2babae0c33363876a00b240d5">
+
+    trait is_atomic_part<manufacturer="SHOU HAN", partnumber="TF PUSH", footprint="TF-SMD_TF-PUSH.kicad_mod", symbol="TFPUSH.kicad_sym", model="TF-SMD_TF-PUSH.step">
+    trait has_part_picked::by_supplier<supplier_id="lcsc", supplier_partno="C393941", manufacturer="SHOU HAN", partno="TF PUSH">
+    trait has_designator_prefix<prefix="Card">
+    trait has_datasheet<datasheet="https://www.lcsc.com/datasheet/lcsc_datasheet_1912111437_SHOU-HAN-TF-PUSH_C393941.pdf">
+
+    # pins
+    pin 10
+    pin 11
+    pin 12
+    pin 13
+    signal CD ~ pin 9
+    signal CD_DAT3 ~ pin 2
+    signal CLX ~ pin 5
+    signal CMD ~ pin 3
+    signal DAT0 ~ pin 7
+    signal DAT1 ~ pin 8
+    signal DAT2 ~ pin 1
+    signal VDD ~ pin 4
+    signal VSS ~ pin 6
+
+from "atopile/sd-card-slots/pins.ato" import SDSlotMicroSS
+module SHOU_HAN_TF_PUSH_model from SDSlotMicroSS:
+    """
+    SHOU HAN TF-PUSH microSD card slot.
+    Push-push microSD card slot.
+    """
+    package = new SHOU_HAN_TF_PUSH_package
+
+    card_pins.CD_DAT3 ~ package.CD_DAT3
+    card_pins.CMD ~ package.CMD
+    card_pins.VSS1 ~ package.VSS
+    card_pins.VDD ~ package.VDD
+    card_pins.CLK ~ package.CLX
+    card_pins.VSS2 ~ package.VSS
+    card_pins.DAT0 ~ package.DAT0
+    card_pins.DAT1 ~ package.DAT1
+    card_pins.DAT2 ~ package.DAT2
+    card_pins.CD ~ package.CD
