@@ -59,11 +59,8 @@ jobs:
           clean: false
 
       - uses: atopile/setup-atopile@v2
-        # Build against the main branch of atopile by setting the docker-tag
-        # Uses pre-built Docker image from the branch (built by atopile CI)
-        # Docker tags replace '/' with '-', so feature/fabll_part2 -> feature-fabll_part2
+        # Uses pre-built Docker image from the atopile container registry
         # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
-        # Defaults to ato version in project ato.yaml if not specified
         with:
           docker-tag: main
 
@@ -96,7 +93,18 @@ jobs:
         env:
           ATO_CLI_PACKAGE_SKIP_DUPLICATE_VERSIONS: "true"
           NONINTERACTIVE: "1"
-        run: ato package publish ${{ matrix.package }}
+        run: |
+          for attempt in 1 2 3; do
+            echo "Publish attempt $attempt/3..."
+            if ato package publish ${{ matrix.package }}; then
+              echo "Publish succeeded on attempt $attempt"
+              exit 0
+            fi
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+          echo "All publish attempts failed"
+          exit 1
 
       - name: Print errors and warnings on failure
         if: failure()

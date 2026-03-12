@@ -10,7 +10,7 @@ import Resistor
 import Capacitor
 
 from "parts/Texas_Instruments_TMP117AIDRVR/Texas_Instruments_TMP117AIDRVR.ato" import Texas_Instruments_TMP117AIDRVR_package
-import SinglePinAddressor
+import Addressor
 
 module TI_TMP117:
     """
@@ -75,18 +75,18 @@ module TI_TMP117:
     # --- I2C Address Configuration ---
     # TMP117 supports 4 addresses based on ADD0 pin:
     # GND: 0x48, V+: 0x49, SDA: 0x4A, SCL: 0x4B
-    addressor = new SinglePinAddressor<states = 4>
+    addressor = new Addressor<address_bits=1, states_per_pin=4>
     addressor.base = 0x48
     assert addressor.address is i2c.address
     # Default to base address (0x48), can be overridden by user
     i2c.address.default = 0x48
 
-    addressor.address_line.line ~ package.ADD0
-    addressor.address_line.reference ~ power
-    addressor.states[0] ~ i2c.has_single_electric_reference.reference.lv
-    addressor.states[1] ~ i2c.has_single_electric_reference.reference.hv
-    addressor.states[2] ~ i2c.sda.line
-    addressor.states[3] ~ i2c.scl.line
+    addressor.address_lines[0].line ~ package.ADD0
+    addressor.address_lines[0].reference ~ power
+    addressor.state_options[0] ~ power.lv
+    addressor.state_options[1] ~ power.hv
+    addressor.state_options[2] ~ i2c.sda.line
+    addressor.state_options[3] ~ i2c.scl.line
 
     # --- Alert pin ---
     alert.line ~ package.ALERT
