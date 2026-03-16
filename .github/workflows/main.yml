@@ -69,14 +69,19 @@ jobs:
       - name: Apply atopile net naming fix
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch fix/net-name-collision-loaded-names https://github.com/atopile/monopile.git /tmp/atopile-fix
+          BRANCH="fix/net-name-collision-loaded-names"
+          BASE_URL="https://raw.githubusercontent.com/atopile/monopile/${BRANCH}/apps/open-atopile/src"
+          mkdir -p /tmp/atopile-fix/faebryk/libs/app /tmp/atopile-fix/atopile
+          curl -sL "${BASE_URL}/faebryk/libs/net_naming.py" -o /tmp/atopile-fix/faebryk/libs/net_naming.py
+          curl -sL "${BASE_URL}/faebryk/libs/app/pcb.py" -o /tmp/atopile-fix/faebryk/libs/app/pcb.py
+          curl -sL "${BASE_URL}/atopile/build_steps.py" -o /tmp/atopile-fix/atopile/build_steps.py
           SITE_PKG=$(docker run --rm --entrypoint python3 atopile-local -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
           cd /tmp/atopile-fix
           cat > Dockerfile.fix <<DOCKERFILE
           FROM atopile-local
-          COPY apps/open-atopile/src/faebryk/libs/net_naming.py ${SITE_PKG}/faebryk/libs/net_naming.py
-          COPY apps/open-atopile/src/faebryk/libs/app/pcb.py ${SITE_PKG}/faebryk/libs/app/pcb.py
-          COPY apps/open-atopile/src/atopile/build_steps.py ${SITE_PKG}/atopile/build_steps.py
+          COPY faebryk/libs/net_naming.py ${SITE_PKG}/faebryk/libs/net_naming.py
+          COPY faebryk/libs/app/pcb.py ${SITE_PKG}/faebryk/libs/app/pcb.py
+          COPY atopile/build_steps.py ${SITE_PKG}/atopile/build_steps.py
           DOCKERFILE
           docker build -t atopile-local -f Dockerfile.fix .
 
