@@ -62,7 +62,23 @@ jobs:
         # Uses pre-built Docker image from the atopile container registry
         # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
         with:
-          docker-tag: pr-1397
+          docker-tag: main
+
+      # Apply net name collision fix from atopile/monopile#1397
+      # TODO: Remove this once the fix is merged into main and the Docker image is updated
+      - name: Apply atopile net naming fix
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch fix/net-name-collision-loaded-names https://github.com/atopile/monopile.git /tmp/atopile-fix
+          SITE_PKG=$(docker run --rm --entrypoint python3 atopile-local -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
+          cd /tmp/atopile-fix
+          cat > Dockerfile.fix <<DOCKERFILE
+          FROM atopile-local
+          COPY apps/open-atopile/src/faebryk/libs/net_naming.py ${SITE_PKG}/faebryk/libs/net_naming.py
+          COPY apps/open-atopile/src/faebryk/libs/app/pcb.py ${SITE_PKG}/faebryk/libs/app/pcb.py
+          COPY apps/open-atopile/src/atopile/build_steps.py ${SITE_PKG}/atopile/build_steps.py
+          DOCKERFILE
+          docker build -t atopile-local -f Dockerfile.fix .
 
       - name: Print atopile + KiCad versions
         run: |
