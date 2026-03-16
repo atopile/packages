@@ -98,6 +98,9 @@ jobs:
       - run: ato build ${{ matrix.package }} -t all
         env:
           GIT_DISCOVERY_ACROSS_FILESYSTEM: 1
+          # Temporarily disable frozen mode to allow layout updates after net naming fix
+          # TODO: Remove ATO_FROZEN=0 once layouts are regenerated with the fixed atopile
+          ATO_FROZEN: "0"
 
       - run: ato package verify -s
         working-directory: ${{ matrix.package }}
