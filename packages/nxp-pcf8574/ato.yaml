@@ -1,26 +1,25 @@
-requires-atopile: "^0.10.8"
-
+requires-atopile: ^0.14.0
 paths:
   src: ./
   layout: ./layouts
-
 builds:
   default:
     entry: nxp-pcf8574.ato:NXP_PCF8574
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks:
+    - PCB.requires_drc_check
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: ["PCB.requires_drc_check"]
-
+    exclude_checks:
+    - PCB.requires_drc_check
 package:
   identifier: atopile/nxp-pcf8574
   repository: https://github.com/atopile/packages
   homepage: https://github.com/atopile/packages/blob/main/packages/nxp-pcf8574/README.md
-  version: "0.1.0"
+  version: "0.2.1"
   authors:
-    - name: atopile
-      email: hi@atopile.io
-  summary: "Tags: NXP; PCF8574; GPIO; Expander; I2C; Remote; 8-bit; 5545"
+  - name: atopile
+    email: hi@atopile.io
+  summary: 'Tags: NXP; PCF8574; GPIO; Expander; I2C; Remote; 8-bit; 5545'
   license: MIT

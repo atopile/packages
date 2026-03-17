@@ -1,0 +1,22 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+
+import Electrical
+import ElectricPower
+import can_bridge_by_name
+
+interface Switch:
+    """
+    Basic switch with two electrical terminals.
+    """
+    unnamed = new Electrical[2]
+
+    trait can_bridge_by_name<input_name = "unnamed[0]", output_name = "unnamed[1]">
+
+interface PowerSwitch:
+    """
+    Power switch with two power terminals.
+    """
+    unnamed = new ElectricPower[2]
+
+    trait can_bridge_by_name<input_name = "unnamed[0]", output_name = "unnamed[1]">

@@ -25,7 +25,6 @@ The INA232 is a high-side/low-side bidirectional current and power monitor with 
 #pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
 import I2C
-import Resistor
 
 from "atopile/ti-ina232/ti-ina232.ato" import TI_INA232
 
@@ -49,7 +48,7 @@ module Usage:
 
     # I2C bus with pull-up resistors
     i2c = new I2C
-    i2c.reference_shim ~ device_power
+    i2c.has_single_electric_reference.reference ~ device_power
 
     # Four sensors with different address configurations
     sensor1 = new TI_INA232  # A0 = GND -> 0x40
@@ -58,15 +57,24 @@ module Usage:
     sensor4 = new TI_INA232  # A0 = SCL -> 0x43
 
     # Configure sensors with different current ranges
-    sensor1.max_current = 0.1A   # Low current monitoring
-    sensor2.max_current = 1A   # Medium current monitoring
-    sensor3.max_current = 5A   # High current monitoring
+    sensor1.max_current = 0.5A  # Low current monitoring
+    sensor2.max_current = 1A  # Medium current monitoring
+    sensor3.max_current = 5A  # High current monitoring
     sensor4.max_current = 10A  # Very high current monitoring
 
     # Connect power and I2C to all sensors
     for sensor in [sensor1, sensor2, sensor3, sensor4]:
         sensor.power ~ device_power
-        sensor.i2c ~ i2c
+        # sensor.i2c ~ i2c
+
+    i2c1 = new I2C
+    sensor1.i2c ~ i2c1
+    i2c2 = new I2C
+    sensor2.i2c ~ i2c2
+    i2c3 = new I2C
+    sensor3.i2c ~ i2c3
+    i2c4 = new I2C
+    sensor4.i2c ~ i2c4
 
     # Address configuration via A0 pin connections:
     # Sensor 1: A0 to GND (0x40)
@@ -92,7 +100,6 @@ module Usage:
     # sensor2: 0x41 (A0=VS) - 2A max current
     # sensor3: 0x42 (A0=SDA) - 5A max current
     # sensor4: 0x43 (A0=SCL) - 10A max current
-
 ```
 
 ## Hardware Features

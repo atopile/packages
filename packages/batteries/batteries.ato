@@ -1,0 +1,78 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("TRAITS")
+
+import ElectricPower
+
+from "parts/MOLEX_532610271/MOLEX_532610271.ato" import MOLEX_532610271_package
+from "parts/EEMB_BATTERY_LP402535/EEMB_BATTERY_LP402535.ato" import EMB_BATTERY_LP402535_package
+
+module Battery:
+    """
+    Base battery module providing common battery characteristics.
+
+    This module defines the fundamental parameters and interfaces
+    that all battery types should have.
+    """
+
+    # --- Parameters ---
+    voltage: V
+    """Battery nominal voltage"""
+
+    capacity: Ah
+    """Battery capacity in ampere-hours"""
+
+    discharge_current_max: A
+    """Maximum safe discharge current"""
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Battery power output interface
+    """
+    power.required = True
+    assert power.voltage is voltage
+
+module BatteryPrimary from Battery:
+    """
+    Primary (non-rechargeable) battery module.
+
+    Primary batteries cannot be recharged and are designed
+    for single-use applications.
+    """
+
+module BatterySecondary from Battery:
+    """
+    Secondary (rechargeable) battery module.
+
+    Secondary batteries can be charged and discharged multiple times,
+    making them suitable for reusable applications.
+    """
+
+    charge_current_max: A
+    """Maximum safe charging current"""
+
+module EMB_BATTERY_LP402535_model from BatterySecondary:
+    """
+    LP402535 is a 3.6V lithium-ion battery with a capacity of 320mAh.
+    """
+    package = new EMB_BATTERY_LP402535_package
+
+    assert charge_current_max <= 320mA
+    assert discharge_current_max <= 640mA
+    assert voltage within 2.750V to 4.200V
+    assert capacity within 300mAh to 320mAh
+
+module EMB_BATTERY_LP402535:
+    """
+    LP402535 driver.
+    """
+    model = new EMB_BATTERY_LP402535_model
+    connector = new MOLEX_532610271_package
+
+    power = new ElectricPower
+
+    power ~ model.power
+    power.hv ~ connector.2
+    power.lv ~ connector.1
+    power.lv ~ connector.3
+    power.lv ~ connector.4

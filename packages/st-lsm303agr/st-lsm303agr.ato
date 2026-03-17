@@ -42,7 +42,7 @@ module ST_LSM303AGR:
     # --- I²C pull-up resistors ---
     pullup_resistors = new Resistor[2]
     for resistor in pullup_resistors:
-        resistor.value = 4.7k +/- 1%
+        resistor.resistance = 4.7kohm +/- 1%
         resistor.package = "0402"
     i2c.scl.line ~> pullup_resistors[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> pullup_resistors[1] ~> i2c.sda.reference.hv
@@ -56,7 +56,7 @@ module ST_LSM303AGR:
     # --- Chip-select pin pull-ups ---
     chip_select_pullups = new Resistor[2]
     for resistor in chip_select_pullups:
-        resistor.value = 10kohm +/- 20%
+        resistor.resistance = 10kohm +/- 20%
         resistor.package = "0402"
     power_digital.hv ~> chip_select_pullups[0] ~> package.CS_MAG
     power_digital.hv ~> chip_select_pullups[1] ~> package.CS_XL

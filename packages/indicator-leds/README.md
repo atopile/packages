@@ -7,12 +7,10 @@ Convenience modules for single indicator LEDs with a correctly sized series resi
 ```ato
 #pragma experiment("BRIDGE_CONNECT")
 
-import ElectricSignal
 import ElectricPower
 
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
-
 
 module Usage:
     """
@@ -27,9 +25,7 @@ module Usage:
     power = new ElectricPower
     power.voltage = 5V
     power ~ red_led.power
-
-    # Bridge connect across the power rail
-    power.hv ~> green_led ~> power.lv
+    power ~ green_led.power
 
 ```
 

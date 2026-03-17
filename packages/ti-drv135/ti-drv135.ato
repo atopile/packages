@@ -1,0 +1,73 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import ElectricSignal
+import DifferentialPair
+import Capacitor
+
+from "parts/Texas_Instruments_DRV135UA_2K5/Texas_Instruments_DRV135UA_2K5.ato" import Texas_Instruments_DRV135UA_2K5_package
+
+module TI_DRV135:
+    """
+        Texas Instruments DRV135 balanced audio line driver
+    """
+    package = new Texas_Instruments_DRV135UA_2K5_package
+
+    # --- External interfaces ---
+    positive_power = new ElectricPower
+    """
+    Power supply (VCC) - typically 3.3V
+    """
+    positive_power.required = True
+    assert positive_power.voltage within 4.5V to 18V
+
+    negative_power = new ElectricPower
+    """
+    Power supply (VCC) - typically 3.3V
+    """
+    negative_power.required = True
+    assert negative_power.voltage within -18V to -4.5V
+
+    input_signal = new ElectricSignal
+    """
+    Single ended input signal
+    """
+    input_signal.reference.lv ~ positive_power.lv
+
+    output_force = new DifferentialPair
+    """
+    Balanced output signal 4w force lines
+    """
+
+    output_sense = new DifferentialPair
+    """
+    Balanced output signal 4w sense lines
+    """
+
+    positive_power.lv ~ negative_power.hv
+
+    # --- Decoupling Caps ---
+    positive_decoupling_capacitor = new Capacitor
+    positive_decoupling_capacitor.package = "0402"
+    positive_decoupling_capacitor.capacitance = 1uF +/- 10%
+    assert positive_decoupling_capacitor.max_voltage >= 20V
+    positive_power.hv ~> positive_decoupling_capacitor ~> positive_power.lv
+
+    negative_decoupling_capacitor = new Capacitor
+    negative_decoupling_capacitor.package = "0402"
+    negative_decoupling_capacitor.capacitance = 1uF +/- 10%
+    assert negative_decoupling_capacitor.max_voltage >= 20V
+    negative_power.hv ~> negative_decoupling_capacitor ~> negative_power.lv
+
+    # --- Package Connections ---
+    package.VIN ~ input_signal.line
+    package.Vpos ~ positive_power.hv
+    package.GND ~ positive_power.lv
+    package.Vneg ~ negative_power.lv
+    package.GND ~ negative_power.hv
+    package.VOpos ~ output_force.p.line
+    package.VOneg ~ output_force.n.line
+    package.SENSEpos ~ output_sense.p.line
+    package.SENSEneg ~ output_sense.n.line

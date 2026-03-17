@@ -2,9 +2,12 @@
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
 
-import Resistor, Capacitor
-import SPI, ElectricPower, ElectricLogic
+import Capacitor
+import ElectricLogic
+import ElectricPower
 import Ethernet
+import Resistor
+import SPI
 
 from "parts/WIZNET_W5500/WIZNET_W5500.ato" import WIZNET_W5500_package
 from "parts/Yangxing_Tech_X322525MRB4SI/Yangxing_Tech_X322525MRB4SI.ato" import Yangxing_Tech_X322525MRB4SI_package
@@ -44,7 +47,7 @@ module Wiznet_W5500:
 
     reset = new ElectricLogic
     """
-    Reset input signal (active low)
+    Reset input signal (active low), keep low for at least 500us
     """
 
     ethernet = new Ethernet
@@ -99,8 +102,17 @@ module Wiznet_W5500:
     ethernet.led_link.line.suggest_net_name = "W5500_LINK_LED"
     ethernet.led_speed.line.suggest_net_name = "W5500_ACT_LED"
 
-    # --- Mode select configuration ---
-    # PMODE[2:0] = 111 for all capable, auto-negotiation enabled
+    # --- PHY Operation mode configuration ---
+    # PMODE[2,1,0] | Description
+    # -----------|-----------------------------------------------------
+    # 0  0  0  | 10BT Half-duplex, Auto-negotiation disabled
+    # 0  0  1  | 10BT Full-duplex, Auto-negotiation disabled
+    # 0  1  0  | 100BT Half-duplex, Auto-negotiation disabled
+    # 0  1  1  | 100BT Full-duplex, Auto-negotiation disabled
+    # 1  0  0  | 100BT Half-duplex, Auto-negotiation enabled
+    # 1  0  1  | Not used
+    # 1  1  0  | Not used
+    # 1  1  1  | All capable, Auto-negotiation enabled
     package.PMODE2 ~ power.hv
     package.PMODE1 ~ power.hv
     package.PMODE0 ~ power.hv

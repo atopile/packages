@@ -67,7 +67,7 @@ module TI_BQ25185:
     """
     Temperature sense/Manual reset (TS_MR) - NTC thermistor connection
     """
-    temp_sense.line.required = True
+    temp_sense.required = True
 
     # --- Configuration parameters ---
     charge_current_limit: current
@@ -86,14 +86,14 @@ module TI_BQ25185:
     """
 
     # --- Power connections ---
-    power_input.vcc ~ package.IN
-    power_system.vcc ~ package.SYS
-    power_battery.vcc ~ package.BAT
+    power_input.hv ~ package.IN
+    power_system.hv ~ package.SYS
+    power_battery.hv ~ package.BAT
 
     # Common ground connections
-    power_input.gnd ~ package.GND
-    power_system.gnd ~ package.GND
-    power_battery.gnd ~ package.GND
+    power_input.lv ~ package.GND
+    power_system.lv ~ package.GND
+    power_battery.lv ~ package.GND
     # Connect exposed pad to GND for thermal performance
     package.EP ~ package.GND
 
@@ -120,7 +120,7 @@ module TI_BQ25185:
     charge_enable_resistor = new Resistor
     charge_enable_resistor.resistance = 10kohm +/- 10%
     charge_enable_resistor.package = "0402"
-    charge_enable.line ~> charge_enable_resistor ~> power_system.gnd
+    charge_enable.line ~> charge_enable_resistor ~> power_system.lv
 
     # --- Charge current setting ---
     # ISET resistor calculation: R_ISET = (300 * k_I * k_R) / I_CHG
@@ -132,7 +132,7 @@ module TI_BQ25185:
     # For 1A: R = 300kΩ / 1A = 300kΩ (not practical, use lower values)
     # For 500mA: R = 300kΩ / 0.5A = 600kΩ
     # For 100mA: R = 300kΩ / 0.1A = 3MΩ
-    package.ISET ~> charge_current_resistor ~> power_system.gnd
+    package.ISET ~> charge_current_resistor ~> power_system.lv
 
     # --- Input current and voltage limit setting ---
     # This resistor sets both input current limit and battery regulation voltage
@@ -141,7 +141,7 @@ module TI_BQ25185:
     ilim_vset_resistor.package = "0402"
     # Default: 18kΩ for 500mA input current limit and 4.2V battery regulation
     ilim_vset_resistor.resistance = 18kohm +/- 5%
-    package.ILIM_VSET ~> ilim_vset_resistor ~> power_system.gnd
+    package.ILIM_VSET ~> ilim_vset_resistor ~> power_system.lv
 
     # --- Decoupling capacitors ---
     # Input decoupling

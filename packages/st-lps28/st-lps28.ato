@@ -11,7 +11,6 @@ import Resistor
 import Addressor
 
 from "parts/STMicroelectronics_LPS28DFWTR/STMicroelectronics_LPS28DFWTR.ato" import STMicroelectronics_LPS28DFWTR_package
-from "parts/UNI_ROYAL_0402WGF1002TCE/UNI_ROYAL_0402WGF1002TCE.ato" import UNI_ROYAL_0402WGF1002TCE_package
 
 module ST_LPS28:
     """
@@ -49,9 +48,9 @@ module ST_LPS28:
     interrupt.required = False
 
     # --- Internal power connections ---
-    power.vcc ~ package.VDD
-    power.gnd ~ package.GND
-    power.gnd ~ package.PAD2LID
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    power.lv ~ package.PAD2LID
     assert power.voltage within 1.7V to 3.6V
 
     # --- I²C interface ---
@@ -61,11 +60,13 @@ module ST_LPS28:
     i2c.scl.reference ~ power
 
     # --- Address configuration ---
-    addressor = new Addressor<address_bits=1>
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x5C  # Base address when SA0 = 0
     addressor.address_lines[0].line ~ package.SA0
     addressor.address_lines[0].reference ~ power
     assert addressor.address is i2c.address
+    # Default to base address (0x5C), can be overridden by user
+    i2c.address.default = 0x5C
 
     # --- Interrupt/Data Ready ---
     interrupt.line ~ package.INT_DRDY
@@ -82,7 +83,6 @@ module ST_LPS28:
     for r in i2c_pullups:
         r.resistance = 10kohm +/- 1%
         r.package = "0402"
-
 
     i2c.scl.line ~> i2c_pullups[0] ~> power.hv
     i2c.sda.line ~> i2c_pullups[1] ~> power.hv

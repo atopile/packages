@@ -20,11 +20,13 @@ The W5500 is a hardwired TCP/IP embedded Ethernet controller that enables easier
 #pragma experiment("FOR_LOOP")
 #pragma experiment("TRAITS")
 
-import Resistor, Capacitor
-import SPI, ElectricPower, ElectricLogic
+import ElectricLogic
+import ElectricPower
 import Ethernet
+import SPI
 
-from "wiznet-w5500.ato" import Wiznet_W5500
+from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
+from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 
 module Usage:
     """
@@ -49,17 +51,17 @@ module Usage:
     spi_cs.reference ~ power_3v3
     w5500.spi_cs ~ spi_cs
 
-    # Example usage showing Ethernet interface connection
-    # In a real design, you would connect this to:
-    # - Ethernet switch: switch.ethernets[0] ~ w5500.ethernet
-    # - RJ45 connector with magnetics
-    # - Other Ethernet devices
+    # RJ45 connector with magnetics
+    rj45 = new RJ45_Horizontal_TH_Magnetics
+    rj45.ethernet ~ w5500.ethernet
+    rj45.shield ~ power_3v3.lv
 
     # The ethernet interface exposes:
     # - w5500.ethernet.pairs[0] = TX differential pair (TXP/TXN)
     # - w5500.ethernet.pairs[1] = RX differential pair (RXP/RXN)
     # - w5500.ethernet.led_link = Link status LED
     # - w5500.ethernet.led_speed = Activity/Speed LED
+
 ```
 
 ## Contributing

@@ -5,7 +5,7 @@
 import ElectricPower
 import Resistor
 
-from "realtek-rtl8305nb.ato" import Realtek_RTL8305NB
+from "atopile/realtek-rtl8305nb/realtek-rtl8305nb.ato" import Realtek_RTL8305NB
 from "atopile/rj45-connectors/rj45-connectors.ato" import RJ45_Horizontal_TH_Magnetics
 from "atopile/espressif-esp32-c3/esp32_c3_mini.ato" import ESP32_C3_MINI_1_driver
 from "atopile/wiznet-w5500/wiznet-w5500.ato" import Wiznet_W5500
@@ -15,7 +15,10 @@ from "atopile/opsco-sk6805-side/opsco-sk6805-side.ato" import OPSCO_SK6805_SIDE
 from "atopile/diodes-inc-74lvc1t45dw-7/diodes-inc-74lvc1t45dw-7.ato" import Diodes_Inc_74LVC1T45DW_7
 from "atopile/saleae-header/saleae-header.ato" import SaleaeHeaderRightAngle_2
 from "atopile/logos/logos.ato" import atopile_logo_25x6mm
-from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen, LEDIndicatorYellow, LEDIndicatorRed, LEDIndicatorBlue
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorYellow
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorRed
+from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 
 module Usage:
     """
@@ -171,7 +174,7 @@ module Usage:
     esp32.gpio[1] ~ w5500.reset                       # GPIO1: W5500 reset (ADC capable)
 
     # Switch management via MDIO (uses I2C peripheral: GPIO5=SDA, GPIO6=SCL)
-    switch.i2c_mdio ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
+    switch.i2c ~ esp32.i2c       # ESP32 I2C manages switch directly via MDIO
     switch.reset ~ esp32.gpio[4]      # GPIO4: Switch reset control
     switch.loop_indication ~ esp32.gpio[20]  # GPIO20: Switch loop detection monitor
 

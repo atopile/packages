@@ -27,7 +27,7 @@ module Bosch_BME688:
     - Built-in I2C pull-ups and comprehensive power filtering
 
     Default Configuration:
-    - I2C mode with address 0x77 (SDO floating) or 0x76 (SDO to GND)
+    - I2C mode with address 0x77 (SDO floating) or 0x76 (SDO to )
     - All power rails properly decoupled with 100nF + 10nF capacitors
     - I2C pull-ups: 4.7kΩ on SCL/SDA lines
     """
@@ -58,23 +58,23 @@ module Bosch_BME688:
     """
     Core power supply (VDD)
     """
-    power_core.vcc ~ package.VDD
-    power_core.gnd ~ package.GND
+    power_core.hv ~ package.VDD
+    power_core.lv ~ package.GND
     assert power_core.voltage within 1.71V to 3.6V
 
     power_io = new ElectricPower
     """
     I/O power supply (VDDIO)
     """
-    power_io.vcc ~ package.VDDIO
-    power_io.gnd ~ package.GND
+    power_io.hv ~ package.VDDIO
+    power_io.lv ~ package.GND
     assert power_io.voltage within 1.71V to 3.6V
 
     # Power consumption specifications (typical values)
     # VDD current: 2.1μA (sleep) to 12mA (gas measurement)
     # VDDIO current: < 1μA (typical I/O operation)
-    power_core.current = 2.1uA to 12mA  # Depends on operation mode
-    power_io.current = 0.1uA to 1mA     # I/O interface current
+    power_core.max_current = 2.1uA to 12mA  # Depends on operation mode
+    power_io.max_current = 0.1uA to 1mA  # I/O interface current
 
     # Power sequencing: VDD and VDDIO can be powered simultaneously
     # No specific power-up sequence required
@@ -95,12 +95,14 @@ module Bosch_BME688:
     assert i2c.frequency within 10kHz to 3.4MHz
 
     # I2C address selection via SDO pin
-    # SDO=0 (GND): Address 0x76, SDO=1 (VDDIO): Address 0x77
-    addressor = new Addressor<address_bits=1>
+    # SDO=0 (): Address 0x76, SDO=1 (VDDIO): Address 0x77
+    addressor = new Addressor<address_bits = 1>
     addressor.base = 0x77  # Default address when SDO floating/high
     addressor.address_lines[0].line ~ package.SDO
     addressor.address_lines[0].reference ~ power_io
     assert addressor.address is i2c.address
+    # Default to base address (0x77), can be overridden by user
+    i2c.address.default = 0x77
 
     # I2C pull-up resistors (required for proper I2C operation)
     i2c_pullups = new Resistor[2]
@@ -128,7 +130,7 @@ module Bosch_BME688:
     """
     SPI chip select / Protocol selection:
     - High (VDDIO): I2C mode (default)
-    - Low (GND): SPI mode, acts as chip select
+    - Low (): SPI mode, acts as chip select
     """
     cs.line ~ package.CSB
     cs.reference ~ power_io

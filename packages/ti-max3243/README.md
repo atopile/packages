@@ -21,9 +21,12 @@ Texas Instruments MAX3243 is a 3V to 5.5V multichannel RS-232 line driver and re
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("FOR_LOOP")
 
-import ElectricPower, ElectricLogic
-import RS232, UART
-import Resistor, Capacitor
+import Capacitor
+import ElectricLogic
+import ElectricPower
+import Resistor
+import RS232
+import UART
 
 from "atopile/ti-max3243/ti-max3243.ato" import TI_MAX3243
 
@@ -60,7 +63,7 @@ module Usage:
 
     # External RS-232 connector
     external_rs232 = new RS232
-    external_rs232.reference_shim ~ power_3v3
+    external_rs232.has_single_electric_reference.reference ~ power_3v3
 
     # Optional: Control signals (can be left floating for auto-powerdown)
     # Force ON signal (normally low for auto-powerdown)
@@ -92,15 +95,14 @@ module DE9RS232Female:
     package.2 ~ rs232.rx.line
     package.3 ~ rs232.tx.line
     package.4 ~ rs232.dtr.line
-    package.5 ~ rs232.reference_shim.lv
+    package.5 ~ rs232.has_single_electric_reference.reference.lv
     package.6 ~ rs232.dsr.line
     package.7 ~ rs232.rts.line
     package.8 ~ rs232.cts.line
     package.9 ~ rs232.ri.line
 
-    package.MH1 ~ rs232.reference_shim.lv
-    package.MH2 ~ rs232.reference_shim.lv
-
+    package.MH1 ~ rs232.has_single_electric_reference.reference.lv
+    package.MH2 ~ rs232.has_single_electric_reference.reference.lv
 
 module DE9RS232Male:
     package = new Ckmtw_D_DMR009PM_D002_package
@@ -110,15 +112,14 @@ module DE9RS232Male:
     package.2 ~ rs232.rx.line
     package.3 ~ rs232.tx.line
     package.4 ~ rs232.dtr.line
-    package.5 ~ rs232.reference_shim.lv
+    package.5 ~ rs232.has_single_electric_reference.reference.lv
     package.6 ~ rs232.dsr.line
     package.7 ~ rs232.rts.line
     package.8 ~ rs232.cts.line
     package.9 ~ rs232.ri.line
 
-    package.MH1 ~ rs232.reference_shim.lv
-    package.MH2 ~ rs232.reference_shim.lv
-
+    package.MH1 ~ rs232.has_single_electric_reference.reference.lv
+    package.MH2 ~ rs232.has_single_electric_reference.reference.lv
 ```
 
 ## Interfaces

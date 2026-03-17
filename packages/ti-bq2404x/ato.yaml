@@ -1,31 +1,29 @@
-requires-atopile: ^0.11.5
+requires-atopile: ^0.14.0
 
 paths:
   src: .
   layout: ./layouts
 
 builds:
-  default:
+  bq24040dsqr:
     entry: ti-bq2404x.ato:BQ24040DSQR
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
-  # bq24040dsqr:
-  #   entry: ti-bq2404x.ato:BQ24040DSQR
-  #   hide_designators: true
-  #   exclude_checks: ["PCB.requires_drc_check"]
-  # bq24045dsqr:
-  #   entry: ti-bq2404x.ato:BQ24045DSQR
-  #   hide_designators: true
-  #   exclude_checks: ["PCB.requires_drc_check"]
+    exclude_checks: ["PCB.requires_drc_check"]
+  bq24045dsqr:
+    entry: ti-bq2404x.ato:BQ24045DSQR
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
   usage:
     entry: usage.ato:Usage
     hide_designators: true
-    exclude_checks: [PCB.requires_drc_check]
+    exclude_checks: ["PCB.requires_drc_check"]
 
 package:
   identifier: atopile/ti-bq2404x
   repository: https://github.com/atopile/packages
-  version: 0.2.3
+  homepage:
+    https://github.com/atopile/packages/blob/main/packages/ti-bq2404x/README.md
+  version: 0.3.1
   authors:
   - name: atopile
     email: hi@atopile.io
@@ -35,4 +33,4 @@ package:
 dependencies:
 - type: registry
   identifier: atopile/indicator-leds
-  release: 0.1.4
+  release: 0.2.3

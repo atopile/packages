@@ -1,0 +1,256 @@
+#pragma experiment("TRAITS")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("BRIDGE_CONNECT")
+import Electrical
+import ElectricPower
+import ElectricSignal
+import SPI
+import USB2_0
+import I2C
+import CAN_TTL
+import I2S
+import UART_Base
+import Ethernet
+import ElectricLogic
+
+from "parts/PJRC_Teensy_4_1/PJRC_Teensy_4_1.ato" import PJRC_Teensy_4_1_package
+from "parts/Hong_Cheng_HC_PM254_8_5H_1x24PZ/Hong_Cheng_HC_PM254_8_5H_1x24PZ.ato" import Hong_Cheng_HC_PM254_8_5H_1x24PZ_package
+from "parts/ZHOURI_PM2_54_1_5/ZHOURI_PM2_54_1_5.ato" import ZHOURI_PM2_54_1_5_package
+from "parts/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A/Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A.ato" import Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A_package
+from "parts/Xinyangze_YZ88715155P_02025_01/Xinyangze_YZ88715155P_02025_01.ato" import Xinyangze_YZ88715155P_02025_01_package
+
+
+module PJRC_Teensy_4_1:
+    """
+    PJRC Teensy 4.1
+    """
+
+    # --- Packages ---
+    package = new PJRC_Teensy_4_1_package
+    header_left_package = new Hong_Cheng_HC_PM254_8_5H_1x24PZ_package
+    header_right_package = new Hong_Cheng_HC_PM254_8_5H_1x24PZ_package
+    header_usb_host = new ZHOURI_PM2_54_1_5_package
+    header_extension = new ZHOURI_PM2_54_1_5_package
+    header_ethernet = new Hong_Cheng_HC_PM200_4_3H_2x3PZ_02A_package
+    usb_pogo = new Xinyangze_YZ88715155P_02025_01_package
+
+    gnd = new Electrical
+
+    # --- External interfaces ---
+    # power
+    power = new ElectricPower
+    power.lv ~ gnd
+    """
+    Main power input. Also connected to VBUS of the on board USB connector.
+    """
+    assert power.voltage within 3.6V to 5.5V
+    power_3v3 = new ElectricPower
+    power_3v3.lv ~ gnd
+    """
+    3.3V power output. Used on the module, can power low power external devices (250mA max)
+    """
+    assert power_3v3.voltage within 3.3V +/- 5%
+    power_battery = new ElectricPower
+    power_battery.lv ~ gnd
+    """
+    Battery backup power input. Used in low power mode and to keep the RTC running.
+    """
+    assert power_battery.voltage within 2.5V to 3.6V
+    power_usb_host = new ElectricPower
+    power_usb_host.lv ~ gnd
+    """
+    USB host power output. Used to power USB devices conencted to the USB host connector.
+    """
+    assert power_usb_host.voltage within 5V +/- 0.25V
+
+    # digital interfaces
+    gpio = new ElectricLogic[42]
+    """General purpose I/O. Same number as on the silkscreen."""
+    spi = new SPI[2]
+    """SPI interfaces. Interface 3 is used for the SD card."""
+    chip_select = new ElectricLogic[2]
+    i2c = new I2C[3]
+    can = new CAN_TTL[3]
+    ethernet = new Ethernet
+    """Ethernet interface from on board PHY"""
+    uart = new UART_Base[8]
+    """Individually usable UART interfaces"""
+    usb_host = new USB2_0
+    """USB host interface to connect USB devices to the Teensy"""
+    usb_device = new USB2_0
+    i2s = new I2S[2]
+    spdif_in = new ElectricLogic
+    spdif_out = new ElectricLogic
+
+    # analog interfaces
+    analog = new ElectricSignal[18]
+    for a in analog:
+        a.reference ~ power_3v3
+
+    # other interfaces
+    on_off = new ElectricLogic
+    program = new ElectricLogic
+
+    # --- Internal connections ---
+    # logic references
+    for logic in gpio:
+        logic.reference ~ power_3v3
+    for logic in spi:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in chip_select:
+        logic.reference ~ power_3v3
+    for logic in i2c:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in can:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in uart:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in i2s:
+        logic.has_single_electric_reference.reference ~ power_3v3
+    for logic in [spdif_in, spdif_out, on_off, program]:
+        logic.reference ~ power_3v3
+
+    # default pinmux and fixed peripheral connections
+    # can
+    can[0].rx ~ gpio[23]
+    can[0].tx ~ gpio[22]
+    can[1].rx ~ gpio[0]
+    can[1].tx ~ gpio[1]
+    can[2].rx ~ gpio[30]
+    can[2].tx ~ gpio[31]
+
+    # spi
+    spi[0].mosi ~ gpio[11]
+    spi[0].miso ~ gpio[12]
+    spi[0].sclk ~ gpio[13]
+    chip_select[0] ~ gpio[10]
+    spi[1].mosi ~ gpio[26]
+    spi[1].miso ~ gpio[1]
+    spi[1].sclk ~ gpio[27]
+    chip_select[1] ~ gpio[0]
+
+    # i2c
+    i2c[0].scl ~ gpio[19]
+    i2c[0].sda ~ gpio[18]
+    i2c[1].scl ~ gpio[16]
+    i2c[1].sda ~ gpio[17]
+    i2c[2].scl ~ gpio[24]
+    i2c[2].sda ~ gpio[25]
+
+    # uart
+    uart[0].rx ~ gpio[0]
+    uart[0].tx ~ gpio[1]
+    uart[1].rx ~ gpio[7]
+    uart[1].tx ~ gpio[8]
+    uart[2].rx ~ gpio[15]
+    uart[2].tx ~ gpio[14]
+    uart[3].rx ~ gpio[16]
+    uart[3].tx ~ gpio[17]
+    uart[4].rx ~ gpio[21]
+    uart[4].tx ~ gpio[22]
+    uart[5].rx ~ gpio[25]
+    uart[5].tx ~ gpio[24]
+    uart[6].rx ~ gpio[28]
+    uart[6].tx ~ gpio[29]
+    uart[7].rx ~ gpio[34]
+    uart[7].tx ~ gpio[35]
+
+    # spdif
+    spdif_in ~ gpio[15]
+    spdif_out ~ gpio[14]
+
+    # analog
+    analog[0] ~ gpio[14]
+    analog[1] ~ gpio[15]
+    analog[2] ~ gpio[16]
+    analog[3] ~ gpio[17]
+    analog[4] ~ gpio[18]
+    analog[5] ~ gpio[19]
+    analog[6] ~ gpio[20]
+    analog[7] ~ gpio[21]
+    analog[8] ~ gpio[22]
+    analog[9] ~ gpio[23]
+    analog[10] ~ gpio[24]
+    analog[11] ~ gpio[25]
+    analog[12] ~ gpio[26]
+    analog[13] ~ gpio[27]
+    analog[14] ~ gpio[38]
+    analog[15] ~ gpio[39]
+    analog[16] ~ gpio[40]
+    analog[17] ~ gpio[41]
+
+    # usb
+    usb_device.usb_if.buspower ~ power
+
+    # --- Package connections ---
+    power.lv ~ header_left_package.1
+    gpio[0].line ~ header_left_package.2
+    gpio[1].line ~ header_left_package.3
+    gpio[2].line ~ header_left_package.4
+    gpio[3].line ~ header_left_package.5
+    gpio[4].line ~ header_left_package.6
+    gpio[5].line ~ header_left_package.7
+    gpio[6].line ~ header_left_package.8
+    gpio[7].line ~ header_left_package.9
+    gpio[8].line ~ header_left_package.10
+    gpio[9].line ~ header_left_package.11
+    gpio[10].line ~ header_left_package.12
+    gpio[11].line ~ header_left_package.13
+    gpio[12].line ~ header_left_package.14
+    power_3v3.hv ~ header_left_package.15
+    gpio[24].line ~ header_left_package.16
+    gpio[25].line ~ header_left_package.17
+    gpio[26].line ~ header_left_package.18
+    gpio[27].line ~ header_left_package.19
+    gpio[28].line ~ header_left_package.20
+    gpio[29].line ~ header_left_package.21
+    gpio[30].line ~ header_left_package.22
+    gpio[31].line ~ header_left_package.23
+    gpio[32].line ~ header_left_package.24
+
+    power.hv ~ header_right_package.1
+    power.lv ~ header_right_package.2
+    power_3v3.hv ~ header_right_package.3
+    gpio[23].line ~ header_right_package.4
+    gpio[22].line ~ header_right_package.5
+    gpio[21].line ~ header_right_package.6
+    gpio[20].line ~ header_right_package.7
+    gpio[19].line ~ header_right_package.8
+    gpio[18].line ~ header_right_package.9
+    gpio[17].line ~ header_right_package.10
+    gpio[16].line ~ header_right_package.11
+    gpio[15].line ~ header_right_package.12
+    gpio[14].line ~ header_right_package.13
+    gpio[13].line ~ header_right_package.14
+    power.lv ~ header_right_package.15
+    gpio[41].line ~ header_right_package.16
+    gpio[40].line ~ header_right_package.17
+    gpio[39].line ~ header_right_package.18
+    gpio[38].line ~ header_right_package.19
+    gpio[37].line ~ header_right_package.20
+    gpio[36].line ~ header_right_package.21
+    gpio[35].line ~ header_right_package.22
+    gpio[34].line ~ header_right_package.23
+    gpio[33].line ~ header_right_package.24
+
+    on_off.line ~ header_extension.1
+    program.line ~ header_extension.2
+    power_3v3.lv ~ header_extension.3
+    power_3v3.hv ~ header_extension.4
+    power_battery.hv ~ header_extension.5
+
+    power_usb_host.hv ~ header_usb_host.1
+    usb_host.usb_if.d.n.line ~ header_usb_host.2
+    usb_host.usb_if.d.p.line ~ header_usb_host.3
+    power_usb_host.lv ~ header_usb_host.4
+    power_usb_host.lv ~ header_usb_host.5
+
+    ethernet.pairs[0].p.line ~ header_ethernet.1 # rx+
+    ethernet.pairs[0].n.line ~ header_ethernet.2 # rx-
+    ethernet.led_speed.line ~ header_ethernet.3 # led anode
+    ethernet.led_speed.reference.lv ~ header_ethernet.4 # gnd
+    ethernet.pairs[1].n.line ~ header_ethernet.5 # tx-
+    ethernet.pairs[1].p.line ~ header_ethernet.6 # tx+
+
+    usb_device.usb_if.d.n.line ~ usb_pogo.1
+    usb_device.usb_if.d.p.line ~ usb_pogo.2

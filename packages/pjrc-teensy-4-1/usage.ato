@@ -1,0 +1,69 @@
+#pragma experiment("BRIDGE_CONNECT")
+
+import Ethernet
+import Capacitor
+
+from "atopile/pjrc-teensy-4-1/pjrc-teensy-4-1.ato" import PJRC_Teensy_4_1
+
+from "parts/WIZNET_J1B1211CCD/WIZNET_J1B1211CCD.ato" import WIZNET_J1B1211CCD_package
+
+from "atopile/usb-connectors/usb-connectors.ato" import USB2_0TypeCHorizontalConnector
+from "atopile/buttons/buttons.ato" import VerticalButton
+
+module Usage:
+    """
+    Usage example for the PJRC Teensy 4.1
+    """
+    # --- Components ---
+    teensy = new PJRC_Teensy_4_1
+    usb_connector = new USB2_0TypeCHorizontalConnector
+    ethernet_connector = new EthernetConnector
+    power_button = new VerticalButton
+    program_button = new VerticalButton
+
+    # --- Connections ---
+    teensy.usb_device ~ usb_connector.usb
+    teensy.ethernet ~ ethernet_connector.ethernet
+
+    teensy.on_off.line ~> power_button ~> teensy.on_off.reference.lv
+    teensy.program.line ~> program_button ~> teensy.program.reference.lv
+
+    # --- Net renaming ---
+    teensy.usb_device.usb_if.d.p.line.override_net_name = "USB_P"
+    teensy.usb_device.usb_if.d.n.line.override_net_name = "USB_N"
+    teensy.usb_host.usb_if.d.p.line.override_net_name = "USB_HOST_P"
+    teensy.usb_host.usb_if.d.n.line.override_net_name = "USB_HOST_N"
+    teensy.ethernet.pairs[0].p.line.override_net_name = "ETH_RX_P"
+    teensy.ethernet.pairs[0].n.line.override_net_name = "ETH_RX_N"
+    teensy.ethernet.pairs[1].p.line.override_net_name = "ETH_TX_P"
+    teensy.ethernet.pairs[1].n.line.override_net_name = "ETH_TX_N"
+
+module EthernetConnector:
+    """
+    RJ45 connector with Ethernet interface
+    """
+    # --- Components ---
+    connector = new WIZNET_J1B1211CCD_package
+    capacitor = new Capacitor
+    assert capacitor.capacitance within 100nF +/- 10%
+    capacitor.package = "0402"
+
+    # --- External interfaces ---
+    ethernet = new Ethernet
+
+    # --- internal connections ---
+    connector.9 ~ connector.8
+    connector.8 ~> capacitor ~> connector.2
+    connector.8 ~> capacitor ~> connector.5
+
+    # --- package connections ---
+    ethernet.pairs[0].n.line ~ connector.6
+    ethernet.pairs[0].p.line ~ connector.4
+    ethernet.pairs[1].n.line ~ connector.3
+    ethernet.pairs[1].p.line ~ connector.1
+
+    ethernet.led_speed.line ~ connector.10 # LLEDpos
+    ethernet.led_speed.reference.lv ~ connector.9 # LLEDneg
+
+    ethernet.led_speed.reference.lv ~ connector.14 # GND
+    ethernet.led_speed.reference.lv ~ connector.13 # GND

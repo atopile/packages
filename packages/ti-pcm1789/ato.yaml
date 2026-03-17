@@ -1,0 +1,26 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-pcm1789.ato:TI_PCM1789
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/ti-pcm1789
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-pcm1789/README.md
+  version: "0.3.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: "Tags: Texas Instruments; PCM1789; Audio; DAC; I2S; I2C; Differential; 2-Channel"
+  license: MIT

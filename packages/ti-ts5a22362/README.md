@@ -53,6 +53,7 @@ module Usage:
     enables = new ElectricLogic[2]
     enables[0] ~ analog_switch.enables[0]
     enables[1] ~ analog_switch.enables[1]
+
 ```
 
 ## Notes
