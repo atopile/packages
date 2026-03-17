@@ -59,31 +59,10 @@ jobs:
           clean: false
 
       - uses: atopile/setup-atopile@v2
-        # Uses pre-built Docker image from the atopile container registry
-        # See: https://github.com/atopile/atopile/pkgs/container/atopile-kicad
+        # Uses Docker image from atopile/monopile#1400 (SIGILL fix)
+        # TODO: Revert to docker-tag: main once PR is merged
         with:
-          docker-tag: sha-d1612cf
-
-      # Apply net name collision fix from atopile/monopile#1397
-      # TODO: Remove this once the fix is merged into main and the Docker image is updated
-      - name: Apply atopile net naming fix
-        run: |
-          set -euo pipefail
-          BRANCH="fix/net-name-collision-loaded-names"
-          BASE_URL="https://raw.githubusercontent.com/atopile/monopile/${BRANCH}/apps/open-atopile/src"
-          mkdir -p /tmp/atopile-fix/faebryk/libs/app /tmp/atopile-fix/atopile
-          curl -sL "${BASE_URL}/faebryk/libs/net_naming.py" -o /tmp/atopile-fix/faebryk/libs/net_naming.py
-          curl -sL "${BASE_URL}/faebryk/libs/app/pcb.py" -o /tmp/atopile-fix/faebryk/libs/app/pcb.py
-          curl -sL "${BASE_URL}/atopile/build_steps.py" -o /tmp/atopile-fix/atopile/build_steps.py
-          SITE_PKG=$(docker run --rm --entrypoint python3 atopile-local -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
-          cd /tmp/atopile-fix
-          cat > Dockerfile.fix <<DOCKERFILE
-          FROM atopile-local
-          COPY faebryk/libs/net_naming.py ${SITE_PKG}/faebryk/libs/net_naming.py
-          COPY faebryk/libs/app/pcb.py ${SITE_PKG}/faebryk/libs/app/pcb.py
-          COPY atopile/build_steps.py ${SITE_PKG}/atopile/build_steps.py
-          DOCKERFILE
-          docker build -t atopile-local -f Dockerfile.fix .
+          docker-tag: pr-1400
 
       - name: Print atopile + KiCad versions
         run: |
