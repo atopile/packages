@@ -1,0 +1,24 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+
+from "ti-tmp102.ato" import TI_TMP102
+
+module Usage:
+    """TMP102 on 3.3V, address 0x48 (ADD0=GND)."""
+
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    i2c_bus = new I2C
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    sensor = new TI_TMP102
+    power_3v3 ~ sensor.power
+    i2c_bus ~ sensor.i2c
+
+    sensor.addressor.address_lines[0].line ~ power_3v3.lv
