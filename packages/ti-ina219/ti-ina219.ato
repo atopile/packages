@@ -1,0 +1,127 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+import Capacitor
+import can_bridge_by_name
+
+from "parts/Texas_Instruments_INA219BIDR/Texas_Instruments_INA219BIDR.ato" import Texas_Instruments_INA219BIDR_package
+
+module TI_INA219:
+    """
+    Texas Instruments INA219 26V, 12-bit I2C Current/Power Monitor
+
+    Bidirectional current and power monitoring IC with 12-bit ADC.
+    Supports high-side current sensing with up to 26V common-mode voltage.
+    Widely used for battery monitoring, solar chargers, and power management.
+
+    Key Specifications:
+    • ADC Resolution: 12-bit (4µV shunt LSB, 4mV bus voltage LSB)
+    • Common-Mode Voltage: -0.3V to +26V
+    • Shunt Voltage Range: ±320mV (programmable: ±40/80/160/320mV)
+    • Supply Voltage: 3V to 5.5V
+    • Supply Current: ~1mA typical
+    • Offset Voltage: ±150µV max
+    • Gain Error: ±0.5% max
+    • I2C Speed: Up to 2.56 MHz
+    • 4 selectable I2C addresses (0x40, 0x41, 0x44, 0x45)
+
+    External connections:
+    • power      – Device supply (3V to 5.5V)
+    • power_in   – High-side input (before shunt, up to 26V)
+    • power_out  – High-side output (after shunt, to load)
+    • i2c        – I²C bus
+    • a0_addr    – Address pin A0 (connect to GND or VS)
+    • a1_addr    – Address pin A1 (connect to GND or VS)
+
+    I2C address table:
+      A1=GND, A0=GND → 0x40 (default)
+      A1=GND, A0=VS  → 0x41
+      A1=VS,  A0=GND → 0x44
+      A1=VS,  A0=VS  → 0x45
+    """
+
+    # --- Package ---
+    package = new Texas_Instruments_INA219BIDR_package
+
+    # --- Supply ---
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 3.0V to 5.5V
+    power.hv ~ package.VS
+    power.lv ~ package.GND
+
+    # --- I²C bus ---
+    i2c = new I2C
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+
+    # I2C pull-up resistors
+    pullup_scl = new Resistor
+    pullup_sda = new Resistor
+    pullup_scl.resistance = 10kohm +/- 5%
+    pullup_sda.resistance = 10kohm +/- 5%
+    pullup_scl.package = "0402"
+    pullup_sda.package = "0402"
+    i2c.scl.line ~> pullup_scl ~> i2c.scl.reference.hv
+    i2c.sda.line ~> pullup_sda ~> i2c.sda.reference.hv
+
+    # --- Address pins ---
+    # Connect a0_addr and a1_addr to power.lv (GND) or power.hv (VS)
+    # to select I2C address. Default (both to GND) gives 0x40.
+    a0_addr = new ElectricLogic
+    a1_addr = new ElectricLogic
+    a0_addr.line ~ package.A0
+    a0_addr.reference ~ power
+    a1_addr.line ~ package.A1
+    a1_addr.reference ~ power
+
+    # --- Shunt resistor and current path ---
+    # PCB Layout Notes:
+    # 1. Place shunt as close as possible to INpos/INneg pins
+    # 2. Use Kelvin connections for accuracy
+    # 3. Place 100nF decoupling cap within 5mm of VS pin
+
+    max_current: current
+    max_current.default = 1A
+
+    # INA219 default full-scale shunt range is ±320mV
+    shunt_drop: V
+    shunt_drop.default = 320mV
+
+    shunt = new Resistor
+    shunt.package = "R1206"
+    assert shunt.resistance <= shunt_drop / max_current * 1.1
+    assert shunt.resistance >= shunt_drop / max_current * 0.9
+
+    # --- High-side inline bridge ---
+    power_in = new ElectricPower
+    power_in.required = True
+
+    power_out = new ElectricPower
+    power_out.required = True
+
+    power_in.lv ~ power.lv
+    power_out.lv ~ power.lv
+
+    # Route current through shunt
+    power_in.hv ~> shunt ~> power_out.hv
+
+    # INpos senses the high side, INneg the low side of the shunt
+    package.INpos ~ power_in.hv
+    package.INneg ~ power_out.hv
+
+    assert power_in.voltage within -0.3V to 26V
+
+    trait can_bridge_by_name<input_name="power_in", output_name="power_out">
+
+    # --- Decoupling capacitor ---
+    decouple = new Capacitor
+    decouple.capacitance = 100nF +/- 10%
+    decouple.package = "C0402"
+    power.hv ~> decouple ~> power.lv

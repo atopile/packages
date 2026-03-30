@@ -1,0 +1,47 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+
+from "ti-ina219.ato" import TI_INA219
+
+module Usage:
+    """
+    Minimal usage example for `ti-ina219`.
+    Monitors current/power on a 5V rail using a 0.32Ω shunt (max 1A),
+    powered from a 3.3V logic supply, at I²C address 0x40 (A0=GND, A1=GND).
+    """
+
+    # 3.3V logic supply (powers the INA219)
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    # 5V rail being monitored
+    power_5v_in = new ElectricPower
+    assert power_5v_in.voltage within 4.8V to 5.2V
+    power_5v_out = new ElectricPower
+
+    # I²C bus
+    i2c_bus = new I2C
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    # INA219 instance
+    monitor = new TI_INA219
+
+    # Power the device from 3.3V
+    power_3v3 ~ monitor.power
+
+    # Connect I²C
+    i2c_bus ~ monitor.i2c
+
+    # Address 0x40: tie both address pins to GND
+    monitor.a0_addr.line ~ power_3v3.lv
+    monitor.a1_addr.line ~ power_3v3.lv
+
+    # Insert monitor inline on 5V rail (max 1A)
+    monitor.max_current = 1A
+    power_5v_in ~ monitor.power_in
+    monitor.power_out ~ power_5v_out
