@@ -1,0 +1,26 @@
+requires-atopile: "^0.14.0"
+
+paths:
+  src: ./
+  layout: ./layouts
+
+builds:
+  default:
+    entry: ti-ina219.ato:TI_INA219
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check", "Bus.appropriate_pull_resistance"]
+
+package:
+  identifier: atopile/ti-ina219
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/ti-ina219/README.md
+  version: "0.1.0"
+  authors:
+    - name: laurapineroroig
+      email: ""
+  summary: "Tags: Texas Instruments; TI; INA219; Power Monitor; Current Monitor; Voltage Monitor; I2C; 12-bit ADC; 26V; High-side; Battery Monitor; SOIC-8; C2155799"
+  license: MIT
