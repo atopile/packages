@@ -1,0 +1,52 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import ElectricLogic
+import I2C
+import Capacitor
+import Addressor
+
+from "parts/Texas_Instruments_OPT3001DNPR/Texas_Instruments_OPT3001DNPR.ato" import Texas_Instruments_OPT3001DNPR_package
+
+module TI_OPT3001:
+    """
+    Texas Instruments OPT3001 ambient light sensor (lux, I2C).
+    Matches human-eye spectral response, 23-bit dynamic range (0.01 to 83865 lux).
+    Supply: 1.6V to 3.6V. Four selectable I2C addresses.
+    """
+
+    package = new Texas_Instruments_OPT3001DNPR_package
+
+    power = new ElectricPower
+    power.required = True
+    assert power.voltage within 1.6V to 3.6V
+    power.hv ~ package.VDD
+    power.lv ~ package.GND
+    package.EP ~ power.lv
+
+    i2c = new I2C
+    i2c.required = True
+    i2c.scl.line ~ package.SCL
+    i2c.sda.line ~ package.SDA
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # ADDR: GND=0x44, VDD=0x45, SDA=0x46, SCL=0x47
+    addressor = new Addressor<address_bits=1>
+    addressor.base = 0x44
+    addressor.address.default = 0x44
+    assert addressor.address is i2c.address
+    addressor.address_lines[0].line ~ package.ADDR
+    addressor.address_lines[0].reference ~ power
+
+    # INT is open-drain, active low — pull up if used
+    int_pin = new ElectricLogic
+    int_pin.line ~ package.INT
+    int_pin.reference ~ power
+
+    decoupling = new Capacitor
+    decoupling.capacitance = 100nF +/- 20%
+    decoupling.package = "0402"
+    power.hv ~> decoupling ~> power.lv

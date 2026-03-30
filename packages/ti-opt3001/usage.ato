@@ -1,0 +1,25 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+
+from "ti-opt3001.ato" import TI_OPT3001
+
+module Usage:
+    """OPT3001 on 3.3V, address 0x44 (ADDR=GND)."""
+
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    i2c_bus = new I2C
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    sensor = new TI_OPT3001
+    power_3v3 ~ sensor.power
+    i2c_bus ~ sensor.i2c
+
+    # ADDR to GND → 0x44
+    sensor.addressor.address_lines[0].line ~ power_3v3.lv
