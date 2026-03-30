@@ -1,0 +1,76 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import Capacitor
+import ElectricPower
+import ElectricLogic
+import I2C
+import Resistor
+
+from "parts/Analog_Devices_ADXL343BCCZ_RL7/Analog_Devices_ADXL343BCCZ_RL7.ato" import Analog_Devices_ADXL343BCCZ_RL7_package
+
+module ADI_ADXL343:
+    """
+    Analog Devices ADXL343 3-axis digital accelerometer (I2C/SPI).
+    Ranges: +-2g/4g/8g/16g, 13-bit resolution. Ultra-low power (23uA).
+    Drop-in compatible with ADXL345 — same pinout, lower cost.
+    """
+
+    package = new Analog_Devices_ADXL343BCCZ_RL7_package
+
+    i2c = new I2C
+    i2c.required = True
+
+    power_vs = new ElectricPower
+    power_vs.required = True
+    assert power_vs.voltage within 2.0V to 3.6V
+
+    power_io = new ElectricPower
+    power_io.required = True
+    assert power_io.voltage within 1.7V to 3.6V
+
+    int1 = new ElectricLogic
+    int1.required = False
+
+    int2 = new ElectricLogic
+    int2.required = False
+
+    power_vs.hv ~ package.VS
+    power_vs.lv ~ package.GND
+    power_io.hv ~ package.VDDI_O
+    power_io.lv ~ power_vs.lv
+
+    # SDO tied to GND → address 0x53
+    package.SDO_ALTADDRESS ~ power_vs.lv
+    assert i2c.address within 0x53
+
+    # CS tied high for I2C mode
+    package.nCS ~ power_io.hv
+
+    i2c.scl.line ~ package.SCL_SCLK
+    i2c.sda.line ~ package.SDA_SDI_SDIO
+    i2c.scl.reference ~ power_io
+    i2c.sda.reference ~ power_io
+
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 10kohm +/- 20%
+    scl_pullup.package = "0402"
+    power_io.hv ~> scl_pullup ~> i2c.scl.line
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 10kohm +/- 20%
+    sda_pullup.package = "0402"
+    power_io.hv ~> sda_pullup ~> i2c.sda.line
+
+    int1.line ~ package.INT1
+    int1.reference ~ power_io
+    int2.line ~ package.INT2
+    int2.reference ~ power_io
+
+    decoupling_caps = new Capacitor[2]
+    for cap in decoupling_caps:
+        cap.capacitance = 100nF +/- 20%
+        cap.package = "0402"
+    power_vs.hv ~> decoupling_caps[0] ~> power_vs.lv
+    power_io.hv ~> decoupling_caps[1] ~> power_vs.lv

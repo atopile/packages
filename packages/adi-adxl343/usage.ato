@@ -1,0 +1,23 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+import ElectricPower
+import I2C
+
+from "adi-adxl343.ato" import ADI_ADXL343
+
+module Usage:
+    """ADXL343 on a single 3.3V rail, I2C address 0x53."""
+
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    i2c_bus = new I2C
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    accel = new ADI_ADXL343
+    power_3v3 ~ accel.power_vs
+    power_3v3 ~ accel.power_io
+    i2c_bus ~ accel.i2c
