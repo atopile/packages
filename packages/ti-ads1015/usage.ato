@@ -1,0 +1,27 @@
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+#pragma experiment("MODULE_TEMPLATING")
+
+import ElectricPower
+import I2C
+
+from "ti-ads1015.ato" import TI_ADS1015
+
+module Usage:
+    """
+    Basic usage example: ADS1015 on a 3.3V supply at address 0x48 (ADDR=GND).
+    """
+
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.2V to 3.4V
+
+    i2c_bus = new I2C
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    adc = new TI_ADS1015
+    power_3v3 ~ adc.power
+    i2c_bus ~ adc.i2c
+
+    # ADDR tied to GND gives address 0x48
+    adc.addressor.address_lines[0].line ~ power_3v3.lv
