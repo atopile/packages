@@ -97,8 +97,8 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     assert soft_start_capacitor.max_voltage >= 25V  # >= power_in.voltage * 1.5
     _soft_start_tracking.line ~> soft_start_capacitor ~> power_in.lv
 
-    feedback_divider.chain.resistors[1].package = "0402"
-    feedback_divider.chain.resistors[0].package = "0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
+    feedback_divider.chain.resistors[0].package = "R0402"
     feedback_divider.ref_out.hv ~ _feedback.line
 
     trait has_single_electric_reference_shared<gnd_only=True>
