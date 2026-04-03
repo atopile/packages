@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -105,7 +149,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999..1.1}F"
+		(property "Value" "1µF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "5a42089d-240e-422a-afe6-961fcf9ffe2e")
@@ -236,7 +280,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999..1.1}F"
+		(property "capacitance" "1µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -428,17 +472,6 @@
 			(locked no)
 			(uuid "75321406-5288-4318-a025-0f4f1d2c7d50")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "8b1419a3-8706-4ceb-968c-578acb6657fa")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 180)
 			(size 0.5 0.54)
@@ -466,7 +499,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "FOJAN_FRC0402F2872TS:R0402"
 		(layer "F.Cu")
 		(uuid "353d8c8b-c217-4e50-9b75-ae0a4642524b")
 		(at 159.18 93)
@@ -482,7 +515,7 @@
 				)
 			)
 		)
-		(property "Value" "10000±1.0%Ω"
+		(property "Value" "28.7kΩ ±1%"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "96ce6ae0-4bee-405f-80ac-4864e2906c18")
@@ -493,7 +526,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2308241947_FOJAN-FRC0402F2872TS_C2998072.pdf"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -517,7 +550,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C2998072"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -529,7 +562,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "UNI-ROYAL(Uniroyal Elec)"
+		(property "Manufacturer" "FOJAN"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -565,7 +598,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 28413.00000641495, \"max\": 28986.99999358505}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -577,7 +610,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "FRC0402F2872TS"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -589,7 +622,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "28.7kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -601,7 +634,7 @@
 				)
 			)
 		)
-		(property "max_power" "0.062W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -637,7 +670,7 @@
 				)
 			)
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C2998072"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -661,7 +694,7 @@
 				)
 			)
 		)
-		(attr smd)
+		(attr through_hole)
 		(fp_line
 			(start -0.94 -0.5)
 			(end -0.23 -0.5)
@@ -745,17 +778,6 @@
 			(locked no)
 			(uuid "028f4525-842c-4df4-8a34-99806bdd8672")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "2f094671-419e-4ddf-a832-48c721442c0e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
 			(size 0.57 0.54)
@@ -771,9 +793,9 @@
 			(uuid "8a9f7069-00c0-4427-aa8a-bb816a57c2e8")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/FOJAN_FRC0402F2872TS/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 -0)
+				(xyz 0 -0 0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -783,7 +805,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "FOJAN_FRC0402F2322TS:R0402"
 		(layer "F.Cu")
 		(uuid "51e23c37-b068-474b-bc36-7b084642524b")
 		(at 158.75 91.25 -90)
@@ -799,7 +821,7 @@
 				)
 			)
 		)
-		(property "Value" "10000±1.0%Ω"
+		(property "Value" "23.2kΩ ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(uuid "a6a21fe1-6f5b-4a44-af21-1c7edaede65b")
@@ -810,7 +832,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2308241947_FOJAN-FRC0402F2322TS_C2998177.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -834,7 +856,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C2998177"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -846,7 +868,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "UNI-ROYAL(Uniroyal Elec)"
+		(property "Manufacturer" "FOJAN"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -882,7 +904,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 22968.000005185604, \"max\": 23431.999994814396}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -894,7 +916,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "FRC0402F2322TS"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -906,7 +928,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "23.2kΩ ±1%"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -918,7 +940,7 @@
 				)
 			)
 		)
-		(property "max_power" "0.062W"
+		(property "max_power" "62.5mW"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -954,7 +976,7 @@
 				)
 			)
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C2998177"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -978,7 +1000,7 @@
 				)
 			)
 		)
-		(attr smd)
+		(attr through_hole)
 		(fp_line
 			(start -0.94 0.5)
 			(end -0.94 -0.5)
@@ -1062,17 +1084,6 @@
 			(locked no)
 			(uuid "b682bb8d-28b7-4e28-ab1b-90df346a5acd")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "3ccc2dc4-57cd-4332-a933-a9c2e755554e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 270)
 			(size 0.57 0.54)
@@ -1088,9 +1099,9 @@
 			(uuid "3f3fb66f-036d-4f37-bc03-916e72392e1a")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/FOJAN_FRC0402F2322TS/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 -0)
+				(xyz 0 -0 0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1116,7 +1127,7 @@
 				)
 			)
 		)
-		(property "Value" "{8.999..1.1}F"
+		(property "Value" "1µF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(uuid "37f0e85c-e9df-4d0a-96a5-790f387283a4")
@@ -1247,7 +1258,7 @@
 				)
 			)
 		)
-		(property "capacitance" "{8.999..1.1}F"
+		(property "capacitance" "1µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1438,17 +1449,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "73ee29de-8dad-4050-9dfc-504a048bbfdd")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "3745a0d6-258d-4e58-9882-0c600a6a1bd1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -1665,29 +1665,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "a2626332-1ed1-4bce-96b2-13bb1880164c")
-		)
-		(fp_text user "%R"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "a05f0425-a633-4eab-904c-52d6989d8aa7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.65 0)
-			(layer "F.SilkS")
-			(uuid "ed69c53f-570d-4384-8445-bd23b10acef0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd oval
 			(at -1.03 -0.65 -90)
