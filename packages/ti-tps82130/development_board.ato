@@ -103,12 +103,12 @@ module TITPS82130WithTestPoints:
     scope_header.channels[1] ~ regulator.power_good
     # saleae input is max +/-10V, so we put a resistor divider to get 1/2 of the voltage
     measurement_divider = new ResistorVoltageDivider
-    measurement_divider.r_top.resistance = 100kohm +/- 1%
-    measurement_divider.r_top.package = "0201"
-    measurement_divider.r_bottom.resistance = 100kohm +/- 1%
-    measurement_divider.r_bottom.package = "0201"
-    measurement_divider.power ~ power_in
-    measurement_divider.output ~ scope_header.channels[0]
+    measurement_divider.chain.resistors[0].resistance = 100kohm +/- 1%
+    measurement_divider.chain.resistors[0].package = "0201"
+    measurement_divider.chain.resistors[1].resistance = 100kohm +/- 1%
+    measurement_divider.chain.resistors[1].package = "0201"
+    measurement_divider.ref_in ~ power_in
+    measurement_divider.ref_out ~ scope_header.channels[0]
 
 module AdjustableRegulatorDevelopmentBoard:
     """

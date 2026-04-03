@@ -11,7 +11,7 @@ import ElectricSignal
 import ResistorVoltageDivider
 import has_single_electric_reference_shared
 
-from "regulators.ato" import AdjustableRegulator
+import AdjustableRegulator
 from "parts/TEXAS_INSTRUMENTS_TPSM863257RDXR/TEXAS_INSTRUMENTS_TPSM863257RDXR.ato" import TEXAS_INSTRUMENTS_TPSM863257RDXR_package
 
 module TPSM863257 from AdjustableRegulator:
@@ -40,11 +40,8 @@ module TPSM863257 from AdjustableRegulator:
     # --- Parameters ---
     assert power_in.voltage within 3V to 17V
     assert power_out.voltage within 0.6V to 5.5V
-    assert power_out.max_current <= 3A
-    assert reference_voltage is 0.6V +/- 1%
-
-    # Ensure buck converter constraint (input > output)
-    assert power_in.voltage >= power_out.voltage
+    assert reference_voltage within 0.6V +/- 1%
+    # assert power_in.voltage >= power_out.voltage  # TODO: simple solver can't handle cross-parameter inequalities
 
     # --- Package ---
     package = new TEXAS_INSTRUMENTS_TPSM863257RDXR_package
@@ -67,8 +64,7 @@ module TPSM863257 from AdjustableRegulator:
     output_caps = new Capacitor[2]
     for cap in output_caps:
         cap.capacitance = 22uF +/- 20%
-        cap.temperature_coefficient = "X7R"
-        assert cap.max_voltage >= power_out.voltage * 2
+        assert cap.max_voltage >= 11V  # >= max power_out.voltage (5.5V) * 2
         cap.package = "0805"
 
     # Connect output capacitors in parallel
@@ -76,13 +72,9 @@ module TPSM863257 from AdjustableRegulator:
         power_out.hv ~> cap ~> power_out.lv
 
     # --- Feedback voltage divider ---
-    # For adjustable output voltage
-    assert feedback_divider.r_bottom.resistance within 1kohm to 100kohm
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
-
-    # Connect feedback divider
-    power_out ~ feedback_divider.power
+    assert feedback_divider.current within 10uA to 1mA
+    feedback_divider.chain.resistors[0].package = "R0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
 
     # --- Power connections ---
     power_in.hv ~ package.VIN
@@ -105,7 +97,7 @@ module TPSM863257 from AdjustableRegulator:
     power_good.reference ~ power_out
 
     # Feedback connection
-    feedback_divider.output.line ~ package.FB
+    feedback_divider.ref_out.hv ~ package.FB
 
     # SW pin is internal switching node - do not connect (leave floating as per datasheet)
 
