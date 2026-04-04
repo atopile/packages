@@ -5,7 +5,7 @@ import ElectricPower
 import ElectricLogic
 import ElectricSignal
 import ResistorVoltageDivider
-import has_single_electric_reference_shared
+import has_single_electric_reference
 import AdjustableRegulator
 
 from "parts/Texas_Instruments_LV2842XLVDDCR/Texas_Instruments_LV2842XLVDDCR.ato" import Texas_Instruments_LV2842XLVDDCR_package
@@ -31,7 +31,7 @@ module TI_LV2842X from AdjustableRegulator:
     assert reference_voltage within 0.765V +/- 19mV
     assert power_in.voltage within 4V to 40V
     assert power_out.voltage within 0.765V to 40V
-    assert power_out.max_current within 10mA to 600mA # to be specialized by exact IC
+    assert power_out.max_current within 10mA to 600mA  # to be specialized by exact IC
     # K_IND = 0.3 # Ripple factor, 30% of Io  # TODO: simple solver can't handle cross-parameter expressions
     # current_ripple = K_IND * power_out.max_current
     # switching_frequency = 325kHz to 1500kHz
@@ -42,7 +42,7 @@ module TI_LV2842X from AdjustableRegulator:
     _enable = new ElectricLogic
     _enable.reference ~ power_in
 
-    trait has_single_electric_reference_shared<gnd_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Package Connections ---
     power_in.hv ~ package.VIN
@@ -102,7 +102,6 @@ module TI_LV2842X from AdjustableRegulator:
     assert inductor.inductance within 10uH to 100uH
     assert inductor.saturation_current >= 1A
     assert inductor.max_current >= 1A
-
 
 component Diode_1N5819WS from Diode:
     package = new Guangdong_Hottech_1N5819WS_package

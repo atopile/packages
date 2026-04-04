@@ -8,8 +8,8 @@ import ElectricLogic
 import ElectricSignal
 
 from "parts/Texas_Instruments_TPS54560DDAR/Texas_Instruments_TPS54560DDAR.ato" import Texas_Instruments_TPS54560DDAR_package
-from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U
-from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT
+from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U_package
+from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT_package
 import AdjustableRegulator
 
 module TI_TPS54560 from AdjustableRegulator:
@@ -25,10 +25,10 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Components
     package = new Texas_Instruments_TPS54560DDAR_package
-    diode = new STMicroelectronics_STPS340U
+    diode = new STMicroelectronics_STPS340U_package
     input_caps = new Capacitor[3]
     output_caps = new Capacitor[4]
-    inductor = new Sunlord_SWPA8040S5R6NT
+    inductor = new Sunlord_SWPA8040S5R6NT_package
     bootstrap_capacitor = new Capacitor
     compensation_resistor = new Resistor
     compensation_capacitors = new Capacitor[2]
@@ -89,8 +89,10 @@ module TI_TPS54560 from AdjustableRegulator:
         power_in.hv ~> cap ~> power_in.lv
 
     # Output Stage
-    package.SW ~> inductor ~> power_out.hv
-    package.SW <~ diode <~ power_out.lv
+    package.SW ~ inductor.1
+    inductor.2 ~ power_out.hv
+    diode.K ~ package.SW
+    diode.A ~ power_out.lv
     for cap in output_caps:
         power_out.hv ~> cap ~> power_out.lv
 
