@@ -17,10 +17,6 @@ The LDK220M-R is a 200mA adjustable low-dropout voltage regulator with low quies
 ## Usage
 
 ```ato
-#pragma experiment("TRAITS")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("TRAITS")
-
 import ElectricPower
 import has_part_removed
 
@@ -32,16 +28,14 @@ module MCU:
     trait has_part_removed
 
     power = new ElectricPower
-    assert power.voltage is 3.3V +/- 5%
-
-    trait has_part_removed
+    assert power.voltage within 3.3V +/- 5%
 
 
 module Usage:
     """Minimal example for the LDK220M-R LDO."""
 
     some_input_power = new ElectricPower
-    assert some_input_power.voltage is 5V +/- 5%
+    assert some_input_power.voltage within 5V +/- 5%
 
     # MCU & sensor
     mcu = new MCU
@@ -58,7 +52,7 @@ The LDK220M_R module automatically configures the feedback resistor divider base
 ```ato
 # Example: Configure for 1.8V output
 ldo = new LDK220M_R
-assert ldo.power_out.voltage is 1.8V +/- 5%
+assert ldo.power_out.voltage within 1.8V +/- 5%
 ```
 
 ## Pin Configuration

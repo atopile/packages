@@ -36,7 +36,7 @@ module Usage:
     power_3v3 = new ElectricPower
 
     # Configure input voltage
-    assert power_5v.voltage is 5V +/- 5%
+    assert power_5v.voltage within 5V +/- 5%
 
     # Create the buck regulator
     buck = new TI_TPS563201
@@ -60,15 +60,15 @@ module Usage:
 ### 1.8V Output
 ```ato
 regulator = new TPS563201
-assert regulator.input_voltage is 5V +/- 10%
-assert regulator.output_voltage is 1.8V +/- 3%
+assert regulator.input_voltage within 5V +/- 10%
+assert regulator.output_voltage within 1.8V +/- 3%
 ```
 
 ### 5V Output from 12V Input
 ```ato
 regulator = new TPS563201
-assert regulator.input_voltage is 12V +/- 10%
-assert regulator.output_voltage is 5V +/- 3%
+assert regulator.input_voltage within 12V +/- 10%
+assert regulator.output_voltage within 5V +/- 3%
 ```
 
 ## Contributing

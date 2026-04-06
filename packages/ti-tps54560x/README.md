@@ -3,9 +3,10 @@
 ## Usage
 
 ```ato
-from "atopile/ti-tps54560x/ti-tps54560x.ato" import TI_TPS54560
 import ElectricLogic
 import ElectricPower
+
+from "atopile/ti-tps54560x/ti-tps54560x.ato" import TI_TPS54560
 
 module Usage:
     """Example usage of TI TPS54560x Buck Converter"""
@@ -18,8 +19,8 @@ module Usage:
     regulator = new TI_TPS54560
 
     # Configure input/output voltages
-    regulator.v_in = 24V +/- 10%
-    regulator.v_out = 5V +/- 5%
+    assert power_24v.voltage within 24V +/- 10%
+    assert power_5v.voltage within 5V +/- 5%
 
     # Connect power
     power_24v ~ regulator.power_in
