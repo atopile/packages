@@ -21,6 +21,7 @@ module Usage:
     regulator_36_15.power_in ~ power_36v
     regulator_36_15.power_out ~ power_15v
     regulator_36_15.power_out.max_current = 500mA
+    assert regulator_36_15.feedback_divider.current within 10uA to 100uA
 
     # --- 12V to 5V ---
     power_12v_in = new ElectricPower
@@ -31,6 +32,7 @@ module Usage:
     regulator_12_5.power_in ~ power_12v_in
     regulator_12_5.power_out ~ power_5v
     regulator_12_5.power_out.max_current = 300mA
+    assert regulator_12_5.feedback_divider.current within 10uA to 100uA
 
     # --- 24V to 3.3V ---
     power_24v = new ElectricPower
@@ -41,4 +43,5 @@ module Usage:
     regulator_24_3v3.power_in ~ power_24v
     regulator_24_3v3.power_out ~ power_3v3
     regulator_24_3v3.power_out.max_current = 200mA
+    assert regulator_24_3v3.feedback_divider.current within 10uA to 100uA
 ```
