@@ -5,10 +5,6 @@ TI TPSM863257 is a high-efficiency synchronous buck converter module with integr
 ## Usage
 
 ```ato
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("TRAITS")
 
 
 import ElectricPower
@@ -42,7 +38,6 @@ module Usage:
 
     # Connect control signals (enable has internal pullup, so it's optional)
     power_good_signal ~ buck_converter.power_good
-
 ```
 
 ## Contributing
