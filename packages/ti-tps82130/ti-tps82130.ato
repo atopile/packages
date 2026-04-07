@@ -35,17 +35,17 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     # --- Internal module Parameters ---
     assert power_in.voltage within 3.0V to 17V
     assert power_out.voltage within 0.9V to 6V
-    #assert soft_start_time_ms within 7ms +/-20%
+    # assert soft_start_time_ms within 7ms +/-20%
     assert soft_start_time_ms within 0.1ms to 10ms
 
     # --- External interfaces ---
     # power_in from regulator
     # power_out from regulator
-    enable = new ElectricLogic #TODO: support EnablePin
+    enable = new ElectricLogic  # TODO: support EnablePin
     """
     Enable the regulator (active high)
     """
-    enable.line.required = True # TODO: should be enable.line
+    enable.line.required = True  # TODO: should be enable.line
 
     power_good = new ElectricLogic
     """
@@ -79,13 +79,13 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     assert output_power_decoupling_capacitor.max_voltage >= 9V
     power_out.hv ~> output_power_decoupling_capacitor ~> power_out.lv
 
-    base_load_resistor = new Resistor # Might be to discharge the ouput capacitor(s)
+    base_load_resistor = new Resistor  # Might be to discharge the ouput capacitor(s)
     base_load_resistor.package = "0201"
     # base_load_resistor.resistance = 100kohm +/- 10%
     power_out.hv ~> base_load_resistor ~> power_out.lv
 
     soft_start_capacitor = new Capacitor
-    soft_start_capacitor.package = "0201" # might need 0402 due to limited picker options
+    soft_start_capacitor.package = "0201"  # might need 0402 due to limited picker options
     assert soft_start_capacitor.max_voltage >= 25V  # >= power_in.voltage * 1.5
     _soft_start_tracking.line ~> soft_start_capacitor ~> power_in.lv
 
@@ -93,7 +93,7 @@ module Texas_Instruments_TPS82130 from AdjustableRegulator:
     feedback_divider.chain.resistors[0].package = "R0402"
     feedback_divider.ref_out.hv ~ _feedback.line
 
-    trait has_single_electric_reference<ground_only=True>
+    trait has_single_electric_reference<ground_only = True>
 
     # --- Calculations ---
     # soft start time
