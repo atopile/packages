@@ -1,4 +1,6 @@
-# ADBMS6830
+# Analog Devices ADBMS6830 Battery Monitor
+
+16-channel cell monitor with 16 cell sense and bleed inputs, SPI and isoSPI interfaces, and 10 GPIOs.
 
 For a guide on getting started with this chip checkout: https://blog.atopile.io/p/getting-started-with-adbms6830
 
@@ -16,22 +18,15 @@ from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorBlue
 from "atopile/indicator-leds/indicator-leds.ato" import LEDIndicatorGreen
 from "atopile/ti-ts5a22362/ti-ts5a22362.ato" import Texas_Instruments_TS5A22362DGSR
 
-from "parts/Liansheng_BH_00019/Liansheng_BH_00019.ato" import Liansheng_BH_00019_package
-from "parts/XFCN_PZ254V_11_02P/XFCN_PZ254V_11_02P.ato" import XFCN_PZ254V_11_02P_package
-from "parts/HCTL_PM254_2_10_S_8_5/HCTL_PM254_2_10_S_8_5.ato" import HCTL_PM254_2_10_S_8_5_package
 from "parts/HRS_DF40HC_3_0__30DS_0_4V_51/HRS_DF40HC_3_0__30DS_0_4V_51.ato" import HRS_DF40HC_3_0__30DS_0_4V_51_package
 from "parts/HRS_DF40C_30DP_0_4V_51/HRS_DF40C_30DP_0_4V_51.ato" import HRS_DF40C_30DP_0_4V_51_package
 from "parts/SHOU_HAN_MSK12C02_HB/SHOU_HAN_MSK12C02_HB.ato" import SHOU_HAN_MSK12C02_HB
 
 import DifferentialPair
-import Electrical
 import ElectricLogic
 import ElectricPower
 import ElectricSignal
 import Resistor
-import ResistorVoltageDivider
-
-import can_bridge_by_name
 import has_part_removed
 
 ## DF40 3mm stack Connectors:
@@ -131,10 +126,9 @@ module Usage:
     sbi.isoSPI_up.p.line ~ adbms6830.iso_b_external.p.line
 
     # ISOSPI loopback switch
+    trait has_part_removed
     SPDT = new SHOU_HAN_MSK12C02_HB # 1x2~3
-    trait has_part_removed
     analog_DPDT = new Texas_Instruments_TS5A22362DGSR
-    trait has_part_removed
     switch_resistors = new Resistor[2]
     for switch_resistor in switch_resistors:
         switch_resistor.package = "0402"
@@ -266,7 +260,6 @@ module Usage:
     sbi.isoSPI_passthru.n.line.override_net_name = "ISOpass_N"
 
     atopile_logo = new atopile_logo_25x6mm
-    trait has_part_removed
 
 module TempSensor:
     # -40~+125 100mW 10kΩ ±1% 0402 NTC Thermistors ROHS
@@ -279,11 +272,11 @@ module TempSensor:
     r_bottom.resistance = 10kohm +/- 0.1%
     r_bottom.package = "0402"
 
-    power.hv ~ r_top.p1
-    r_top.p2 ~ r_bottom.p1
-    power.lv ~ r_bottom.p2
+    power.hv ~ r_top.unnamed[0]
+    r_top.unnamed[1] ~ r_bottom.unnamed[0]
+    power.lv ~ r_bottom.unnamed[1]
 
-    output.line ~ r_top.p2
+    output.line ~ r_top.unnamed[1]
     output.reference.lv ~ power.lv
 
 module StackableBMBInterface:
@@ -384,3 +377,11 @@ module StackableBMBInterface:
     cell_sense_down.30 ~ cell_sense_up.30
 
 ```
+
+## Contributing
+
+Contributions to this package are welcome via pull requests on the GitHub repository.
+
+## License
+
+This atopile package is provided under the [MIT License](https://opensource.org/license/mit/).
