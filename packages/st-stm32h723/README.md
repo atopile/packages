@@ -14,7 +14,7 @@ import ElectricPower
 import ElectricLogic
 
 from "atopile/st-stm32h723/st-stm32h723.ato" import ST_STM32H723
-# from "atopile/microchip-lan8742a/microchip-lan8742a.ato" import Microchip_LAN8742A
+
 
 module Usage:
     """

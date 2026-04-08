@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -232,7 +276,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/default/default.kicad_pcb:reset_switch.package]"
+		(property "atopile_subaddresses" "[.ato/modules/atopile/buttons/layouts/VerticalButton/VerticalButton.kicad_pcb:package, layouts/default/default.kicad_pcb:reset_switch.package]"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -350,29 +394,6 @@
 			(layer "F.Fab")
 			(uuid "48e38fc8-457c-4346-b636-4524c6b2f263")
 		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "93db884f-a90d-4964-ae3a-1110c68bd70f")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 90)
-			(layer "F.SilkS")
-			(uuid "2bf94244-5a17-4326-8ca3-6654bda03989")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 90)
 			(size 1.05 0.7)
@@ -429,7 +450,7 @@
 				)
 			)
 		)
-		(property "Value" "10000Ω"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "0cd11b44-8953-4f66-a331-bee286390897")
@@ -572,7 +593,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -584,7 +605,7 @@
 				)
 			)
 		)
-		(property "max_power" "0.062W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -715,17 +736,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "f440381e-5d0c-441a-a85a-127bba5c0851")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "cbac270c-071d-4869-af54-8f2f51b3ac20")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 180)
@@ -1122,29 +1132,6 @@
 			(layer "F.Fab")
 			(uuid "debafb34-dbc6-49b2-831d-382f7d5457cf")
 		)
-		(fp_text user "%R"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "2f338365-94c4-4443-83cd-f7061ef57352")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -12.89 0)
-			(layer "F.SilkS")
-			(uuid "89fb80d3-dc29-45bb-a480-dd91c28dfa9a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -8.75 -8.89 0)
 			(size 1.5 0.9)
@@ -1516,7 +1503,7 @@
 				)
 			)
 		)
-		(property "Value" "10000Ω"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(uuid "4e9bb27b-a106-47ac-be92-9d3e7561e06c")
@@ -1659,7 +1646,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1671,7 +1658,7 @@
 				)
 			)
 		)
-		(property "max_power" "0.062W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1803,17 +1790,6 @@
 			(locked no)
 			(uuid "74954a54-7ff4-468e-a6b0-f41ff2ec5d4f")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "3a83c7bc-5a0e-4ebe-8fb3-0f7bfb821a6d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 270)
 			(size 0.57 0.54)
@@ -1857,7 +1833,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999F"
+		(property "Value" "10µF ±10%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(uuid "17a0c968-eab5-4aff-8d87-bb7443c06a81")
@@ -2000,7 +1976,7 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999±10.0%F"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2192,17 +2168,6 @@
 			(locked no)
 			(uuid "d5ce8837-d72e-44b0-b53e-3fcd9fd58a89")
 		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "d7680082-25bc-4788-9bd4-1bc16ed8ac18")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -1 0 90)
 			(size 1.41 1.35)
@@ -2341,7 +2306,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/default/default.kicad_pcb:boot_switch.package]"
+		(property "atopile_subaddresses" "[.ato/modules/atopile/buttons/layouts/VerticalButton/VerticalButton.kicad_pcb:package, layouts/default/default.kicad_pcb:boot_switch.package]"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -2459,29 +2424,6 @@
 			(layer "F.Fab")
 			(uuid "055b59ab-a567-4404-9f87-627a93500f97")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "f6904444-a857-4de1-bfff-fba68884b884")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 270)
-			(layer "F.SilkS")
-			(uuid "83a3a48c-9e20-4ec4-90f6-caf0d52449b4")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 270)
 			(size 1.05 0.7)
@@ -2538,7 +2480,7 @@
 				)
 			)
 		)
-		(property "Value" "1e-06F"
+		(property "Value" "1µF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(uuid "0cd29b27-1321-467f-be47-3adb96a9ea3b")
@@ -2681,7 +2623,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1e-06±10.0%F"
+		(property "capacitance" "1µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2873,17 +2815,6 @@
 			(locked no)
 			(uuid "537b8b7b-1eb6-49bf-b9b5-8815015400fe")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "364ac4ab-01b9-453d-bd37-71216cd1dcfb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 180)
 			(size 0.5 0.54)
@@ -2927,7 +2858,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(uuid "6dd6cacd-0c62-40ce-b16b-2cd67b0c6505")
@@ -3070,7 +3001,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3261,17 +3192,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "b873fb58-e6c8-4b02-8541-5521ebf65df7")
-		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "c727ce36-03e8-403e-bcbf-fa56c99c6f08")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 90)
