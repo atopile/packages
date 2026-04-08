@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -86,7 +130,6 @@
 			(outputdirectory "")
 		)
 	)
-	(net 0 "")
 	(net 1 "SDA")
 	(net 2 "i2c-hv")
 	(net 3 "nRESET")
@@ -94,9 +137,9 @@
 	(net 5 "SCL")
 	(net 6 "lv")
 	(net 7 "vref_cap-power-hv")
-	(net 8 "hv")
 	(net 9 "VOUT")
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(net 10 "hv")
+	(footprint "UNI_ROYAL_0402WGF2002TCE:R0402"
 		(layer "F.Cu")
 		(uuid "38edaf85-e756-49b7-a34e-6bb44642524b")
 		(at 159.55 107.3 90)
@@ -112,7 +155,7 @@
 				)
 			)
 		)
-		(property "Value" "10000Ω"
+		(property "Value" "20000Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -124,7 +167,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF2002TCE_C25765.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -160,7 +203,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25765"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -184,7 +227,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0402WGF2002TCE"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -220,7 +263,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 19800.00000447035, \"max\": 20199.99999552965}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -256,7 +299,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "20000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -274,7 +317,7 @@
 			(hide yes)
 			(uuid "0c1e76c4-6deb-49dc-a58b-b2a54642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25765"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -396,7 +439,7 @@
 			(uuid "e967b668-30dd-4d68-b26e-4100b035da05")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF2002TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -704,7 +747,7 @@
 			(at 0.43 0 270)
 			(size 0.57 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "hv")
+			(net 10 "hv")
 			(uuid "b4d5c421-f316-4057-8740-bfd1f4718a4f")
 		)
 		(embedded_fonts no)
@@ -736,7 +779,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "0F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -880,7 +923,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%F"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1408,7 +1451,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "0F"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide yes)
@@ -1552,7 +1595,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%F"
+		(property "capacitance" "0±10.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1729,7 +1772,7 @@
 			(at -0.42 0 270)
 			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "hv")
+			(net 10 "hv")
 			(uuid "1833cc9b-6df1-4a1d-a915-9ff70ec241b9")
 		)
 		(pad "2" smd rect
@@ -1752,7 +1795,7 @@
 			)
 		)
 	)
-	(footprint "Murata_Electronics_GRM155R60J106ME44D:C0402"
+	(footprint "Samsung_Electro_Mechanics_CL05A106MQ5NUNC:C0402"
 		(layer "F.Cu")
 		(uuid "a7516cc4-2d2d-49dd-9c7f-96fe4642524b")
 		(at 155.75 113.15 90)
@@ -1768,7 +1811,7 @@
 				)
 			)
 		)
-		(property "Value" "9.999F"
+		(property "Value" "0F"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -1912,7 +1955,7 @@
 				)
 			)
 		)
-		(property "capacitance" "9.999±20.0%F"
+		(property "capacitance" "0±20.0%F"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1944,108 +1987,124 @@
 		)
 		(attr smd)
 		(fp_line
-			(start 1.02 -0.5)
-			(end 0.23 -0.5)
+			(start -0.72 -0.5)
+			(end -0.22 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "9b2b7ffb-f0b5-4b56-93e6-fde0a97769e6")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "94eebd93-8406-41d8-a8ca-79cbf0a2c811")
 		)
 		(fp_line
-			(start -1.02 -0.5)
-			(end -0.23 -0.5)
+			(start -0.87 0.35)
+			(end -0.87 -0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "a392a4ea-7cba-49c0-9406-9a3eacb7e6fe")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "aeb59253-0fd8-4ab0-b777-6612b85e12c4")
 		)
 		(fp_line
-			(start 1.17 0.35)
-			(end 1.17 -0.35)
+			(start -0.22 0.5)
+			(end -0.72 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "61191d79-575e-48b9-ab36-e6621858f02b")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "62b13720-534b-4c05-997d-f9d52942040f")
 		)
 		(fp_line
-			(start -1.17 0.35)
-			(end -1.17 -0.35)
+			(start 0.72 0.5)
+			(end 0.22 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "c73e0f16-9f5f-4365-8020-670921009f9c")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "97c4b43d-76a0-4a1e-8a6a-eec13bb933b5")
 		)
 		(fp_line
-			(start 0.23 0.5)
-			(end 1.02 0.5)
+			(start 0.22 -0.5)
+			(end 0.72 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "c93f4556-86a4-49d4-9c96-dc83f631c9b3")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "08c179b2-e10c-4016-b335-754e15a19d4d")
 		)
 		(fp_line
-			(start -0.23 0.5)
-			(end -1.02 0.5)
+			(start 0.87 -0.35)
+			(end 0.87 0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "649e22bb-88f0-4b14-9177-9b2b0bc628b4")
+			(layers "F.SilkS")
+			(locked no)
+			(uuid "beb8d2b2-3fda-4397-96e3-5ef07dde8270")
 		)
 		(fp_arc
-			(start 1.02 -0.5)
-			(mid 1.126066 -0.456066)
-			(end 1.17 -0.35)
+			(start 0.87 -0.35)
+			(mid 0.826066 -0.456066)
+			(end 0.72 -0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "cb5a9de5-1b03-402b-bd31-6c26bdb5f633")
+			(locked no)
+			(uuid "2e2b9f3e-4ddf-4aab-94c5-830009b7a9ce")
 		)
 		(fp_arc
-			(start 1.17 0.35)
-			(mid 1.126066 0.456066)
-			(end 1.02 0.5)
+			(start 0.72 0.5)
+			(mid 0.826066 0.456066)
+			(end 0.87 0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "595f6532-172a-47a5-9af3-76d190236b1e")
+			(locked no)
+			(uuid "59e04add-454f-412b-a401-e13bfef0ca65")
 		)
 		(fp_arc
-			(start -1.17 0.35)
-			(mid -1.126066 0.456066)
-			(end -1.02 0.5)
+			(start -0.87 0.35)
+			(mid -0.826066 0.456066)
+			(end -0.72 0.5)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "de04cc75-d788-4099-ac2a-6582b63a4b8f")
+			(locked no)
+			(uuid "e7284c22-faad-4033-8449-570fc3999bdb")
 		)
 		(fp_arc
-			(start -1.02 -0.5)
-			(mid -1.126066 -0.456066)
-			(end -1.17 -0.35)
+			(start -0.72 -0.5)
+			(mid -0.826066 -0.456066)
+			(end -0.87 -0.35)
 			(stroke
 				(width 0.15)
 				(type solid)
 			)
 			(layer "F.SilkS")
-			(uuid "9471323c-1d42-4cfd-8084-847194387a39")
+			(locked no)
+			(uuid "c00cb950-1db2-47e3-b76f-ce0209827b09")
 		)
 		(fp_circle
 			(center -0.5 0.25)
@@ -2054,22 +2113,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "7ce37061-d9de-486c-b27f-1c12d3886172")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 90)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "8c181ee2-778a-490c-8ff0-90288e1fc078")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(fp_text user "%R"
 			(at 0 0 90)
@@ -2082,23 +2128,24 @@
 				)
 			)
 		)
-		(pad "1" smd rect
-			(at -0.55 0 90)
-			(size 0.79 0.54)
-			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "hv")
-			(uuid "2f6c7543-35c2-4364-9656-dda5a6aa035e")
-		)
 		(pad "2" smd rect
-			(at 0.55 0 90)
-			(size 0.79 0.54)
+			(at 0.42 0 90)
+			(size 0.5 0.54)
 			(layers "F.Cu" "F.Paste" "F.Mask")
 			(net 6 "lv")
-			(uuid "89bf6749-0cc2-47d4-be82-2456b706f805")
+			(uuid "5f210ddd-f3dd-49d6-a3e0-969563992533")
 		)
-		(model "${KIPRJMOD}/../../parts/Murata_Electronics_GRM155R60J106ME44D/C0402_L1.0-W0.5-H0.5.step"
+		(pad "1" smd rect
+			(at -0.42 0 90)
+			(size 0.5 0.54)
+			(layers "F.Cu" "F.Paste" "F.Mask")
+			(net 10 "hv")
+			(uuid "943f75d2-bd12-48dc-9341-a180a480cbed")
+		)
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL05A106MQ5NUNC/C0402_L1.0-W0.5-H0.5.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -2108,7 +2155,7 @@
 			)
 		)
 	)
-	(footprint "UNI_ROYAL_0402WGF1002TCE:R0402"
+	(footprint "UNI_ROYAL_0402WGF2002TCE:R0402"
 		(layer "F.Cu")
 		(uuid "a80ea196-14a6-49b7-af74-377e4642524b")
 		(at 158.35 107.3 90)
@@ -2124,7 +2171,7 @@
 				)
 			)
 		)
-		(property "Value" "10000Ω"
+		(property "Value" "20000Ω"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -2136,7 +2183,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2411221126_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010100_UNI-ROYAL-Uniroyal-Elec-0402WGF2002TCE_C25765.pdf"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2172,7 +2219,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25744"
+		(property "LCSC" "C25765"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2196,7 +2243,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "0402WGF1002TCE"
+		(property "Partnumber" "0402WGF2002TCE"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2232,7 +2279,7 @@
 				)
 			)
 		)
-		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9900.000002235174, \"max\": 10099.999997764826}}]}}, \"unit\": \"ohm\"}}"
+		(property "PARAM_resistance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 19800.00000447035, \"max\": 20199.99999552965}}]}}, \"unit\": \"ohm\"}}"
 			(at 0 0 90)
 			(layer "User.9")
 			(hide yes)
@@ -2268,7 +2315,7 @@
 				)
 			)
 		)
-		(property "resistance" "10000±1.0%Ω"
+		(property "resistance" "20000±1.0%Ω"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2286,7 +2333,7 @@
 			(hide yes)
 			(uuid "eb5834a5-f560-4ad7-a80e-ec974642524b")
 		)
-		(property "lcsc_id" "C25744"
+		(property "lcsc_id" "C25765"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2408,7 +2455,7 @@
 			(uuid "84f516a2-1f48-4e38-b081-e916ef06610f")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF1002TCE/R0402_L1.0-W0.5-H0.4.step"
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF2002TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -2702,7 +2749,7 @@
 			(at -1 2.3 0)
 			(size 0.3 1)
 			(layers "F.Cu" "F.Paste" "F.Mask")
-			(net 8 "hv")
+			(net 10 "hv")
 			(uuid "6eb725cf-37d9-4941-b9b9-17d25dbc4232")
 		)
 		(pad "2" smd oval

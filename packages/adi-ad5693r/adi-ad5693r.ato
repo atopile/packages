@@ -67,7 +67,7 @@ module ADI_AD5693R:
     # I2C pull-up resistors (soft pullups in case external ones aren't present)
     i2c_pullups = new Resistor[2]
     for r in i2c_pullups:
-        r.resistance = 10kohm +/- 1%
+        r.resistance = 20kohm +/- 1%
         r.package = "0402"
     i2c.scl.line ~> i2c_pullups[0] ~> i2c.scl.reference.hv
     i2c.sda.line ~> i2c_pullups[1] ~> i2c.sda.reference.hv
