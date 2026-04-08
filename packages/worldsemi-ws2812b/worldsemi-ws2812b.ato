@@ -20,7 +20,7 @@ module Worldsemi_WS2812B_2020:
     - Integrated RGB LED with WS2812B controller
     - Single-wire serial communication protocol
     - 24-bit color depth (8-bit per R/G/B channel)
-    - Wide voltage range: 3.5V-5.3V
+    - Wide voltage range: 3V-5.5V
     - Low power consumption: ~ 20mA per LED max
     - High-density applications and wearables
     - 800kHz data rate with 1.25μs pulse width
@@ -32,7 +32,7 @@ module Worldsemi_WS2812B_2020:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.5V-5.3V, typically 5V)
+    Power supply interface (3V-5.5V, typically 5V)
     Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
@@ -54,7 +54,7 @@ module Worldsemi_WS2812B_2020:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.5V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Power decoupling (critical for 2020 package) ---
     decoupling_cap = new Capacitor
@@ -82,7 +82,7 @@ module Worldsemi_WS2812B_4020:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.5V-5.3V, typically 5V)
+    Power supply interface (3V-5.5V, typically 5V)
     Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
@@ -104,7 +104,7 @@ module Worldsemi_WS2812B_4020:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.5V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Power decoupling (critical for 2020 package) ---
     decoupling_cap = new Capacitor
@@ -132,7 +132,7 @@ module Worldsemi_WS2812B_5050:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.5V-5.3V, typically 5V)
+    Power supply interface (3V-5.5V, typically 5V)
     Ultra-low current: ~ 20mA per LED at full brightness
     Improved power efficiency compared to 5050 variants
     """
@@ -154,7 +154,7 @@ module Worldsemi_WS2812B_5050:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.5V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Power decoupling (critical for 2020 package) ---
     decoupling_cap = new Capacitor

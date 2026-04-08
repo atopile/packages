@@ -20,7 +20,7 @@ module Worldsemi_WS2812C_2020:
     - Integrated RGB LED with WS2812C controller
     - Single-wire serial communication protocol
     - 24-bit color depth (8-bit per R/G/B channel)
-    - 5V power supply (3.7V-5.3V range)
+    - 5V power supply (3V-5.5V range)
     - Cascadable for LED strips and matrices
     - 2kHz PWM frequency for smooth operation
     - SMD5050 package (5mm x 5mm)
@@ -32,7 +32,7 @@ module Worldsemi_WS2812C_2020:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.7V-5.3V, typical 5V)
+    Power supply interface (3V-5.5V, typical 5V)
     Maximum current: 60mA per LED at full brightness
     """
     power.required = True
@@ -51,7 +51,7 @@ module Worldsemi_WS2812C_2020:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.7V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Data signal references ---
     power ~ data_in.reference
@@ -87,7 +87,7 @@ module Worldsemi_WS2812C_4020:
     - Integrated RGB LED with WS2812C controller
     - Single-wire serial communication protocol
     - 24-bit color depth (8-bit per R/G/B channel)
-    - 5V power supply (3.7V-5.3V range)
+    - 5V power supply (3V-5.5V range)
     - Cascadable for LED strips and matrices
     - 2kHz PWM frequency for smooth operation
     - SMD5050 package (5mm x 5mm)
@@ -99,7 +99,7 @@ module Worldsemi_WS2812C_4020:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.7V-5.3V, typical 5V)
+    Power supply interface (3V-5.5V, typical 5V)
     Maximum current: 60mA per LED at full brightness
     """
     power.required = True
@@ -118,7 +118,7 @@ module Worldsemi_WS2812C_4020:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.7V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Data signal references ---
     power ~ data_in.reference
@@ -154,7 +154,7 @@ module Worldsemi_WS2812C_5050:
     - Integrated RGB LED with WS2812C controller
     - Single-wire serial communication protocol
     - 24-bit color depth (8-bit per R/G/B channel)
-    - 5V power supply (3.7V-5.3V range)
+    - 5V power supply (3V-5.5V range)
     - Cascadable for LED strips and matrices
     - 2kHz PWM frequency for smooth operation
     - SMD5050 package (5mm x 5mm)
@@ -166,7 +166,7 @@ module Worldsemi_WS2812C_5050:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply interface (3.7V-5.3V, typical 5V)
+    Power supply interface (3V-5.5V, typical 5V)
     Maximum current: 60mA per LED at full brightness
     """
     power.required = True
@@ -185,7 +185,7 @@ module Worldsemi_WS2812C_5050:
     """
 
     # --- Power supply constraints ---
-    assert power.voltage within 3.7V to 5.3V
+    assert power.voltage within 3V to 5.5V
 
     # --- Data signal references ---
     power ~ data_in.reference
