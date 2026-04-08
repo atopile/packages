@@ -10,19 +10,12 @@ QFN32 (5x5 mm) package
 #pragma experiment("BRIDGE_CONNECT")
 #pragma experiment("MODULE_TEMPLATING")
 
-import has_designator_prefix
-import has_part_picked
-import is_atomic_part
-
 import ElectricPower
 import ElectricSignal
-import Capacitor
-import Resistor
 import MultiSPI
 import SPI
 import I2C
 import I2S
-import USB2_0
 import USB2_0_IF
 import JTAG
 import UART
@@ -67,15 +60,18 @@ module ESP32_C3_base_model:
     assert power_mspi.voltage within 3.3V +/- 10% # TODO: there is also a 1.1V mode?
 
     # non muxable internal connections
-    gpio[0] ~ adc1[0]
-    gpio[1] ~ adc1[1]
-    gpio[2] ~ adc1[2]
-    gpio[3] ~ adc1[3]
-    gpio[4] ~ adc1[4]
-    gpio[5] ~ adc2
+    # ADC/USB are ElectricSignal, GPIOs are ElectricLogic — connect at
+    # the line level so they share the physical pin without forming a
+    # cross-type bus (which breaks bus-parameter resolution).
+    gpio[0].line ~ adc1[0].line
+    gpio[1].line ~ adc1[1].line
+    gpio[2].line ~ adc1[2].line
+    gpio[3].line ~ adc1[3].line
+    gpio[4].line ~ adc1[4].line
+    gpio[5].line ~ adc2.line
 
-    gpio[18] ~ usb_if.d.n
-    gpio[19] ~ usb_if.d.p
+    gpio[18].line ~ usb_if.d.n.line
+    gpio[19].line ~ usb_if.d.p.line
 
     gpio[4] ~ jtag.tms
     gpio[5] ~ jtag.tdi
