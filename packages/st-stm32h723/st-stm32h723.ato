@@ -175,9 +175,9 @@ module ST_STM32H723:
     jtag.tdo ~ gpio_b[3]
     jtag.n_trst ~ gpio_b[4]
 
-    # --- USB FS ---
-    usb.usb_if.d.p ~ gpio_a[12]
-    usb.usb_if.d.n ~ gpio_a[11]
+    # --- USB FS --- connect at line level (ElectricSignal vs ElectricLogic)
+    usb.usb_if.d.p.line ~ gpio_a[12].line
+    usb.usb_if.d.n.line ~ gpio_a[11].line
 
     # --- High-speed crystal (HSE) ---
     hse.xin ~ package.PH0_OSC_IN

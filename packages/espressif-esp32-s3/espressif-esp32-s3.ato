@@ -86,8 +86,10 @@ module Espressif_ESP32_S3:
 
     # USB
     usb = new USB2_0
-    usb.usb_if.d.p ~ io[20]
-    usb.usb_if.d.n ~ io[19]
+    # USB D+/D- share GPIO pins — connect at line level to avoid
+    # cross-type bus (ElectricSignal vs ElectricLogic)
+    usb.usb_if.d.p.line ~ io[20].line
+    usb.usb_if.d.n.line ~ io[19].line
 
     # I2C (Default: SDA=IO8, SCL=IO9)
     i2c = new I2C
@@ -105,46 +107,48 @@ module Espressif_ESP32_S3:
     spi_cs.reference ~ power
 
     # Touch Pins (TOUCH1-TOUCH14 mapped to GPIO1-GPIO14)
+    # Connect at line level — ElectricSignal vs ElectricLogic
     touch = new ElectricSignal[15]
-    touch[1] ~ io[1]
-    touch[2] ~ io[2]
-    touch[3] ~ io[3]
-    touch[4] ~ io[4]
-    touch[5] ~ io[5]
-    touch[6] ~ io[6]
-    touch[7] ~ io[7]
-    touch[8] ~ io[8]
-    touch[9] ~ io[9]
-    touch[10] ~ io[10]
-    touch[11] ~ io[11]
-    touch[12] ~ io[12]
-    touch[13] ~ io[13]
-    touch[14] ~ io[14]
+    touch[1].line ~ io[1].line
+    touch[2].line ~ io[2].line
+    touch[3].line ~ io[3].line
+    touch[4].line ~ io[4].line
+    touch[5].line ~ io[5].line
+    touch[6].line ~ io[6].line
+    touch[7].line ~ io[7].line
+    touch[8].line ~ io[8].line
+    touch[9].line ~ io[9].line
+    touch[10].line ~ io[10].line
+    touch[11].line ~ io[11].line
+    touch[12].line ~ io[12].line
+    touch[13].line ~ io[13].line
+    touch[14].line ~ io[14].line
 
     for touch_pin in touch:
         touch_pin.reference ~ power
 
+    # ADC inputs share GPIO pins — connect at line level
     adc = new ElectricSignal[21]
-    adc[1] ~ io[1]
-    adc[2] ~ io[2]
-    adc[3] ~ io[3]
-    adc[4] ~ io[4]
-    adc[5] ~ io[5]
-    adc[6] ~ io[6]
-    adc[7] ~ io[7]
-    adc[8] ~ io[8]
-    adc[9] ~ io[9]
-    adc[10] ~ io[10]
-    adc[11] ~ io[11]
-    adc[12] ~ io[12]
-    adc[13] ~ io[13]
-    adc[14] ~ io[14]
-    adc[15] ~ io[15]
-    adc[16] ~ io[16]
-    adc[17] ~ io[17]
-    adc[18] ~ io[18]
-    adc[19] ~ io[19]
-    adc[20] ~ io[20]
+    adc[1].line ~ io[1].line
+    adc[2].line ~ io[2].line
+    adc[3].line ~ io[3].line
+    adc[4].line ~ io[4].line
+    adc[5].line ~ io[5].line
+    adc[6].line ~ io[6].line
+    adc[7].line ~ io[7].line
+    adc[8].line ~ io[8].line
+    adc[9].line ~ io[9].line
+    adc[10].line ~ io[10].line
+    adc[11].line ~ io[11].line
+    adc[12].line ~ io[12].line
+    adc[13].line ~ io[13].line
+    adc[14].line ~ io[14].line
+    adc[15].line ~ io[15].line
+    adc[16].line ~ io[16].line
+    adc[17].line ~ io[17].line
+    adc[18].line ~ io[18].line
+    adc[19].line ~ io[19].line
+    adc[20].line ~ io[20].line
 
     for adc_pin in adc:
         adc_pin.reference ~ power
