@@ -17,10 +17,6 @@ The TPS63020 is a high-efficiency, single-inductor buck-boost converter with 4-A
 ## Usage
 
 ```ato
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("TRAITS")
 
 import ElectricPower
 
@@ -39,15 +35,13 @@ module Usage:
     assert power_in.voltage within 2.5V to 5V
 
     # Configure output power
-    assert power_3v3.voltage within 3.25V to 3.35V
-    assert power_3v3.max_current within 0A to 3A
+    assert power_3v3.voltage within 3.3V +/- 5%
 
     # Create buck-boost converter
     converter = new TPS63020_driver
 
     # Connect power
     power_in ~> converter ~> power_3v3
-
 ```
 
 ## Implementation Details

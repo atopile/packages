@@ -1,14 +1,11 @@
-#pragma experiment("TRAITS")
-#pragma experiment("MODULE_TEMPLATING")
-import ElectricLogic
-import has_single_electric_reference_shared
+import has_single_electric_reference
 
 import Capacitor
-from "regulators.ato" import AdjustableLDO
+import AdjustableRegulator
 from "parts/STMicroelectronics_LDK220M_R/STMicroelectronics_LDK220M_R.ato" import STMicroelectronics_LDK220M_R_package
 
 
-module LDK220M_R from AdjustableLDO:
+module LDK220M_R from AdjustableRegulator:
     """Adjustable LDO with 1.185V reference voltage,
     max 200mA output current and max 13.2V input voltage"""
 
@@ -39,10 +36,9 @@ module LDK220M_R from AdjustableLDO:
     output_decoupling_capacitor.package = "0402"
 
     # voltage divider
-    feedback_divider.output.line ~ package.ADJ_NC
-    feedback_divider.r_top.package = "0402"
-    feedback_divider.r_bottom.package = "0402"
+    assert feedback_divider.current within 10uA to 1mA
+    feedback_divider.ref_out.hv ~ package.ADJ_NC
+    feedback_divider.chain.resistors[0].package = "R0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
 
-    trait has_single_electric_reference_shared<gnd_only=True>
-
-    power_out ~ feedback_divider.power
+    trait has_single_electric_reference<ground_only=True>

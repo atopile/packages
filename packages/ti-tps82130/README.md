@@ -25,9 +25,6 @@ suitable for automated assembly by standard surface-mount equipment.
 ## Usage
 
 ```ato
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
 import ElectricPower
 import ElectricLogic
 
@@ -54,7 +51,6 @@ module Usage:
     regulator12_3v3.power_in ~ power_input
     regulator12_3v3.power_out ~ power_output
     regulator12_3v3.enable ~ enable
-
 ```
 
 ## Contributing

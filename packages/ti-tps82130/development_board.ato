@@ -1,17 +1,9 @@
-#pragma experiment("MODULE_TEMPLATING")
-#pragma experiment("BRIDGE_CONNECT")
-#pragma experiment("FOR_LOOP")
-#pragma experiment("TRAITS")
 import ElectricPower
-import ElectricLogic
 import Electrical
-import Resistor
 import can_bridge_by_name
-import ResistorVoltageDivider
 import has_single_electric_reference_shared
 
 from "atopile/ti-tps82130/ti-tps82130.ato" import Texas_Instruments_TPS82130
-from "atopile/saleae-header/saleae-header.ato" import SaleaeHeader
 
 from "parts/Changzhou_Amass_Elec_24_245_1/Changzhou_Amass_Elec_24_245_1.ato" import Changzhou_Amass_Elec_24_245_1_package
 from "parts/Changzhou_Amass_Elec_24_245_2/Changzhou_Amass_Elec_24_245_2.ato" import Changzhou_Amass_Elec_24_245_2_package
@@ -96,19 +88,6 @@ module TITPS82130WithTestPoints:
     soft_start_test_ring = new TestRing
     regulator._soft_start_tracking.line ~ soft_start_test_ring.line
 
-    scope_header = new SaleaeHeader
-    scope_header.gnd ~ power_in.lv
-    scope_header.channels[3].line ~ power_out.hv
-    scope_header.channels[2] ~ regulator._feedback
-    scope_header.channels[1] ~ regulator.power_good
-    # saleae input is max +/-10V, so we put a resistor divider to get 1/2 of the voltage
-    measurement_divider = new ResistorVoltageDivider
-    measurement_divider.r_top.resistance = 100kohm +/- 1%
-    measurement_divider.r_top.package = "0201"
-    measurement_divider.r_bottom.resistance = 100kohm +/- 1%
-    measurement_divider.r_bottom.package = "0201"
-    measurement_divider.power ~ power_in
-    measurement_divider.output ~ scope_header.channels[0]
 
 module AdjustableRegulatorDevelopmentBoard:
     """

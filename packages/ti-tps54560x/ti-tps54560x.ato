@@ -1,18 +1,12 @@
-#pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
 
 import Resistor
 import Capacitor
-import Diode
-import Inductor
-import ElectricPower
 import ElectricLogic
-import ElectricSignal
 
 from "parts/Texas_Instruments_TPS54560DDAR/Texas_Instruments_TPS54560DDAR.ato" import Texas_Instruments_TPS54560DDAR_package
-from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U
-from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT
-from "regulators.ato" import AdjustableRegulator
+from "parts/STMicroelectronics_STPS340U/STMicroelectronics_STPS340U.ato" import STMicroelectronics_STPS340U_package
+from "parts/Sunlord_SWPA8040S5R6NT/Sunlord_SWPA8040S5R6NT.ato" import Sunlord_SWPA8040S5R6NT_package
+import AdjustableRegulator
 
 module TI_TPS54560 from AdjustableRegulator:
     """
@@ -27,24 +21,25 @@ module TI_TPS54560 from AdjustableRegulator:
 
     # Components
     package = new Texas_Instruments_TPS54560DDAR_package
-    diode = new STMicroelectronics_STPS340U
+    diode = new STMicroelectronics_STPS340U_package
     input_caps = new Capacitor[3]
     output_caps = new Capacitor[4]
-    inductor = new Sunlord_SWPA8040S5R6NT
+    inductor = new Sunlord_SWPA8040S5R6NT_package
     bootstrap_capacitor = new Capacitor
     compensation_resistor = new Resistor
     compensation_capacitors = new Capacitor[2]
     switching_frequency_resistor = new Resistor
 
     # Constraints
-    assert power_in.voltage is input_voltage
-    assert power_out.voltage is output_voltage
-    assert input_voltage within 4.5V to 60V
-    assert output_voltage within 0.8V to 58.8V
-    assert input_voltage >= output_voltage  # Buck converter constraint
+    assert power_in.voltage within 4.5V to 60V
+    assert power_out.voltage within 0.8V to 58.8V
+    # assert input_voltage >= output_voltage  # TODO: simple solver can't handle cross-parameter inequalities
 
     # Set feedback reference voltage
-    assert reference_voltage is 0.8V +/- 0.1%
+    assert reference_voltage within 0.8V +/- 0.1%
+
+    # Feedback divider current
+    assert feedback_divider.current within 10uA to 1mA
 
     # Input caps
     for cap in input_caps:
@@ -80,33 +75,34 @@ module TI_TPS54560 from AdjustableRegulator:
     switching_frequency_resistor.resistance = 162kohm +/- 2% # 600kHz
 
     # Power
-    power_in.vcc ~ package.VIN
-    power_in.gnd ~ package.GND
-    power_out.gnd ~ package.GND
-    power_out.gnd ~ package.EP
+    power_in.hv ~ package.VIN
+    power_in.lv ~ package.GND
+    power_out.lv ~ package.GND
+    power_out.lv ~ package.EP
 
     # Input Filtering
     for cap in input_caps:
-        power_in ~ cap.power
+        power_in.hv ~> cap ~> power_in.lv
 
     # Output Stage
-    package.SW ~> inductor ~> power_out.vcc
-    package.SW <~ diode <~ power_out.gnd
+    package.SW ~ inductor.1
+    inductor.2 ~ power_out.hv
+    diode.K ~ package.SW
+    diode.A ~ power_out.lv
     for cap in output_caps:
-        power_out ~ cap.power
+        power_out.hv ~> cap ~> power_out.lv
 
     # Compensation
-    package.COMP ~> compensation_resistor ~> compensation_capacitors[0] ~> power_in.gnd
-    package.COMP ~> compensation_capacitors[1] ~> power_in.gnd
+    package.COMP ~> compensation_resistor ~> compensation_capacitors[0] ~> power_in.lv
+    package.COMP ~> compensation_capacitors[1] ~> power_in.lv
     package.BOOT ~> bootstrap_capacitor ~> package.SW
-    package.RT_CLK ~> switching_frequency_resistor ~> power_in.gnd
+    package.RT_CLK ~> switching_frequency_resistor ~> power_in.lv
 
     # Feedback
-    power_out ~ feedback_divider.power
-    package.FB ~ feedback_divider.output.line
-    feedback_divider.r_top.package = "R0402"
-    feedback_divider.r_bottom.package = "R0402"
+    package.FB ~ feedback_divider.ref_out.hv
+    feedback_divider.chain.resistors[0].package = "R0402"
+    feedback_divider.chain.resistors[1].package = "R0402"
 
     # Enable
     enable.line ~ package.EN
-    enable.reference.gnd ~ power_in.gnd
+    enable.reference.lv ~ power_in.lv

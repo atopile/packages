@@ -19,8 +19,6 @@ The TPS563201 is a synchronous buck converter with integrated MOSFETs capable of
 ## Usage
 
 ```ato
-#pragma experiment("FOR_LOOP")
-#pragma experiment("BRIDGE_CONNECT")
 
 import ElectricPower
 from "atopile/ti-tps563201/ti-tps563201.ato" import TI_TPS563201
@@ -36,7 +34,7 @@ module Usage:
     power_3v3 = new ElectricPower
 
     # Configure input voltage
-    assert power_5v.voltage is 5V +/- 5%
+    assert power_5v.voltage within 5V +/- 5%
 
     # Create the buck regulator
     buck = new TI_TPS563201
