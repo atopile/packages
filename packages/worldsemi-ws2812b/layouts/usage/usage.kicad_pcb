@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -237,7 +281,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -347,29 +391,6 @@
 			(layer "F.Fab")
 			(uuid "6b0263d9-a746-4993-bf89-75d04ae701ee")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7a6a86b5-b25d-48f4-a346-6b3a76fba2aa")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "59a9276c-8c1d-48ec-8d5e-713e15628fc8")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -426,7 +447,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -510,7 +531,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -570,13 +591,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fdaa5522-55b7-4705-97c6-979f4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -594,7 +615,7 @@
 			(hide yes)
 			(uuid "680769a2-1af4-42bc-8d49-fd354642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -731,17 +752,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "8324d1bc-9d7e-48ed-82a7-9091d48fdcb7")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "85d322e2-c8b2-4096-ac9f-525e8e1e7c9b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 180)
@@ -882,7 +892,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[2].package, layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -992,29 +1002,6 @@
 			(layer "F.Fab")
 			(uuid "e671546a-9076-46b0-8089-0a8ced3e9248")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "fb31f798-6400-44fe-98fe-3ec7ebc3553e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "00d6dda3-81c9-446e-9b14-6f779ded9acb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -1071,7 +1058,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -1155,7 +1142,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1203,7 +1190,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[4].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1215,13 +1202,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a413ccdd-0641-4b6a-a3bc-68284642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1239,7 +1226,7 @@
 			(hide yes)
 			(uuid "b3d12ecb-0576-4d61-9a5a-5b3f4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1377,17 +1364,6 @@
 			(locked no)
 			(uuid "e16d81f8-1a7d-4d64-86d3-0975b34d3f72")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "151b46f1-ce72-408b-979d-87b85ba33a05")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -1415,7 +1391,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "0a0c9de0-28da-415c-88f3-d4304642524b")
 		(at 146.0975 85.735 -90)
@@ -1431,7 +1407,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1443,7 +1419,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -1479,7 +1455,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -1503,7 +1479,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -1515,7 +1491,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -1527,7 +1503,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -1563,7 +1539,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:hf_filter_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].hf_filter_cap, layouts/strip/strip.kicad_pcb:hf_filter_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1575,19 +1551,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4bbb8154-9ac0-43a3-8530-ebf74642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4f14d910-0731-4621-9cc4-d68f4642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1599,7 +1575,7 @@
 			(hide yes)
 			(uuid "6ca584c9-c67b-4ebd-8fd8-21124642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1737,17 +1713,6 @@
 			(locked no)
 			(uuid "eb7e255c-d8d8-4665-9017-98e064a8e3de")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "6617c066-9f7d-467a-ab3d-324731d4aeb6")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -1763,7 +1728,7 @@
 			(uuid "9d2fb28b-30a9-4ced-bbfb-5e254eb7c2e8")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -1791,7 +1756,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -1875,7 +1840,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1923,7 +1888,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[3].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1935,13 +1900,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2ac578bb-4e12-4655-a2a1-59c74642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1959,7 +1924,7 @@
 			(hide yes)
 			(uuid "16a7e4d6-b348-42c0-8501-dcd14642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2097,17 +2062,6 @@
 			(locked no)
 			(uuid "19779f13-3bd2-4087-bfe1-fc8c8f758d46")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "54578a93-7ea9-4d67-a581-ab3bd9bd0854")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -2151,7 +2105,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -2235,7 +2189,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2283,7 +2237,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[2].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2295,13 +2249,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "eccb3277-dfd8-4da1-99ef-97494642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2319,7 +2273,7 @@
 			(hide yes)
 			(uuid "56673813-2585-4e99-8d19-2cd34642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2456,17 +2410,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "3533a658-7daa-4097-b666-ef7661a077ba")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "df592432-8c9c-4ba4-a263-8a0161f09089")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -2607,7 +2550,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2716,29 +2659,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "8f93fa32-d972-40a9-9c5e-68cc86e874b9")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "bb3f6c35-08d9-4302-beb1-0bd5480aa070")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "cbee0a17-ede1-4923-8530-85fc7a788109")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -2892,7 +2812,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[3].package, layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3001,29 +2921,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "f7358b62-4763-4785-9220-20834da35891")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "05ac3131-0424-4ce9-af1e-620294de96a9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "bb2fe1df-e57c-4b33-bfc4-aa6cd6f92ac1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -3177,7 +3074,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[3].package, layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3286,29 +3183,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "fa7d1bfd-32b6-436f-bc1c-31e602e4745e")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "ebd5c755-fedd-41d0-98b4-2d3ca79753f3")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "b166248b-8737-4bc4-8abb-9a2f71ace7f7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -3462,7 +3336,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[4].package, layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3572,29 +3446,6 @@
 			(layer "F.Fab")
 			(uuid "329787ac-dd5e-4c0d-9fe3-197f08b541dd")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "812e4a79-a5b5-4074-9fb3-9d0a7b4a98c0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "9943768f-4d76-4eb1-8dd6-d3c350c23152")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -3651,7 +3502,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -3735,7 +3586,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3783,7 +3634,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[3].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3795,13 +3646,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "e5c85882-d91c-48e7-9dee-283c4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3819,7 +3670,7 @@
 			(hide yes)
 			(uuid "4f08e362-275c-471e-b19e-dcdf4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3957,17 +3808,6 @@
 			(locked no)
 			(uuid "7ea892fa-a1f8-4c6a-ab1c-4eb2babd9fd4")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "f07a541f-c017-4491-9342-11e30794fd5d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -3995,7 +3835,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "2a6c4856-7791-49a0-ba9f-8a4f4642524b")
 		(at 145.8875 59.425 -90)
@@ -4011,7 +3851,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -4023,7 +3863,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -4059,7 +3899,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -4083,7 +3923,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -4095,7 +3935,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -4107,7 +3947,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -4155,19 +3995,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9f58be64-d95d-44ea-a1bd-68e64642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5c5c97a7-2b00-43d6-86e0-5d184642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4179,7 +4019,7 @@
 			(hide yes)
 			(uuid "5f78b399-5d21-4b7f-a1d4-e81a4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4317,17 +4157,6 @@
 			(locked no)
 			(uuid "f8c5a441-11f9-4634-95dd-9f2111a34e4d")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "55bf7d93-1ec1-456d-ad9f-c91491213d52")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -4343,7 +4172,7 @@
 			(uuid "856deed9-e0b7-437e-86e5-a00ff1581b51")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -4371,7 +4200,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -4455,7 +4284,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4503,7 +4332,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[0].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4515,13 +4344,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "65672c6f-95c9-4070-b1b1-8c1f4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4539,7 +4368,7 @@
 			(hide yes)
 			(uuid "72eb66fa-d722-46fd-90a8-744b4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4677,17 +4506,6 @@
 			(locked no)
 			(uuid "996bdf8f-1420-43e4-88f4-2fbe47be1bf8")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "46c6d0f5-bfde-4fc3-9916-75c11e8e48f2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -4731,7 +4549,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -4815,7 +4633,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4863,7 +4681,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[0].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4875,13 +4693,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4645fe4f-527d-4f10-8549-a6544642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4899,7 +4717,7 @@
 			(hide yes)
 			(uuid "4f9b455f-7408-4201-a220-7d8e4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5037,17 +4855,6 @@
 			(locked no)
 			(uuid "1f90f48d-6bf3-45b4-a1bf-49ca4837661a")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "086ccc73-075b-4c55-8e46-fd9b2378801f")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -5091,7 +4898,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -5175,7 +4982,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5223,7 +5030,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[4].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5235,13 +5042,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "bcf5c4fe-5b70-48e5-8024-c0ac4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5259,7 +5066,7 @@
 			(hide yes)
 			(uuid "b3c7d779-6855-429c-9a05-21374642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5396,17 +5203,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "faf2bf9d-b957-4403-9397-d2ca2d1e37a9")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "f923cce2-b902-4b50-b915-1a83e0facce0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -5699,30 +5495,6 @@
 			(layer "F.Fab")
 			(uuid "ad7557d3-01d1-453a-8f6f-483bbb8c7cce")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 0)
-			(layer "F.SilkS")
-			(uuid "9e17aa0e-91e5-4226-8351-0a26ea12521c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "13c3e052-2b56-431a-a227-0a55021d5e9d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at 1.27 0)
 			(size 0.42 1.3)
@@ -5876,7 +5648,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[3].package, layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5986,29 +5758,6 @@
 			(layer "F.Fab")
 			(uuid "6e589fc7-a8b8-4d6b-b1b9-288a04a478ad")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "2eea11ca-8b46-44ba-b552-9cfd1f3972e8")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "f73c69ac-46d9-4300-b971-1687ea8f60e1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -6049,7 +5798,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "3e6083a6-49dd-4c53-b7ab-662f4642524b")
 		(at 146.0975 70.03 -90)
@@ -6065,7 +5814,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -6077,7 +5826,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -6113,7 +5862,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -6137,7 +5886,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -6149,7 +5898,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -6161,7 +5910,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -6197,7 +5946,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:hf_filter_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].hf_filter_cap, layouts/strip/strip.kicad_pcb:hf_filter_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6209,19 +5958,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "28b51b2a-8482-4caa-a9a7-33564642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "cbf18f57-ad7e-4fef-bc6f-d7054642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6233,7 +5982,7 @@
 			(hide yes)
 			(uuid "69b0bee4-20ca-4f1e-83f7-43cf4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6371,17 +6120,6 @@
 			(locked no)
 			(uuid "53657091-edda-4ba7-a209-a4867455074c")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "34d76dd0-03f3-4c36-b692-947d3d7fc312")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -6397,7 +6135,7 @@
 			(uuid "9ec553e9-d087-452d-a6ab-de6411cfa4cd")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -6521,7 +6259,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[0].package, layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6631,29 +6369,6 @@
 			(layer "F.Fab")
 			(uuid "2fe982e6-3c5b-448b-aca4-e9e522630966")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "b0d2a2ec-6325-4fff-b175-ec9c2844ac28")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "bda06161-b82f-48c6-b249-718c865d128b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -6710,7 +6425,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -6794,7 +6509,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6842,7 +6557,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[1].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6854,13 +6569,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "16531f17-be5f-48f4-95ff-1e0e4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6878,7 +6593,7 @@
 			(hide yes)
 			(uuid "3236e38b-bee4-43c0-9a77-b7804642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7015,17 +6730,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "aa0aeaa1-fed7-46b0-85d1-0fda9279d9dc")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "d357eefc-fa7c-4dff-9516-59b1e75d370e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -7166,7 +6870,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[3].package, layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7276,29 +6980,6 @@
 			(layer "F.Fab")
 			(uuid "f61e283a-93f4-435a-b1d8-4c90e544a40c")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "2d4c0a6f-66da-4e54-8d90-96691dc905b3")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "cbf4f215-06d4-4fad-9544-0299d245ecfb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -7355,7 +7036,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -7439,7 +7120,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7487,7 +7168,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[2].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7499,13 +7180,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c2838c8d-dab8-45a2-9955-38be4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7523,7 +7204,7 @@
 			(hide yes)
 			(uuid "ada2945a-05b2-455f-8427-60014642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7660,17 +7341,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "35aafae3-8bd0-4615-a54d-e31a8516c1dd")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "22a2ee63-8e03-4f97-b9b4-f5a335804fda")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -7973,29 +7643,6 @@
 			(layer "F.Fab")
 			(uuid "c3993b90-f4c5-4aa3-aeef-5c7ef5be0e1b")
 		)
-		(fp_text user "%R"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "c44e7738-224d-4b32-94de-484bfa17e14f")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.6 0)
-			(layer "F.SilkS")
-			(uuid "7eb4b97f-fcc5-45dd-bb4a-65d67997f335")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.5 -1.6 180)
 			(size 1.8 1)
@@ -8052,7 +7699,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -8136,7 +7783,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8184,7 +7831,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8196,13 +7843,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7545b222-e4ac-4659-959e-1efa4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8220,7 +7867,7 @@
 			(hide yes)
 			(uuid "62b1be2d-2fd4-45a5-bba5-814b4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8357,17 +8004,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "7bea3038-b47d-4019-a51f-a921aab9e30e")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "875602f8-3a3a-48b9-8052-220329dde3e9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -8508,7 +8144,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[2].package, layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8618,29 +8254,6 @@
 			(layer "F.Fab")
 			(uuid "6d81bc5b-fca2-4dd5-8c44-610547d5ebaf")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "596d98fa-8ca3-443b-8802-41ecded53ce1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "b73fba37-1c68-45b5-b5b0-fae416f15331")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -8697,7 +8310,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -8781,7 +8394,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8829,7 +8442,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[4].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8841,13 +8454,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4f874462-e13e-4ceb-abc7-25e24642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8865,7 +8478,7 @@
 			(hide yes)
 			(uuid "643cb7ed-b426-42c9-89bf-c5c04642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9002,17 +8615,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "4f250e45-0a6f-4b6b-83c1-2b43badf9884")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "69e5546d-642f-4f44-9d5a-6d5a8735f69d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -9153,7 +8755,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[2].package, layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9263,29 +8865,6 @@
 			(layer "F.Fab")
 			(uuid "621b1045-d1c6-4dea-887d-695bb22389ba")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "53026953-a419-4d86-bc1e-2fcbedb47822")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "f0db6291-78e6-42cb-978e-25e63bd37e5a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -9342,7 +8921,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -9426,7 +9005,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9474,7 +9053,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[1].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9486,13 +9065,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b961255e-71f3-44b4-8789-8f124642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9510,7 +9089,7 @@
 			(hide yes)
 			(uuid "8971d2bf-ed0f-4243-bd6a-8b424642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9648,17 +9227,6 @@
 			(locked no)
 			(uuid "63622a98-7be4-4751-9a01-99a974b04d57")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "220672c5-77ce-4eac-a7b3-a5582fd55714")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -9686,7 +9254,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "5f66cebb-a79e-4a98-9d8b-ec7d4642524b")
 		(at 146.0975 80.5 -90)
@@ -9702,7 +9270,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -9714,7 +9282,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -9750,7 +9318,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -9774,7 +9342,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -9786,7 +9354,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -9798,7 +9366,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -9834,7 +9402,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:hf_filter_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].hf_filter_cap, layouts/strip/strip.kicad_pcb:hf_filter_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9846,19 +9414,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "074a1c86-92ea-4666-a410-272d4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "40002d21-1a0f-4c77-a734-2cb34642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9870,7 +9438,7 @@
 			(hide yes)
 			(uuid "33bd0a4b-a671-4948-a426-559e4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10008,17 +9576,6 @@
 			(locked no)
 			(uuid "14f8f7b6-0fe2-4919-ae18-679388714288")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "4c0824cf-4669-4506-b4f0-fe3498ad5cba")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -10034,7 +9591,7 @@
 			(uuid "fbf2a4b2-e922-4d3e-bd52-62293cb74455")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -10062,7 +9619,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -10146,7 +9703,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10194,7 +9751,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[0].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10206,13 +9763,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "babf80ee-7d72-4d31-949e-26034642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10230,7 +9787,7 @@
 			(hide yes)
 			(uuid "fb99a1d8-00a9-4619-b1c9-89544642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10368,17 +9925,6 @@
 			(locked no)
 			(uuid "c259b633-6f80-4297-a006-b99ec2b8f8ca")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "3a8413ed-eeca-4136-8bbc-d676fda0fd69")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -10422,7 +9968,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -10506,7 +10052,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10554,7 +10100,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10566,13 +10112,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "42af4a5f-2b7a-4288-8b9d-08a74642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10590,7 +10136,7 @@
 			(hide yes)
 			(uuid "bf0cea27-7344-4e9a-b494-ed314642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10727,17 +10273,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "73e4eaf9-06d3-4ee6-bdd8-e4d039ff0c4c")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "3cfb4fac-9d49-4a4c-9b97-68dfe8a0d6b4")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -10878,7 +10413,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[4].package, layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10987,29 +10522,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "54e5c10d-4284-4877-ba12-1894b7dbbefa")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "77638e40-66e1-4705-b127-ac2975756f28")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "07be649f-9952-49b5-99e2-5da61f6f7c5d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -11163,7 +10675,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[1].package, layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11273,29 +10785,6 @@
 			(layer "F.Fab")
 			(uuid "1673ef8f-f142-405c-80fc-e53ca50310d2")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "951b7d14-daad-4c8e-aaf0-0153a0a03bda")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "7bfd1766-f753-4adc-8224-9b7c5db1cc3c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -11352,7 +10841,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -11436,7 +10925,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11484,7 +10973,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[0].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11496,13 +10985,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fa9c4f6c-83a9-498b-8591-30634642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11520,7 +11009,7 @@
 			(hide yes)
 			(uuid "93e9a8a3-7895-4655-85f9-590c4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11657,17 +11146,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "ab9a0501-5445-4928-ab0d-2a14b7a73c22")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "0d6fff09-1b34-4e57-b9fe-f6c9c48b1dbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -11808,7 +11286,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[1].package, layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11918,29 +11396,6 @@
 			(layer "F.Fab")
 			(uuid "e69cbe93-8b61-4a43-af04-853e310604ab")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "3762031a-6dda-4fb9-8621-a7e0cfd3b029")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "8ee39f61-edf3-4c68-8b5f-e67743ae9dff")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -11997,7 +11452,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -12081,7 +11536,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12129,7 +11584,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[2].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12141,13 +11596,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "aa5faab4-b610-4b51-ae5d-00414642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12165,7 +11620,7 @@
 			(hide yes)
 			(uuid "a9489598-92ab-4839-ac48-0c7e4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12303,17 +11758,6 @@
 			(locked no)
 			(uuid "4fc7c1f5-53db-43b5-86e6-6db35daf9dd7")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "16dd4a24-8bb4-44a9-9356-8a6873d24bc6")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -12357,7 +11801,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -12441,7 +11885,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12489,7 +11933,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[1].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12501,13 +11945,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "afb02644-89ee-4ab4-ab6d-208d4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12525,7 +11969,7 @@
 			(hide yes)
 			(uuid "bf7e05f5-f26e-4b52-9af4-9f564642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12662,17 +12106,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "7e4bde99-95dd-4e0d-866f-2f8cad9cf888")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "17190d2d-6560-4dbc-907a-edc4a1f0c943")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -12813,7 +12246,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[4].package, layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12922,29 +12355,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "2c87b890-8375-4a51-bb75-57c950fc5a9a")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "29bc5826-ec29-46ea-b14c-017dda81d51b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "3b47c5fe-9e84-4cd5-9a80-0a9c457dc9bb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -13098,7 +12508,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[1].package, layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13207,29 +12617,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "f1c3dcf5-8231-4e44-b8ea-ebeeae5d0456")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "b4b47117-5fbf-49e8-9920-23611a7f6e6c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "be995edf-d71b-41e4-9544-b7bd4c6fd16c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -13383,7 +12770,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[1].package, layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13493,29 +12880,6 @@
 			(layer "F.Fab")
 			(uuid "2f2cede4-2793-49fe-970d-640e638f1b12")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "5b413f05-92b7-4184-9c38-4a11ecdf97ac")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "07df7916-f786-4871-9352-1c080375a111")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -13556,7 +12920,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "7fe68d70-d365-441d-bef1-08a34642524b")
 		(at 146.0975 90.97 -90)
@@ -13572,7 +12936,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -13584,7 +12948,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -13620,7 +12984,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -13644,7 +13008,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -13656,7 +13020,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -13668,7 +13032,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -13704,7 +13068,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:hf_filter_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].hf_filter_cap, layouts/strip/strip.kicad_pcb:hf_filter_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13716,19 +13080,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9994d79e-6323-4865-bbad-25cd4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5e27a0d5-0853-40f5-96ce-742b4642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13740,7 +13104,7 @@
 			(hide yes)
 			(uuid "ef51a727-623a-4883-9e95-52d24642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13878,17 +13242,6 @@
 			(locked no)
 			(uuid "5231ed42-8b16-4344-8282-ad7cf885bc01")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "9a597f70-39ac-4c4c-826d-02dd9f853ca7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -13904,7 +13257,7 @@
 			(uuid "6520399b-e78b-45d1-9ea6-6292d34e6f43")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -13932,7 +13285,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -14016,7 +13369,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14064,7 +13417,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14076,13 +13429,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "33f6cb5b-4d3f-4030-adb5-de494642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14100,7 +13453,7 @@
 			(hide yes)
 			(uuid "a350d99c-96b8-4eee-8244-07a64642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14238,17 +13591,6 @@
 			(locked no)
 			(uuid "3ce186bf-800a-4098-beca-3a14bab12b0f")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "76cb9834-45bb-4cb2-85f1-753209ea94d5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -14292,7 +13634,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -14376,7 +13718,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14424,7 +13766,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[2].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14436,13 +13778,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8d0c269c-4215-4c51-8424-7b6d4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14460,7 +13802,7 @@
 			(hide yes)
 			(uuid "771f4ad6-fa50-4b34-8715-e7d24642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14597,17 +13939,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "33d09393-e2bd-4da2-b4a2-62541956dccc")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "c1b792bb-d4f1-488a-8fdb-632447cf54e6")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -14748,7 +14079,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14858,29 +14189,6 @@
 			(layer "F.Fab")
 			(uuid "c5fbc315-89a4-4c79-8b89-600c1a09be47")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "6f0b57f9-7fd8-4a9a-b726-382c543614bf")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "c5814a19-248d-4df3-9023-9b2b03ec0150")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -14937,7 +14245,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -15021,7 +14329,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15069,7 +14377,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[2].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15081,13 +14389,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c1809396-7809-4b83-8041-1bf14642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15105,7 +14413,7 @@
 			(hide yes)
 			(uuid "8022aef3-c422-495e-b60d-ab684642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15243,17 +14551,6 @@
 			(locked no)
 			(uuid "62030b67-cc35-42e1-a34d-7375f6b18ec0")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "13e8d350-e853-4347-ab7b-c270b2113a9c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -15297,7 +14594,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -15381,7 +14678,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15429,7 +14726,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15441,13 +14738,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1e71779b-a73a-43d1-aa0f-396a4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15465,7 +14762,7 @@
 			(hide yes)
 			(uuid "c4b7bbd3-a360-4088-8f05-42d34642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15602,17 +14899,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "6dcd055d-ab19-49fa-96c3-726c3a66ecbc")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "e272815f-9786-4c2c-9d33-b1fbb99f4614")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -15753,7 +15039,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[0].package, layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15863,29 +15149,6 @@
 			(layer "F.Fab")
 			(uuid "121c088b-8501-4406-afc1-c478efb51c1b")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "61e2c914-241e-40dd-b9df-f100b4271f5e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "8a4ce9c9-1635-45d0-9c33-556350403e27")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -15942,7 +15205,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -16026,7 +15289,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16086,13 +15349,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f1e4cc61-c5f3-4c50-b08b-6fb84642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16110,7 +15373,7 @@
 			(hide yes)
 			(uuid "0f042174-56b2-4bb9-ab79-fea74642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16247,17 +15510,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "7f89ddcf-8726-4d3e-9671-abb78bff0607")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "70b6f922-103b-4d40-8eca-b44e467aa946")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -16398,7 +15650,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[0].package, layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16508,29 +15760,6 @@
 			(layer "F.Fab")
 			(uuid "aee1c710-c012-407e-9d72-7aa3bb76d9a5")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "e67166f5-cc15-419d-89f6-dfe1db8fb228")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "3b3568f1-7e82-47db-bfdc-0a35bb804294")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -16587,7 +15816,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -16671,7 +15900,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16719,7 +15948,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[1].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16731,13 +15960,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7469804b-5abd-41da-8341-98dc4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16755,7 +15984,7 @@
 			(hide yes)
 			(uuid "df326f2e-7489-404f-b9df-8f1e4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16892,17 +16121,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "35c6b326-fda7-4181-a59e-b032a97a096b")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "9f306771-70cd-4b83-af84-ae3d000e5ee9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -17043,7 +16261,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[1].package, layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17152,29 +16370,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "5a0ffd3a-f020-408a-a476-b07563a82f20")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "98313b4c-15f1-42d6-b055-628d7764641b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "ad0e0f75-efc8-482d-82ec-ce2841265470")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -17328,7 +16523,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[0].package, layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17437,29 +16632,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "850f325d-1536-4e21-9e3f-0d4a45a4c786")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "93cf8493-2a7c-4d72-ba5b-394d7a0056b9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "01c4ca6b-b3c2-46b4-b696-44676abf52a2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -17613,7 +16785,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[3].package, layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17722,29 +16894,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "8ab0436f-ac49-4e7c-93e3-11ee039803c0")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "1ec3788f-6bbc-4d9d-9cbc-f2686af6b25e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "c881efbc-eda9-491c-b4ad-801bd2a4485b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -17898,7 +17047,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[2].package, layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18007,29 +17156,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "36095e79-0b2e-45f4-a007-e37323ab0fe7")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "c08c9f0b-7db7-438e-a0fc-825e16b59e9b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "0c03ac88-5b34-4013-a102-51a6273bd9d7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -18183,7 +17309,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[2].leds[4].package, layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18293,29 +17419,6 @@
 			(layer "F.Fab")
 			(uuid "f3939269-5be1-42db-970d-be657dad11c9")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "bd70da5e-9fec-4d54-951f-3fa4023022bd")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "fe6d823a-48d3-463c-a540-b67056536d20")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -18372,7 +17475,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -18456,7 +17559,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18504,7 +17607,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[4].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18516,13 +17619,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b464ffab-70d6-466d-bc85-c8da4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18540,7 +17643,7 @@
 			(hide yes)
 			(uuid "d8aad958-2a4b-44aa-9f39-521e4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18678,17 +17781,6 @@
 			(locked no)
 			(uuid "33ab376e-019e-4f12-8ddf-f3f4221faf38")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "66359829-b8fe-4a4b-aba4-4bbd3bbeff21")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -18732,7 +17824,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -18816,7 +17908,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18864,7 +17956,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[4].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18876,13 +17968,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7f595dcf-ac95-4f1b-a3eb-feaf4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18900,7 +17992,7 @@
 			(hide yes)
 			(uuid "c47152d7-0de8-481d-888e-a80d4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19038,17 +18130,6 @@
 			(locked no)
 			(uuid "e94ffbed-26d7-4c56-b787-b03ca40e2d53")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "3fbec0ba-be97-45df-add1-795e1e7b0a8c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -19092,7 +18173,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -19176,7 +18257,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19224,7 +18305,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[3].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19236,13 +18317,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4ab6f710-4b6c-4428-92dc-fe454642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19260,7 +18341,7 @@
 			(hide yes)
 			(uuid "2a391351-7a59-4ac0-89a5-23a54642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19398,17 +18479,6 @@
 			(locked no)
 			(uuid "60795aeb-2bab-4b1a-865f-a3efc3a7aadf")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "4e7a482f-dc70-43d3-b4d8-b08cf7f265f8")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -19452,7 +18522,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -19536,7 +18606,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19584,7 +18654,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].leds[0].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19596,13 +18666,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0f5293e6-2a68-4e08-b3bc-ae7a4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19620,7 +18690,7 @@
 			(hide yes)
 			(uuid "e634f31f-aa03-4b5b-845f-fe864642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19757,17 +18827,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "4183c0e1-4b67-434f-9248-b89e810cdbdf")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "706fc85c-999c-410e-9893-493cab40fc5b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -19908,7 +18967,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[0].package, layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20018,29 +19077,6 @@
 			(layer "F.Fab")
 			(uuid "4f410325-d455-42e0-bead-9b5b133ceec5")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "e840de11-8251-4987-91ea-f9662536a8e5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "d2f70b4a-4852-4fd0-99f2-37bc8533c1c7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -20081,7 +19117,7 @@
 			)
 		)
 	)
-	(footprint "Samsung_Electro_Mechanics_CL10A106MQ8NNNC:C0603"
+	(footprint "Samsung_Electro_Mechanics_CL10A106KP8NNNC:C0603"
 		(layer "F.Cu")
 		(uuid "db1cf58a-5e49-436f-aaff-ba414642524b")
 		(at 146.0975 75.265 -90)
@@ -20097,7 +19133,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "10µF ±10%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -20109,7 +19145,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106MQ8NNNC_C1691.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A106KP8NNNC_C19702.pdf"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -20145,7 +19181,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C1691"
+		(property "LCSC" "C19702"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -20169,7 +19205,7 @@
 				)
 			)
 		)
-		(property "Partnumber" "CL10A106MQ8NNNC"
+		(property "Partnumber" "CL10A106KP8NNNC"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -20181,7 +19217,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 7.999999970197677e-06, \"max\": 1.2000000029802321e-05}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.999999985098837e-06, \"max\": 1.1000000014901161e-05}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -20193,7 +19229,7 @@
 				)
 			)
 		)
-		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 6.3, \"max\": 6.3}}]}}, \"unit\": \"volt\"}}"
+		(property "PARAM_max_voltage" "{\"type\": \"Quantity_Set_Discrete\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 10.0, \"max\": 10.0}}]}}, \"unit\": \"volt\"}}"
 			(at 0 0 270)
 			(layer "User.9")
 			(hide yes)
@@ -20229,7 +19265,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:hf_filter_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[1].hf_filter_cap, layouts/strip/strip.kicad_pcb:hf_filter_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20241,19 +19277,19 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "10µF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2bd793be-3705-40c9-8cbf-6b074642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "10V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "683552ac-3320-4255-8b38-6eaf4642524b")
 		)
-		(property "lcsc_id" "C1691"
+		(property "lcsc_id" "C19702"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20265,7 +19301,7 @@
 			(hide yes)
 			(uuid "1eaaeebf-ae3d-4e74-ac1c-6a184642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X5R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20403,17 +19439,6 @@
 			(locked no)
 			(uuid "3a8c8644-bbfa-4a5c-843b-cbb56b5b0fb6")
 		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "51814755-acd3-49e8-8b86-2551581ceb37")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 270)
 			(size 0.8 0.9)
@@ -20429,7 +19454,7 @@
 			(uuid "170fe7e5-f42a-4ceb-bc90-e22a572d9d61")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106MQ8NNNC/C0603_L1.6-W0.8-H0.8.step"
+		(model "${KIPRJMOD}/../../parts/Samsung_Electro_Mechanics_CL10A106KP8NNNC/C0603_L1.6-W0.8-H0.8.step"
 			(offset
 				(xyz 0 0 -0)
 			)
@@ -20553,7 +19578,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[2].package, layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20663,29 +19688,6 @@
 			(layer "F.Fab")
 			(uuid "aab067c9-47dd-4d27-a6c4-b465373d2aaf")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "ffdbab4b-554c-405f-9dfe-e541798a631c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "a0a66309-b9f7-4fab-956d-2f8071241753")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -20742,7 +19744,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -20826,7 +19828,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20874,7 +19876,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[4].leds[3].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20886,13 +19888,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c821d3ee-66fb-43cb-bcb6-ca454642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20910,7 +19912,7 @@
 			(hide yes)
 			(uuid "3bd6f5cf-7e78-47fb-b909-df734642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21047,17 +20049,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "bff2af27-ecf3-4600-a586-0d44f7df3136")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "f546675e-611d-4a80-a430-5bbe0a268dda")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -21198,7 +20189,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21308,29 +20299,6 @@
 			(layer "F.Fab")
 			(uuid "273e5019-57bb-4bcb-8f7c-873bf42277f1")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "eef3869d-25ea-45cc-ad3c-876883a18f28")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "327cfe7a-e8d7-482c-8cf1-94c9074dd36a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -21387,7 +20355,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -21471,7 +20439,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21519,7 +20487,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[3].leds[1].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21531,13 +20499,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b88e7517-7fb9-4e85-b5bc-d1644642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21555,7 +20523,7 @@
 			(hide yes)
 			(uuid "eec0f2ab-e2bb-40a8-9a22-4ee94642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21693,17 +20661,6 @@
 			(locked no)
 			(uuid "cb077dac-331d-40d1-9128-246f94b61e2f")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "f706303c-81ee-4f99-8b17-412e2a3de510")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -21747,7 +20704,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -21831,7 +20788,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21879,7 +20836,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21891,13 +20848,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "3689daff-f026-4e1e-83ae-79434642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21915,7 +20872,7 @@
 			(hide yes)
 			(uuid "8488a2a3-37b4-4d4f-bbfc-39144642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22053,17 +21010,6 @@
 			(locked no)
 			(uuid "b71e5c09-948a-48a4-9537-9e7b01f623ae")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "e569666e-92ab-4cf3-87b4-9c3e0061add7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
 			(size 0.5 0.54)
@@ -22107,7 +21053,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide no)
@@ -22191,7 +21137,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22239,7 +21185,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[3].decoupling_cap, layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22251,13 +21197,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "86798bbe-44bd-4117-a9a7-87ec4642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22275,7 +21221,7 @@
 			(hide yes)
 			(uuid "e344506f-c92b-48f1-aa83-07be4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22412,17 +21358,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "1a39c501-cdfd-4985-9f4a-375bc081886d")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "c83eb7d6-b19e-4924-b3ca-fc8331e1d17c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 0)
@@ -22563,7 +21498,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/matrix/matrix.kicad_pcb:strips[0].leds[4].package, layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22672,29 +21607,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "51ddb032-591a-4128-8357-c58d63b91b11")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "0a1ba3b0-fe51-41b4-b90b-dd8dd0307fe2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "7fa6ebf1-9e10-483b-843f-4d032bc11576")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
@@ -22848,7 +21760,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812b-2020/ws2812b-2020.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22958,29 +21870,6 @@
 			(layer "F.Fab")
 			(uuid "e666bb24-9ebd-4286-9840-dcff41295210")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "e4c81211-2e1c-48b0-904d-0e10993efb38")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 180)
-			(layer "F.SilkS")
-			(uuid "4e23e3c0-f2a1-49fb-bdef-dad2f79744b2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 180)
 			(size 0.9 0.7)
@@ -23037,7 +21926,7 @@
 				)
 			)
 		)
-		(property "Value" "[capacitance: unknown]"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -23121,7 +22010,7 @@
 				)
 			)
 		)
-		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 9e-08, \"max\": 1.1e-07}}]}}, \"unit\": \"farad\"}}"
+		(property "PARAM_capacitance" "{\"type\": \"Quantity_Interval_Disjoint\", \"data\": {\"intervals\": {\"type\": \"Numeric_Interval_Disjoint\", \"data\": {\"intervals\": [{\"type\": \"Numeric_Interval\", \"data\": {\"min\": 8.99999998509884e-08, \"max\": 1.1000000014901162e-07}}]}}, \"unit\": \"farad\"}}"
 			(at 0 0 180)
 			(layer "User.9")
 			(hide yes)
@@ -23181,13 +22070,13 @@
 				)
 			)
 		)
-		(property "capacitance" "[capacitance: unknown]"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "6d0ad93c-5e46-4f49-99dd-1be24642524b")
 		)
-		(property "max_voltage" "[max_voltage: unknown]"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23205,7 +22094,7 @@
 			(hide yes)
 			(uuid "a03b6bf1-c75f-41fd-b6c9-db8b4642524b")
 		)
-		(property "temperature_coefficient" "[temperature_coefficient: unknown]"
+		(property "temperature_coefficient" "X7R"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23342,17 +22231,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "c9cedf3f-9b2f-478a-aa60-3a0d6b5adf46")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "f797d083-10b3-4282-a814-986bca9a80d7")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.42 0 180)
@@ -23602,29 +22480,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "c0680cd6-a8a3-4faa-8180-bf57441a61a4")
-		)
-		(fp_text user "%R"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "f0318d97-8393-48ac-99db-f4811ee6f9ef")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.55 0)
-			(layer "F.SilkS")
-			(uuid "94cfbc49-9dd4-4f55-ad80-cd1050981d1a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.92 -0.55 0)
@@ -28793,13 +27648,14 @@
 	)
 	(group "hd_strip"
 		(uuid "94c54550-be8f-46af-8c80-bd775a0eed3f")
-		(members "0257613c-0972-4c1b-bd65-36121010bdd0" "044868db-9fb7-4290-a81a-e543562e6ca0"
-			"058a6b29-de73-417b-90fa-68a475165162" "09a5fc2b-ea9f-440f-a412-1ceef9da211b"
-			"0ebdcf81-2bbe-42a6-90eb-53abf1254da3" "0fe5899f-091c-4377-a4ae-d7902b393954"
-			"1272dde1-9b23-4ba9-98ad-c69ea821fd8a" "1541f1ac-7530-41f7-99ef-7ad67bef3bb5"
-			"16d072fb-6539-4343-8b8e-6158e5f4f306" "17f99304-3126-4a69-809f-2fd0af58e0a1"
-			"1819fafa-67d1-4606-9a17-17aaad1d5521" "1878c75e-23bc-4957-a266-7b4ad4ff7317"
-			"18ca723f-8eeb-4d71-a67f-cbe755ccb0bc" "2409eae6-556c-4ebb-b446-c9937d7d7abd"
+		(members "0257613c-0972-4c1b-bd65-36121010bdd0" "028ad67d-1d70-4b73-ace8-061a4642524b"
+			"044868db-9fb7-4290-a81a-e543562e6ca0" "058a6b29-de73-417b-90fa-68a475165162"
+			"09a5fc2b-ea9f-440f-a412-1ceef9da211b" "0ebdcf81-2bbe-42a6-90eb-53abf1254da3"
+			"0fe5899f-091c-4377-a4ae-d7902b393954" "1272dde1-9b23-4ba9-98ad-c69ea821fd8a"
+			"1541f1ac-7530-41f7-99ef-7ad67bef3bb5" "16d072fb-6539-4343-8b8e-6158e5f4f306"
+			"17f99304-3126-4a69-809f-2fd0af58e0a1" "1819fafa-67d1-4606-9a17-17aaad1d5521"
+			"1878c75e-23bc-4957-a266-7b4ad4ff7317" "18ca723f-8eeb-4d71-a67f-cbe755ccb0bc"
+			"18cfcccc-d530-4cab-adc0-8e374642524b" "2409eae6-556c-4ebb-b446-c9937d7d7abd"
 			"256027ac-8afc-483c-974b-69bf4ef9427a" "27c1d625-aac3-4d43-9c74-8b9c11da9eca"
 			"27f01846-2458-4deb-a2b2-8f95a9052247" "297bdbde-e762-44fa-9e97-69f135a49574"
 			"29ebd911-b4ae-49ee-a226-e93165ee037b" "2a0056ed-3946-4973-9154-4b96c8cc2482"
@@ -28809,478 +27665,474 @@
 			"3aed74f4-dc96-45a4-a6e9-2c1bf2bc9e65" "3b8a8203-ed1f-477e-abd3-c5020535429d"
 			"3d119924-b334-4f38-a615-904b307be6bf" "43fd9d4b-9bce-4d15-b94e-f2cc6cbd0010"
 			"47986de2-6b05-4714-9c54-3a85d3103f66" "4cdff579-cb98-4625-a3e7-0213c7003c4a"
-			"4e559123-3e74-4e50-8afa-138c844f6fd0" "548a6a91-259a-4775-b56c-61dc555b4846"
-			"5608eaf4-e708-4f9e-a38f-aa14edc6e9a7" "598e8749-a613-419a-9592-0794a0f29289"
-			"5cc4ae1a-d346-4265-b3db-1cc1d0b5cabc" "602f240d-ec88-4b0a-bd83-1cdc41ca4110"
+			"4e559123-3e74-4e50-8afa-138c844f6fd0" "4eca2346-8ad5-441e-bd5b-2f994642524b"
+			"548a6a91-259a-4775-b56c-61dc555b4846" "5608eaf4-e708-4f9e-a38f-aa14edc6e9a7"
+			"598e8749-a613-419a-9592-0794a0f29289" "5cc4ae1a-d346-4265-b3db-1cc1d0b5cabc"
+			"602f240d-ec88-4b0a-bd83-1cdc41ca4110" "62fa08c2-fcf3-4fa5-b5ca-9e354642524b"
 			"6658ad39-4bbe-4146-9970-cc85dbd21be1" "6659e6a5-813d-4a35-927c-66525697ef2e"
 			"6c5005bb-4801-4950-aaf8-91a477125287" "6f89c82d-cf9b-4a0e-956c-06323d7bd090"
 			"746b91c0-a5b7-4446-94e9-f35b5003a2b0" "74a5cef3-060c-4b2b-8c07-8e9198f54163"
 			"77c3e8fa-9458-40ab-83e2-ada8716d05d4" "80f37c5d-0d79-41c0-8078-d382607ebcc3"
-			"8534cb92-64c5-4ca7-b5da-366ed90c5962" "8796ee11-669c-4168-8491-79f534302447"
-			"8810a9e9-d4e6-45b9-962f-d618825b1bf4" "8bcb0507-f0f0-43a3-9f3a-d09ef4bd2cc5"
-			"8c863f56-a3c9-44ba-b3bf-7cd63d2de1b6" "8f59845b-76c2-40b7-9013-24ff90b75282"
+			"82803c4a-6482-43a8-b59b-dc784642524b" "8534cb92-64c5-4ca7-b5da-366ed90c5962"
+			"8796ee11-669c-4168-8491-79f534302447" "8810a9e9-d4e6-45b9-962f-d618825b1bf4"
+			"8bcb0507-f0f0-43a3-9f3a-d09ef4bd2cc5" "8c863f56-a3c9-44ba-b3bf-7cd63d2de1b6"
+			"8eca4d68-11db-406d-8d96-1a4d4642524b" "8f59845b-76c2-40b7-9013-24ff90b75282"
 			"91d365fc-f889-4784-b980-46852430ddfd" "944561b7-3cd0-4bcd-ae18-488ca902e52e"
 			"9cb8685e-9491-4d34-99b7-b570ea072f54" "9f2775bd-ddee-4385-a10e-3dbff9e570ae"
-			"a09fff82-4fef-4a68-a159-9dd4a193f5df" "a3be41fe-beac-4035-a2f5-c38a882f7669"
-			"ab1babc4-5715-434a-8cae-c9f44562c4cf" "aba1b598-ced0-4bce-ba15-05bca373d96e"
-			"ad0fc2dd-1648-4fef-b351-3def619a5f02" "ada340dd-331e-4bb3-b8c4-16ecb948581b"
-			"ade57139-ea52-4d01-a6f7-c8bff3c30dd8" "af1a75ea-f12f-481c-b8db-a17ae98afc49"
-			"afe240d6-41fd-47a5-9082-dabe5e7db4ef" "b09f57fa-62a2-4f00-a55b-753ff3a089a4"
-			"b1ad4e3a-7786-44a1-bc42-df6c0e09b0a6" "b32732ec-0147-402a-b937-c508de7f6a04"
-			"bad874ef-665f-40a6-bda0-73ac295d72b7" "bbe373d6-223b-4f02-bbc2-51d28b181a7d"
-			"bcb32510-b935-46ff-ac44-e7bd1c8d05da" "c049aa9b-2ffc-41dd-8905-92ce56cd30a2"
-			"c07d050e-6ffe-4bfc-bfcc-37b9e355c474" "c245d491-0561-410e-ac8f-7d0870d82413"
-			"c2bdac77-6034-4a00-8aae-26b27eefe2a4" "c360d134-831f-4c63-aa92-687bf1389202"
-			"c513d404-e3b7-46fd-9ad2-3a3e682b2df9" "c963985b-9fac-4efd-933a-94cacadc1302"
-			"ca1dc53b-9267-4c30-88d4-6e787cfc7a1b" "ca6d579f-d845-4247-b69c-edaa965d6311"
-			"cb9cb81f-ebcc-4416-a239-76df8730ce91" "cc831d50-89fe-463c-96fc-3a2af2de3b91"
-			"d127309e-9ae9-4518-ac1d-a68b7a95a750" "d858c8c7-59eb-40f4-b17a-d2beb7b08a12"
-			"d93e0bdb-d5c1-45d8-b390-ae7528a8e946" "e19a5ee7-2de8-4596-b596-f78e7868c60e"
-			"e28c6259-3997-4ad5-be96-4de5bdc9b164" "e29f17d1-a73e-4571-ba71-39c753373015"
-			"e2c4c3da-6ada-46e1-958b-dc16468f0992" "e3e550c7-a664-450c-acfb-aa056f838d8a"
-			"e5c10e17-49a0-426a-8af4-1ac6716da65c" "e6f00ba6-a6ae-4b1c-932b-ad97131b5417"
+			"a09fff82-4fef-4a68-a159-9dd4a193f5df" "a0fcc4b3-ebbb-4399-9c7f-80984642524b"
+			"a3be41fe-beac-4035-a2f5-c38a882f7669" "ab1babc4-5715-434a-8cae-c9f44562c4cf"
+			"aba1b598-ced0-4bce-ba15-05bca373d96e" "ad0fc2dd-1648-4fef-b351-3def619a5f02"
+			"ada340dd-331e-4bb3-b8c4-16ecb948581b" "ade57139-ea52-4d01-a6f7-c8bff3c30dd8"
+			"af1a75ea-f12f-481c-b8db-a17ae98afc49" "afe240d6-41fd-47a5-9082-dabe5e7db4ef"
+			"b09f57fa-62a2-4f00-a55b-753ff3a089a4" "b1ad4e3a-7786-44a1-bc42-df6c0e09b0a6"
+			"b32732ec-0147-402a-b937-c508de7f6a04" "bad874ef-665f-40a6-bda0-73ac295d72b7"
+			"bbe373d6-223b-4f02-bbc2-51d28b181a7d" "bcb32510-b935-46ff-ac44-e7bd1c8d05da"
+			"c049aa9b-2ffc-41dd-8905-92ce56cd30a2" "c07d050e-6ffe-4bfc-bfcc-37b9e355c474"
+			"c245d491-0561-410e-ac8f-7d0870d82413" "c2bdac77-6034-4a00-8aae-26b27eefe2a4"
+			"c360d134-831f-4c63-aa92-687bf1389202" "c513d404-e3b7-46fd-9ad2-3a3e682b2df9"
+			"c963985b-9fac-4efd-933a-94cacadc1302" "ca1dc53b-9267-4c30-88d4-6e787cfc7a1b"
+			"ca6d579f-d845-4247-b69c-edaa965d6311" "cb9cb81f-ebcc-4416-a239-76df8730ce91"
+			"cc831d50-89fe-463c-96fc-3a2af2de3b91" "d127309e-9ae9-4518-ac1d-a68b7a95a750"
+			"d858c8c7-59eb-40f4-b17a-d2beb7b08a12" "d93e0bdb-d5c1-45d8-b390-ae7528a8e946"
+			"e19a5ee7-2de8-4596-b596-f78e7868c60e" "e28c6259-3997-4ad5-be96-4de5bdc9b164"
+			"e29f17d1-a73e-4571-ba71-39c753373015" "e2c4c3da-6ada-46e1-958b-dc16468f0992"
+			"e3e550c7-a664-450c-acfb-aa056f838d8a" "e5c10e17-49a0-426a-8af4-1ac6716da65c"
+			"e6892a1f-0f14-465c-9053-d92a4642524b" "e6f00ba6-a6ae-4b1c-932b-ad97131b5417"
 			"e90faecc-fadb-4eac-9275-acca285bef6a" "e97b8b57-6b6f-4c27-b198-c43e77d887f9"
-			"ee5a5dfa-46db-408d-ac05-3cbccaeae9df" "f41f32a2-8b58-49a6-802b-cf4b544a0ef6"
+			"edcdf3ae-217b-48f2-864f-84c84642524b" "ee5a5dfa-46db-408d-ac05-3cbccaeae9df"
+			"f41f32a2-8b58-49a6-802b-cf4b544a0ef6" "f4b69bf0-244a-43ff-9e55-456f4642524b"
 			"f5d191a3-eef7-4429-93ee-d0f97f589cf2" "f6271dab-f310-4fc3-8935-2f73ccd05fbc"
 			"f8e10abc-4ccf-408d-8cfe-9237dcae9fac" "fff6f036-8b51-4fa5-a3f6-82071fd918ba"
 		)
 	)
 	(group "led_matrix"
 		(uuid "be8975fe-4bf1-4761-ac9a-102b195d1783")
-		(members "c439e1b4-b222-40aa-80fd-16fdef3fd41d" "a0ab0db6-afc4-4154-958a-86aedad0f6a5"
-			"074da0d0-ec59-458f-b11c-b58119b44f1e" "9b0c65eb-e556-4161-a05a-9d679ceade16"
-			"096f735b-0e70-440a-91ca-16751798f969" "6457d688-9140-4ee4-b5ee-b441a3e210b0"
-			"093f7bb5-518e-4046-a0e7-ae08f2c3181d" "56388f0d-a570-43e8-bee3-576000c2beb4"
-			"5bb2e261-b02b-4da0-8bd6-c33c91414d5f" "fed39b94-c313-4a7f-ac8e-04b50d868d3c"
-			"36246374-04c3-4b57-b38a-fd8303ad2cc7" "41456a98-1c4f-4fdf-a10c-e0850c54b68c"
-			"85497ba3-5169-4e64-bc45-a469235c4933" "811497a7-4d25-4e55-9058-1fd30c34bf9a"
-			"1e971969-3b82-4b87-aa6f-c2d05efab0f1" "56f0cc7b-952c-4ed1-9252-cc502cd2d02b"
-			"66e17844-96e0-4ad0-8dcd-cda06f1f8f13" "b5ef8426-6b34-4c76-a29c-48c7740a0c2c"
-			"d3950736-0b26-4383-95fb-f6f2c8f2d46f" "b08dd38a-fb46-448e-89a7-2eeb54401920"
-			"ba28f7ce-683d-46d5-b1ab-2d549be14393" "cd5803b3-3d28-44da-ba72-bd3689b2a774"
-			"cc441677-86a2-40b0-b176-749501313090" "b1af3fd6-c780-4f98-bc72-61f39cd503c8"
-			"60a27bb2-e817-4d80-ba9d-3cd579dd9dcb" "b327351a-3e0b-47c2-9f2e-6cc2864965f0"
-			"890bcf28-5deb-4921-b8c8-1bc8c949385a" "a19c3a8a-fa5f-4cf6-a141-77708d37f267"
-			"5255f514-8a7e-4c49-a8e8-e5dd0e17d40a" "7b7ca436-d8b5-4a36-8357-c0b03d67485d"
-			"a08e8fa6-b624-45aa-bdfb-54d5206ce327" "01abae1f-b092-4f06-867b-674e0e19844f"
-			"1829b1a8-193c-41e2-a6aa-72220c609f39" "ec585124-f261-45df-aaa3-0e84432e6f5a"
-			"e98ba487-eaac-4ebf-9962-ecef143986ef" "f1889055-f667-4e88-98b8-535411ca4762"
-			"0a172d55-656d-4d62-94f4-4f25fca83e28" "bde21150-75f8-442c-9760-40df93f6fb2b"
-			"98fa5de0-3d7a-42c7-88d3-342676c22cf9" "a329ae15-4bfe-452e-8027-12630c842d38"
-			"948e4da9-0382-4756-aba6-3602f127f429" "340ccdbf-e0b8-40b9-a201-2eec14f40dac"
-			"ebe389c4-871c-4601-91d0-3940c4b4beed" "5f0ef034-655e-4e54-9e79-50e98f14515a"
-			"4826cc6b-2bfa-4694-9b8e-f61282a1fb80" "5afa2d95-a3c2-496e-a544-7065e5a9d51a"
-			"141e434a-bc84-4b3e-ac78-8628baa70d39" "ac3f4dda-afab-4207-b37e-89ee595ac17d"
-			"db4336d8-c220-4ee8-ab05-97a9619ecf66" "db5cc660-81b6-4c42-983c-a60163d3846c"
-			"1e021527-f109-4716-bb36-d0c1caca1ab2" "c51c6e9e-d575-4035-909a-5eaa4aef84fc"
-			"3e4f50c1-40fa-4db3-9a86-585bbc01e698" "933a11fc-3962-4bd9-b89a-5e93a46885c7"
-			"bb4b616d-f653-4318-84a7-6603c817ec9f" "0b63fdde-9adf-4ec0-ae9c-3c36f11ff94a"
-			"faa9010f-0702-4910-a761-03f976bc4e7e" "5b7e47c6-ae5f-4e30-857b-3289f87200c5"
-			"88e745bb-9599-4aea-b179-efde4ae63573" "b8439337-1c3d-49ec-9ce1-2c285f46f362"
-			"34078411-0c21-4cdd-b134-30d8c2f7e774" "b83b1722-797b-43ad-9c3c-1afdb1bd9be6"
-			"67cc4cfe-f826-4f15-b461-e0c4968ff5de" "81d89b9d-0a1d-4aca-b1a4-3d5ad10056a2"
-			"530ded26-1afb-4b8d-9188-252bd686e64e" "ecb50237-67ff-42b1-871b-e434d04e5646"
-			"26efd7fd-1b53-445b-a4cc-5ec9ebfb8aa5" "ce3bc034-cba2-4772-ac08-fad1d3b2880b"
-			"a1fadf2c-dcbe-476b-bac4-79e4f5faf4de" "3e656108-bf54-4ff3-a9b4-5dbeb7f7f358"
-			"de9291d8-be58-4978-8573-53f885035086" "fedaf0f0-44cb-4705-8c68-9b95866db77b"
-			"34be12cc-eb3a-44e7-8e2c-cef65207ad6d" "7d90b068-0d4d-41ea-a90a-2a58fed2e208"
-			"821036b7-4ad0-419e-8723-068da20a0798" "56e904f9-30c1-4c45-a1d4-54ec1d8a152e"
-			"4aa8e8f4-1209-4c04-910f-a2db8ee20ae5" "57dacf0e-7d52-48d6-863e-5ecdc0e32f46"
-			"0b885b5e-06dc-4198-ac46-a407da1bc380" "9fa207a4-cb8b-4290-9407-9c00c4fda3c1"
-			"e5444957-ba4d-4415-ba03-86f8a4f5cc36" "e8f50743-39b7-49ed-be8e-818879c20ae9"
-			"465cae34-edab-400c-ac4a-ebcf11af41e4" "a49385f5-9e2b-48a2-a511-f192de4e725a"
-			"5fda24cb-497a-4e58-9d63-f76d9d2ea14c" "5036196d-ba93-4ed1-b687-c68fb27ef830"
-			"089a00c7-a987-4954-80d3-987fb8f92605" "919fa127-74b9-4d14-b0cb-66b078d9a89c"
-			"381e95f3-768e-4296-8d17-7d2be66fbe83" "aa73e460-68dc-4257-a46e-a651090b05ef"
-			"97f02694-3af1-4510-be0f-767708f450e7" "a322f6d1-520b-4a21-91bd-bc9b74462d8a"
-			"dbc20b03-de6a-438a-bb28-dfec121d7806" "0ab9d8e9-9abc-41a0-b6a1-2f5d1e2e64de"
-			"9daecceb-35c5-4e1f-b614-cb793e330523" "09130c9f-3a4b-465f-8440-c4dcf0aaa9ee"
-			"eaf91b6e-aa5e-4888-96d1-8a194f214b21" "c63be803-a165-4a30-aedb-36bc39553cc1"
-			"394326bf-9e25-451a-8adf-4ee0f3a58a9c" "f150f10f-3d53-49ea-ba11-a36ab769e934"
-			"91b12d8c-a236-4d55-82cb-07b674410c65" "d237db3e-c21d-4a33-9e19-335ebcf981b1"
-			"68750a98-7c30-4ad0-b85c-f3d6a095da6b" "b06dbd57-2084-4f9f-a876-33669f647f14"
-			"572044fc-13d4-4661-8721-8c3158047f58" "ad40eeb7-7656-488b-8d09-6ddcff46458b"
-			"20b392df-74d0-4eee-945b-2cac3d5db951" "256f2ad2-a4e3-41ad-822c-bf81f68e9a59"
-			"6f0f7f9f-ca09-42ba-a219-a1f67a872d72" "aa4966b5-76d7-4849-bda5-4c81a41a62a0"
-			"9e6c62b7-b897-495e-a3b6-33009bc0dbd1" "d5acbcf9-b849-4dc0-a682-95ffc546344f"
-			"ff5feac7-92d0-4c95-a328-3fadc25f687f" "925ca5f2-0d52-4edf-aa68-d4f5ce578598"
-			"0548c1ac-dd60-446a-9211-73500d17a2c1" "d31c9aa1-a731-4857-8344-664485e1c62c"
-			"c5d7749f-fccd-4ed2-90b2-00f03328cf61" "977a1bbc-8d6b-4622-a44a-22f646c1c6ab"
-			"6d6d14a2-fb6e-42c9-8f1f-382eaaab9ba2" "26ea2cab-c884-46ad-ad55-c29cbe5a8638"
-			"2715f6df-772e-4167-9e60-35c6ad06d84a" "ff5b1517-ac3a-45cc-bcdc-a85c8a736cda"
-			"38c96397-fcd9-42e9-9ab3-d42d8fd46ea1" "7af4f258-2b26-4422-b692-dc75e5beb982"
-			"037ff279-9d04-4995-a154-783faa27cacc" "03db5192-a7d6-479e-adea-24dc143ed026"
-			"45676ca1-e695-4ae4-b859-1f7084e678ce" "501e9954-4429-494c-b499-50e871cb6832"
-			"9630af30-29eb-4f1a-a2f0-598b72e6462a" "ac8d27a7-2767-426e-8cb7-0f2a3a5eb5e2"
-			"59e27ecc-4da8-4ccb-bb7e-7e0c93442c15" "888dbfeb-1927-4356-8b26-fa4b66586638"
-			"1ac664bb-490a-428b-984f-36bb1ea70f6c" "f87f92ff-d258-4d2c-bd66-54b14242fb4a"
-			"3ccbb967-76ba-4d7a-8ac7-04ebee4d628c" "ce41bdb7-6374-49a9-90b7-43974efb97ea"
-			"5602afa3-9536-410d-b9c1-f952471a776a" "df7cee93-696c-4162-8220-6befd54dc7e7"
-			"79900b21-09ed-4b8f-9e52-363dcdc59c32" "0a026ef8-9043-43e9-b851-dc5cc9a84acd"
-			"404a79d7-0f83-4771-b4fa-2e2e36be54bc" "00124694-2316-4baa-9526-6bc2b426eaf4"
-			"44fbae14-5150-4b19-85f1-5b220b108fcb" "178e4012-fc6a-43cd-a516-056efcbec765"
-			"edc4201e-fde1-4f82-a967-b93bb9c6da9f" "5d308bc8-01ee-4785-a977-b123198bff5b"
-			"b8f9656c-a0ea-4814-b144-a11d38f1294a" "48edc5cf-8a9c-4302-b30c-8831cee19427"
-			"e6e929f5-d9fe-4216-8068-ea39209a4552" "6da4c5df-fbeb-4ef2-8f06-5045757147cd"
-			"a984d1ab-a302-48f9-807b-fa30dc2e5826" "3a84bf1d-6602-4720-8b32-d84e796efa09"
-			"6c850b11-aeb5-45d9-b9fd-d44a4cedafe6" "64d26217-a13f-4ac3-864c-33bbf8238888"
-			"b84e7e61-67a1-44ec-bebb-3aea1f4255a9" "7bbed428-54df-44b5-9dfe-ea6d3641aa9d"
-			"b6c472a8-b259-4386-9aa5-f0132624eecd" "22cdd0a5-90d7-4831-b7d3-e1bfdc774285"
-			"5ae3c03d-a7e5-4b4b-8dd1-5a6e0b00c605" "8af77f32-0946-4a90-8e4c-7b8f27134ada"
-			"6ce90a6e-e5d7-4296-bd42-482ec9d333cb" "a3d6afee-fa0d-4e3d-ab7e-f022713e7d9c"
-			"d5e98e1b-c01a-4ff9-8412-0559a233d780" "d4c4c32b-8764-4270-bfa2-623996814dae"
-			"51bbdadb-ff4a-41ca-96ca-ca7976c93d41" "35e1454a-57ba-48fd-ac7d-6431694caf28"
-			"7715646f-d1bd-40d4-aceb-284ec530c280" "20917467-600b-478e-b712-3549b45cf700"
-			"6c377c15-e9e8-4b5d-a03f-2396998084df" "975d6a67-b648-4600-a07a-81e3ca770a6d"
-			"2fa6b9df-e29e-4852-ab1b-47a7217fa3d6" "454a8a87-db71-40b4-9063-dbd81e2be48a"
-			"71c749a1-e3d0-49e9-adfd-a9c8bbd89a28" "78c60dac-8881-445f-9fe2-c50e99aae833"
-			"bcf3cea7-b097-4f50-ac3c-c6d038124244" "2e274fa8-d1f3-4d18-920f-ac2072690454"
-			"d90a6ded-ebd7-439a-b4cd-deac882293ea" "9ecbc18e-27a2-4743-b476-33c5dce20880"
-			"457e51b8-493e-4490-9d36-8c6b8fa55649" "725ca846-d29d-4e14-beea-7073fb1c3c00"
-			"4a63e524-f822-4c47-aea2-de7192ca48dc" "be94315a-35e8-4e86-8a6f-aad56471a171"
-			"81f2225a-d2cb-4b08-824d-232a5ccddc50" "b2d7068f-89e0-4244-a71b-28b81c34271f"
-			"b9136c4d-fe10-436b-a67b-46bf57e50746" "1d26d24b-2a49-4f75-90b2-0dde55233d1f"
-			"3051e364-f057-4a1f-b607-647d50ca9458" "0da16828-7b87-4eea-9c3b-92d1962c75b2"
-			"9f875086-3d21-4799-8b6e-1cd3536fd067" "dea6d9a9-4f0c-4193-a87f-df836a736667"
-			"42cf5d95-ba8d-4d91-85ef-c2128225a446" "ecc980aa-ce9b-4917-913e-322a961e1baa"
-			"b8a1a8b6-c1b8-4957-ab7b-b01197bd1f58" "85b5aa14-0356-44a4-aa65-a5a041d1e027"
-			"ceaeff5b-f4a2-4665-b499-b95ab3fde497" "05669efb-7b6a-4a0c-a95e-c17457c47536"
-			"ce112f0e-03b3-4473-a517-07184dac5eb4" "5db8880b-c2ba-4a3a-9fde-d1b338cd424a"
-			"3fc50361-b459-4bb2-8ed7-fe3bb95a8661" "61c5c25b-8f9e-421b-9680-03988d5ba0c4"
-			"760e2277-2d9d-4b0f-aa26-049a888c90dc" "24bc27dc-be3a-4ae1-9014-b4ba97aaeb4b"
-			"af05346f-0f03-4a96-b582-62ded12813c4" "fd4139d5-b61c-427e-82fa-fb54dc866edc"
-			"549b59fa-4349-4e6c-9d84-054197bcf1bf" "a877bb81-e350-4693-9ba1-5ef966a4a893"
-			"315f47f7-42f2-4d09-a22c-7c2055dc2063" "672938f3-0493-40ff-b887-87b0697081ab"
-			"9d653507-c49d-4fd4-a49a-d1a08a1f11eb" "df18efed-1e2c-450c-87e9-67aa4a58d70a"
-			"7a95470c-ffca-48d2-9974-c054d4c3da3c" "db2ff417-5d8f-42e7-bfd9-1e82a6ef6827"
-			"62e48c50-43d3-4714-b6cd-caffa2629111" "47aacd83-dc25-482c-be94-99d44a951bb4"
-			"4ae96238-a340-4ccf-9b33-0794f451402b" "a457248d-c086-4249-a1d7-3c7170265b18"
-			"2136e6f3-ae58-44f1-ab85-954ae65787af" "473cc8cd-53a9-4cda-b848-69c5baa0fb5d"
-			"dbbf58f8-f798-4420-974a-1285e60c425c" "31beced2-6c7d-48b3-8515-bc1cd4d8aa4c"
-			"a0657e17-8851-456e-9a6e-d5ede3b2b389" "d3ae2e7a-f1eb-4b9d-a0f0-cf866d0f9cf6"
-			"2633b046-5841-4852-9304-3a09f61da12e" "6ac2e24c-5207-4ba0-9d99-2a957626e24e"
-			"7db7bd94-8f2b-47a1-b9a6-5e1603a92941" "6c252a82-4f00-4dec-af74-2e836621c07b"
-			"a91ccc9b-8465-4d2f-94f1-f6ad73d6daf5" "f9b4eb67-2d40-4e67-82e2-0f6218662c70"
-			"27a2a991-8f6d-4a30-a176-837a998ef8eb" "ebdddc71-9d97-4b3c-97ea-0924f2cb008c"
-			"882a336a-080f-4ec5-9e01-3d8b55ee31f0" "6071542f-3fbf-433c-80b8-8292454d0d20"
-			"867cf07a-457d-4a66-9cc5-d68927afdcb9" "30e90628-c7e4-4ade-aa97-284f6e74fe43"
-			"f2d95092-f75f-4182-89c9-91b602f243f4" "87c269d3-23e1-4f08-bc3e-4ce818a5f1be"
-			"f4e6d913-e5c8-4055-ac5b-0f70e7bb0789" "b0b960f8-190c-4d31-a0ab-9ef778992dca"
-			"5aea3aaa-4416-4342-8119-5bc7e392c39b" "64fb350e-1efb-43a0-85b6-da471b5db786"
-			"79dda9eb-756b-4e7f-b50c-abca7ba3e822" "61d5ee18-e0d4-433e-aaa7-96bee16a6ce9"
-			"e79dbea3-c11f-428a-9f40-ddb0eb9ccfd0" "ea413bda-0067-4681-8d27-e5828d971648"
-			"9e4a7650-71ac-437c-a991-39a8e8e374ec" "02d5354d-0d6b-44fc-a6d6-8b9f1351def5"
-			"59dfa037-964f-45bc-8df1-663bac4b39a5" "ea79af00-6a33-4e6b-a71b-cb463832515f"
-			"88cd40bb-b2d2-47e8-80fb-0db97c04e3de" "1499117c-55c0-422e-b141-34e6746ceb7e"
-			"40f4df9b-7521-493d-8bcb-cea51e7fe5d3" "1c3e4dc6-d4bb-4127-895a-d4e8ebc0bb66"
-			"e2e222b4-ca2d-4b63-8b88-c2abda8d50f5" "c55c41b1-b9a3-4a0f-bffe-52bfd3a0bc82"
-			"2d402904-d897-4e9a-88fe-9247275edc8a" "6f4a840c-f5ef-4c64-a812-264a6ab3ea5c"
-			"c5815b8b-d012-4af9-9856-eb3078580a5e" "b0405551-1123-4124-9eed-2d8681af0112"
-			"ec6c4c5c-b66e-411b-beca-46ce5c0cd788" "a6182979-f6c3-4693-ae34-76ae9ddb620b"
-			"dab82e2b-8daa-4423-b181-8882221b37d9" "55bc288f-920d-443b-be35-e5c8cdef43af"
-			"6101023c-e677-43a5-b782-8991d4a52f0d" "77382ced-d2a0-46eb-ae8f-c8b259d1c37b"
-			"50ffeb1f-8d93-4e9b-ab5a-36b1ba3aec2e" "bd0ea7b0-ccb9-47ae-9e89-d6e4316ad9ba"
-			"f0575bc0-a745-457b-af8f-2f24cc96ff6f" "e2b69c0c-b181-4ac9-aa04-e497f2c83e75"
-			"9165ecf6-23cd-46c6-b528-019a376649fd" "f1101f9b-de6d-4de9-89b1-686a8a7c33a7"
-			"d6c4c540-5139-4ccf-a3e5-5f249503f279" "8835a3c2-9cfb-4e5c-b92e-85cdcdef49a0"
-			"8c8acb95-36ea-4f72-9eb1-4423355a9de2" "b166e99c-d6dd-4b19-8e1c-eda795d7a172"
-			"95a3e403-7dba-4249-b982-ab7e742b54be" "b25dabfd-28a1-4a39-9fda-7c76c5303ee5"
-			"e203eb2b-4a95-4608-9277-8b42a08a18ff" "2459119f-9e87-49eb-86aa-1a4273b04cf5"
-			"679b3deb-c6a8-4ef1-8c9a-9fb82f4006d1" "134c8819-11db-450f-a2a8-e9c85934a74b"
-			"6635ae2e-794d-40ef-b9fc-a7475b77876d" "bd33307e-b3d2-4552-8472-41c607a0cf4e"
-			"eafebea7-e110-4967-9151-0a83386b0cfc" "c16ad1a1-68e6-4cf4-9889-54523223518f"
-			"80079117-91df-4482-827c-7afa6a3ae29f" "f7e2dd20-9d39-44c5-909c-dd00c6a524de"
-			"b6d99c55-6d95-4f78-aea4-5a1051721335" "09447816-883f-4301-a6d9-a47f65b5347e"
-			"4262358f-e93a-4fb7-8a9c-708f301bdfaf" "f5880c8a-a222-48fb-9220-0815022644e1"
-			"05a4d818-c81f-4d9f-b5df-3c9f3bc41b8f" "eadbe817-9747-41f0-b43c-a498196bb789"
-			"2d6bcd94-e1d3-4687-b826-8161ab94648b" "f1f321cf-7436-4199-95b2-d4e45a16d780"
-			"89eb92a4-9508-48b5-8e06-007343e3ea1d" "569f8616-9e9d-46c0-9a6c-71e31e11b0c8"
-			"9f292b94-4647-4da5-bac4-b1ae3b3d43b2" "cdf56921-6e6c-482b-961b-80490ad4292d"
-			"8f3980ff-e6bf-4c26-a6f0-d2901bcec84e" "05b58875-ebe7-44e1-ad4f-735a3913a574"
-			"04ad1e9a-a709-4f16-8879-f2d8c237000e" "9af01418-260a-498a-90da-a175fa52957e"
-			"0228b85a-f827-4df2-b0a9-baece9f56e61" "685fd470-150d-4538-bb66-e9601c6e8e4a"
-			"7fa4138c-a03b-4bfd-a5b9-1d18fdfa0f06" "8f83f3e7-c7a8-4b67-aaeb-394cd1c58288"
-			"b0cba105-f529-472e-a560-11f6c8191cfc" "78b5e29c-b5d7-448a-be19-c6618e7f081c"
-			"f774b2c8-5847-4512-a32d-7cbc624e528f" "693d11c2-1237-4752-aa24-0749906039ef"
-			"1bbac31a-3136-4b02-b218-bcfb569667dc" "6516b39f-7811-415c-9192-cc786de9ca9f"
-			"f57fd3a6-4190-41a0-b0dd-a18981a8cc3f" "fdd41853-7b9c-4b5e-b879-7500a11b2efe"
-			"8862c8f9-dc13-4013-9631-30ec0d8f34b6" "f91063ff-1ad0-4b0a-8e76-8ecf8fb66fe4"
-			"299151cd-579c-4a08-9fa2-9f6f333f9639" "2d297d6b-fa76-4ae4-bdf9-87b28bdc57e2"
-			"5d8da230-96cf-47ee-b74b-3f7ee2738544" "2370d882-89b1-4a0d-bf80-600045a09d19"
-			"03760cdc-aa74-45a3-b9ad-01d1b60fb412" "db66e2f2-0545-407a-8b43-8bb1580aad41"
-			"4a19a618-10c9-41fb-a76b-775780aaedd9" "7bbff6c3-880c-4c3a-bb9f-e14ced5b6ad7"
-			"bb4d0db8-76d8-4192-8488-ab734acaa68a" "af54ec73-5c4a-4223-87fc-c39011179c57"
-			"9f296c0e-62f6-4eaf-9944-831c7434ef30" "0ca4ba4b-d7db-4257-b76c-a89cc69cb362"
-			"2bdb4476-6932-48c6-84eb-87e8dba087c0" "b1bf15a8-0daf-4b46-ae31-90c5ca276457"
-			"e3187b1e-b57a-433e-900a-fb9df1037000" "2fd28f41-248d-4faf-8960-82526a23a05b"
-			"e8ae708e-bcd6-4b02-b20f-2fa5e5d66a12" "7256f92a-6034-432f-a216-c84b5f18194a"
-			"eb31b5ba-9adc-4417-8758-b2b48f841893" "ca72dce9-037a-4c0d-96bd-ec4525cf517f"
-			"e80a3c16-fe7f-4c0f-a4d2-a9333543859b" "d2865f41-629b-45f6-99d0-271502bee7d1"
-			"66fb5cd2-5cc0-4f18-b336-f301bf232045" "0a877fc3-3745-4555-a1a6-dd7c5997a385"
-			"8b185b23-29dc-429b-ba23-93c0b6828aea" "5dbd79e7-3e87-4ada-bfbe-4edcad016c62"
-			"7922f0a1-1262-4d6d-9eb1-de7aaeca0c0b" "65218589-2706-468d-a9ea-0355b5943360"
-			"b443fa76-0150-4dfe-9ed4-f8e9d6635897" "fb2a4657-fa6c-4453-bf3c-34f569a66cda"
-			"22a59c3e-b326-4d7f-8424-88bf2d6fd572" "a62703d7-8408-4a28-9f90-30f891568356"
-			"e73b0bb7-c593-469b-9ca0-2e2ace3afba5" "d65c901a-b84a-408d-8bc3-623e5549d0e5"
-			"7b9ecf45-0451-4f03-85ba-1f96b2e94cb2" "2374bf16-4a23-422e-8b0c-c50729efa31d"
-			"8921d354-8c14-4cca-924f-7eecd6bf22ba" "02bf5b53-1876-4a50-9065-2f53245ddee7"
-			"1689e4b7-f484-4171-b789-45d644899c03" "c274ab4f-0bbc-4cf2-a485-f73d11f9c620"
-			"63537b18-99d7-4e68-9952-04b95e3d316b" "52b79221-2811-4c19-8c67-85338a6ca44e"
-			"9f2c664b-2d3f-4f4c-83cb-12b514d1fa7f" "f118dcbf-ce9d-4227-898a-b49f341b9d5c"
-			"7e316298-81a3-42de-83b0-1b726184e534" "9ad8d7d5-02b0-462e-86c2-829856b1ad52"
-			"ca9e0eaf-2606-45e0-9f6a-e5964b4176ce" "e1e4ff5a-668c-4e0e-becb-67cc1931138b"
-			"f25e036d-e42c-4b15-87f7-c91efe41ce8c" "1d6feafa-0ab8-4064-bc13-bd3187ae524a"
-			"52c09cf2-bf2c-44fc-b7ed-b0a46bdb324d" "b759bbf4-3e59-46e8-a160-15829588fd42"
-			"8cfb81df-280f-4855-afe3-cf4b56ab5e67" "dfcf4faa-1d95-44f6-8bcc-7379f98cb9b6"
-			"9db5d303-e5e5-440b-b8df-5e8e6af1865d" "19184e33-d631-40ae-816c-42b368e9f83f"
-			"1b761bfc-5936-49f3-aa24-3f6454a48eba" "159bf9c9-5d32-4e1e-94d6-affd43bdb56d"
-			"a1edc43d-3af6-46c2-bff3-c60fc11617e5" "a83d56b1-19df-4dc3-a180-f0c9a03657fb"
-			"19771d35-0ffd-403b-9e11-5c84934fface" "3d4b32d9-ec61-4a80-862d-b3562708afee"
-			"7b5fcdfd-9fb3-46b4-ac2c-21c48be260c4" "11dbe957-ceea-48b1-a904-5c8a72566bbd"
-			"54699f89-747e-4667-b584-56f848b60bc3" "cdbd5f0a-bc6c-40ba-bbdb-eec5d77e82a2"
-			"ada6de0f-a9b5-4ec9-b286-74246df6abd6" "f2b00f21-9698-4d43-8694-bf541dc88f20"
-			"39313f6d-5e38-4e7f-ae81-af2436e8d7fe" "3d15eb45-e170-4c69-ae9c-6c4c52cc284a"
-			"b291f80e-391b-480c-84de-03562daf7705" "f29c13f0-3e6f-45f3-9703-faf5cb7ac681"
-			"6d489ad4-6e43-4607-80be-3905ae7fe4a6" "b0b5232c-4347-49bc-9d3a-5eb2910d864f"
-			"eeae7d6a-ecdf-4cb2-9486-a6ac6cc28dc2" "5cd46f89-99ef-45f4-b6dd-2b0965fad957"
-			"dd52b3be-e255-407c-be0a-5166188c2c36" "0b73c001-6144-45c9-a961-e65d4a0bb185"
-			"46417a59-dc2b-4dc4-9479-f97f2f439aa7" "dbff9867-7127-473c-bc7f-8d15c3ee6141"
-			"de83e0bf-fd05-46be-81c3-0c7da40e176f" "3afc9719-2efb-4e15-bba8-a8373636a524"
-			"543556ab-596e-4557-9ad3-b3a0525e91ee" "8b94dd06-5c25-474e-b882-4b269c929684"
-			"b8371b7a-f345-46ea-87b7-8b80c70b5f53" "3e788845-81cf-4417-95f9-337e39bdf532"
-			"025ca7b6-a969-4531-9db0-e4ef4a80e544" "14746507-1e3c-4bba-8abc-f010e0ac8cde"
-			"8cd129bd-374f-485a-8027-42e71039ac50" "de195471-c53f-49bb-80d8-c09be4484f61"
-			"81a3cf95-5324-4906-9ab6-634924922236" "144fadc8-415d-426d-a70b-d2cf3ea3ed0c"
-			"2e73c079-04f6-4c57-8896-d634997eefd1" "27408987-1099-4ce4-9752-f2707c4512e1"
-			"bae75f97-124e-4ae1-b164-913d378c8cc1" "57efee4c-52cb-4859-aaba-be304a2feca9"
-			"bb7ff2c8-2bc3-48ff-9fe4-e0f3c8f784c2" "6ae3e004-3bb9-458d-b946-4489d50432a6"
-			"0762656e-3d79-45e4-b8a6-23fbb6b28e9a" "5290a2f0-06df-4327-b5c9-f9c926fa4d05"
-			"e4af9528-a1ac-4216-8bc7-83bfbf955683" "737adbcb-31a4-4645-9b20-46f6e6d80eba"
-			"9beeb215-d8a3-43e4-90d4-c763b4086509" "8a1b23a9-7a77-4310-8018-ac85657455f2"
-			"d28eaa0e-4a5a-470c-af35-e9ce179c549f" "e18772e0-83f5-4ee4-9785-f9daba5226e4"
-			"2de7d79e-8079-4393-a387-015807f6ec5b" "456adcb6-2104-4ddf-8a4f-597a3331e353"
-			"f1231a75-6178-4837-9928-e63d7a16c0da" "ad674945-8370-41ae-ad39-5b1bd49091ba"
-			"32847fa4-a50b-47cf-90ea-a0fb3cf8f8b4" "566c7f91-ca87-4142-a6cf-733ba0dcf485"
-			"b161a1a8-c4f9-44fc-b6a6-e62b434186bf" "acf01be1-4e93-4421-aa78-09fea0c6f94e"
-			"cd6e8278-aa6c-4e2e-b2a8-2cf21d14002a" "da44761b-43d1-4b1d-ba04-72e0d9648ad5"
-			"1b3d6be8-173c-47e8-aa2d-8ba08e914749" "068d6039-edd4-4ad4-8fbd-dbb5d7782b7c"
-			"4e2c50f1-e22c-4bce-9762-7901ced466d4" "10e021a3-6097-490a-a1a3-50b3711b28be"
-			"83ebc736-887e-4b34-9542-fc0573e569f1" "c90aec49-c22e-406c-b804-a0ce34e58c3f"
-			"112c9671-2d0a-46b6-b1ba-304ad9f10ab0" "ff12be5d-96b9-4cf2-88be-dd7dad25503c"
-			"2b2c3be7-0e40-4b69-82c0-4e66eabb9b66" "341e848d-4055-4778-90b7-3443194bf726"
-			"873d8a6d-eeef-45bd-a5d5-240d642df6f8" "a3454666-7d30-4442-bca0-90a3913b651e"
-			"a7e81ce0-5959-4304-bc7d-90293b721eba" "cc4898dc-5e4e-4a73-a8ff-0866e0fabd47"
-			"b80c583f-afc6-4294-8790-4308b847fd92" "b732880f-7ed5-4d04-af1c-e83b1aa97dc5"
-			"2fca7297-b1b6-4bb2-8929-2d002902dc9b" "99edbe47-30b7-4d6c-b160-35a30542e7cc"
-			"2ded2eb9-5c1f-4118-8254-5818300526b7" "27276553-a08b-48d5-95e3-14f28baa312d"
-			"d7924604-4243-40ad-9a62-b2310c111d96" "59796a37-c791-401a-a53e-181825c699cd"
-			"b17b3964-c4f3-49b1-b1ec-1ba8b465b4b2" "99329e8e-44fe-4be2-ae83-eeb20fdfaca4"
-			"856ff3ee-1c87-4364-a72d-29c228218a4f" "9ff02856-a15d-4d01-980a-55230c274220"
-			"3b4d609a-156c-4898-873f-63589972cd06" "1677a4af-c3db-4040-aa70-9bb2b011700c"
-			"90f5b249-c57c-4613-844e-e27fb18998cb" "9706e8ec-54f6-45b8-8da2-d467e431e6b9"
-			"fe078841-a53d-4b29-983f-ffb2ebf20529" "642276f2-9dba-4848-9284-96745f99ae13"
-			"7d0a07ae-87dd-4e9d-9afa-0f00ba6bed48" "3fcad5dd-dbbd-4c73-8e4a-3f6a39baa47a"
-			"a9c97a36-320e-4f8a-93e9-ea8fe53c2ba6" "9034a14b-4829-4606-86ce-a1b30eb46e9d"
-			"f3a4c1c6-2cc7-42f9-b62b-b5f1d39c447c" "5efa8200-e87c-4694-9f60-cfb817e0ede2"
-			"da3dd0fa-7ec5-4ae0-ae01-521a2d3cc7f8" "f4425b7e-39fa-49b9-88c1-d5ff3e917bb1"
-			"7d0bab72-7b16-4fd9-9902-56728d612208" "729bc844-6f49-4951-998a-5ca152329e5a"
-			"f92746bc-cc19-4284-ac71-98957757f8f1" "21a61794-e80f-49d8-8251-0200f8b02dee"
-			"7caeb1ca-11b6-4a0b-9654-0ceda0efc6e2" "89993b3e-057b-4495-8e7f-5d9854a48b1b"
-			"d30effae-12ac-463f-9fca-859a63460fa6" "eda0175b-7742-49b3-92ae-50fee1943a75"
-			"a4bf1206-4bd7-4001-99f7-d8800a6acca4" "41a19ca2-683f-4a76-be34-b177605605f3"
-			"46e561b7-74cc-4094-b6a2-d488758318c9" "6337937f-944f-49f0-ae0d-2b716e3fb218"
-			"32ec0ef2-7449-43ff-9e6e-dd98337c3c53" "5e359899-d7e8-436f-9819-0d31a91d4d2a"
-			"8caf3505-9bfd-476d-a346-f45c05cc8122" "bb22d4ab-0136-49a1-bac5-f08ffaa2ccae"
-			"5c59444e-8fb5-4ef4-835f-4844c3020f08" "863012ec-0456-4ab3-b708-270305f279b1"
-			"c274c0db-6474-44af-8c08-7121bcf832b0" "dc0dd749-d5b1-499e-91ba-e9db591f6830"
-			"40f71767-a233-42b1-a821-54815ef63b35" "be754317-2ace-459a-945e-50e1a19c70fe"
-			"f2385f81-df04-4dd1-bff1-e18d6aa5df4e" "27cf30d7-9282-4204-b2be-36c4f6cc9751"
-			"42ef8f1d-a723-4a9b-9acf-04d3cc3e598b" "a3f90f3b-201e-4d57-9f4d-5b9052b5ca38"
-			"d627cee1-5b4b-4c8e-9f56-4259ad0331c5" "4710bf2c-8ffc-4723-8201-8f26f2f4a278"
-			"a6f28e8c-0df2-4cf1-8218-3c903fa4125e" "274fc1c8-d52d-47b4-9302-58e67e95f3c3"
-			"4f9e9480-2139-4e54-8dd6-70d13edd6aa5" "5db7b40c-e054-4635-976c-334e2eb16143"
-			"e0e55ec7-00d1-4776-8c61-8b82da95542c" "349774b8-0ce1-477f-8da1-aab7edd8d163"
-			"4253c148-5971-42d9-aa9d-59f2b118ea43" "e21a2fc2-e905-4878-9ddf-c56909820b18"
-			"571f34c8-c3ed-4e0f-8fc2-4d0a275dae6c" "31175ae0-1d80-43fa-b0e9-b3670fbfd6e8"
-			"90717ddc-4a09-469f-a503-1e4375c7d1b1" "7e8bad8a-af3c-4906-93eb-571b3b91abd5"
-			"a7f5938b-d08f-4c7e-9b69-01f4063e1bb9" "2e3e51c4-0e6a-4daf-81fa-fd745ca2bd6f"
-			"2e393cd3-a8a1-4130-889f-7db119431773"
+		(members "00124694-2316-4baa-9526-6bc2b426eaf4" "01abae1f-b092-4f06-867b-674e0e19844f"
+			"0228b85a-f827-4df2-b0a9-baece9f56e61" "025ca7b6-a969-4531-9db0-e4ef4a80e544"
+			"02bf5b53-1876-4a50-9065-2f53245ddee7" "02d5354d-0d6b-44fc-a6d6-8b9f1351def5"
+			"03760cdc-aa74-45a3-b9ad-01d1b60fb412" "037ff279-9d04-4995-a154-783faa27cacc"
+			"03db5192-a7d6-479e-adea-24dc143ed026" "04ad1e9a-a709-4f16-8879-f2d8c237000e"
+			"04dab5cd-0e02-4a28-8f83-49ef4642524b" "0548c1ac-dd60-446a-9211-73500d17a2c1"
+			"05669efb-7b6a-4a0c-a95e-c17457c47536" "05a4d818-c81f-4d9f-b5df-3c9f3bc41b8f"
+			"05b58875-ebe7-44e1-ad4f-735a3913a574" "068ac889-ca5f-4035-9b53-41b24642524b"
+			"068d6039-edd4-4ad4-8fbd-dbb5d7782b7c" "074da0d0-ec59-458f-b11c-b58119b44f1e"
+			"0762656e-3d79-45e4-b8a6-23fbb6b28e9a" "089a00c7-a987-4954-80d3-987fb8f92605"
+			"09130c9f-3a4b-465f-8440-c4dcf0aaa9ee" "093f7bb5-518e-4046-a0e7-ae08f2c3181d"
+			"09447816-883f-4301-a6d9-a47f65b5347e" "096f735b-0e70-440a-91ca-16751798f969"
+			"0a026ef8-9043-43e9-b851-dc5cc9a84acd" "0a0c9de0-28da-415c-88f3-d4304642524b"
+			"0a172d55-656d-4d62-94f4-4f25fca83e28" "0a877fc3-3745-4555-a1a6-dd7c5997a385"
+			"0ab9d8e9-9abc-41a0-b6a1-2f5d1e2e64de" "0add8219-b2bf-4412-8773-43704642524b"
+			"0b63fdde-9adf-4ec0-ae9c-3c36f11ff94a" "0b73c001-6144-45c9-a961-e65d4a0bb185"
+			"0b885b5e-06dc-4198-ac46-a407da1bc380" "0ca4ba4b-d7db-4257-b76c-a89cc69cb362"
+			"0da16828-7b87-4eea-9c3b-92d1962c75b2" "0ec068dd-a14e-48e7-bd8b-515d4642524b"
+			"10e021a3-6097-490a-a1a3-50b3711b28be" "112c9671-2d0a-46b6-b1ba-304ad9f10ab0"
+			"11dbe957-ceea-48b1-a904-5c8a72566bbd" "134c8819-11db-450f-a2a8-e9c85934a74b"
+			"141e434a-bc84-4b3e-ac78-8628baa70d39" "144fadc8-415d-426d-a70b-d2cf3ea3ed0c"
+			"14746507-1e3c-4bba-8abc-f010e0ac8cde" "1499117c-55c0-422e-b141-34e6746ceb7e"
+			"159bf9c9-5d32-4e1e-94d6-affd43bdb56d" "1677a4af-c3db-4040-aa70-9bb2b011700c"
+			"1689e4b7-f484-4171-b789-45d644899c03" "178e4012-fc6a-43cd-a516-056efcbec765"
+			"1829b1a8-193c-41e2-a6aa-72220c609f39" "19184e33-d631-40ae-816c-42b368e9f83f"
+			"19771d35-0ffd-403b-9e11-5c84934fface" "1988d35f-401b-4624-b647-828a4642524b"
+			"1ac664bb-490a-428b-984f-36bb1ea70f6c" "1b3d6be8-173c-47e8-aa2d-8ba08e914749"
+			"1b74ef0b-de0f-4412-8b3c-52724642524b" "1b761bfc-5936-49f3-aa24-3f6454a48eba"
+			"1bbac31a-3136-4b02-b218-bcfb569667dc" "1c3e4dc6-d4bb-4127-895a-d4e8ebc0bb66"
+			"1d26d24b-2a49-4f75-90b2-0dde55233d1f" "1d6feafa-0ab8-4064-bc13-bd3187ae524a"
+			"1e021527-f109-4716-bb36-d0c1caca1ab2" "1e971969-3b82-4b87-aa6f-c2d05efab0f1"
+			"20917467-600b-478e-b712-3549b45cf700" "20b392df-74d0-4eee-945b-2cac3d5db951"
+			"2136e6f3-ae58-44f1-ab85-954ae65787af" "21a61794-e80f-49d8-8251-0200f8b02dee"
+			"22a59c3e-b326-4d7f-8424-88bf2d6fd572" "22cdd0a5-90d7-4831-b7d3-e1bfdc774285"
+			"2370d882-89b1-4a0d-bf80-600045a09d19" "23743ec9-e4a3-4e5c-b56b-c0294642524b"
+			"2374bf16-4a23-422e-8b0c-c50729efa31d" "2459119f-9e87-49eb-86aa-1a4273b04cf5"
+			"24af0c11-2762-4dcf-ba16-f2d64642524b" "24bc27dc-be3a-4ae1-9014-b4ba97aaeb4b"
+			"256f2ad2-a4e3-41ad-822c-bf81f68e9a59" "2633b046-5841-4852-9304-3a09f61da12e"
+			"26ea2cab-c884-46ad-ad55-c29cbe5a8638" "26efd7fd-1b53-445b-a4cc-5ec9ebfb8aa5"
+			"2715f6df-772e-4167-9e60-35c6ad06d84a" "27276553-a08b-48d5-95e3-14f28baa312d"
+			"27408987-1099-4ce4-9752-f2707c4512e1" "274fc1c8-d52d-47b4-9302-58e67e95f3c3"
+			"27a2a991-8f6d-4a30-a176-837a998ef8eb" "27cf30d7-9282-4204-b2be-36c4f6cc9751"
+			"299151cd-579c-4a08-9fa2-9f6f333f9639" "2b2c3be7-0e40-4b69-82c0-4e66eabb9b66"
+			"2bdb4476-6932-48c6-84eb-87e8dba087c0" "2d297d6b-fa76-4ae4-bdf9-87b28bdc57e2"
+			"2d402904-d897-4e9a-88fe-9247275edc8a" "2d6bcd94-e1d3-4687-b826-8161ab94648b"
+			"2de7d79e-8079-4393-a387-015807f6ec5b" "2ded2eb9-5c1f-4118-8254-5818300526b7"
+			"2e274fa8-d1f3-4d18-920f-ac2072690454" "2e393cd3-a8a1-4130-889f-7db119431773"
+			"2e3e51c4-0e6a-4daf-81fa-fd745ca2bd6f" "2e73c079-04f6-4c57-8896-d634997eefd1"
+			"2fa6b9df-e29e-4852-ab1b-47a7217fa3d6" "2fca7297-b1b6-4bb2-8929-2d002902dc9b"
+			"2fd28f41-248d-4faf-8960-82526a23a05b" "3051e364-f057-4a1f-b607-647d50ca9458"
+			"30ce28d0-b492-4f4a-aea0-7cb14642524b" "30e7ea83-7c1c-42db-bb6e-02564642524b"
+			"30e90628-c7e4-4ade-aa97-284f6e74fe43" "31175ae0-1d80-43fa-b0e9-b3670fbfd6e8"
+			"315f47f7-42f2-4d09-a22c-7c2055dc2063" "31beced2-6c7d-48b3-8515-bc1cd4d8aa4c"
+			"32847fa4-a50b-47cf-90ea-a0fb3cf8f8b4" "32ec0ef2-7449-43ff-9e6e-dd98337c3c53"
+			"34078411-0c21-4cdd-b134-30d8c2f7e774" "340ccdbf-e0b8-40b9-a201-2eec14f40dac"
+			"341e848d-4055-4778-90b7-3443194bf726" "349774b8-0ce1-477f-8da1-aab7edd8d163"
+			"34be12cc-eb3a-44e7-8e2c-cef65207ad6d" "35e1454a-57ba-48fd-ac7d-6431694caf28"
+			"36246374-04c3-4b57-b38a-fd8303ad2cc7" "3677cc6b-1e36-49cf-a8c7-fc5f4642524b"
+			"381e95f3-768e-4296-8d17-7d2be66fbe83" "38c96397-fcd9-42e9-9ab3-d42d8fd46ea1"
+			"39313f6d-5e38-4e7f-ae81-af2436e8d7fe" "394326bf-9e25-451a-8adf-4ee0f3a58a9c"
+			"3a84bf1d-6602-4720-8b32-d84e796efa09" "3afc9719-2efb-4e15-bba8-a8373636a524"
+			"3b4d609a-156c-4898-873f-63589972cd06" "3cb67b68-879b-4e83-bb75-d3694642524b"
+			"3ccbb967-76ba-4d7a-8ac7-04ebee4d628c" "3d15eb45-e170-4c69-ae9c-6c4c52cc284a"
+			"3d4b32d9-ec61-4a80-862d-b3562708afee" "3e4f50c1-40fa-4db3-9a86-585bbc01e698"
+			"3e6083a6-49dd-4c53-b7ab-662f4642524b" "3e656108-bf54-4ff3-a9b4-5dbeb7f7f358"
+			"3e788845-81cf-4417-95f9-337e39bdf532" "3fc50361-b459-4bb2-8ed7-fe3bb95a8661"
+			"3fcad5dd-dbbd-4c73-8e4a-3f6a39baa47a" "404a79d7-0f83-4771-b4fa-2e2e36be54bc"
+			"40e443ac-2e4c-4eda-8d4a-d5fa4642524b" "40f4df9b-7521-493d-8bcb-cea51e7fe5d3"
+			"40f71767-a233-42b1-a821-54815ef63b35" "41456a98-1c4f-4fdf-a10c-e0850c54b68c"
+			"41a19ca2-683f-4a76-be34-b177605605f3" "4253c148-5971-42d9-aa9d-59f2b118ea43"
+			"4262358f-e93a-4fb7-8a9c-708f301bdfaf" "42cf5d95-ba8d-4d91-85ef-c2128225a446"
+			"42ef8f1d-a723-4a9b-9acf-04d3cc3e598b" "44fbae14-5150-4b19-85f1-5b220b108fcb"
+			"454a8a87-db71-40b4-9063-dbd81e2be48a" "45676ca1-e695-4ae4-b859-1f7084e678ce"
+			"456adcb6-2104-4ddf-8a4f-597a3331e353" "457e51b8-493e-4490-9d36-8c6b8fa55649"
+			"46417a59-dc2b-4dc4-9479-f97f2f439aa7" "465cae34-edab-400c-ac4a-ebcf11af41e4"
+			"46e561b7-74cc-4094-b6a2-d488758318c9" "4710bf2c-8ffc-4723-8201-8f26f2f4a278"
+			"473cc8cd-53a9-4cda-b848-69c5baa0fb5d" "47aacd83-dc25-482c-be94-99d44a951bb4"
+			"4826cc6b-2bfa-4694-9b8e-f61282a1fb80" "48edc5cf-8a9c-4302-b30c-8831cee19427"
+			"496ab792-e877-40f4-b365-32384642524b" "4a19a618-10c9-41fb-a76b-775780aaedd9"
+			"4a63e524-f822-4c47-aea2-de7192ca48dc" "4aa8e8f4-1209-4c04-910f-a2db8ee20ae5"
+			"4ae96238-a340-4ccf-9b33-0794f451402b" "4cecdc8c-22b9-4a5f-a77a-bc084642524b"
+			"4d3ee259-2de5-448e-aa3f-31d24642524b" "4e2c50f1-e22c-4bce-9762-7901ced466d4"
+			"4f9e9480-2139-4e54-8dd6-70d13edd6aa5" "4fafe673-3f19-4b26-902d-eb0a4642524b"
+			"501e9954-4429-494c-b499-50e871cb6832" "5036196d-ba93-4ed1-b687-c68fb27ef830"
+			"50ffeb1f-8d93-4e9b-ab5a-36b1ba3aec2e" "51bbdadb-ff4a-41ca-96ca-ca7976c93d41"
+			"5255f514-8a7e-4c49-a8e8-e5dd0e17d40a" "5290a2f0-06df-4327-b5c9-f9c926fa4d05"
+			"52b79221-2811-4c19-8c67-85338a6ca44e" "52c09cf2-bf2c-44fc-b7ed-b0a46bdb324d"
+			"530ded26-1afb-4b8d-9188-252bd686e64e" "543556ab-596e-4557-9ad3-b3a0525e91ee"
+			"54699f89-747e-4667-b584-56f848b60bc3" "549b59fa-4349-4e6c-9d84-054197bcf1bf"
+			"55bc288f-920d-443b-be35-e5c8cdef43af" "5602afa3-9536-410d-b9c1-f952471a776a"
+			"56388f0d-a570-43e8-bee3-576000c2beb4" "564e92d8-b2c0-4dde-807b-95c94642524b"
+			"566c7f91-ca87-4142-a6cf-733ba0dcf485" "569f8616-9e9d-46c0-9a6c-71e31e11b0c8"
+			"56e904f9-30c1-4c45-a1d4-54ec1d8a152e" "56f0cc7b-952c-4ed1-9252-cc502cd2d02b"
+			"571f34c8-c3ed-4e0f-8fc2-4d0a275dae6c" "572044fc-13d4-4661-8721-8c3158047f58"
+			"57dacf0e-7d52-48d6-863e-5ecdc0e32f46" "57efee4c-52cb-4859-aaba-be304a2feca9"
+			"59796a37-c791-401a-a53e-181825c699cd" "59dfa037-964f-45bc-8df1-663bac4b39a5"
+			"59e27ecc-4da8-4ccb-bb7e-7e0c93442c15" "5a977acf-a22a-4b07-bcea-55b34642524b"
+			"5ae3c03d-a7e5-4b4b-8dd1-5a6e0b00c605" "5aea3aaa-4416-4342-8119-5bc7e392c39b"
+			"5afa2d95-a3c2-496e-a544-7065e5a9d51a" "5b7e47c6-ae5f-4e30-857b-3289f87200c5"
+			"5bb2e261-b02b-4da0-8bd6-c33c91414d5f" "5c59444e-8fb5-4ef4-835f-4844c3020f08"
+			"5cd46f89-99ef-45f4-b6dd-2b0965fad957" "5d308bc8-01ee-4785-a977-b123198bff5b"
+			"5d8da230-96cf-47ee-b74b-3f7ee2738544" "5db7b40c-e054-4635-976c-334e2eb16143"
+			"5db8880b-c2ba-4a3a-9fde-d1b338cd424a" "5dbd79e7-3e87-4ada-bfbe-4edcad016c62"
+			"5e359899-d7e8-436f-9819-0d31a91d4d2a" "5e3fb672-9f90-43d4-845a-fb214642524b"
+			"5efa8200-e87c-4694-9f60-cfb817e0ede2" "5f0ef034-655e-4e54-9e79-50e98f14515a"
+			"5f66cebb-a79e-4a98-9d8b-ec7d4642524b" "5f75a0af-11ca-4dfd-8779-7d154642524b"
+			"5fda24cb-497a-4e58-9d63-f76d9d2ea14c" "6071542f-3fbf-433c-80b8-8292454d0d20"
+			"60a27bb2-e817-4d80-ba9d-3cd579dd9dcb" "6101023c-e677-43a5-b782-8991d4a52f0d"
+			"61c5c25b-8f9e-421b-9680-03988d5ba0c4" "61d5ee18-e0d4-433e-aaa7-96bee16a6ce9"
+			"62e48c50-43d3-4714-b6cd-caffa2629111" "6337937f-944f-49f0-ae0d-2b716e3fb218"
+			"63537b18-99d7-4e68-9952-04b95e3d316b" "642276f2-9dba-4848-9284-96745f99ae13"
+			"6457d688-9140-4ee4-b5ee-b441a3e210b0" "64d26217-a13f-4ac3-864c-33bbf8238888"
+			"64fb350e-1efb-43a0-85b6-da471b5db786" "6516b39f-7811-415c-9192-cc786de9ca9f"
+			"65218589-2706-468d-a9ea-0355b5943360" "6635ae2e-794d-40ef-b9fc-a7475b77876d"
+			"66e17844-96e0-4ad0-8dcd-cda06f1f8f13" "66fb5cd2-5cc0-4f18-b336-f301bf232045"
+			"672938f3-0493-40ff-b887-87b0697081ab" "679b3deb-c6a8-4ef1-8c9a-9fb82f4006d1"
+			"67cc4cfe-f826-4f15-b461-e0c4968ff5de" "685fd470-150d-4538-bb66-e9601c6e8e4a"
+			"68750a98-7c30-4ad0-b85c-f3d6a095da6b" "693d11c2-1237-4752-aa24-0749906039ef"
+			"6ac2e24c-5207-4ba0-9d99-2a957626e24e" "6ac89963-84f9-4f5d-aa20-a3cf4642524b"
+			"6ae3e004-3bb9-458d-b946-4489d50432a6" "6b719ca0-98c3-4889-a7dc-58194642524b"
+			"6c252a82-4f00-4dec-af74-2e836621c07b" "6c377c15-e9e8-4b5d-a03f-2396998084df"
+			"6c850b11-aeb5-45d9-b9fd-d44a4cedafe6" "6ce90a6e-e5d7-4296-bd42-482ec9d333cb"
+			"6d489ad4-6e43-4607-80be-3905ae7fe4a6" "6d6d14a2-fb6e-42c9-8f1f-382eaaab9ba2"
+			"6da4c5df-fbeb-4ef2-8f06-5045757147cd" "6e22afbe-fea5-4cc4-a8d1-fe8e4642524b"
+			"6f0f7f9f-ca09-42ba-a219-a1f67a872d72" "6f4a840c-f5ef-4c64-a812-264a6ab3ea5c"
+			"71a88b2d-bd9a-45e6-a5d5-d8ba4642524b" "71c749a1-e3d0-49e9-adfd-a9c8bbd89a28"
+			"7256f92a-6034-432f-a216-c84b5f18194a" "725ca846-d29d-4e14-beea-7073fb1c3c00"
+			"729bc844-6f49-4951-998a-5ca152329e5a" "737adbcb-31a4-4645-9b20-46f6e6d80eba"
+			"739170f7-6af0-4abc-8bc6-68c14642524b" "739376f8-e3b5-4744-8197-645c4642524b"
+			"760e2277-2d9d-4b0f-aa26-049a888c90dc" "7715646f-d1bd-40d4-aceb-284ec530c280"
+			"77382ced-d2a0-46eb-ae8f-c8b259d1c37b" "78b5e29c-b5d7-448a-be19-c6618e7f081c"
+			"78c60dac-8881-445f-9fe2-c50e99aae833" "7922f0a1-1262-4d6d-9eb1-de7aaeca0c0b"
+			"795521ef-09b0-447f-8459-a7bc4642524b" "79900b21-09ed-4b8f-9e52-363dcdc59c32"
+			"79d8f3bc-bccc-41ce-874a-5ed94642524b" "79dda9eb-756b-4e7f-b50c-abca7ba3e822"
+			"7a95470c-ffca-48d2-9974-c054d4c3da3c" "7af4f258-2b26-4422-b692-dc75e5beb982"
+			"7b5fcdfd-9fb3-46b4-ac2c-21c48be260c4" "7b7ca436-d8b5-4a36-8357-c0b03d67485d"
+			"7b9ecf45-0451-4f03-85ba-1f96b2e94cb2" "7bbed428-54df-44b5-9dfe-ea6d3641aa9d"
+			"7bbff6c3-880c-4c3a-bb9f-e14ced5b6ad7" "7caeb1ca-11b6-4a0b-9654-0ceda0efc6e2"
+			"7d0a07ae-87dd-4e9d-9afa-0f00ba6bed48" "7d0bab72-7b16-4fd9-9902-56728d612208"
+			"7d90b068-0d4d-41ea-a90a-2a58fed2e208" "7db7bd94-8f2b-47a1-b9a6-5e1603a92941"
+			"7e316298-81a3-42de-83b0-1b726184e534" "7e8bad8a-af3c-4906-93eb-571b3b91abd5"
+			"7fa2fb5c-4327-4f85-be92-a6444642524b" "7fa4138c-a03b-4bfd-a5b9-1d18fdfa0f06"
+			"7fe68d70-d365-441d-bef1-08a34642524b" "80079117-91df-4482-827c-7afa6a3ae29f"
+			"811497a7-4d25-4e55-9058-1fd30c34bf9a" "81a3cf95-5324-4906-9ab6-634924922236"
+			"81d89b9d-0a1d-4aca-b1a4-3d5ad10056a2" "81f2225a-d2cb-4b08-824d-232a5ccddc50"
+			"821036b7-4ad0-419e-8723-068da20a0798" "83ebc736-887e-4b34-9542-fc0573e569f1"
+			"85497ba3-5169-4e64-bc45-a469235c4933" "856ff3ee-1c87-4364-a72d-29c228218a4f"
+			"85b5aa14-0356-44a4-aa65-a5a041d1e027" "863012ec-0456-4ab3-b708-270305f279b1"
+			"867cf07a-457d-4a66-9cc5-d68927afdcb9" "873d8a6d-eeef-45bd-a5d5-240d642df6f8"
+			"87c269d3-23e1-4f08-bc3e-4ce818a5f1be" "882a336a-080f-4ec5-9e01-3d8b55ee31f0"
+			"8835a3c2-9cfb-4e5c-b92e-85cdcdef49a0" "8862c8f9-dc13-4013-9631-30ec0d8f34b6"
+			"888dbfeb-1927-4356-8b26-fa4b66586638" "88cd40bb-b2d2-47e8-80fb-0db97c04e3de"
+			"88e745bb-9599-4aea-b179-efde4ae63573" "890bcf28-5deb-4921-b8c8-1bc8c949385a"
+			"8921d354-8c14-4cca-924f-7eecd6bf22ba" "89993b3e-057b-4495-8e7f-5d9854a48b1b"
+			"89eb92a4-9508-48b5-8e06-007343e3ea1d" "8a1b23a9-7a77-4310-8018-ac85657455f2"
+			"8af77f32-0946-4a90-8e4c-7b8f27134ada" "8b092d76-4e3a-4035-ac2b-b5534642524b"
+			"8b185b23-29dc-429b-ba23-93c0b6828aea" "8b94dd06-5c25-474e-b882-4b269c929684"
+			"8c8acb95-36ea-4f72-9eb1-4423355a9de2" "8caf3505-9bfd-476d-a346-f45c05cc8122"
+			"8cd129bd-374f-485a-8027-42e71039ac50" "8cfb81df-280f-4855-afe3-cf4b56ab5e67"
+			"8f3980ff-e6bf-4c26-a6f0-d2901bcec84e" "8f83f3e7-c7a8-4b67-aaeb-394cd1c58288"
+			"9034a14b-4829-4606-86ce-a1b30eb46e9d" "90717ddc-4a09-469f-a503-1e4375c7d1b1"
+			"90f5b249-c57c-4613-844e-e27fb18998cb" "9165ecf6-23cd-46c6-b528-019a376649fd"
+			"919fa127-74b9-4d14-b0cb-66b078d9a89c" "91b12d8c-a236-4d55-82cb-07b674410c65"
+			"925ca5f2-0d52-4edf-aa68-d4f5ce578598" "933a11fc-3962-4bd9-b89a-5e93a46885c7"
+			"948e4da9-0382-4756-aba6-3602f127f429" "9539f78d-0630-4fab-8c16-fd904642524b"
+			"95a3e403-7dba-4249-b982-ab7e742b54be" "9630af30-29eb-4f1a-a2f0-598b72e6462a"
+			"9706e8ec-54f6-45b8-8da2-d467e431e6b9" "975d6a67-b648-4600-a07a-81e3ca770a6d"
+			"977a1bbc-8d6b-4622-a44a-22f646c1c6ab" "97f02694-3af1-4510-be0f-767708f450e7"
+			"98fa5de0-3d7a-42c7-88d3-342676c22cf9" "99329e8e-44fe-4be2-ae83-eeb20fdfaca4"
+			"99edbe47-30b7-4d6c-b160-35a30542e7cc" "9ad8d7d5-02b0-462e-86c2-829856b1ad52"
+			"9af01418-260a-498a-90da-a175fa52957e" "9b0c65eb-e556-4161-a05a-9d679ceade16"
+			"9beeb215-d8a3-43e4-90d4-c763b4086509" "9d653507-c49d-4fd4-a49a-d1a08a1f11eb"
+			"9daecceb-35c5-4e1f-b614-cb793e330523" "9db5d303-e5e5-440b-b8df-5e8e6af1865d"
+			"9e4a7650-71ac-437c-a991-39a8e8e374ec" "9e6c62b7-b897-495e-a3b6-33009bc0dbd1"
+			"9ecbc18e-27a2-4743-b476-33c5dce20880" "9f292b94-4647-4da5-bac4-b1ae3b3d43b2"
+			"9f296c0e-62f6-4eaf-9944-831c7434ef30" "9f2c664b-2d3f-4f4c-83cb-12b514d1fa7f"
+			"9f875086-3d21-4799-8b6e-1cd3536fd067" "9fa207a4-cb8b-4290-9407-9c00c4fda3c1"
+			"9ff02856-a15d-4d01-980a-55230c274220" "a0657e17-8851-456e-9a6e-d5ede3b2b389"
+			"a08e8fa6-b624-45aa-bdfb-54d5206ce327" "a0ab0db6-afc4-4154-958a-86aedad0f6a5"
+			"a19c3a8a-fa5f-4cf6-a141-77708d37f267" "a1edc43d-3af6-46c2-bff3-c60fc11617e5"
+			"a1fadf2c-dcbe-476b-bac4-79e4f5faf4de" "a2073ae0-fdc9-4a7b-ba39-8ae44642524b"
+			"a322f6d1-520b-4a21-91bd-bc9b74462d8a" "a329ae15-4bfe-452e-8027-12630c842d38"
+			"a3454666-7d30-4442-bca0-90a3913b651e" "a3d6afee-fa0d-4e3d-ab7e-f022713e7d9c"
+			"a3f90f3b-201e-4d57-9f4d-5b9052b5ca38" "a457248d-c086-4249-a1d7-3c7170265b18"
+			"a49385f5-9e2b-48a2-a511-f192de4e725a" "a4bf1206-4bd7-4001-99f7-d8800a6acca4"
+			"a6182979-f6c3-4693-ae34-76ae9ddb620b" "a62703d7-8408-4a28-9f90-30f891568356"
+			"a6f28e8c-0df2-4cf1-8218-3c903fa4125e" "a7e81ce0-5959-4304-bc7d-90293b721eba"
+			"a7f5938b-d08f-4c7e-9b69-01f4063e1bb9" "a83d56b1-19df-4dc3-a180-f0c9a03657fb"
+			"a877bb81-e350-4693-9ba1-5ef966a4a893" "a91ccc9b-8465-4d2f-94f1-f6ad73d6daf5"
+			"a984d1ab-a302-48f9-807b-fa30dc2e5826" "a9c97a36-320e-4f8a-93e9-ea8fe53c2ba6"
+			"aa4966b5-76d7-4849-bda5-4c81a41a62a0" "aa73e460-68dc-4257-a46e-a651090b05ef"
+			"ac3f4dda-afab-4207-b37e-89ee595ac17d" "ac8d27a7-2767-426e-8cb7-0f2a3a5eb5e2"
+			"acf01be1-4e93-4421-aa78-09fea0c6f94e" "ad40eeb7-7656-488b-8d09-6ddcff46458b"
+			"ad674945-8370-41ae-ad39-5b1bd49091ba" "ada6de0f-a9b5-4ec9-b286-74246df6abd6"
+			"af05346f-0f03-4a96-b582-62ded12813c4" "af54ec73-5c4a-4223-87fc-c39011179c57"
+			"b0405551-1123-4124-9eed-2d8681af0112" "b06dbd57-2084-4f9f-a876-33669f647f14"
+			"b08dd38a-fb46-448e-89a7-2eeb54401920" "b0b5232c-4347-49bc-9d3a-5eb2910d864f"
+			"b0b960f8-190c-4d31-a0ab-9ef778992dca" "b0cba105-f529-472e-a560-11f6c8191cfc"
+			"b161a1a8-c4f9-44fc-b6a6-e62b434186bf" "b166e99c-d6dd-4b19-8e1c-eda795d7a172"
+			"b17b3964-c4f3-49b1-b1ec-1ba8b465b4b2" "b1af3fd6-c780-4f98-bc72-61f39cd503c8"
+			"b1bf15a8-0daf-4b46-ae31-90c5ca276457" "b25dabfd-28a1-4a39-9fda-7c76c5303ee5"
+			"b291f80e-391b-480c-84de-03562daf7705" "b2d7068f-89e0-4244-a71b-28b81c34271f"
+			"b327351a-3e0b-47c2-9f2e-6cc2864965f0" "b443fa76-0150-4dfe-9ed4-f8e9d6635897"
+			"b5ef8426-6b34-4c76-a29c-48c7740a0c2c" "b656b05c-9313-4ce2-a52b-1b584642524b"
+			"b6c472a8-b259-4386-9aa5-f0132624eecd" "b6d99c55-6d95-4f78-aea4-5a1051721335"
+			"b732880f-7ed5-4d04-af1c-e83b1aa97dc5" "b759bbf4-3e59-46e8-a160-15829588fd42"
+			"b80c583f-afc6-4294-8790-4308b847fd92" "b8371b7a-f345-46ea-87b7-8b80c70b5f53"
+			"b83b1722-797b-43ad-9c3c-1afdb1bd9be6" "b8439337-1c3d-49ec-9ce1-2c285f46f362"
+			"b84e7e61-67a1-44ec-bebb-3aea1f4255a9" "b8a1a8b6-c1b8-4957-ab7b-b01197bd1f58"
+			"b8f9656c-a0ea-4814-b144-a11d38f1294a" "b9136c4d-fe10-436b-a67b-46bf57e50746"
+			"b9b71fdb-8e48-4f5d-9c58-d22c4642524b" "ba28f7ce-683d-46d5-b1ab-2d549be14393"
+			"bae75f97-124e-4ae1-b164-913d378c8cc1" "bb22d4ab-0136-49a1-bac5-f08ffaa2ccae"
+			"bb4b616d-f653-4318-84a7-6603c817ec9f" "bb4d0db8-76d8-4192-8488-ab734acaa68a"
+			"bb7ff2c8-2bc3-48ff-9fe4-e0f3c8f784c2" "bcb3ab75-57be-4340-bf3d-9d384642524b"
+			"bcf3cea7-b097-4f50-ac3c-c6d038124244" "bd0ea7b0-ccb9-47ae-9e89-d6e4316ad9ba"
+			"bd33307e-b3d2-4552-8472-41c607a0cf4e" "bde21150-75f8-442c-9760-40df93f6fb2b"
+			"be754317-2ace-459a-945e-50e1a19c70fe" "be94315a-35e8-4e86-8a6f-aad56471a171"
+			"bfb29fad-0715-4a0f-8c13-31f54642524b" "c16ad1a1-68e6-4cf4-9889-54523223518f"
+			"c274ab4f-0bbc-4cf2-a485-f73d11f9c620" "c274c0db-6474-44af-8c08-7121bcf832b0"
+			"c439e1b4-b222-40aa-80fd-16fdef3fd41d" "c45adc7a-f84a-4e60-9724-094c4642524b"
+			"c51c6e9e-d575-4035-909a-5eaa4aef84fc" "c53ba364-0d14-4712-9290-6b224642524b"
+			"c55c41b1-b9a3-4a0f-bffe-52bfd3a0bc82" "c5815b8b-d012-4af9-9856-eb3078580a5e"
+			"c5d7749f-fccd-4ed2-90b2-00f03328cf61" "c63be803-a165-4a30-aedb-36bc39553cc1"
+			"c7f0e614-4fc0-43dc-a359-c3e34642524b" "c90aec49-c22e-406c-b804-a0ce34e58c3f"
+			"ca72dce9-037a-4c0d-96bd-ec4525cf517f" "ca9e0eaf-2606-45e0-9f6a-e5964b4176ce"
+			"cc441677-86a2-40b0-b176-749501313090" "cc4898dc-5e4e-4a73-a8ff-0866e0fabd47"
+			"cd5803b3-3d28-44da-ba72-bd3689b2a774" "cd6e8278-aa6c-4e2e-b2a8-2cf21d14002a"
+			"cdbd5f0a-bc6c-40ba-bbdb-eec5d77e82a2" "cdf56921-6e6c-482b-961b-80490ad4292d"
+			"ce112f0e-03b3-4473-a517-07184dac5eb4" "ce3bc034-cba2-4772-ac08-fad1d3b2880b"
+			"ce41bdb7-6374-49a9-90b7-43974efb97ea" "ceaeff5b-f4a2-4665-b499-b95ab3fde497"
+			"cf4c3665-41c3-458f-83ca-55494642524b" "cfd91e7c-aed6-4e91-931a-b6f64642524b"
+			"d235f8ed-506c-4fcc-ab70-8d8d4642524b" "d237db3e-c21d-4a33-9e19-335ebcf981b1"
+			"d2865f41-629b-45f6-99d0-271502bee7d1" "d28eaa0e-4a5a-470c-af35-e9ce179c549f"
+			"d30effae-12ac-463f-9fca-859a63460fa6" "d31c9aa1-a731-4857-8344-664485e1c62c"
+			"d3950736-0b26-4383-95fb-f6f2c8f2d46f" "d3ae2e7a-f1eb-4b9d-a0f0-cf866d0f9cf6"
+			"d4c4c32b-8764-4270-bfa2-623996814dae" "d576caee-0e95-41bf-a8a4-95084642524b"
+			"d5acbcf9-b849-4dc0-a682-95ffc546344f" "d5e98e1b-c01a-4ff9-8412-0559a233d780"
+			"d627cee1-5b4b-4c8e-9f56-4259ad0331c5" "d65c901a-b84a-408d-8bc3-623e5549d0e5"
+			"d6c4c540-5139-4ccf-a3e5-5f249503f279" "d758eb42-05dd-4ee1-b20d-6dd34642524b"
+			"d7924604-4243-40ad-9a62-b2310c111d96" "d90a6ded-ebd7-439a-b4cd-deac882293ea"
+			"da3dd0fa-7ec5-4ae0-ae01-521a2d3cc7f8" "da44761b-43d1-4b1d-ba04-72e0d9648ad5"
+			"dab82e2b-8daa-4423-b181-8882221b37d9" "db1cf58a-5e49-436f-aaff-ba414642524b"
+			"db2ff417-5d8f-42e7-bfd9-1e82a6ef6827" "db4336d8-c220-4ee8-ab05-97a9619ecf66"
+			"db5cc660-81b6-4c42-983c-a60163d3846c" "db66e2f2-0545-407a-8b43-8bb1580aad41"
+			"dbbf58f8-f798-4420-974a-1285e60c425c" "dbc20b03-de6a-438a-bb28-dfec121d7806"
+			"dbff9867-7127-473c-bc7f-8d15c3ee6141" "dc0dd749-d5b1-499e-91ba-e9db591f6830"
+			"dd52b3be-e255-407c-be0a-5166188c2c36" "de195471-c53f-49bb-80d8-c09be4484f61"
+			"de83e0bf-fd05-46be-81c3-0c7da40e176f" "de9291d8-be58-4978-8573-53f885035086"
+			"dea6d9a9-4f0c-4193-a87f-df836a736667" "df18efed-1e2c-450c-87e9-67aa4a58d70a"
+			"df706435-fc10-424a-b1cc-dc3c4642524b" "df7cee93-696c-4162-8220-6befd54dc7e7"
+			"dfcf4faa-1d95-44f6-8bcc-7379f98cb9b6" "e0e55ec7-00d1-4776-8c61-8b82da95542c"
+			"e18772e0-83f5-4ee4-9785-f9daba5226e4" "e1e4ff5a-668c-4e0e-becb-67cc1931138b"
+			"e203eb2b-4a95-4608-9277-8b42a08a18ff" "e21a2fc2-e905-4878-9ddf-c56909820b18"
+			"e2b69c0c-b181-4ac9-aa04-e497f2c83e75" "e2e222b4-ca2d-4b63-8b88-c2abda8d50f5"
+			"e3187b1e-b57a-433e-900a-fb9df1037000" "e4667da6-98e8-45c1-896b-b5c14642524b"
+			"e4af9528-a1ac-4216-8bc7-83bfbf955683" "e5444957-ba4d-4415-ba03-86f8a4f5cc36"
+			"e6e929f5-d9fe-4216-8068-ea39209a4552" "e73b0bb7-c593-469b-9ca0-2e2ace3afba5"
+			"e79dbea3-c11f-428a-9f40-ddb0eb9ccfd0" "e80a3c16-fe7f-4c0f-a4d2-a9333543859b"
+			"e8ae708e-bcd6-4b02-b20f-2fa5e5d66a12" "e8f50743-39b7-49ed-be8e-818879c20ae9"
+			"e98ba487-eaac-4ebf-9962-ecef143986ef" "ea413bda-0067-4681-8d27-e5828d971648"
+			"ea719e69-2a38-411b-a6f5-14b64642524b" "ea79af00-6a33-4e6b-a71b-cb463832515f"
+			"eadbe817-9747-41f0-b43c-a498196bb789" "eaf91b6e-aa5e-4888-96d1-8a194f214b21"
+			"eafebea7-e110-4967-9151-0a83386b0cfc" "eb31b5ba-9adc-4417-8758-b2b48f841893"
+			"ebdddc71-9d97-4b3c-97ea-0924f2cb008c" "ebe389c4-871c-4601-91d0-3940c4b4beed"
+			"ec585124-f261-45df-aaa3-0e84432e6f5a" "ec6c4c5c-b66e-411b-beca-46ce5c0cd788"
+			"ecb50237-67ff-42b1-871b-e434d04e5646" "ecc980aa-ce9b-4917-913e-322a961e1baa"
+			"eda0175b-7742-49b3-92ae-50fee1943a75" "edc4201e-fde1-4f82-a967-b93bb9c6da9f"
+			"eeae7d6a-ecdf-4cb2-9486-a6ac6cc28dc2" "f0575bc0-a745-457b-af8f-2f24cc96ff6f"
+			"f1101f9b-de6d-4de9-89b1-686a8a7c33a7" "f118dcbf-ce9d-4227-898a-b49f341b9d5c"
+			"f1231a75-6178-4837-9928-e63d7a16c0da" "f150f10f-3d53-49ea-ba11-a36ab769e934"
+			"f1889055-f667-4e88-98b8-535411ca4762" "f1f321cf-7436-4199-95b2-d4e45a16d780"
+			"f20d95a2-f355-4ffa-b163-28314642524b" "f2385f81-df04-4dd1-bff1-e18d6aa5df4e"
+			"f25e036d-e42c-4b15-87f7-c91efe41ce8c" "f29c13f0-3e6f-45f3-9703-faf5cb7ac681"
+			"f2b00f21-9698-4d43-8694-bf541dc88f20" "f2b0b300-8075-44a1-ba47-40924642524b"
+			"f2d95092-f75f-4182-89c9-91b602f243f4" "f3a4c1c6-2cc7-42f9-b62b-b5f1d39c447c"
+			"f4425b7e-39fa-49b9-88c1-d5ff3e917bb1" "f4e6d913-e5c8-4055-ac5b-0f70e7bb0789"
+			"f57fd3a6-4190-41a0-b0dd-a18981a8cc3f" "f5880c8a-a222-48fb-9220-0815022644e1"
+			"f774b2c8-5847-4512-a32d-7cbc624e528f" "f7e2dd20-9d39-44c5-909c-dd00c6a524de"
+			"f87f92ff-d258-4d2c-bd66-54b14242fb4a" "f91063ff-1ad0-4b0a-8e76-8ecf8fb66fe4"
+			"f92746bc-cc19-4284-ac71-98957757f8f1" "f9b4eb67-2d40-4e67-82e2-0f6218662c70"
+			"faa9010f-0702-4910-a761-03f976bc4e7e" "fb2a4657-fa6c-4453-bf3c-34f569a66cda"
+			"fd4139d5-b61c-427e-82fa-fb54dc866edc" "fdd41853-7b9c-4b5e-b879-7500a11b2efe"
+			"fe078841-a53d-4b29-983f-ffb2ebf20529" "fed39b94-c313-4a7f-ac8e-04b50d868d3c"
+			"fedaf0f0-44cb-4705-8c68-9b95866db77b" "ff12be5d-96b9-4cf2-88be-dd7dad25503c"
+			"ff5b1517-ac3a-45cc-bcdc-a85c8a736cda" "ff5feac7-92d0-4c95-a328-3fadc25f687f"
 		)
 	)
 	(group "hd_strip.leds[0]"
 		(uuid "68645f73-7472-6970-2e6c-6564735b305d")
 		(locked no)
-		(members "028ad67d-1d70-4b73-ace8-061a4642524b" "62fa08c2-fcf3-4fa5-b5ca-9e354642524b")
 	)
 	(group "led_matrix.strips[0].leds[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d2e6c6564735b325d")
 		(locked no)
-		(members "04dab5cd-0e02-4a28-8f83-49ef4642524b" "739170f7-6af0-4abc-8bc6-68c14642524b")
 	)
 	(group "led_matrix.strips[1].leds[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d2e6c6564735b345d")
 		(locked no)
-		(members "068ac889-ca5f-4035-9b53-41b24642524b" "23743ec9-e4a3-4e5c-b56b-c0294642524b")
 	)
 	(group "led_matrix.strips[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d")
 		(locked no)
-		(members "0a0c9de0-28da-415c-88f3-d4304642524b")
 	)
 	(group "led_matrix.strips[3].leds[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d2e6c6564735b335d")
 		(locked no)
-		(members "0add8219-b2bf-4412-8773-43704642524b" "3cb67b68-879b-4e83-bb75-d3694642524b")
 	)
 	(group "led_matrix.strips[1].leds[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d2e6c6564735b325d")
 		(locked no)
-		(members "0ec068dd-a14e-48e7-bd8b-515d4642524b" "4fafe673-3f19-4b26-902d-eb0a4642524b")
 	)
 	(group "hd_strip.leds[3]"
 		(uuid "68645f73-7472-6970-2e6c-6564735b335d")
 		(locked no)
-		(members "18cfcccc-d530-4cab-adc0-8e374642524b" "edcdf3ae-217b-48f2-864f-84c84642524b")
 	)
 	(group "led_matrix.strips[0].leds[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d2e6c6564735b335d")
 		(locked no)
-		(members "1988d35f-401b-4624-b647-828a4642524b" "f20d95a2-f355-4ffa-b163-28314642524b")
 	)
 	(group "led_matrix.strips[4].leds[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d2e6c6564735b335d")
 		(locked no)
-		(members "1b74ef0b-de0f-4412-8b3c-52724642524b" "e4667da6-98e8-45c1-896b-b5c14642524b")
 	)
 	(group "led_matrix.strips[2].leds[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d2e6c6564735b335d")
 		(locked no)
-		(members "24af0c11-2762-4dcf-ba16-f2d64642524b" "c45adc7a-f84a-4e60-9724-094c4642524b")
 	)
 	(group "led_matrix.strips[0].leds[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d2e6c6564735b305d")
 		(locked no)
-		(members "30ce28d0-b492-4f4a-aea0-7cb14642524b" "d758eb42-05dd-4ee1-b20d-6dd34642524b")
 	)
 	(group "led_matrix.strips[4].leds[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d2e6c6564735b305d")
 		(locked no)
-		(members "30e7ea83-7c1c-42db-bb6e-02564642524b" "a2073ae0-fdc9-4a7b-ba39-8ae44642524b")
 	)
 	(group "led_matrix.strips[2].leds[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d2e6c6564735b345d")
 		(locked no)
-		(members "3677cc6b-1e36-49cf-a8c7-fc5f4642524b" "c7f0e614-4fc0-43dc-a359-c3e34642524b")
 	)
 	(group "led_matrix.strips[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d")
 		(locked no)
-		(members "3e6083a6-49dd-4c53-b7ab-662f4642524b")
 	)
 	(group "led_matrix.strips[2].leds[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d2e6c6564735b305d")
 		(locked no)
-		(members "40e443ac-2e4c-4eda-8d4a-d5fa4642524b" "5f75a0af-11ca-4dfd-8779-7d154642524b")
 	)
 	(group "led_matrix.strips[0].leds[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d2e6c6564735b315d")
 		(locked no)
-		(members "496ab792-e877-40f4-b365-32384642524b" "bcb3ab75-57be-4340-bf3d-9d384642524b")
 	)
 	(group "led_matrix.strips[1].leds[3]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d2e6c6564735b335d")
 		(locked no)
-		(members "4cecdc8c-22b9-4a5f-a77a-bc084642524b" "d235f8ed-506c-4fcc-ab70-8d8d4642524b")
 	)
 	(group "led_matrix.strips[4].leds[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d2e6c6564735b325d")
 		(locked no)
-		(members "4d3ee259-2de5-448e-aa3f-31d24642524b" "df706435-fc10-424a-b1cc-dc3c4642524b")
 	)
 	(group "hd_strip.leds[2]"
 		(uuid "68645f73-7472-6970-2e6c-6564735b325d")
 		(locked no)
-		(members "4eca2346-8ad5-441e-bd5b-2f994642524b" "e6892a1f-0f14-465c-9053-d92a4642524b")
 	)
 	(group "led_matrix.strips[0].leds[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b305d2e6c6564735b345d")
 		(locked no)
-		(members "564e92d8-b2c0-4dde-807b-95c94642524b" "f2b0b300-8075-44a1-ba47-40924642524b")
 	)
 	(group "led_matrix.strips[2].leds[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d2e6c6564735b325d")
 		(locked no)
-		(members "5a977acf-a22a-4b07-bcea-55b34642524b" "8b092d76-4e3a-4035-ac2b-b5534642524b")
 	)
 	(group "led_matrix.strips[2].leds[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d2e6c6564735b315d")
 		(locked no)
-		(members "5e3fb672-9f90-43d4-845a-fb214642524b" "7fa2fb5c-4327-4f85-be92-a6444642524b")
 	)
 	(group "led_matrix.strips[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b325d")
 		(locked no)
-		(members "5f66cebb-a79e-4a98-9d8b-ec7d4642524b")
 	)
 	(group "led_matrix.strips[4].leds[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d2e6c6564735b345d")
 		(locked no)
-		(members "6ac89963-84f9-4f5d-aa20-a3cf4642524b" "cfd91e7c-aed6-4e91-931a-b6f64642524b")
 	)
 	(group "led_matrix.strips[3].leds[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d2e6c6564735b315d")
 		(locked no)
-		(members "6b719ca0-98c3-4889-a7dc-58194642524b" "ea719e69-2a38-411b-a6f5-14b64642524b")
 	)
 	(group "led_matrix.strips[3].leds[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d2e6c6564735b305d")
 		(locked no)
-		(members "6e22afbe-fea5-4cc4-a8d1-fe8e4642524b" "bfb29fad-0715-4a0f-8c13-31f54642524b")
 	)
 	(group "led_matrix.strips[4].leds[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d2e6c6564735b315d")
 		(locked no)
-		(members "71a88b2d-bd9a-45e6-a5d5-d8ba4642524b" "b9b71fdb-8e48-4f5d-9c58-d22c4642524b")
 	)
 	(group "led_matrix.strips[1].leds[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d2e6c6564735b315d")
 		(locked no)
-		(members "739376f8-e3b5-4744-8197-645c4642524b" "79d8f3bc-bccc-41ce-874a-5ed94642524b")
 	)
 	(group "led_matrix.strips[3].leds[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d2e6c6564735b345d")
 		(locked no)
-		(members "795521ef-09b0-447f-8459-a7bc4642524b" "cf4c3665-41c3-458f-83ca-55494642524b")
 	)
 	(group "led_matrix.strips[4]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b345d")
 		(locked no)
-		(members "7fe68d70-d365-441d-bef1-08a34642524b")
 	)
 	(group "hd_strip.leds[1]"
 		(uuid "68645f73-7472-6970-2e6c-6564735b315d")
 		(locked no)
-		(members "82803c4a-6482-43a8-b59b-dc784642524b" "f4b69bf0-244a-43ff-9e55-456f4642524b")
 	)
 	(group "hd_strip.leds[4]"
 		(uuid "68645f73-7472-6970-2e6c-6564735b345d")
 		(locked no)
-		(members "8eca4d68-11db-406d-8d96-1a4d4642524b" "a0fcc4b3-ebbb-4399-9c7f-80984642524b")
 	)
 	(group "led_matrix.strips[3].leds[2]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b335d2e6c6564735b325d")
 		(locked no)
-		(members "9539f78d-0630-4fab-8c16-fd904642524b" "c53ba364-0d14-4712-9290-6b224642524b")
 	)
 	(group "led_matrix.strips[1].leds[0]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d2e6c6564735b305d")
 		(locked no)
-		(members "b656b05c-9313-4ce2-a52b-1b584642524b" "d576caee-0e95-41bf-a8a4-95084642524b")
 	)
 	(group "led_matrix.strips[1]"
 		(uuid "6c65645f-6d61-7472-6978-2e7374726970735b315d")
 		(locked no)
-		(members "db1cf58a-5e49-436f-aaff-ba414642524b")
 	)
 	(embedded_fonts no)
 )

@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -252,7 +296,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -362,29 +406,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -425,7 +446,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "017fe653-4f9b-4806-9e2b-78414642524b")
 		(at 74.18 64.85 -90)
@@ -441,7 +462,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -573,7 +594,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -585,19 +606,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "83599020-3a16-4493-8384-f05d4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a2b06037-11e4-4b9c-9e58-7a8a4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -624,6 +645,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -634,6 +657,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -644,6 +669,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -654,6 +681,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -664,6 +693,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -674,6 +705,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -683,32 +716,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -724,9 +734,10 @@
 			(net 31 "leds[1]-data_in-DOUT-2")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -736,7 +747,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "050cb0cd-aba9-4722-950b-a61c4642524b")
 		(at 87.865 58.36 -90)
@@ -752,7 +763,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -884,7 +895,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -896,19 +907,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "22046733-f58f-4bd4-b782-40544642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7ae56a2f-7dbf-42f5-9f4e-b0854642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -935,6 +946,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -945,6 +958,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -955,6 +970,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -965,6 +982,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -975,6 +994,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -985,6 +1006,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -994,32 +1017,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -1035,9 +1035,10 @@
 			(net 41 "leds[3]-data_in-DOUT-2")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1063,7 +1064,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -1195,7 +1196,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1207,13 +1208,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a6b6d148-1164-4edf-acb9-db334642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1369,17 +1370,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -1407,7 +1397,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "09783ab9-122a-497a-a5b2-89724642524b")
 		(at 87.865 45.38 -90)
@@ -1423,7 +1413,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -1555,7 +1545,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1567,19 +1557,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "dd9844e9-e6fb-4303-868d-e1f84642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "6245e5d0-96bb-47c8-910c-483e4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1606,6 +1596,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -1616,6 +1608,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -1626,6 +1620,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -1636,6 +1632,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -1646,6 +1644,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -1656,6 +1656,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -1665,32 +1667,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -1706,9 +1685,10 @@
 			(net 27 "leds[3]-data_in-DOUT")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -1830,7 +1810,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1940,29 +1920,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -2019,7 +1976,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -2151,7 +2108,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2163,13 +2120,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "942ae18d-0db4-4334-ba1f-32d04642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2325,17 +2282,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -2379,7 +2325,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -2511,7 +2457,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2523,13 +2469,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a8136914-eebf-44d5-a0b3-17d34642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2685,17 +2631,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -2835,7 +2770,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -2945,29 +2880,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -3024,7 +2936,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -3156,7 +3068,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3168,13 +3080,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "161582c0-9b41-4667-8d20-047a4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3330,17 +3242,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -3480,7 +3381,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3589,29 +3490,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -3765,7 +3643,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3874,29 +3752,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -4050,7 +3905,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4160,29 +4015,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -4239,7 +4071,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -4371,7 +4203,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4383,13 +4215,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5280585d-1537-43ee-88ed-3a674642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4545,17 +4377,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -4599,7 +4420,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -4731,7 +4552,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4743,13 +4564,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b7236551-989b-45f7-b9ee-f92f4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4905,17 +4726,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -4943,7 +4753,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "341ca6c6-564b-46ae-8443-71694642524b")
 		(at 94.7075 51.87 -90)
@@ -4959,7 +4769,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -5091,7 +4901,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5103,19 +4913,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "03832100-ecf4-4197-bdbe-7b464642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b32d598c-48d8-4a7c-84ce-e3d94642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5142,6 +4952,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -5152,6 +4964,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -5162,6 +4976,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -5172,6 +4988,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -5182,6 +5000,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -5192,6 +5012,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -5201,32 +5023,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -5242,9 +5041,10 @@
 			(net 12 "leds[4]-data_in-DOUT-1")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -5270,7 +5070,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -5402,7 +5202,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5414,13 +5214,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "56102108-730c-4f8b-bf32-ee514642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5576,17 +5376,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -5630,7 +5419,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -5762,7 +5551,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5774,13 +5563,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7219552a-ebf1-44a7-b953-1a0d4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5936,17 +5725,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -6086,7 +5864,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6195,29 +5973,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -6371,7 +6126,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6481,29 +6236,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -6544,7 +6276,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "37a54114-8692-4d9d-82c1-183a4642524b")
 		(at 67.3375 58.36 -90)
@@ -6560,7 +6292,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -6692,7 +6424,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6704,19 +6436,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1946bb65-941b-4e3e-b56d-2f2a4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fa165e3a-2ea6-47fb-8069-291f4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6743,6 +6475,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -6753,6 +6487,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -6763,6 +6499,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -6773,6 +6511,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -6783,6 +6523,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -6793,6 +6535,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -6802,32 +6546,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -6843,9 +6564,10 @@
 			(net 52 "strips[2]-data_in-line")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -6967,7 +6689,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7077,29 +6799,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -7156,7 +6855,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -7288,7 +6987,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7300,13 +6999,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "cb458054-212d-422e-9e01-1e614642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7462,17 +7161,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -7500,7 +7188,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "3de7b562-170e-4a5a-bc40-6f024642524b")
 		(at 74.18 71.34 -90)
@@ -7516,7 +7204,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -7648,7 +7336,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7660,19 +7348,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "ec9b08fa-2824-4892-b7fe-300f4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "c516b8a8-1490-4468-8e49-0f754642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7699,6 +7387,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -7709,6 +7399,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -7719,6 +7411,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -7729,6 +7423,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -7739,6 +7435,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -7749,6 +7447,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -7758,32 +7458,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -7799,9 +7476,10 @@
 			(net 6 "leds[1]-data_in-DOUT-3")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -7923,7 +7601,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8033,29 +7711,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -8096,7 +7751,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "41793813-8568-461d-be9c-46f34642524b")
 		(at 87.865 51.87 -90)
@@ -8112,7 +7767,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -8244,7 +7899,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8256,19 +7911,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fb0ed614-0da1-4341-888c-246e4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0c3e4cad-889c-4a3e-8988-e4274642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8295,6 +7950,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -8305,6 +7962,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -8315,6 +7974,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -8325,6 +7986,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -8335,6 +7998,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -8345,6 +8010,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -8354,32 +8021,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -8395,9 +8039,10 @@
 			(net 1 "leds[3]-data_in-DOUT-1")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -8423,7 +8068,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -8555,7 +8200,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8567,13 +8212,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "ba6ffd24-71ab-4a6d-b629-37164642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8729,17 +8374,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -8879,7 +8513,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -8989,29 +8623,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -9052,7 +8663,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "471ed908-20da-4762-ac98-57844642524b")
 		(at 94.7075 45.38 -90)
@@ -9068,7 +8679,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -9200,7 +8811,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9212,19 +8823,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "71104928-4deb-4d45-b842-13754642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "9c77e095-5fb2-453f-bab3-b3834642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9251,6 +8862,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -9261,6 +8874,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -9271,6 +8886,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -9281,6 +8898,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -9291,6 +8910,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -9301,6 +8922,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -9310,32 +8933,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -9351,9 +8951,10 @@
 			(net 34 "leds[4]-data_in-DOUT")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -9379,7 +8980,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -9511,7 +9112,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9523,13 +9124,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "3f44c702-be1c-4a16-a54a-f5e84642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9685,17 +9286,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -9835,7 +9425,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -9945,29 +9535,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -10024,7 +9591,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -10156,7 +9723,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10168,13 +9735,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1d6e09d6-c503-4562-9e14-40df4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10330,17 +9897,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -10384,7 +9940,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -10516,7 +10072,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10528,13 +10084,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f42206bc-2f80-4d71-bc2d-dfc84642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10690,17 +10246,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -10728,7 +10273,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "670b495a-a07a-45e8-959e-5d494642524b")
 		(at 87.865 71.34 -90)
@@ -10744,7 +10289,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -10876,7 +10421,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10888,19 +10433,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "848b3fe3-b659-4930-9ab4-40344642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8d23c37a-a605-444d-bd0f-59d24642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -10927,6 +10472,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -10937,6 +10484,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -10947,6 +10496,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -10957,6 +10508,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -10967,6 +10520,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -10977,6 +10532,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -10986,32 +10543,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -11027,9 +10561,10 @@
 			(net 36 "leds[3]-data_in-DOUT-4")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -11039,7 +10574,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "6719eba5-70b5-4bde-abd2-fae04642524b")
 		(at 74.18 51.87 -90)
@@ -11055,7 +10590,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -11187,7 +10722,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11199,19 +10734,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5f4bd818-007c-4cfd-9f40-53814642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "bd4fa734-59f3-4fe8-b334-40e44642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11238,6 +10773,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -11248,6 +10785,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -11258,6 +10797,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -11268,6 +10809,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -11278,6 +10821,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -11288,6 +10833,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -11297,32 +10844,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -11338,9 +10862,10 @@
 			(net 16 "leds[1]-data_in-DOUT")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -11350,7 +10875,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "6ca32251-ad81-43b8-b164-f49b4642524b")
 		(at 87.865 64.85 -90)
@@ -11366,7 +10891,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -11498,7 +11023,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11510,19 +11035,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "3df19d28-8d1b-4734-88a1-66024642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "124c5ff3-e504-4e7b-9ffd-85504642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11549,6 +11074,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -11559,6 +11086,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -11569,6 +11098,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -11579,6 +11110,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -11589,6 +11122,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -11599,6 +11134,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -11608,32 +11145,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -11649,9 +11163,10 @@
 			(net 20 "leds[3]-data_in-DOUT-3")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -11661,7 +11176,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "74c3ee4c-0667-4d8c-956b-487f4642524b")
 		(at 67.3375 64.85 -90)
@@ -11677,7 +11192,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -11809,7 +11324,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11821,19 +11336,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "7f6849fa-6fec-4005-8d3a-92fe4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "b46e766f-6d88-4d80-ad16-6bb84642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -11860,6 +11375,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -11870,6 +11387,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -11880,6 +11399,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -11890,6 +11411,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -11900,6 +11423,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -11910,6 +11435,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -11919,32 +11446,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -11960,9 +11464,10 @@
 			(net 51 "strips[3]-data_in-line")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -11972,7 +11477,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "7a85e30a-bbc4-456d-905a-13294642524b")
 		(at 74.18 45.38 -90)
@@ -11988,7 +11493,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -12120,7 +11625,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12132,19 +11637,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fc24e0ed-6cec-473e-bb44-6d214642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "124c24a8-9965-4ad1-97d0-fcde4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12171,6 +11676,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -12181,6 +11688,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -12191,6 +11700,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -12201,6 +11712,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -12211,6 +11724,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -12221,6 +11736,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -12230,32 +11747,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -12271,9 +11765,10 @@
 			(net 4 "DOUT")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -12283,7 +11778,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "81228c5e-956d-4a56-85bb-5a3b4642524b")
 		(at 81.0225 64.85 -90)
@@ -12299,7 +11794,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -12431,7 +11926,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12443,19 +11938,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1f67c303-28bc-4166-87cd-d2b04642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "643a2c27-9aeb-4796-88c6-a4274642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12482,6 +11977,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -12492,6 +11989,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -12502,6 +12001,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -12512,6 +12013,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -12522,6 +12025,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -12532,6 +12037,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -12541,32 +12048,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -12582,9 +12066,10 @@
 			(net 11 "leds[2]-data_in-DOUT-3")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -12706,7 +12191,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -12816,29 +12301,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -12895,7 +12357,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -13027,7 +12489,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13039,13 +12501,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4121caa4-feab-4f00-9a91-35fe4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13201,17 +12663,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -13255,7 +12706,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -13387,7 +12838,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13399,13 +12850,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "83fa0d12-fbdf-460d-9865-7d8a4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13561,17 +13012,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -13615,7 +13055,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -13747,7 +13187,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13759,13 +13199,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a032a170-35f3-4cca-be80-eaae4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -13921,17 +13361,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -13975,7 +13404,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -14107,7 +13536,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14119,13 +13548,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1236d86e-9960-48d3-920c-5fd54642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14281,17 +13710,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -14319,7 +13737,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "91c1e8d3-f923-41a5-bd28-3e474642524b")
 		(at 67.3375 51.87 -90)
@@ -14335,7 +13753,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -14467,7 +13885,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14479,19 +13897,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "43e313dc-71d5-4470-83e0-c15a4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a734153b-c637-4a91-81c6-f1ed4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14518,6 +13936,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -14528,6 +13948,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -14538,6 +13960,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -14548,6 +13972,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -14558,6 +13984,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -14568,6 +13996,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -14577,32 +14007,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -14618,9 +14025,10 @@
 			(net 53 "strips[1]-data_in-line")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -14646,7 +14054,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -14778,7 +14186,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14790,13 +14198,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8436820e-455e-4593-8819-0dd14642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -14952,17 +14360,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -15102,7 +14499,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15212,29 +14609,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -15275,7 +14649,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "9c25b586-ba18-4008-bb00-73274642524b")
 		(at 94.7075 64.85 -90)
@@ -15291,7 +14665,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -15423,7 +14797,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15435,19 +14809,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "58e1314e-5ff6-4d46-a7c3-55f84642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "2671db59-90b3-4767-900e-3b5c4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15474,6 +14848,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -15484,6 +14860,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -15494,6 +14872,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -15504,6 +14884,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -15514,6 +14896,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -15524,6 +14908,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -15533,32 +14919,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -15574,9 +14937,10 @@
 			(net 42 "leds[4]-data_in-DOUT-3")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -15586,7 +14950,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "9c738f7b-a04c-4bab-b448-26474642524b")
 		(at 67.3375 45.38 -90)
@@ -15602,7 +14966,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -15734,7 +15098,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15746,19 +15110,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "30684c41-66a9-47f1-a58c-cf604642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "5c860f02-bc8a-4b51-ab28-d12a4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -15785,6 +15149,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -15795,6 +15161,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -15805,6 +15173,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -15815,6 +15185,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -15825,6 +15197,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -15835,6 +15209,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -15844,32 +15220,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -15885,9 +15238,10 @@
 			(net 44 "line")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -15913,7 +15267,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -16045,7 +15399,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16057,13 +15411,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "bf3329a9-b196-4bfd-aa0e-14064642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16219,17 +15573,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -16369,7 +15712,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16478,29 +15821,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -16654,7 +15974,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16764,29 +16084,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -16827,7 +16124,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "b33b00c6-25ec-48cf-9c07-fcde4642524b")
 		(at 81.0225 71.34 -90)
@@ -16843,7 +16140,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -16975,7 +16272,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -16987,19 +16284,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "a10aee7d-0d7c-4028-8937-e0224642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fe5685eb-e338-4c43-8c36-2f3f4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17026,6 +16323,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -17036,6 +16335,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -17046,6 +16347,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -17056,6 +16359,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -17066,6 +16371,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -17076,6 +16383,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -17085,32 +16394,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -17126,9 +16412,10 @@
 			(net 19 "leds[2]-data_in-DOUT-4")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -17138,7 +16425,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "b3a433ac-248a-4bf0-8622-cd034642524b")
 		(at 81.0225 58.36 -90)
@@ -17154,7 +16441,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -17286,7 +16573,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17298,19 +16585,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "6a78a722-de33-43fe-8909-20514642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "fceaebb4-363b-4e46-96b9-11c24642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17337,6 +16624,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -17347,6 +16636,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -17357,6 +16648,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -17367,6 +16660,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -17377,6 +16672,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -17387,6 +16684,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -17396,32 +16695,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -17437,9 +16713,10 @@
 			(net 22 "leds[2]-data_in-DOUT-2")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -17465,7 +16742,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -17597,7 +16874,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17609,13 +16886,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0b2c1678-5a5c-4767-add1-50914642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17771,17 +17048,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -17825,7 +17091,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -17957,7 +17223,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -17969,13 +17235,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "0701811b-6625-446c-b404-f0ce4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18131,17 +17397,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -18169,7 +17424,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "b7a4b66f-5495-4c4c-b9f1-f7074642524b")
 		(at 81.0225 45.38 -90)
@@ -18185,7 +17440,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -18317,7 +17572,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18329,19 +17584,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "4fddaa9c-63bf-400f-ade3-1c504642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "3b970add-aad8-4557-b811-faf04642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18368,6 +17623,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -18378,6 +17635,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -18388,6 +17647,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -18398,6 +17659,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -18408,6 +17671,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -18418,6 +17683,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -18427,32 +17694,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -18468,9 +17712,10 @@
 			(net 25 "leds[2]-data_in-DOUT")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -18592,7 +17837,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18702,29 +17947,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -18765,7 +17987,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "bca99370-769c-4178-a029-58974642524b")
 		(at 94.7075 58.36 -90)
@@ -18781,7 +18003,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -18913,7 +18135,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18925,19 +18147,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "da763faa-fe50-45ea-8414-a8894642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "8cbf65b5-0ea6-4cd0-a052-6fe84642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -18964,6 +18186,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -18974,6 +18198,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -18984,6 +18210,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -18994,6 +18222,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -19004,6 +18234,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -19014,6 +18246,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -19023,32 +18257,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -19064,9 +18275,10 @@
 			(net 13 "leds[4]-data_in-DOUT-2")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -19188,7 +18400,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19298,29 +18510,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -19377,7 +18566,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -19509,7 +18698,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19521,13 +18710,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "92a5e6a5-ba7f-4b06-89dc-abf14642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19683,17 +18872,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -19833,7 +19011,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -19943,29 +19121,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -20022,7 +19177,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -20154,7 +19309,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20166,13 +19321,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "6af26754-9db5-46aa-a418-110b4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20328,17 +19483,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -20478,7 +19622,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20587,29 +19731,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -20763,7 +19884,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -20873,29 +19994,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -20952,7 +20050,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -21084,7 +20182,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21096,13 +20194,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "41bdabc5-5b19-44a4-8172-9acd4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21258,17 +20356,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -21312,7 +20399,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -21444,7 +20531,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].decoupling_cap, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:decoupling_cap]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21456,13 +20543,13 @@
 				)
 			)
 		)
-		(property "capacitance" "1±20.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "427a4807-ae93-4be6-b278-ef1d4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "16V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21618,17 +20705,6 @@
 			(locked no)
 			(uuid "2e290646-5d57-4e50-885a-eed2eea37cff")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "9660c6d0-0382-445e-b1b3-61ae3705acbb")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -21768,7 +20844,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[3].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -21878,29 +20954,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -21941,7 +20994,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "e9fd9c9b-c2bf-4988-8d2c-a37f4642524b")
 		(at 74.18 58.36 -90)
@@ -21957,7 +21010,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -22089,7 +21142,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22101,19 +21154,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "864defa6-1df8-425c-a3a5-762a4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "f4be766d-57bc-438f-8092-8b6f4642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22140,6 +21193,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -22150,6 +21205,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -22160,6 +21217,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -22170,6 +21229,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -22180,6 +21241,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -22190,6 +21253,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -22199,32 +21264,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -22240,9 +21282,10 @@
 			(net 38 "leds[1]-data_in-DOUT-1")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -22252,7 +21295,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "eabf33f0-7d40-4dbc-9823-bb5c4642524b")
 		(at 81.0225 51.87 -90)
@@ -22268,7 +21311,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -22400,7 +21443,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22412,19 +21455,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "54e107e4-b6ed-4932-9c06-abbc4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "65b80a5c-c555-4c45-a8ee-ab124642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22451,6 +21494,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -22461,6 +21506,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -22471,6 +21518,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -22481,6 +21530,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -22491,6 +21542,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -22501,6 +21554,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -22510,32 +21565,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -22551,9 +21583,10 @@
 			(net 32 "leds[2]-data_in-DOUT-1")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -22563,7 +21596,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "ec926f39-0ee3-4dda-a531-0a744642524b")
 		(at 94.7075 71.34 -90)
@@ -22579,7 +21612,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -22711,7 +21744,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22723,19 +21756,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "659bcb0b-838e-4011-8b5d-7f6d4642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "db988d25-c316-489b-9e07-cbd74642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -22762,6 +21795,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -22772,6 +21807,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -22782,6 +21819,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -22792,6 +21831,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -22802,6 +21843,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -22812,6 +21855,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -22821,32 +21866,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -22862,9 +21884,10 @@
 			(net 10 "leds[4]-data_in-DOUT-4")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -22986,7 +22009,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[4].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23096,29 +22119,6 @@
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
 			(size 1.6 1.2)
@@ -23159,7 +22159,7 @@
 			)
 		)
 	)
-	(footprint "YAGEO_RC0402FR_07330RL:R0402"
+	(footprint "UNI_ROYAL_0402WGF3300TCE:R0402"
 		(layer "F.Cu")
 		(uuid "f6227bc1-230f-4c05-b3c7-30b24642524b")
 		(at 67.3375 71.34 -90)
@@ -23175,7 +22175,7 @@
 				)
 			)
 		)
-		(property "Value" "330Ω"
+		(property "Value" "330Ω ±1%"
 			(at 0 4 270)
 			(layer "F.Fab")
 			(hide no)
@@ -23307,7 +22307,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[0].data_protection_r, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:data_protection_r]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23319,19 +22319,19 @@
 				)
 			)
 		)
-		(property "resistance" "330±5.0%Ω"
+		(property "resistance" "330Ω ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "449bcc77-5173-4940-adde-c5124642524b")
 		)
-		(property "max_power" "ℝ+W"
+		(property "max_power" "62.5mW"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
 			(uuid "1c368125-1c4b-41da-a229-c5e94642524b")
 		)
-		(property "max_voltage" "ℝ+V"
+		(property "max_voltage" "50V"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23358,6 +22358,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d693c91-7e00-4698-be08-121d63dc2569")
 		)
 		(fp_line
@@ -23368,6 +22370,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "4cd37070-98f6-4a2b-b8c7-1ddead8914ba")
 		)
 		(fp_line
@@ -23378,6 +22382,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "21f6ac0f-31eb-4b45-9e85-db8992c7b677")
 		)
 		(fp_line
@@ -23388,6 +22394,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "1d7f6b7e-d428-4e53-8fd2-6595aa76de58")
 		)
 		(fp_line
@@ -23398,6 +22406,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "94d1a107-a230-4fe3-943c-7f47501f9a1d")
 		)
 		(fp_line
@@ -23408,6 +22418,8 @@
 				(type solid)
 			)
 			(layer "F.SilkS")
+			(layers "F.SilkS")
+			(locked no)
 			(uuid "33038e97-74c5-4794-8056-2137fa3f435b")
 		)
 		(fp_circle
@@ -23417,32 +22429,9 @@
 				(width 0.06)
 				(type solid)
 			)
-			(fill no)
 			(layer "F.Fab")
+			(locked no)
 			(uuid "61f2c160-1c3a-4c02-aec9-baf14ff6492d")
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "66030665-013a-4359-ac43-793e11385f91")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4 270)
-			(layer "F.SilkS")
-			(uuid "e6b1250a-cc6a-46fe-bf58-f66746159304")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.43 0 270)
@@ -23458,9 +22447,10 @@
 			(net 50 "strips[4]-data_in-line")
 			(uuid "77b3631f-45a8-417a-a394-55a51c67f86b")
 		)
-		(model "${KIPRJMOD}/../../parts/YAGEO_RC0402FR_07330RL/R0402_L1.0-W0.5-H0.4.step"
+		(embedded_fonts no)
+		(model "${KIPRJMOD}/../../parts/UNI_ROYAL_0402WGF3300TCE/R0402_L1.0-W0.5-H0.4.step"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 0 -0)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -23582,7 +22572,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[2].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23691,29 +22681,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -23867,7 +22834,7 @@
 				)
 			)
 		)
-		(property "atopile_subaddresses" "[layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
+		(property "atopile_subaddresses" "[layouts/strip/strip.kicad_pcb:leds[1].package, layouts/ws2812c-5050/ws2812c-5050.kicad_pcb:package]"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -23976,29 +22943,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "7c4b5bff-b08c-4e50-acd5-6353a2a365e8")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "7ce2631f-052d-43d9-a655-ef56aeb7a53d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.65 180)
-			(layer "F.SilkS")
-			(uuid "cfdc2c26-60ac-446b-a0c3-1b3a8d812641")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.35 -1.65 180)
@@ -27218,383 +26162,348 @@
 	)
 	(group "strips[3]"
 		(uuid "1eb84a82-cff1-42ce-95a0-c7046d433f6b")
-		(members "5660fb62-b692-43e7-9b90-00658f7d81b4" "809d1f09-18c0-4095-a13c-eb8094ee4dd5"
-			"b0cfd134-a663-46f1-a199-563c7bf09cfa" "faced816-b08c-487e-86f2-d4c6ae415774"
-			"34fded3b-dead-4f53-8530-528ab8d5564b" "5a6d3598-0376-4664-86f6-f214af03bc24"
-			"f52dd683-adb4-4604-b788-7f6e6ac8d9f2" "d6380a76-1e64-4c9f-8a09-1faf919be44c"
-			"6beabf31-85bf-40b1-bd16-af10e79a14e0" "d700a1b0-8acf-4912-abb1-852b92e28658"
-			"15ea6905-a6d9-4da9-a46c-0d45e1e90bfc" "3540a72c-6e9e-4966-96f1-8019d5154404"
-			"474c282c-f08b-46a4-b5ae-f15a3343eba1" "5f8c3f98-dd0c-453f-800f-f94b66d652ba"
-			"a2c801f3-8bb0-43e5-8884-7f412746c37a" "b5c007c3-b981-4c67-ba3b-305a689c0a1c"
-			"71e16f8d-2e69-4376-a38e-25a6f1c42515" "810198fa-b32a-4e34-9481-4359baf1c173"
-			"ae5525e1-4972-45f2-a22c-b860162eefaa" "1f88e663-842e-4c64-8e7c-8a57a0290331"
-			"3329518a-55c2-4abb-bdc3-87156ddbe4ce" "7eed64c8-29c8-4f71-8bcb-770fef85a2cf"
-			"5564b3e1-4d83-42c5-86cc-fb353712ea29" "4cde1eee-3d39-457b-b3f1-b6ad6b629d34"
-			"c41b2e18-be5a-415e-b30a-a96f7944d268" "bdd6f28a-6229-449e-8d84-e635fb47b67e"
-			"777f99b8-d68f-490b-8fde-3ec81478030b" "edeca6cc-ac69-42f5-bebb-766f71f8298a"
-			"15dc99c4-9833-428a-80b2-1dcb7767fcd6" "d94ce9bb-0f4f-4e04-b5ec-ef7a39fbb59e"
-			"9428bea0-c7e2-4032-8c6c-e4811d3330d4" "94136363-1054-4354-ae34-77e596a27e86"
-			"6d74d300-d294-4026-8676-74bc09cea796" "04a93897-33a2-4d0c-b350-ade5d56f6d42"
-			"cf44a360-e26b-4cd5-b87d-af4af24bfb68" "82c35825-cae7-4074-b3d3-dc9521b9e0e5"
-			"064c26b1-b170-418f-821c-741baac45ba5" "96349ea5-7adb-4a3e-bf96-bec77ba62d05"
-			"86ee9e35-c10a-4c71-a0a0-4712adbb6515" "9d780dd1-d58c-4264-877b-b9bc71bf5050"
-			"153aace9-7897-4e9c-b79d-785dd1415c93" "b715ca90-d4da-480c-be19-cc0d69a0ee25"
-			"50ed88ed-5de2-4c88-aaf9-122974e0dba8" "7be026f8-6028-4254-a0b3-7be983ef4673"
-			"3bef46a2-e1d9-40b9-a87e-7092daf9bd60" "ef40204e-f9c5-4fcb-b9c0-94aa1a73357d"
-			"602593c7-7438-486c-94b4-9c6bfdd38b38" "cc37bbaf-4ca8-4923-94f0-6cb47f12ef17"
-			"0323a5d7-c9ec-4cfb-b27c-2e1d3d2bfbde" "b3df977c-fe46-4799-aafa-8af9fad98820"
-			"29af3815-560b-455d-a742-d7263b3f4b2f" "0ac925c6-939d-4293-87f4-2369ade73a4b"
-			"ecf23fd5-d76c-4968-a27e-846ab2386c66" "e63e0651-09c8-4010-84e2-64599f697dec"
-			"cb3662ed-542c-45c4-b92e-c784d34307fb" "bfb36e14-ef9a-4e13-a582-a91429197ffd"
-			"eeb49818-d958-4cdc-9711-f1e6a73259ab" "75e7ac56-e21f-4e13-95c1-5eb8f3074afb"
-			"8f4dbf14-36be-4b13-b19f-6a94e36f03b4" "353e0a86-1409-4c7c-9bf2-0ebcad077020"
-			"bbfb4a20-fac1-49cb-a3d0-235358d79cd3" "91fbe414-b445-400f-b5e5-820ff7b33857"
-			"b57170de-6f84-4170-8df3-67ce96ea123c" "73e57841-41d3-4c25-a21a-7babb335f6c8"
-			"84e9be4b-bb10-4792-bea8-d050b6fe30be" "de9b1acc-901a-40a6-b831-0f443d1ccb8c"
-			"b5064ac1-62b3-4b13-838c-0baef18a80b8" "2ac6f65d-5b0e-480a-abde-dab4e7d544f5"
-			"a066c60a-a5da-40fe-aa1c-0214cbe93bb4" "eee9ecda-9ba7-425a-9723-38d35272efab"
-			"a64c7749-04a2-4098-9eac-c6d56accc8f2" "8b2d71d1-accf-444b-8ced-53bedc0c0db5"
-			"53d4f288-dbac-4078-9ba6-e240d0766a84" "ac36f1dc-8da0-4d19-8b09-4f8d251a2637"
+		(members "017fe653-4f9b-4806-9e2b-78414642524b" "0323a5d7-c9ec-4cfb-b27c-2e1d3d2bfbde"
+			"04a93897-33a2-4d0c-b350-ade5d56f6d42" "064c26b1-b170-418f-821c-741baac45ba5"
+			"0ac925c6-939d-4293-87f4-2369ade73a4b" "153aace9-7897-4e9c-b79d-785dd1415c93"
+			"15dc99c4-9833-428a-80b2-1dcb7767fcd6" "15ea6905-a6d9-4da9-a46c-0d45e1e90bfc"
+			"1f88e663-842e-4c64-8e7c-8a57a0290331" "29af3815-560b-455d-a742-d7263b3f4b2f"
+			"2ac6f65d-5b0e-480a-abde-dab4e7d544f5" "3329518a-55c2-4abb-bdc3-87156ddbe4ce"
+			"34fded3b-dead-4f53-8530-528ab8d5564b" "353e0a86-1409-4c7c-9bf2-0ebcad077020"
+			"3540a72c-6e9e-4966-96f1-8019d5154404" "36745a0a-af29-4de7-80e2-82334642524b"
+			"36ba3ec3-b3d3-440a-b7a5-47c34642524b" "3bef46a2-e1d9-40b9-a87e-7092daf9bd60"
+			"474c282c-f08b-46a4-b5ae-f15a3343eba1" "4cde1eee-3d39-457b-b3f1-b6ad6b629d34"
+			"50ed88ed-5de2-4c88-aaf9-122974e0dba8" "53d4f288-dbac-4078-9ba6-e240d0766a84"
+			"5564b3e1-4d83-42c5-86cc-fb353712ea29" "556fd663-c26a-4c25-8062-42ba4642524b"
+			"5660fb62-b692-43e7-9b90-00658f7d81b4" "5a6d3598-0376-4664-86f6-f214af03bc24"
+			"5f8c3f98-dd0c-453f-800f-f94b66d652ba" "602593c7-7438-486c-94b4-9c6bfdd38b38"
+			"663d77e2-013d-470e-bde7-87e24642524b" "6beabf31-85bf-40b1-bd16-af10e79a14e0"
+			"6ca32251-ad81-43b8-b164-f49b4642524b" "6d74d300-d294-4026-8676-74bc09cea796"
+			"71e16f8d-2e69-4376-a38e-25a6f1c42515" "73e57841-41d3-4c25-a21a-7babb335f6c8"
+			"74c3ee4c-0667-4d8c-956b-487f4642524b" "75e7ac56-e21f-4e13-95c1-5eb8f3074afb"
+			"777f99b8-d68f-490b-8fde-3ec81478030b" "7be026f8-6028-4254-a0b3-7be983ef4673"
+			"7eed64c8-29c8-4f71-8bcb-770fef85a2cf" "809d1f09-18c0-4095-a13c-eb8094ee4dd5"
+			"810198fa-b32a-4e34-9481-4359baf1c173" "81228c5e-956d-4a56-85bb-5a3b4642524b"
+			"82c35825-cae7-4074-b3d3-dc9521b9e0e5" "84e9be4b-bb10-4792-bea8-d050b6fe30be"
+			"86ee9e35-c10a-4c71-a0a0-4712adbb6515" "870b1da0-afd4-4782-b904-d21f4642524b"
+			"89e770c2-f889-43ca-aa41-b38b4642524b" "8b2d71d1-accf-444b-8ced-53bedc0c0db5"
+			"8f4dbf14-36be-4b13-b19f-6a94e36f03b4" "91fbe414-b445-400f-b5e5-820ff7b33857"
+			"94136363-1054-4354-ae34-77e596a27e86" "9428bea0-c7e2-4032-8c6c-e4811d3330d4"
+			"96349ea5-7adb-4a3e-bf96-bec77ba62d05" "9c25b586-ba18-4008-bb00-73274642524b"
+			"9d780dd1-d58c-4264-877b-b9bc71bf5050" "a066c60a-a5da-40fe-aa1c-0214cbe93bb4"
+			"a2c801f3-8bb0-43e5-8884-7f412746c37a" "a64c7749-04a2-4098-9eac-c6d56accc8f2"
+			"ac36f1dc-8da0-4d19-8b09-4f8d251a2637" "ae5525e1-4972-45f2-a22c-b860162eefaa"
+			"b0cfd134-a663-46f1-a199-563c7bf09cfa" "b3df977c-fe46-4799-aafa-8af9fad98820"
+			"b5064ac1-62b3-4b13-838c-0baef18a80b8" "b57170de-6f84-4170-8df3-67ce96ea123c"
+			"b5c007c3-b981-4c67-ba3b-305a689c0a1c" "b715ca90-d4da-480c-be19-cc0d69a0ee25"
+			"bbfb4a20-fac1-49cb-a3d0-235358d79cd3" "bdd6f28a-6229-449e-8d84-e635fb47b67e"
+			"bfb36e14-ef9a-4e13-a582-a91429197ffd" "c41b2e18-be5a-415e-b30a-a96f7944d268"
+			"cb3662ed-542c-45c4-b92e-c784d34307fb" "cc37bbaf-4ca8-4923-94f0-6cb47f12ef17"
+			"cf44a360-e26b-4cd5-b87d-af4af24bfb68" "d6380a76-1e64-4c9f-8a09-1faf919be44c"
+			"d700a1b0-8acf-4912-abb1-852b92e28658" "d94ce9bb-0f4f-4e04-b5ec-ef7a39fbb59e"
+			"d9f0ad17-4ecf-4b27-bf92-dfc94642524b" "db3b2663-641f-4863-9f67-94244642524b"
+			"dc57c2ca-9bb7-4e85-851b-161e4642524b" "de9b1acc-901a-40a6-b831-0f443d1ccb8c"
+			"e63e0651-09c8-4010-84e2-64599f697dec" "ecf23fd5-d76c-4968-a27e-846ab2386c66"
+			"edeca6cc-ac69-42f5-bebb-766f71f8298a" "eeb49818-d958-4cdc-9711-f1e6a73259ab"
+			"eee9ecda-9ba7-425a-9723-38d35272efab" "ef40204e-f9c5-4fcb-b9c0-94aa1a73357d"
+			"f52dd683-adb4-4604-b788-7f6e6ac8d9f2" "f7b4f81e-c672-47ae-abbd-ce024642524b"
+			"faced816-b08c-487e-86f2-d4c6ae415774"
 		)
 	)
 	(group "strips[4]"
 		(uuid "22d5978d-84d2-460c-8266-7210b1eb20b5")
-		(members "8a356191-c1c1-4e6b-a34f-70b57a821906" "8a4034a1-743e-4305-9842-f2ff795eb9aa"
-			"24b75880-9f2d-4700-b0af-1630c95611cc" "58238ab9-e013-436b-9fe2-e648faf05a28"
-			"683eb64d-5a2c-4411-b742-a675a98188ea" "58d69145-d845-4a04-90d0-a035a24e56a0"
-			"02c1071e-44c6-45bc-b217-c32be7db5b44" "49b381da-c97e-419e-a0d2-ae4e8b0330fd"
-			"23955d8b-92de-48ef-b672-7e67e10443f5" "e8c7a2ea-09c3-47c8-ae61-d7eead5f2545"
-			"e24c0c60-e58a-438b-836b-3db357a7f38c" "5bdb00dc-8b41-436e-923b-c7338c1a3200"
-			"d22d7735-ed7a-4919-b2a1-7481dc0b079e" "baca46ff-e2f7-4fc5-9e2a-a521ef656dc1"
-			"27cf5a9a-88db-486f-b73a-de891eea4fde" "f15f4394-66aa-4e52-8860-50d0f73eaf51"
-			"b3bc722b-fd59-4939-b69f-39e97df5b191" "4bf87633-de4e-46c3-8377-1737f31d403d"
-			"bbb2ef59-871c-483a-a4b7-3b193b6fda06" "2d5c3215-b9e4-4b35-bdb4-af0adec99158"
-			"b7e22812-0ecb-4786-846c-c7bf4fd4745a" "8105ea26-b13a-48fe-8047-b604c11827e3"
-			"36d37e0e-32be-437e-8a0e-5fbdbb0a09b3" "33d77155-54c2-452e-835a-c4b02a02d6a2"
-			"57cfc6e5-b225-48ab-8364-02e953b1309c" "7512d2ff-b3d6-4682-8c3c-6e8f57b5daee"
-			"207475e5-0865-406d-9fe2-17dead29bb8a" "954837e8-6b62-4ba2-b7c4-0c2c8fa24629"
-			"e89f7bdf-24ac-4d60-8e73-ced56d746604" "48596441-4aca-4631-9dc2-b764da13881b"
-			"ff9f92e3-2f38-426c-8a5f-6edc04bb3323" "0e80cd9d-e797-4b81-b83c-efc2e8d7865a"
-			"0aafa2e4-a3e3-42b4-99ef-de0e5ead0089" "ef61da89-4c67-4d67-aaf1-aa35bf03a4bf"
-			"5caacc2d-e6b3-4add-ad2d-f8ca0a0ac19e" "9cf2f829-469c-4155-930c-7a8d6d602a8b"
-			"aca97a51-38ac-44f1-ac3d-ecdeeb94b060" "6c0fa755-f349-4cf2-ac4e-1b6723162c68"
-			"3eb5c765-7f1d-4a08-b292-9e535eb70e9b" "2293d4a7-c55b-43a1-a6e9-141e593ff0af"
-			"19429c21-0211-4c48-b785-a37d57e8cd83" "b8f9f9fe-f0b7-4bf6-a954-36b37f629aa4"
-			"3885d9c8-a467-4912-9d55-91493ec1f8db" "d168043a-f19d-403f-87cb-3e0d3d5e863c"
-			"6b0b48dd-7a3d-42b4-835b-fade234a2af2" "c8e0822b-bc63-48d3-9d08-ee3987ad2a12"
-			"a101868b-81df-4b4d-ad90-8ad2d7e9d344" "42e20493-dcfa-4c77-9ded-ef50b7ef7398"
-			"eb103d8b-16b2-46ad-8607-c37537ac6793" "39fcbab9-9bf2-4cd7-b6e2-6960269344f0"
-			"d941d4e9-1295-43e2-b4e8-35d0c269417f" "3502fcaf-6ecf-4479-be1f-62d5ea65520d"
-			"e067b50c-e001-4f1a-b30d-5458b871b868" "a5109670-29b1-4ba1-aafb-a63f7451a9a2"
-			"1e8ba0dc-e9c4-4579-b06a-f3f14b09f855" "16d8b522-a659-4c89-8298-297379e56220"
-			"507029b5-f5dd-4e51-ab29-9c431415de77" "f67a8ed8-27f1-4ed3-9bab-e2ae70ae7f0b"
-			"c5936a2d-4cc0-4d5d-a677-90584f719712" "2ad598df-136d-41f3-b71f-1fd02c3eaf57"
-			"5db98007-2930-4b9d-a906-f673cfd44dea" "beb04e03-eead-4fd3-9bbf-c4b39c42864b"
-			"d6c64c5d-cf30-46d3-a6b6-fa4c8d39324b" "2fbf5b7a-e51d-4c4b-92da-9899fbd4750c"
-			"9262a876-1308-48a9-bb90-646e7d8fceaf" "1d7177f5-9b71-4603-86b2-8fbc7feee9bb"
-			"1173a006-be4b-4911-b051-d4a4024ccab7" "ded55be5-a991-44a4-a04a-07aff5d4129e"
-			"91bfc7f4-1a06-46f4-9fda-b224aa1bf2ae" "9554a13c-4d20-41bd-9a81-d808ec5cdd84"
-			"158015d6-f0d5-47b0-96b7-857c066c3466" "e2f9f9ad-3a5f-4e23-8356-865cb231022b"
-			"c5523f8c-c461-43f3-9f75-516729048129" "0f154f3e-b7f4-4019-8b49-e3fb3774cb0c"
+		(members "02c1071e-44c6-45bc-b217-c32be7db5b44" "0aafa2e4-a3e3-42b4-99ef-de0e5ead0089"
+			"0e80cd9d-e797-4b81-b83c-efc2e8d7865a" "0f154f3e-b7f4-4019-8b49-e3fb3774cb0c"
+			"1173a006-be4b-4911-b051-d4a4024ccab7" "158015d6-f0d5-47b0-96b7-857c066c3466"
+			"16d8b522-a659-4c89-8298-297379e56220" "19429c21-0211-4c48-b785-a37d57e8cd83"
+			"1d7177f5-9b71-4603-86b2-8fbc7feee9bb" "1e8ba0dc-e9c4-4579-b06a-f3f14b09f855"
+			"1f9db71d-4870-48aa-a29e-c5404642524b" "207475e5-0865-406d-9fe2-17dead29bb8a"
+			"2293d4a7-c55b-43a1-a6e9-141e593ff0af" "23955d8b-92de-48ef-b672-7e67e10443f5"
+			"24b75880-9f2d-4700-b0af-1630c95611cc" "275129b3-946e-45b1-b9ce-30c94642524b"
+			"275a0799-daf1-45a9-b9c3-e16b4642524b" "27cf5a9a-88db-486f-b73a-de891eea4fde"
+			"2ad598df-136d-41f3-b71f-1fd02c3eaf57" "2d5c3215-b9e4-4b35-bdb4-af0adec99158"
+			"2fbf5b7a-e51d-4c4b-92da-9899fbd4750c" "308800b1-33d1-4afa-b14a-63fe4642524b"
+			"33d77155-54c2-452e-835a-c4b02a02d6a2" "3502fcaf-6ecf-4479-be1f-62d5ea65520d"
+			"35806edd-a97b-4d5a-8eb9-3e1a4642524b" "358776f7-a8c5-4077-ba5f-28bb4642524b"
+			"36d37e0e-32be-437e-8a0e-5fbdbb0a09b3" "3885d9c8-a467-4912-9d55-91493ec1f8db"
+			"39fcbab9-9bf2-4cd7-b6e2-6960269344f0" "3de7b562-170e-4a5a-bc40-6f024642524b"
+			"3eb5c765-7f1d-4a08-b292-9e535eb70e9b" "42e20493-dcfa-4c77-9ded-ef50b7ef7398"
+			"452eeab5-b959-492e-bc89-78d24642524b" "48596441-4aca-4631-9dc2-b764da13881b"
+			"49b381da-c97e-419e-a0d2-ae4e8b0330fd" "4bf87633-de4e-46c3-8377-1737f31d403d"
+			"507029b5-f5dd-4e51-ab29-9c431415de77" "57cfc6e5-b225-48ab-8364-02e953b1309c"
+			"58238ab9-e013-436b-9fe2-e648faf05a28" "58d69145-d845-4a04-90d0-a035a24e56a0"
+			"5bdb00dc-8b41-436e-923b-c7338c1a3200" "5caacc2d-e6b3-4add-ad2d-f8ca0a0ac19e"
+			"5db98007-2930-4b9d-a906-f673cfd44dea" "670b495a-a07a-45e8-959e-5d494642524b"
+			"683eb64d-5a2c-4411-b742-a675a98188ea" "6b0b48dd-7a3d-42b4-835b-fade234a2af2"
+			"6c0fa755-f349-4cf2-ac4e-1b6723162c68" "7512d2ff-b3d6-4682-8c3c-6e8f57b5daee"
+			"8105ea26-b13a-48fe-8047-b604c11827e3" "8a356191-c1c1-4e6b-a34f-70b57a821906"
+			"8a4034a1-743e-4305-9842-f2ff795eb9aa" "91bfc7f4-1a06-46f4-9fda-b224aa1bf2ae"
+			"9262a876-1308-48a9-bb90-646e7d8fceaf" "954837e8-6b62-4ba2-b7c4-0c2c8fa24629"
+			"9554a13c-4d20-41bd-9a81-d808ec5cdd84" "9cf2f829-469c-4155-930c-7a8d6d602a8b"
+			"a101868b-81df-4b4d-ad90-8ad2d7e9d344" "a5109670-29b1-4ba1-aafb-a63f7451a9a2"
+			"aca97a51-38ac-44f1-ac3d-ecdeeb94b060" "b33b00c6-25ec-48cf-9c07-fcde4642524b"
+			"b3bc722b-fd59-4939-b69f-39e97df5b191" "b6a8aa73-cff1-45e5-b7d3-e95a4642524b"
+			"b7e22812-0ecb-4786-846c-c7bf4fd4745a" "b8f9f9fe-f0b7-4bf6-a954-36b37f629aa4"
+			"baca46ff-e2f7-4fc5-9e2a-a521ef656dc1" "bbb2ef59-871c-483a-a4b7-3b193b6fda06"
+			"beb04e03-eead-4fd3-9bbf-c4b39c42864b" "c5523f8c-c461-43f3-9f75-516729048129"
+			"c5936a2d-4cc0-4d5d-a677-90584f719712" "c8e0822b-bc63-48d3-9d08-ee3987ad2a12"
+			"d168043a-f19d-403f-87cb-3e0d3d5e863c" "d22d7735-ed7a-4919-b2a1-7481dc0b079e"
+			"d46a8f3a-dfbc-4244-b811-3fe54642524b" "d6c64c5d-cf30-46d3-a6b6-fa4c8d39324b"
+			"d941d4e9-1295-43e2-b4e8-35d0c269417f" "ded55be5-a991-44a4-a04a-07aff5d4129e"
+			"e067b50c-e001-4f1a-b30d-5458b871b868" "e24c0c60-e58a-438b-836b-3db357a7f38c"
+			"e2f9f9ad-3a5f-4e23-8356-865cb231022b" "e596355f-81ef-4626-890b-42f54642524b"
+			"e89f7bdf-24ac-4d60-8e73-ced56d746604" "e8c7a2ea-09c3-47c8-ae61-d7eead5f2545"
+			"eb103d8b-16b2-46ad-8607-c37537ac6793" "ec926f39-0ee3-4dda-a531-0a744642524b"
+			"ef61da89-4c67-4d67-aaf1-aa35bf03a4bf" "f15f4394-66aa-4e52-8860-50d0f73eaf51"
+			"f6227bc1-230f-4c05-b3c7-30b24642524b" "f67a8ed8-27f1-4ed3-9bab-e2ae70ae7f0b"
+			"ff9f92e3-2f38-426c-8a5f-6edc04bb3323"
 		)
 	)
 	(group "strips[2]"
 		(uuid "39662767-4acd-41f8-bc29-9c12304f6791")
-		(members "21859a9f-8d30-43e4-af18-d4499a52b99c" "59fff2f3-26cd-4e83-ad7e-f9cec3e4b8c2"
-			"97baecbd-a522-4640-87b7-ca84877f6fac" "9baff1bc-2418-469e-b183-334ace5b0112"
-			"013679e6-921c-4e36-9683-4973e83e4b83" "d863b4a9-e2a2-4811-a7c2-4ec427f98fd4"
-			"2de1da53-774e-4538-ade4-5f6b747a3e10" "59e3ed27-f9e5-488c-a29a-5601a1d918c0"
-			"4436a718-0fe2-4efa-9b3e-d07f13adc081" "2a32978c-51fb-4ed9-bb52-def31c540187"
-			"2185c53d-b516-4cb1-8e7c-9a2935fa26bd" "91b7edbf-3d14-4083-9eaf-a1a292cd4df6"
-			"6f016571-053c-412e-8173-ec91fceb25b4" "594c5d87-267c-43db-842a-504f50dfc67e"
-			"e8e33d40-9af5-4e3f-a39c-3ffe75724404" "7bcf3ec5-de32-45c3-a459-561f7f48adb5"
-			"5111ec94-6538-4f56-b748-852baa9e9595" "e0ca2133-1a3d-4dcb-85a0-5d5f0322a4d4"
-			"a87b024b-43be-44f4-8de2-0423fa76c71e" "a949a15b-be28-42a1-a8f7-7c58483d7cc8"
-			"735c3785-5ca1-4c36-9393-824aa6beff20" "ec538006-c076-4a9e-94a3-4feb1f5f6b0b"
-			"231cba2f-5dc1-4fe5-9ef2-74604cafcfbd" "a3776a39-9a16-4b8d-8ba5-731a3ea31f7a"
-			"30abe2ff-6b14-4c00-b674-3c99945822fc" "c238c9bf-ae46-4a2a-8952-d22072d3f95d"
-			"29d15b69-6120-47fe-83e4-b8e2171163e4" "ad05c0bf-daae-4ede-a941-527ff76a5b65"
-			"b678c05a-c5a5-4ab2-9e7b-966c57b52040" "310ef754-297f-460a-8be3-c39c459737e2"
-			"fca33bb2-30d8-450c-a4f5-029923b6c081" "d76a862d-7269-4f61-ab2a-ba8b19e0bb0a"
-			"3af990ee-6412-4aa0-8a88-179b7580083b" "c83118da-0e6f-4fdd-a9c7-cb3bd7da8497"
-			"b1fd5152-69fd-46dc-b44c-a9c27afda6c8" "71fe5d0d-5ddd-45ff-b2ff-868339d56db6"
-			"8250a9d3-a2f2-413b-83de-1c261af91338" "c5a19da0-dcc7-449c-a69e-13e537b872bd"
-			"e711b338-cbc2-4ae5-8b6f-aa8d935cf363" "a85e7195-037f-4278-b4cd-968ad4d98a4a"
-			"a770c509-6208-46ff-a9b3-dc3e4cc29cf0" "66dec884-f137-4870-9c1a-73fc55db7fce"
-			"c4169775-1e8e-445b-a3d3-dd35d6ba31d0" "ca3e1851-c932-4cda-ae83-5f0c67c7e94c"
-			"0249a99e-726d-447a-bf83-5e12f1612bd4" "c05f3816-92c5-4e00-832e-952a943f9198"
-			"cabbc55d-7a0f-44a6-a109-ce26737e12fd" "6f8b82be-a6e0-4ec9-8908-7869b33196ab"
-			"88ccfccf-3258-4705-945d-0fc6d98992fd" "085b891b-f313-469c-8ce4-abce952c7188"
-			"7dfb5651-0c20-415b-8fc6-3a77ba95424b" "47b249dc-1358-4d84-85de-ff256785400b"
-			"3f28228e-179f-43ff-ac18-b1979b455b1b" "efeaeabc-5de8-45e6-9c77-c7590b0cef80"
-			"9edf2cd3-ff1d-475d-9918-dd6943bee2a3" "c93fe4ce-1aba-42fc-83aa-9ff9d73e26db"
-			"412ec79b-5705-4c7b-998b-6066b5de9321" "101c60eb-e5e9-43a5-88c3-3f625881579c"
-			"9af1821c-a545-40a6-a085-acd632ccf121" "e6cf0ee5-29f2-400e-bedb-b0d07a3bbc0f"
-			"afeb1f05-bba8-4323-8330-28c3be75a0b8" "a7a5ad3b-7356-4fc4-8e40-d1c5a8092bd3"
-			"cbde72fd-c8d6-4912-b94d-794d3fce1ece" "ad470e6d-821e-4c8f-9d5d-da8474218f11"
-			"0cc82adf-c601-49c6-ab6f-226c945c3924" "e271ee7e-5942-408d-a380-16ab1aa7d0d5"
-			"731c88a6-9e8e-451c-adee-a9acaf25091f" "6aae1d78-d16f-4cac-8ae3-b791327b1aba"
-			"02bec846-5b56-43f2-ba02-55f0c6fffe73" "24ac2f4a-2f52-4b50-9dd9-36acb2d23941"
-			"e0288c09-b0f1-45a7-9113-fe58bb2f0884" "f65a8c6d-5d35-44cf-bac5-8548d3bc039d"
-			"ac33df51-c858-4fef-a60c-6d0b42651372" "091f69e0-112f-42fe-a8a6-863fd6815112"
+		(members "013679e6-921c-4e36-9683-4973e83e4b83" "0249a99e-726d-447a-bf83-5e12f1612bd4"
+			"02bec846-5b56-43f2-ba02-55f0c6fffe73" "050cb0cd-aba9-4722-950b-a61c4642524b"
+			"060b0295-7d08-477e-b187-c1f04642524b" "085b891b-f313-469c-8ce4-abce952c7188"
+			"091f69e0-112f-42fe-a8a6-863fd6815112" "0cc82adf-c601-49c6-ab6f-226c945c3924"
+			"101c60eb-e5e9-43a5-88c3-3f625881579c" "1bd461f9-15b7-452a-9e0b-53b24642524b"
+			"21859a9f-8d30-43e4-af18-d4499a52b99c" "2185c53d-b516-4cb1-8e7c-9a2935fa26bd"
+			"231cba2f-5dc1-4fe5-9ef2-74604cafcfbd" "24ac2f4a-2f52-4b50-9dd9-36acb2d23941"
+			"2774ac94-3171-4ffb-b6ca-5b324642524b" "29d15b69-6120-47fe-83e4-b8e2171163e4"
+			"2a32978c-51fb-4ed9-bb52-def31c540187" "2de1da53-774e-4538-ade4-5f6b747a3e10"
+			"2ed486ea-db3f-48b0-8ed5-0e864642524b" "30abe2ff-6b14-4c00-b674-3c99945822fc"
+			"310ef754-297f-460a-8be3-c39c459737e2" "37a54114-8692-4d9d-82c1-183a4642524b"
+			"3af990ee-6412-4aa0-8a88-179b7580083b" "3de3f088-5f0a-45f3-9f62-170e4642524b"
+			"3f28228e-179f-43ff-ac18-b1979b455b1b" "412ec79b-5705-4c7b-998b-6066b5de9321"
+			"4436a718-0fe2-4efa-9b3e-d07f13adc081" "47992b1a-8de8-4c91-9c85-7e664642524b"
+			"47b249dc-1358-4d84-85de-ff256785400b" "5111ec94-6538-4f56-b748-852baa9e9595"
+			"594c5d87-267c-43db-842a-504f50dfc67e" "59e3ed27-f9e5-488c-a29a-5601a1d918c0"
+			"59fff2f3-26cd-4e83-ad7e-f9cec3e4b8c2" "66dec884-f137-4870-9c1a-73fc55db7fce"
+			"6aae1d78-d16f-4cac-8ae3-b791327b1aba" "6f016571-053c-412e-8173-ec91fceb25b4"
+			"6f8b82be-a6e0-4ec9-8908-7869b33196ab" "71fe5d0d-5ddd-45ff-b2ff-868339d56db6"
+			"731c88a6-9e8e-451c-adee-a9acaf25091f" "735c3785-5ca1-4c36-9393-824aa6beff20"
+			"7bcf3ec5-de32-45c3-a459-561f7f48adb5" "7dfb5651-0c20-415b-8fc6-3a77ba95424b"
+			"8250a9d3-a2f2-413b-83de-1c261af91338" "864acc44-504b-40be-825e-96a54642524b"
+			"88ccfccf-3258-4705-945d-0fc6d98992fd" "91b7edbf-3d14-4083-9eaf-a1a292cd4df6"
+			"97baecbd-a522-4640-87b7-ca84877f6fac" "9af1821c-a545-40a6-a085-acd632ccf121"
+			"9b1822e6-f63a-4a64-acf0-17344642524b" "9baff1bc-2418-469e-b183-334ace5b0112"
+			"9edf2cd3-ff1d-475d-9918-dd6943bee2a3" "a3776a39-9a16-4b8d-8ba5-731a3ea31f7a"
+			"a770c509-6208-46ff-a9b3-dc3e4cc29cf0" "a7a5ad3b-7356-4fc4-8e40-d1c5a8092bd3"
+			"a85e7195-037f-4278-b4cd-968ad4d98a4a" "a87b024b-43be-44f4-8de2-0423fa76c71e"
+			"a949a15b-be28-42a1-a8f7-7c58483d7cc8" "ac33df51-c858-4fef-a60c-6d0b42651372"
+			"ad05c0bf-daae-4ede-a941-527ff76a5b65" "ad470e6d-821e-4c8f-9d5d-da8474218f11"
+			"afeb1f05-bba8-4323-8330-28c3be75a0b8" "b1a5574a-b962-48b9-8854-70af4642524b"
+			"b1fd5152-69fd-46dc-b44c-a9c27afda6c8" "b3a433ac-248a-4bf0-8622-cd034642524b"
+			"b678c05a-c5a5-4ab2-9e7b-966c57b52040" "bca99370-769c-4178-a029-58974642524b"
+			"c05f3816-92c5-4e00-832e-952a943f9198" "c238c9bf-ae46-4a2a-8952-d22072d3f95d"
+			"c4169775-1e8e-445b-a3d3-dd35d6ba31d0" "c5a19da0-dcc7-449c-a69e-13e537b872bd"
+			"c83118da-0e6f-4fdd-a9c7-cb3bd7da8497" "c93fe4ce-1aba-42fc-83aa-9ff9d73e26db"
+			"ca3e1851-c932-4cda-ae83-5f0c67c7e94c" "cabbc55d-7a0f-44a6-a109-ce26737e12fd"
+			"cbde72fd-c8d6-4912-b94d-794d3fce1ece" "d76a862d-7269-4f61-ab2a-ba8b19e0bb0a"
+			"d863b4a9-e2a2-4811-a7c2-4ec427f98fd4" "e0288c09-b0f1-45a7-9113-fe58bb2f0884"
+			"e0ca2133-1a3d-4dcb-85a0-5d5f0322a4d4" "e271ee7e-5942-408d-a380-16ab1aa7d0d5"
+			"e6cf0ee5-29f2-400e-bedb-b0d07a3bbc0f" "e711b338-cbc2-4ae5-8b6f-aa8d935cf363"
+			"e8e33d40-9af5-4e3f-a39c-3ffe75724404" "e9fd9c9b-c2bf-4988-8d2c-a37f4642524b"
+			"ec538006-c076-4a9e-94a3-4feb1f5f6b0b" "efeaeabc-5de8-45e6-9c77-c7590b0cef80"
+			"f65a8c6d-5d35-44cf-bac5-8548d3bc039d" "f8a35d8a-66c4-499a-8da2-90474642524b"
+			"fca33bb2-30d8-450c-a4f5-029923b6c081"
 		)
 	)
 	(group "strips[1]"
 		(uuid "39e1bdaa-b26e-497a-a400-6b3b54495735")
-		(members "eaf75bb5-6df0-46f1-bdb0-cf537f0fab12" "21d385cb-5513-45bd-b4bf-ac1f9216c987"
-			"ea3dd737-8ced-4a6b-aa1e-06eb56af315b" "77d405b5-28eb-4e30-b573-7eee199dbed0"
-			"63745aae-4263-4daa-bce7-bf3633af6c53" "61f37651-d9bc-4a01-8eb8-219cf8cdfcf7"
-			"8e2d7559-4d4d-4c10-b48b-b14d55ec08f7" "8fa0e919-621a-4293-8807-0fd2bca3fd15"
-			"708d4380-1b54-44ac-ac20-47ad648c1785" "7d8b529f-49a1-4aa1-b350-a8e752c1b62d"
-			"374981fd-634e-49fd-9c23-1c171d79b368" "ea9b565c-d94c-406e-b87c-a2bea3e8c82a"
-			"ce2710bb-b88b-4b48-bafc-52a0f412798c" "f9e4d3e2-17f8-483e-b467-d566bf0e7339"
-			"c029eb4a-f498-44b3-88f4-e910d4437c29" "b23a609b-f214-429f-971e-134eaa1807fe"
-			"105fc943-74db-4801-b3e8-f411166555ef" "97d9c57b-ca22-44f8-935a-021b2eb1ab8d"
-			"ef9fc41a-5430-420b-93e9-5792306cf177" "68fc164c-9fec-42c4-9757-847a809dbfbf"
-			"9423ecdd-a6a9-43c4-a788-5fcab04d425c" "66b1af5a-5fb2-4b06-81f1-bb8b60d47ae7"
-			"41c998db-9ea5-48a8-98fc-e33367acd647" "6dc1a008-f42d-4aa1-8769-2e23548fbd02"
-			"7463c435-41b6-4d79-bc87-79c5e7ea577d" "6d9c9d55-ecde-407b-bcb9-8ba179bcdd64"
-			"b3a77fff-3132-4b26-bef1-213dda4a4955" "aadb430c-7387-4192-8779-6335b2c9617d"
-			"3e451804-c8b8-4d0a-a5ee-37bdc29d76a6" "47ad2703-ef2f-45b4-bf7f-1d9e31a951bd"
-			"1674c6b3-0421-4ce9-81fb-4f41c12d9752" "30910e6d-1b11-4e1b-9fbd-c884c85bf1b1"
-			"ca7202f4-7af0-4f8f-8bcc-7b8b82cfee19" "d6418401-8381-4e62-a8b6-f4e3ba6b76f3"
-			"7be20ced-b7a3-40e5-bde4-e6f4f8b00d6f" "51007899-85a8-42f1-a563-98091aae9c94"
-			"aece606d-51d8-4204-b2ee-f19bb8d76a0c" "cc3f9531-cd54-4df8-98bc-80edfe9ff0ee"
-			"ca41fb41-10c4-417c-bc90-2b1ba63f7ae0" "3d43d9d0-bd36-4799-9875-d04b36902eab"
-			"9d007e6e-5a94-4b8c-9592-5dcb54ee010f" "30ca4d1c-0bd5-4a89-8c1d-c07c2d482349"
-			"35347284-9c16-4fdb-a277-aa52e27ee415" "8e14dc6d-5d31-463c-a5f8-03970c6d0511"
-			"d158f9bc-7b63-4504-a4cd-3800691d30dc" "73d3292a-b6fc-4029-88bc-5556b1699259"
-			"8f08443e-9681-478d-8c58-b52a1f15a394" "72f24158-76d2-444e-a1f8-243e08d8c0be"
-			"7102e06b-0c45-427c-8c0a-c9d0c83b4cbe" "4b891b7e-c0bc-4cde-8bb8-10f43f691076"
-			"3a7ce61c-4d06-4862-b158-c97a94d8032a" "faab074f-0046-4fd9-8206-595034387030"
-			"8feeedde-cf9b-4096-bd67-8a4728db6318" "0ea878a8-7d6c-4b23-b9c5-643d01a6bcec"
-			"09213698-522c-4308-801b-10456a8ba3c1" "8f6cbd54-da19-49fb-8c78-5e404c64427c"
-			"f824d8c8-f979-47b0-bcb7-297fe2eaa119" "07d3b4cc-38f6-488f-9c92-35f65627eaa0"
-			"9313e600-5deb-483c-9953-554ab17a9c71" "68e735b3-6ad6-4e7e-ae38-abda3c7c6ccd"
-			"6409d650-cdd5-445c-a1f8-f7eabf303e47" "d477f42d-346a-4ebe-b325-3dca7ac6567f"
-			"b4f9afec-8337-420a-ad81-fd20f0164893" "fc3b202c-389c-481f-856e-126aba27aa0d"
-			"d03164bd-ab8d-482f-874c-f563dfd8aea1" "55e80d1d-3579-4e3f-a7cb-e55c42ad0d8c"
-			"b05adca0-2a26-4e98-ad87-e40c7eb3d3b0" "a043fb83-11d9-4ab1-88e9-357e642fdc02"
-			"91f0b190-2c29-474e-8dbe-5742f5f1de94" "132bf7e6-be25-43ca-9457-6398c84f2585"
-			"0b70223f-b0a1-49be-b774-6f10168b158a" "ad86705f-385f-413d-ac92-f0966f71385a"
-			"2c8dbb6f-5c3f-4dea-adce-bbd09a41ae5b" "cda9530a-d753-4256-9daa-8965e5b373e4"
+		(members "000ba193-2d7f-41f7-a6ac-b86b4642524b" "07d3b4cc-38f6-488f-9c92-35f65627eaa0"
+			"09213698-522c-4308-801b-10456a8ba3c1" "0b70223f-b0a1-49be-b774-6f10168b158a"
+			"0ea878a8-7d6c-4b23-b9c5-643d01a6bcec" "105fc943-74db-4801-b3e8-f411166555ef"
+			"132bf7e6-be25-43ca-9457-6398c84f2585" "1674c6b3-0421-4ce9-81fb-4f41c12d9752"
+			"176e254f-107b-4471-bd87-80c34642524b" "1eafc026-300f-4d69-ab0a-04d84642524b"
+			"21d385cb-5513-45bd-b4bf-ac1f9216c987" "2c8dbb6f-5c3f-4dea-adce-bbd09a41ae5b"
+			"30910e6d-1b11-4e1b-9fbd-c884c85bf1b1" "30ca4d1c-0bd5-4a89-8c1d-c07c2d482349"
+			"341ca6c6-564b-46ae-8443-71694642524b" "35347284-9c16-4fdb-a277-aa52e27ee415"
+			"374981fd-634e-49fd-9c23-1c171d79b368" "3a7ce61c-4d06-4862-b158-c97a94d8032a"
+			"3d43d9d0-bd36-4799-9875-d04b36902eab" "3dbb0658-48e0-493d-8574-2ab04642524b"
+			"3e3e8465-c023-4c7d-adbc-85594642524b" "3e451804-c8b8-4d0a-a5ee-37bdc29d76a6"
+			"41793813-8568-461d-be9c-46f34642524b" "41c998db-9ea5-48a8-98fc-e33367acd647"
+			"4261a449-a01e-4eea-8f08-ea0a4642524b" "47ad2703-ef2f-45b4-bf7f-1d9e31a951bd"
+			"4b20a05d-a5c5-47b1-89b6-18814642524b" "4b891b7e-c0bc-4cde-8bb8-10f43f691076"
+			"51007899-85a8-42f1-a563-98091aae9c94" "55e80d1d-3579-4e3f-a7cb-e55c42ad0d8c"
+			"61f37651-d9bc-4a01-8eb8-219cf8cdfcf7" "63745aae-4263-4daa-bce7-bf3633af6c53"
+			"6409d650-cdd5-445c-a1f8-f7eabf303e47" "66b1af5a-5fb2-4b06-81f1-bb8b60d47ae7"
+			"6719eba5-70b5-4bde-abd2-fae04642524b" "68e735b3-6ad6-4e7e-ae38-abda3c7c6ccd"
+			"68fc164c-9fec-42c4-9757-847a809dbfbf" "6d9c9d55-ecde-407b-bcb9-8ba179bcdd64"
+			"6dc1a008-f42d-4aa1-8769-2e23548fbd02" "708d4380-1b54-44ac-ac20-47ad648c1785"
+			"7102e06b-0c45-427c-8c0a-c9d0c83b4cbe" "72f24158-76d2-444e-a1f8-243e08d8c0be"
+			"73d3292a-b6fc-4029-88bc-5556b1699259" "7463c435-41b6-4d79-bc87-79c5e7ea577d"
+			"77d405b5-28eb-4e30-b573-7eee199dbed0" "7be20ced-b7a3-40e5-bde4-e6f4f8b00d6f"
+			"7d8b529f-49a1-4aa1-b350-a8e752c1b62d" "8e14dc6d-5d31-463c-a5f8-03970c6d0511"
+			"8e2d7559-4d4d-4c10-b48b-b14d55ec08f7" "8f08443e-9681-478d-8c58-b52a1f15a394"
+			"8f6cbd54-da19-49fb-8c78-5e404c64427c" "8fa0e919-621a-4293-8807-0fd2bca3fd15"
+			"8feeedde-cf9b-4096-bd67-8a4728db6318" "91c1e8d3-f923-41a5-bd28-3e474642524b"
+			"91f0b190-2c29-474e-8dbe-5742f5f1de94" "9313e600-5deb-483c-9953-554ab17a9c71"
+			"9423ecdd-a6a9-43c4-a788-5fcab04d425c" "97d9c57b-ca22-44f8-935a-021b2eb1ab8d"
+			"9d007e6e-5a94-4b8c-9592-5dcb54ee010f" "a043fb83-11d9-4ab1-88e9-357e642fdc02"
+			"aadb430c-7387-4192-8779-6335b2c9617d" "ad86705f-385f-413d-ac92-f0966f71385a"
+			"aece606d-51d8-4204-b2ee-f19bb8d76a0c" "b05adca0-2a26-4e98-ad87-e40c7eb3d3b0"
+			"b23a609b-f214-429f-971e-134eaa1807fe" "b3a77fff-3132-4b26-bef1-213dda4a4955"
+			"b4f9afec-8337-420a-ad81-fd20f0164893" "c029eb4a-f498-44b3-88f4-e910d4437c29"
+			"ca41fb41-10c4-417c-bc90-2b1ba63f7ae0" "ca7202f4-7af0-4f8f-8bcc-7b8b82cfee19"
+			"cc3f9531-cd54-4df8-98bc-80edfe9ff0ee" "cda9530a-d753-4256-9daa-8965e5b373e4"
+			"ce2710bb-b88b-4b48-bafc-52a0f412798c" "d03164bd-ab8d-482f-874c-f563dfd8aea1"
+			"d06aa7d0-729b-4f53-920f-ea624642524b" "d158f9bc-7b63-4504-a4cd-3800691d30dc"
+			"d477f42d-346a-4ebe-b325-3dca7ac6567f" "d6418401-8381-4e62-a8b6-f4e3ba6b76f3"
+			"e06c2a60-74fe-4e7c-bc93-3a964642524b" "e4d21481-3942-4fe5-bb43-e6164642524b"
+			"ea3dd737-8ced-4a6b-aa1e-06eb56af315b" "ea9b565c-d94c-406e-b87c-a2bea3e8c82a"
+			"eabf33f0-7d40-4dbc-9823-bb5c4642524b" "eaf75bb5-6df0-46f1-bdb0-cf537f0fab12"
+			"ef9fc41a-5430-420b-93e9-5792306cf177" "f824d8c8-f979-47b0-bcb7-297fe2eaa119"
+			"f9e4d3e2-17f8-483e-b467-d566bf0e7339" "faab074f-0046-4fd9-8206-595034387030"
+			"fc3b202c-389c-481f-856e-126aba27aa0d"
 		)
 	)
 	(group "strips[0]"
 		(uuid "5c8603f8-9e14-4d50-93f0-89288b245d3d")
-		(members "ea6ee8d6-ae0f-493b-8f3b-92bc73ad04c3" "4b6442ae-1635-4711-9fc4-2dd5473155cf"
-			"90ef72fd-f8a6-4171-aadd-c5ffba4b6e8e" "b3c24812-3e59-4da5-a3ce-6f172c2ac99e"
-			"94ab9ecd-1895-44d7-bb48-8ec2b183cdfa" "c1522faa-5bca-4a56-b4bf-cf36631e283b"
-			"b0ba1e63-ad0c-4940-beb6-4c26dacd3ebe" "889e1773-a270-4e3f-aa29-c08cb1ec18bd"
-			"bd43cfd1-7001-4bd5-8b62-f8b27e81a906" "93322d78-a725-4bc3-a5c4-b8d36a9e2091"
-			"50bc7bcd-14c0-4b14-90bd-25923c1efe36" "d9857ecb-7d20-4094-8251-6addb96df40d"
-			"a69b6cfd-566b-4e7f-b6ff-f5255ad74cde" "0bd2a2a5-0f69-462b-a381-6372f8ad950e"
-			"640aa23e-f58a-49cc-9470-5a75fcc22aa5" "6f4436c6-c0ab-4a3c-bbab-5084b3e03b89"
+		(members "01c52faf-a44f-421a-94d9-b4b6a6180e91" "0366174d-de67-46b1-9f31-d7a75761fb4a"
+			"0700329a-e84a-45ca-80a3-9c4c79bb1329" "081f828e-fce4-4d0c-9d75-2d84ed44b022"
+			"09783ab9-122a-497a-a5b2-89724642524b" "0bd2a2a5-0f69-462b-a381-6372f8ad950e"
 			"0df8884b-8768-4106-8680-9ba132bdc3c9" "13dc7e51-cb90-40e3-abb5-005e2bce5a62"
-			"14f5de20-22c0-4750-811e-859826447191" "ea737cca-efe2-40ee-bbf3-7ee57597c030"
-			"1e02e1ab-9599-43d1-8700-9230aeaeda8b" "8754a125-b50b-4012-a3c2-90f448601c94"
-			"802e87ab-4905-46dc-bffa-a4d484aa49ac" "85e9b91d-0392-4c91-8caa-cd129f12dbb8"
-			"2329a6ca-a722-4c7c-9290-cd8a6414e63f" "d2ba419e-ff59-4f2d-b226-d7e3c43f01e1"
-			"db749606-573c-4115-80f3-ec61257e943f" "a9e12fe2-250c-47fa-9528-b018645dfc5e"
-			"b6ec5b21-d19b-4926-aa6b-2b08ade439b3" "73f4922d-a483-4d3f-a9cd-fbbcd0698d81"
-			"081f828e-fce4-4d0c-9d75-2d84ed44b022" "1d599dd1-222a-4f92-aea5-604ca1424ebb"
-			"dba7f9a1-0b7a-4302-a4da-2cc8932fd434" "6c295e6b-a570-4d62-85f3-c35c7ba5b136"
-			"be878bb6-b73a-429e-a014-edbee96ae0d4" "9014c108-8b80-4b09-a73e-46dd44614e55"
-			"90b19b0c-b632-4e77-b480-a8821809fd91" "a44286a8-fe8a-4225-9b2b-e400a8468605"
-			"c4e87245-0208-49a9-a0c0-802fb0551b58" "6dd82d39-9070-416a-bcc1-fca2334f8f8d"
-			"c3a68729-56f4-4e59-8c6b-fda9e92b672a" "6ca90f11-ef1e-4e64-9015-2ae2fc9d8911"
-			"52372b28-5b00-4702-af74-9914567bfe27" "3ede7c9e-7244-42b5-87c3-3280a9e4ec28"
-			"01c52faf-a44f-421a-94d9-b4b6a6180e91" "84803941-ba70-469d-8db9-495a33d9e968"
-			"f82f592b-b53b-48f7-b06d-8e861f336af8" "6ff8fdd7-15a9-4d5c-9d21-d8474fa67cde"
-			"f52c81c3-695f-4f1e-b4d4-d78888890a61" "15e36c4d-3a38-4f88-8f21-e00ef244eafb"
-			"78fbb3b1-8107-4bc0-95df-224d7bb32765" "22798193-0c65-4e59-9e77-588ac1901049"
-			"4654d824-d396-4ac9-9639-dd03788897c0" "f9813a53-c299-4ccc-b828-df4083549716"
-			"369535d4-3b4f-4a6e-880b-12684c9c4427" "0700329a-e84a-45ca-80a3-9c4c79bb1329"
-			"0366174d-de67-46b1-9f31-d7a75761fb4a" "181e9752-765d-4991-a7ac-98d05c12879e"
-			"ac6a79d6-576d-4d26-b06d-66e4fbd09c03" "ed33accd-f2ba-475b-84b0-a9c10fcf2be3"
-			"28768c6e-598f-4fe1-ae77-f45a77ae79cb" "55f8beb8-d0e3-4218-baec-f97b30cdb678"
-			"37eae853-2fe7-4d1d-8dd4-a9f7ba8769b8" "a883f60c-4347-460a-92f1-82b349e8a501"
-			"e636ee0f-1c9f-42da-a815-31eb933da9e8" "cf8cd2ba-ec5d-444d-a6b6-9e9a97b755d1"
-			"b79e44c4-940a-4ede-a392-d54a23f412f8" "9e5f82f3-d185-4591-a41e-e6eefb58a5a1"
-			"35979d74-19c9-4830-b4b9-a1e8f2ca582c" "eca78e43-a49b-4a1e-9673-a4dc7877aa54"
-			"2482188c-8e30-4fa0-b837-e559d89d0f5f" "def9b8cc-5716-4c99-b658-e2431ef652ca"
-			"f8f4bcc8-14bd-4378-887f-4922a2d6fb96" "62c3f0e8-67ea-4616-96e2-ed95a2ebb1f0"
+			"14f5de20-22c0-4750-811e-859826447191" "15e36c4d-3a38-4f88-8f21-e00ef244eafb"
+			"181e9752-765d-4991-a7ac-98d05c12879e" "1d599dd1-222a-4f92-aea5-604ca1424ebb"
+			"1e02e1ab-9599-43d1-8700-9230aeaeda8b" "22798193-0c65-4e59-9e77-588ac1901049"
+			"2329a6ca-a722-4c7c-9290-cd8a6414e63f" "2482188c-8e30-4fa0-b837-e559d89d0f5f"
+			"28768c6e-598f-4fe1-ae77-f45a77ae79cb" "29388c95-1850-4866-8a0b-29e94642524b"
+			"35979d74-19c9-4830-b4b9-a1e8f2ca582c" "369535d4-3b4f-4a6e-880b-12684c9c4427"
+			"37eae853-2fe7-4d1d-8dd4-a9f7ba8769b8" "3ede7c9e-7244-42b5-87c3-3280a9e4ec28"
+			"4654d824-d396-4ac9-9639-dd03788897c0" "471ed908-20da-4762-ac98-57844642524b"
+			"4b6442ae-1635-4711-9fc4-2dd5473155cf" "50bc7bcd-14c0-4b14-90bd-25923c1efe36"
+			"52372b28-5b00-4702-af74-9914567bfe27" "55f8beb8-d0e3-4218-baec-f97b30cdb678"
+			"62c3f0e8-67ea-4616-96e2-ed95a2ebb1f0" "640aa23e-f58a-49cc-9470-5a75fcc22aa5"
+			"6c295e6b-a570-4d62-85f3-c35c7ba5b136" "6ca90f11-ef1e-4e64-9015-2ae2fc9d8911"
+			"6dd82d39-9070-416a-bcc1-fca2334f8f8d" "6f4436c6-c0ab-4a3c-bbab-5084b3e03b89"
+			"6ff8fdd7-15a9-4d5c-9d21-d8474fa67cde" "73f4922d-a483-4d3f-a9cd-fbbcd0698d81"
+			"78fbb3b1-8107-4bc0-95df-224d7bb32765" "7a85e30a-bbc4-456d-905a-13294642524b"
+			"802e87ab-4905-46dc-bffa-a4d484aa49ac" "84803941-ba70-469d-8db9-495a33d9e968"
+			"85e9b91d-0392-4c91-8caa-cd129f12dbb8" "8754a125-b50b-4012-a3c2-90f448601c94"
+			"889e1773-a270-4e3f-aa29-c08cb1ec18bd" "8af1b3f7-1766-47b9-b644-573b4642524b"
+			"8c13c9a8-e684-43d1-b382-1afd4642524b" "9014c108-8b80-4b09-a73e-46dd44614e55"
+			"90b19b0c-b632-4e77-b480-a8821809fd91" "90ef72fd-f8a6-4171-aadd-c5ffba4b6e8e"
+			"93322d78-a725-4bc3-a5c4-b8d36a9e2091" "9423edd3-415a-47b8-b8ac-51b54642524b"
+			"94ab9ecd-1895-44d7-bb48-8ec2b183cdfa" "9c738f7b-a04c-4bab-b448-26474642524b"
+			"9e5f82f3-d185-4591-a41e-e6eefb58a5a1" "a44286a8-fe8a-4225-9b2b-e400a8468605"
+			"a69b6cfd-566b-4e7f-b6ff-f5255ad74cde" "a883f60c-4347-460a-92f1-82b349e8a501"
+			"a9e12fe2-250c-47fa-9528-b018645dfc5e" "aa200a54-d0bf-4df3-9c25-39d14642524b"
+			"aabed6ca-e69b-48aa-a0c9-4a854642524b" "ac6a79d6-576d-4d26-b06d-66e4fbd09c03"
+			"b0ba1e63-ad0c-4940-beb6-4c26dacd3ebe" "b3c24812-3e59-4da5-a3ce-6f172c2ac99e"
+			"b6ec5b21-d19b-4926-aa6b-2b08ade439b3" "b742ff0e-3fa1-49ba-b611-dfa84642524b"
+			"b79e44c4-940a-4ede-a392-d54a23f412f8" "b7a4b66f-5495-4c4c-b9f1-f7074642524b"
+			"b886cf14-670c-4af6-b1ee-17304642524b" "bd43cfd1-7001-4bd5-8b62-f8b27e81a906"
+			"be878bb6-b73a-429e-a014-edbee96ae0d4" "c1522faa-5bca-4a56-b4bf-cf36631e283b"
+			"c3a68729-56f4-4e59-8c6b-fda9e92b672a" "c4e87245-0208-49a9-a0c0-802fb0551b58"
+			"cd4c1bda-8c15-4ba6-a36d-1d244642524b" "cf8cd2ba-ec5d-444d-a6b6-9e9a97b755d1"
+			"d2ba419e-ff59-4f2d-b226-d7e3c43f01e1" "d9857ecb-7d20-4094-8251-6addb96df40d"
+			"db749606-573c-4115-80f3-ec61257e943f" "dba7f9a1-0b7a-4302-a4da-2cc8932fd434"
+			"def9b8cc-5716-4c99-b658-e2431ef652ca" "e636ee0f-1c9f-42da-a815-31eb933da9e8"
+			"ea6ee8d6-ae0f-493b-8f3b-92bc73ad04c3" "ea737cca-efe2-40ee-bbf3-7ee57597c030"
+			"eca78e43-a49b-4a1e-9673-a4dc7877aa54" "ed33accd-f2ba-475b-84b0-a9c10fcf2be3"
+			"f3ddce1c-14cc-483d-a33e-97ad4642524b" "f52c81c3-695f-4f1e-b4d4-d78888890a61"
+			"f82f592b-b53b-48f7-b06d-8e861f336af8" "f8f4bcc8-14bd-4378-887f-4922a2d6fb96"
+			"f9813a53-c299-4ccc-b828-df4083549716"
 		)
 	)
 	(group "strips[1].leds[4]"
 		(uuid "73747269-7073-5b31-5d2e-6c6564735b345d")
 		(locked no)
-		(members "000ba193-2d7f-41f7-a6ac-b86b4642524b" "1eafc026-300f-4d69-ab0a-04d84642524b"
-			"341ca6c6-564b-46ae-8443-71694642524b"
-		)
 	)
 	(group "strips[3].leds[1]"
 		(uuid "73747269-7073-5b33-5d2e-6c6564735b315d")
 		(locked no)
-		(members "017fe653-4f9b-4806-9e2b-78414642524b" "870b1da0-afd4-4782-b904-d21f4642524b"
-			"dc57c2ca-9bb7-4e85-851b-161e4642524b"
-		)
 	)
 	(group "strips[2].leds[3]"
 		(uuid "73747269-7073-5b32-5d2e-6c6564735b335d")
 		(locked no)
-		(members "050cb0cd-aba9-4722-950b-a61c4642524b" "1bd461f9-15b7-452a-9e0b-53b24642524b"
-			"2774ac94-3171-4ffb-b6ca-5b324642524b"
-		)
 	)
 	(group "strips[2].leds[1]"
 		(uuid "73747269-7073-5b32-5d2e-6c6564735b315d")
 		(locked no)
-		(members "060b0295-7d08-477e-b187-c1f04642524b" "e9fd9c9b-c2bf-4988-8d2c-a37f4642524b"
-			"f8a35d8a-66c4-499a-8da2-90474642524b"
-		)
 	)
 	(group "strips[0].leds[3]"
 		(uuid "73747269-7073-5b30-5d2e-6c6564735b335d")
 		(locked no)
-		(members "09783ab9-122a-497a-a5b2-89724642524b" "b742ff0e-3fa1-49ba-b611-dfa84642524b"
-			"cd4c1bda-8c15-4ba6-a36d-1d244642524b"
-		)
 	)
 	(group "strips[1].leds[0]"
 		(uuid "73747269-7073-5b31-5d2e-6c6564735b305d")
 		(locked no)
-		(members "176e254f-107b-4471-bd87-80c34642524b" "4261a449-a01e-4eea-8f08-ea0a4642524b"
-			"91c1e8d3-f923-41a5-bd28-3e474642524b"
-		)
 	)
 	(group "strips[4].leds[1]"
 		(uuid "73747269-7073-5b34-5d2e-6c6564735b315d")
 		(locked no)
-		(members "1f9db71d-4870-48aa-a29e-c5404642524b" "275129b3-946e-45b1-b9ce-30c94642524b"
-			"3de7b562-170e-4a5a-bc40-6f024642524b"
-		)
 	)
 	(group "strips[4].leds[0]"
 		(uuid "73747269-7073-5b34-5d2e-6c6564735b305d")
 		(locked no)
-		(members "275a0799-daf1-45a9-b9c3-e16b4642524b" "358776f7-a8c5-4077-ba5f-28bb4642524b"
-			"f6227bc1-230f-4c05-b3c7-30b24642524b"
-		)
 	)
 	(group "strips[0].leds[0]"
 		(uuid "73747269-7073-5b30-5d2e-6c6564735b305d")
 		(locked no)
-		(members "29388c95-1850-4866-8a0b-29e94642524b" "8c13c9a8-e684-43d1-b382-1afd4642524b"
-			"9c738f7b-a04c-4bab-b448-26474642524b"
-		)
 	)
 	(group "strips[2].leds[2]"
 		(uuid "73747269-7073-5b32-5d2e-6c6564735b325d")
 		(locked no)
-		(members "2ed486ea-db3f-48b0-8ed5-0e864642524b" "864acc44-504b-40be-825e-96a54642524b"
-			"b3a433ac-248a-4bf0-8622-cd034642524b"
-		)
 	)
 	(group "strips[4].leds[4]"
 		(uuid "73747269-7073-5b34-5d2e-6c6564735b345d")
 		(locked no)
-		(members "308800b1-33d1-4afa-b14a-63fe4642524b" "452eeab5-b959-492e-bc89-78d24642524b"
-			"ec926f39-0ee3-4dda-a531-0a744642524b"
-		)
 	)
 	(group "strips[4].leds[2]"
 		(uuid "73747269-7073-5b34-5d2e-6c6564735b325d")
 		(locked no)
-		(members "35806edd-a97b-4d5a-8eb9-3e1a4642524b" "b33b00c6-25ec-48cf-9c07-fcde4642524b"
-			"d46a8f3a-dfbc-4244-b811-3fe54642524b"
-		)
 	)
 	(group "strips[3].leds[4]"
 		(uuid "73747269-7073-5b33-5d2e-6c6564735b345d")
 		(locked no)
-		(members "36745a0a-af29-4de7-80e2-82334642524b" "89e770c2-f889-43ca-aa41-b38b4642524b"
-			"9c25b586-ba18-4008-bb00-73274642524b"
-		)
 	)
 	(group "strips[3].leds[3]"
 		(uuid "73747269-7073-5b33-5d2e-6c6564735b335d")
 		(locked no)
-		(members "36ba3ec3-b3d3-440a-b7a5-47c34642524b" "663d77e2-013d-470e-bde7-87e24642524b"
-			"6ca32251-ad81-43b8-b164-f49b4642524b"
-		)
 	)
 	(group "strips[2].leds[0]"
 		(uuid "73747269-7073-5b32-5d2e-6c6564735b305d")
 		(locked no)
-		(members "37a54114-8692-4d9d-82c1-183a4642524b" "47992b1a-8de8-4c91-9c85-7e664642524b"
-			"9b1822e6-f63a-4a64-acf0-17344642524b"
-		)
 	)
 	(group "strips[1].leds[2]"
 		(uuid "73747269-7073-5b31-5d2e-6c6564735b325d")
 		(locked no)
-		(members "3dbb0658-48e0-493d-8574-2ab04642524b" "d06aa7d0-729b-4f53-920f-ea624642524b"
-			"eabf33f0-7d40-4dbc-9823-bb5c4642524b"
-		)
 	)
 	(group "strips[2].leds[4]"
 		(uuid "73747269-7073-5b32-5d2e-6c6564735b345d")
 		(locked no)
-		(members "3de3f088-5f0a-45f3-9f62-170e4642524b" "b1a5574a-b962-48b9-8854-70af4642524b"
-			"bca99370-769c-4178-a029-58974642524b"
-		)
 	)
 	(group "strips[1].leds[3]"
 		(uuid "73747269-7073-5b31-5d2e-6c6564735b335d")
 		(locked no)
-		(members "3e3e8465-c023-4c7d-adbc-85594642524b" "41793813-8568-461d-be9c-46f34642524b"
-			"e4d21481-3942-4fe5-bb43-e6164642524b"
-		)
 	)
 	(group "strips[0].leds[4]"
 		(uuid "73747269-7073-5b30-5d2e-6c6564735b345d")
 		(locked no)
-		(members "471ed908-20da-4762-ac98-57844642524b" "9423edd3-415a-47b8-b8ac-51b54642524b"
-			"f3ddce1c-14cc-483d-a33e-97ad4642524b"
-		)
 	)
 	(group "strips[1].leds[1]"
 		(uuid "73747269-7073-5b31-5d2e-6c6564735b315d")
 		(locked no)
-		(members "4b20a05d-a5c5-47b1-89b6-18814642524b" "6719eba5-70b5-4bde-abd2-fae04642524b"
-			"e06c2a60-74fe-4e7c-bc93-3a964642524b"
-		)
 	)
 	(group "strips[3].leds[0]"
 		(uuid "73747269-7073-5b33-5d2e-6c6564735b305d")
 		(locked no)
-		(members "556fd663-c26a-4c25-8062-42ba4642524b" "74c3ee4c-0667-4d8c-956b-487f4642524b"
-			"db3b2663-641f-4863-9f67-94244642524b"
-		)
 	)
 	(group "strips[4].leds[3]"
 		(uuid "73747269-7073-5b34-5d2e-6c6564735b335d")
 		(locked no)
-		(members "670b495a-a07a-45e8-959e-5d494642524b" "b6a8aa73-cff1-45e5-b7d3-e95a4642524b"
-			"e596355f-81ef-4626-890b-42f54642524b"
-		)
 	)
 	(group "strips[0].leds[1]"
 		(uuid "73747269-7073-5b30-5d2e-6c6564735b315d")
 		(locked no)
-		(members "7a85e30a-bbc4-456d-905a-13294642524b" "aa200a54-d0bf-4df3-9c25-39d14642524b"
-			"aabed6ca-e69b-48aa-a0c9-4a854642524b"
-		)
 	)
 	(group "strips[3].leds[2]"
 		(uuid "73747269-7073-5b33-5d2e-6c6564735b325d")
 		(locked no)
-		(members "81228c5e-956d-4a56-85bb-5a3b4642524b" "d9f0ad17-4ecf-4b27-bf92-dfc94642524b"
-			"f7b4f81e-c672-47ae-abbd-ce024642524b"
-		)
 	)
 	(group "strips[0].leds[2]"
 		(uuid "73747269-7073-5b30-5d2e-6c6564735b325d")
 		(locked no)
-		(members "8af1b3f7-1766-47b9-b644-573b4642524b" "b7a4b66f-5495-4c4c-b9f1-f7074642524b"
-			"b886cf14-670c-4af6-b1ee-17304642524b"
-		)
 	)
 	(embedded_fonts no)
 )

@@ -25,11 +25,11 @@ module OPSCO_SK6805_SIDE:
     - 24-bit color depth (8 bits per channel)
     - PWM frequency: 400Hz typical
     - Data transfer rate: 800Kbps
-    - Forward voltage: 5V ±0.5V
+    - Forward voltage: 3V-5.5V
     - Operating temperature: -25°C to +80°C
 
     Exposes:
-        * power – Power supply (5V ±0.5V)
+        * power – Power supply (3V-5.5V)
         * data_in – Data input signal
         * data_out – Data output signal (for chaining)
     """
@@ -40,7 +40,7 @@ module OPSCO_SK6805_SIDE:
     # --- External interfaces ---
     power = new ElectricPower
     """
-    Power supply (5V ±0.5V)
+    Power supply (3V-5.5V)
     Powers both RGB LEDs and digital controller
     """
     power.required = True
@@ -62,7 +62,7 @@ module OPSCO_SK6805_SIDE:
     # --- Power connections ---
     power.hv ~ package.VDD
     power.lv ~ package.GND
-    assert power.voltage within 4.5V to 5.5V
+    assert power.voltage within 3V to 5.5V
 
     # --- Data signal connections ---
     data_in.line ~ package.DIN

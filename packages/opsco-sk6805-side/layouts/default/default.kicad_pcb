@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -107,7 +151,7 @@
 				)
 			)
 		)
-		(property "Value" "1F"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide no)
@@ -239,7 +283,7 @@
 				)
 			)
 		)
-		(property "capacitance" "1±10.0%F"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -400,17 +444,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "4751e238-8d77-401f-884f-24f726c496cf")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "484c8576-a412-4925-9593-c9dbe71b91b9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
@@ -628,29 +661,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "51deef33-245d-48ca-98b2-69d408a5cf56")
-		)
-		(fp_text user "%R"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(uuid "a40a79b1-b385-4b4a-8ab7-8d4a7919d6a1")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -4.06 0)
-			(layer "F.SilkS")
-			(uuid "c406c539-99b5-4f45-840e-dd91c7efa9ca")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(pad "2" smd rect
 			(at -0.5 0.06 0)
