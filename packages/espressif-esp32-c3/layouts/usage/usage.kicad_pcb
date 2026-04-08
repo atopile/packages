@@ -39,6 +39,50 @@
 		(55 "User.9" user)
 	)
 	(setup
+		(stackup
+			(layer "F.SilkS"
+				(type "Top Silk Screen")
+			)
+			(layer "F.Paste"
+				(type "Top Solder Paste")
+			)
+			(layer "F.Mask"
+				(type "Top Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "F.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "dielectric 1"
+				(type "core")
+				(thickness 1.51)
+				(material "FR4")
+				(epsilon_r 4.5)
+				(loss_tangent 0.02)
+			)
+			(layer "B.Cu"
+				(type "copper")
+				(thickness 0.035)
+			)
+			(layer "B.Mask"
+				(type "Bottom Solder Mask")
+				(color "Black")
+				(thickness 0.01)
+				(material "Solder mask")
+				(epsilon_r 3.3)
+			)
+			(layer "B.Paste"
+				(type "Bottom Solder Paste")
+			)
+			(layer "B.SilkS"
+				(type "Bottom Silk Screen")
+			)
+			(copper_finish "ENIG")
+		)
 		(pad_to_mask_clearance 0)
 		(allow_soldermask_bridges_in_footprints no)
 		(tenting front back)
@@ -129,7 +173,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide yes)
@@ -273,7 +317,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -386,17 +430,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "2efd382d-6a0b-4c94-aa6f-5f4c9064b7c6")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "9f46e7de-c9c5-4ed3-8ce5-cc62021c3316")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
@@ -648,30 +681,6 @@
 			(fill no)
 			(layer "F.Fab")
 			(uuid "bedb7886-7afc-490c-ad2c-d8222780f519")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 180)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "d7158727-b0d2-4ec3-968d-836f714e77ef")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "bdd524b3-440c-467d-b0a3-41d2290f9bcf")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 180)
@@ -1118,32 +1127,6 @@
 			(layer "User.1")
 			(uuid "1dd04908-9ad1-4edf-8a38-323f51484a18")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -10 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "491343cc-e015-4dc3-8137-ce173e82cf14")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "6d7cd4e1-ebbd-41cd-8895-0e26ed7bcc5a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
 		(fp_text user "Antenna keepout zone"
 			(at 0 -17.5 0)
 			(layer "User.1" knockout)
@@ -1374,7 +1357,7 @@
 				)
 			)
 		)
-		(property "Value" "22µF"
+		(property "Value" "22µF ±20%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -1518,7 +1501,7 @@
 				)
 			)
 		)
-		(property "capacitance" "22±20.0%µF"
+		(property "capacitance" "22µF ±20%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1680,17 +1663,6 @@
 			(locked no)
 			(uuid "b3cb9fd0-4efb-4c51-8b75-6d3a13fe48cf")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "f5735a75-69bb-4eb3-88cc-5b4994f2a1ff")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 180)
 			(size 0.8 0.9)
@@ -1734,7 +1706,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide yes)
@@ -1878,7 +1850,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -1991,17 +1963,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "dbd2e9af-4753-4a2b-82bf-7bfb0cde552e")
-		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "257868d6-c0af-4706-869a-8c43fa8e574e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
@@ -2254,32 +2215,6 @@
 			(fill no)
 			(layer "User.1")
 			(uuid "dcd88ecf-3616-4f0f-98e5-0176d67e9efb")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -8.95 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "546ae48c-963d-4df0-8b00-1b43077da395")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "9f72e665-aea7-4c36-9f9d-1be497d803e5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
 		)
 		(fp_text user "Antenna keepout zone"
 			(at 0 -16 0)
@@ -2747,7 +2682,7 @@
 				)
 			)
 		)
-		(property "Value" "22µF"
+		(property "Value" "22µF ±20%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -2891,7 +2826,7 @@
 				)
 			)
 		)
-		(property "capacitance" "22±20.0%µF"
+		(property "capacitance" "22µF ±20%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3053,17 +2988,6 @@
 			(locked no)
 			(uuid "d007f5fa-28e3-42a9-94e7-5fae8edbce5f")
 		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "5ad63364-4d04-4377-9f98-c1243305a43b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.7 0 90)
 			(size 0.8 0.9)
@@ -3107,7 +3031,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1kΩ"
+		(property "Value" "5.1kΩ ±1%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -3251,7 +3175,7 @@
 				)
 			)
 		)
-		(property "resistance" "5.1±1.0%kΩ"
+		(property "resistance" "5.1kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3364,17 +3288,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "e7fa6117-8fe8-4acc-abc1-afdbdc478715")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "47de9e2b-48ee-4ce2-9d52-60b1eb30331b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 180)
@@ -3627,30 +3540,6 @@
 			(layer "F.Fab")
 			(uuid "4e86fafb-21b8-48f6-8b48-8d2539d6bdc2")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 180)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "c3d6612a-9f2c-4cf3-90bb-334967f01ec2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "59c56883-b2c3-4868-bbab-54429d990950")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 180)
 			(size 1.05 0.7)
@@ -3707,7 +3596,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -3839,7 +3728,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -3953,17 +3842,6 @@
 			(locked no)
 			(uuid "2c2da4dc-5e92-400e-bdb5-e84ba13fe8db")
 		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "c8d9ac69-e142-45b5-bf39-35cd358e0db5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 90)
 			(size 0.57 0.54)
@@ -4007,7 +3885,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "100nF ±10%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -4151,7 +4029,7 @@
 				)
 			)
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4313,17 +4191,6 @@
 			(locked no)
 			(uuid "4aac9c9b-6c3c-437b-8b79-b623c315d531")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "39392219-59f5-44e0-b7b4-5bf4247b8691")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 180)
 			(size 0.5 0.54)
@@ -4367,7 +4234,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -4511,7 +4378,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4625,17 +4492,6 @@
 			(locked no)
 			(uuid "1db16bec-c6af-476a-85af-57682f7f5029")
 		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "07a396c5-7e9f-47d6-b6a5-90237287a5a2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 180)
 			(size 0.57 0.54)
@@ -4679,7 +4535,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "100nF ±10%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -4823,7 +4679,7 @@
 				)
 			)
 		)
-		(property "capacitance" "100±10.0%nF"
+		(property "capacitance" "100nF ±10%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -4985,17 +4841,6 @@
 			(locked no)
 			(uuid "4db2e008-6d57-4bab-8a60-46a6dcd07efe")
 		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "d937ad93-2456-4a09-a985-30247143ed33")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "2" smd rect
 			(at 0.42 0 90)
 			(size 0.5 0.54)
@@ -5039,7 +4884,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -5171,7 +5016,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5284,17 +5129,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "7458fd39-7876-4804-95d0-f21e1d81b2f1")
-		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "bfbb2315-ec97-4299-8322-f027c3467183")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 90)
@@ -5547,30 +5381,6 @@
 			(layer "F.Fab")
 			(uuid "055b59ab-a567-4404-9f87-627a93500f97")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 270)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "a0f64c32-9c6d-4ede-827b-86c117c3a109")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "%R"
-			(at 0 0 270)
-			(layer "F.Fab")
-			(uuid "f6904444-a857-4de1-bfff-fba68884b884")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 270)
 			(size 1.05 0.7)
@@ -5627,7 +5437,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide yes)
@@ -5771,7 +5581,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -5885,17 +5695,6 @@
 			(locked no)
 			(uuid "f3b4bf0f-9204-4efe-bdf8-1f167e5ee6db")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "8312035c-fe92-42ca-a011-272d2ff30b3d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
 			(size 0.57 0.54)
@@ -5939,7 +5738,7 @@
 				)
 			)
 		)
-		(property "Value" "5.1kΩ"
+		(property "Value" "5.1kΩ ±1%"
 			(at 0 4)
 			(layer "F.Fab")
 			(hide yes)
@@ -6083,7 +5882,7 @@
 				)
 			)
 		)
-		(property "resistance" "5.1±1.0%kΩ"
+		(property "resistance" "5.1kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6197,17 +5996,6 @@
 			(locked no)
 			(uuid "f489d9a8-84b3-40db-90f5-57131f3a87f3")
 		)
-		(fp_text user "%R"
-			(at 0 0)
-			(layer "F.Fab")
-			(uuid "23761725-80e3-4070-a2b9-dbaa2df73708")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -0.43 0 0)
 			(size 0.57 0.54)
@@ -6251,7 +6039,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -6395,7 +6183,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -6508,17 +6296,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "5061cb35-ec1a-4490-9411-b1d30506d65f")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "54718bbb-2e41-43cc-a588-3f2f47b33d27")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 180)
@@ -6771,30 +6548,6 @@
 			(layer "F.Fab")
 			(uuid "30bb7311-d267-4a75-ae2b-1469260abc95")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 -5.07 90)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "73fb5e39-fc34-4943-9ce5-630cdbe8bf87")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-				(hide yes)
-			)
-		)
-		(fp_text user "%R"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "99bc8f70-3c98-4134-b632-ae97bd4a8dab")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" smd rect
 			(at -2.1 -1.07 90)
 			(size 1.05 0.7)
@@ -6851,7 +6604,7 @@
 				)
 			)
 		)
-		(property "Value" "10kΩ"
+		(property "Value" "10kΩ ±1%"
 			(at 0 4 180)
 			(layer "F.Fab")
 			(hide yes)
@@ -6995,7 +6748,7 @@
 				)
 			)
 		)
-		(property "resistance" "10±1.0%kΩ"
+		(property "resistance" "10kΩ ±1%"
 			(at 0 0 0)
 			(layer "User.9")
 			(hide yes)
@@ -7108,17 +6861,6 @@
 			(layer "F.Fab")
 			(locked no)
 			(uuid "2c144e98-1725-4974-9470-42658686fd66")
-		)
-		(fp_text user "%R"
-			(at 0 0 180)
-			(layer "F.Fab")
-			(uuid "173abb75-6b42-426a-9cd2-4dd56e474c9b")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" smd rect
 			(at -0.43 0 180)
