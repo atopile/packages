@@ -1,0 +1,40 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Standard library imports ---
+import ElectricPower
+import I2C
+
+# --- Package import ---
+from "atopile/nxp-pca9685/nxp-pca9685.ato" import NXP_PCA9685
+
+
+module Usage:
+    """
+    Minimal usage example for `nxp-pca9685`.
+
+    Powers the PCA9685 from a shared 3V3 logic rail and places it on an I2C bus
+    running at the default 7-bit address (0x40, same as the Adafruit 16-channel
+    PWM/Servo Driver breakout).
+    """
+
+    # Logic / I2C power rail (3.3 V)
+    power_3v3 = new ElectricPower
+    power_3v3.voltage = 3.3V
+
+    # I2C bus
+    i2c_bus = new I2C
+
+    # PWM driver instance
+    pwm = new NXP_PCA9685
+
+    # Connect required interfaces
+    power_3v3 ~ pwm.power
+    power_3v3 ~ i2c_bus.scl.reference
+    power_3v3 ~ i2c_bus.sda.reference
+
+    i2c_bus ~ pwm.i2c
+
+    # (Optional) Explicitly set the device address - defaults to 0x40
+    pwm.i2c.address = 0x40
