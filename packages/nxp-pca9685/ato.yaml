@@ -1,0 +1,26 @@
+requires-atopile: ^0.14.0
+
+paths:
+  src: "."
+  layout: ./layouts
+
+builds:
+  default:
+    entry: nxp-pca9685.ato:NXP_PCA9685
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+  usage:
+    entry: usage.ato:Usage
+    hide_designators: true
+    exclude_checks: ["PCB.requires_drc_check"]
+
+package:
+  identifier: atopile/nxp-pca9685
+  repository: https://github.com/atopile/packages
+  homepage: https://github.com/atopile/packages/blob/main/packages/nxp-pca9685/README.md
+  version: "0.1.0"
+  authors:
+    - name: atopile
+      email: hi@atopile.io
+  summary: NXP; PCA9685; 16-channel 12-bit PWM; I2C; LED driver; Servo driver
+  license: MIT

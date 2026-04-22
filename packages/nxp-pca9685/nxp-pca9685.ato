@@ -1,0 +1,166 @@
+#pragma experiment("MODULE_TEMPLATING")
+#pragma experiment("BRIDGE_CONNECT")
+#pragma experiment("FOR_LOOP")
+
+# --- Imports ---
+import ElectricPower
+import I2C
+import ElectricLogic
+import ElectricSignal
+import Capacitor
+import Resistor
+import Addressor
+
+from "parts/NXP_Semicon_PCA9685PW_118/NXP_Semicon_PCA9685PW_118.ato" import NXP_Semicon_PCA9685PW_118_package
+
+
+module NXP_PCA9685:
+    """
+    Driver for NXP PCA9685 16-channel, 12-bit PWM Fm+ I2C-bus LED/servo controller.
+
+    Each of the 16 LEDn outputs can sink up to 25 mA and source up to 10 mA;
+    PWM frequency is programmable from ~24 Hz to ~1526 Hz, making the part a
+    de-facto standard for 16-channel RC-servo and LED-dimming applications.
+
+    Exposes:
+      * power       - Single-rail supply (2.3 V to 5.5 V)
+      * i2c         - I2C bus interface (Fm+, up to 1 MHz; default base address 0x40)
+      * output_enable - Active-low chip-wide output disable (internal pull-up on module)
+      * extclk      - Optional external PWM clock input (up to 50 MHz)
+      * led[0:15]   - 16 PWM outputs (open-drain totem-pole)
+    """
+
+    # --- Package ---
+    package = new NXP_Semicon_PCA9685PW_118_package
+
+    # --- External interfaces ---
+    power = new ElectricPower
+    """
+    Single-rail power supply (2.3V to 5.5V)
+    """
+    power.required = True
+
+    i2c = new I2C
+    """
+    I2C bus interface, Fast-mode Plus (7-bit addresses 0x40-0x7F);
+    address 0x70 is reserved for the All-Call sub-address (also programmable).
+    """
+    i2c.required = True
+
+    output_enable = new ElectricLogic
+    """
+    Active-low output-enable pin. When asserted (driven HIGH) all LEDn outputs are
+    forced to their programmed inverted/non-inverted idle state.
+    """
+    output_enable.required = False
+
+    extclk = new ElectricSignal
+    """
+    Optional external PWM clock input (up to 50 MHz). Leave unconnected to use
+    the internal 25 MHz oscillator.
+    """
+    extclk.required = False
+
+    led = new ElectricLogic[16]
+    """
+    16 PWM outputs (LED0-LED15). Each line can sink up to 25 mA directly or
+    source up to 10 mA; for higher currents use an external driver / MOSFET.
+    """
+    for line in led:
+        line.required = False
+
+    # --- I2C bus pull-ups ---
+    scl_pullup = new Resistor
+    scl_pullup.resistance = 4.7kohm +/- 10%
+    scl_pullup.package = "0402"
+
+    sda_pullup = new Resistor
+    sda_pullup.resistance = 4.7kohm +/- 10%
+    sda_pullup.package = "0402"
+
+    i2c.scl.line ~> scl_pullup ~> power.hv
+    i2c.sda.line ~> sda_pullup ~> power.hv
+    i2c.scl.reference ~ power
+    i2c.sda.reference ~ power
+
+    # --- Address selection (A5:A4:A3:A2:A1:A0) ---
+    # Hardware-selectable I2C address via 6 address pins; base 0x40.
+    addressor = new Addressor<address_bits=6>
+    addressor.base = 0x40  # 0x40..0x7F
+    package.A0 ~ addressor.address_lines[0].line
+    package.A1 ~ addressor.address_lines[1].line
+    package.A2 ~ addressor.address_lines[2].line
+    package.A3 ~ addressor.address_lines[3].line
+    package.A4 ~ addressor.address_lines[4].line
+    package.A5 ~ addressor.address_lines[5].line
+    for addr_line in addressor.address_lines:
+        addr_line.reference ~ power
+    assert addressor.address is i2c.address
+    # Default to base address (0x40) - matches Adafruit PCA9685 16-channel driver
+    i2c.address.default = 0x40
+
+    # --- Output-enable pin ---
+    # Datasheet allows nOE to be tied low permanently to keep outputs enabled.
+    # Expose it as an optional interface and pull it high when unused to default
+    # to "outputs disabled" on power-up (safer for servo/LED applications).
+    output_enable.reference ~ power
+    oe_pullup = new Resistor
+    oe_pullup.resistance = 10kohm +/- 10%
+    oe_pullup.package = "0402"
+    output_enable.line ~> oe_pullup ~> power.hv
+    package.nOE ~ output_enable.line
+
+    # --- External clock input ---
+    # Datasheet: EXTCLK may be driven up to 50 MHz or left floating (device uses
+    # internal 25 MHz oscillator). Tie to ground via a resistor when unused to
+    # prevent pick-up on the pin.
+    extclk.reference ~ power
+    extclk_pulldown = new Resistor
+    extclk_pulldown.resistance = 100kohm +/- 10%
+    extclk_pulldown.package = "0402"
+    extclk.line ~> extclk_pulldown ~> power.lv
+    package.EXTCLK ~ extclk.line
+
+    # --- Decoupling capacitors ---
+    # 100 nF close to VDD (datasheet section 10 "Application information").
+    decoup = new Capacitor
+    decoup.capacitance = 100nF +/- 20%
+    decoup.package = "0402"
+    power.hv ~> decoup ~> power.lv
+
+    # Bulk decoupling to handle switching noise from 16 outputs toggling in phase.
+    bulk_cap = new Capacitor
+    bulk_cap.capacitance = 10uF +/- 20%
+    bulk_cap.package = "0805"
+    power.hv ~> bulk_cap ~> power.lv
+
+    # --- Power ---
+    package.VDD ~ power.hv
+    package.VSS ~ power.lv
+    assert power.voltage within 2.3V to 5.5V
+
+    # --- I2C ---
+    package.SCL ~ i2c.scl.line
+    package.SDA ~ i2c.sda.line
+
+    # --- PWM outputs ---
+    package.LED0 ~ led[0].line
+    package.LED1 ~ led[1].line
+    package.LED2 ~ led[2].line
+    package.LED3 ~ led[3].line
+    package.LED4 ~ led[4].line
+    package.LED5 ~ led[5].line
+    package.LED6 ~ led[6].line
+    package.LED7 ~ led[7].line
+    package.LED8 ~ led[8].line
+    package.LED9 ~ led[9].line
+    package.LED10 ~ led[10].line
+    package.LED11 ~ led[11].line
+    package.LED12 ~ led[12].line
+    package.LED13 ~ led[13].line
+    package.LED14 ~ led[14].line
+    package.LED15 ~ led[15].line
+
+    # Reference each PWM output to the power rail
+    for line in led:
+        line.reference ~ power
