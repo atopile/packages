@@ -62,14 +62,16 @@ Please ensure your PR:
 
 ### Building Packages
 
-To build all packages in the repository, use the `build-all.sh` script:
+Batch operations are provided by the `ato` CLI itself — point it at the
+`packages/` directory:
 
 ```bash
-# Build all packages
-./build-all.sh
+# Build every package
+ato build packages/
 
-# Build all packages with specific flags (e.g., --frozen)
-./build-all.sh --frozen
+# List packages with identifier/version
+ato package list packages/
+
+# Show latest build status per target
+ato package status packages/
 ```
-
-The script will attempt to build each package and provide a summary report of successes and failures.
