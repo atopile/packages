@@ -1,0 +1,40 @@
+#pragma experiment("TRAITS")
+#pragma experiment("BRIDGE_CONNECT")
+
+import ElectricPower
+import has_part_removed
+
+from "atopile/ti-lm1117/ti-lm1117.ato" import TI_LM1117
+
+module MCU:
+    """Host MCU requiring 3.3V power rail."""
+
+    trait has_part_removed
+
+    power = new ElectricPower
+    assert power.voltage within 3.3V +/- 5%
+
+
+module Usage:
+    """
+    Minimal usage example for TI LM1117.
+    Converts 5V input to 3.3V output for an MCU.
+    """
+
+    # Input power supply (e.g., from USB)
+    power_5v = new ElectricPower
+    assert power_5v.voltage within 5V +/- 5%
+
+    # Output power rail
+    power_3v3 = new ElectricPower
+    assert power_3v3.voltage within 3.3V +/- 5%
+
+    # LDO regulator
+    ldo = new TI_LM1117
+
+    # MCU load
+    mcu = new MCU
+
+    # Connections
+    power_5v ~> ldo ~> power_3v3
+    power_3v3 ~ mcu.power
